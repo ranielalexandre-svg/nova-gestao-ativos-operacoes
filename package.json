@@ -1,0 +1,16 @@
+{
+  "name": "nova-gestao-ativos-operacoes",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@10.33.0+sha512.10568bb4a6afb58c9eb3630da90cc9516417abebd3fabbe6739f0ae795728da1491e9db5a544c76ad8eb7570f5c4bb3d6c637b2cb41bfdcdb47fa823c8649319",
+  "scripts": {
+    "dev:web": "corepack pnpm --dir apps/web dev --port 3010",
+    "dev:api": "corepack pnpm --dir apps/api start:dev",
+    "build:web": "corepack pnpm --dir apps/web build",
+    "build:api": "corepack pnpm --dir apps/api build",
+    "build": "corepack pnpm build:web && corepack pnpm build:api",
+    "dev:up": "bash scripts/dev-up-local.sh",
+    "dev:down": "bash scripts/dev-down-local.sh",
+    "dev:status": "bash scripts/dev-status-local.sh"
+  }
+}

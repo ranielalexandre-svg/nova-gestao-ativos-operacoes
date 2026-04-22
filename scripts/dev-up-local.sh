@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd /home/raniel/projetos/nova-gestao-ativos-operacoes || exit 1
+mkdir -p .run-logs .run-pids
+
+if command -v fuser >/dev/null 2>&1; then
+  fuser -k 3010/tcp 2>/dev/null || true
+  fuser -k 4000/tcp 2>/dev/null || true
+fi
+
+pkill -f "nest start --watch" || true
+pkill -f "next dev --port 3010" || true
+
+if command -v setsid >/dev/null 2>&1; then
+  setsid bash -lc 'cd /home/raniel/projetos/nova-gestao-ativos-operacoes && corepack pnpm dev:api' \
+    > .run-logs/api.log 2>&1 < /dev/null &
+else
+  nohup bash -lc 'cd /home/raniel/projetos/nova-gestao-ativos-operacoes && corepack pnpm dev:api' \
+    > .run-logs/api.log 2>&1 < /dev/null &
+fi
+echo $! > .run-pids/api.pid
+
+if command -v setsid >/dev/null 2>&1; then
+  setsid bash -lc 'cd /home/raniel/projetos/nova-gestao-ativos-operacoes && corepack pnpm dev:web' \
+    > .run-logs/web.log 2>&1 < /dev/null &
+else
+  nohup bash -lc 'cd /home/raniel/projetos/nova-gestao-ativos-operacoes && corepack pnpm dev:web' \
+    > .run-logs/web.log 2>&1 < /dev/null &
+fi
+echo $! > .run-pids/web.pid
+
+sleep 14
+
+echo
+echo "== PORTAS =="
+ss -ltnp | grep -E ":3010|:4000" || true
+
+echo
+echo "== TESTE API =="
+curl -I http://127.0.0.1:4000/auth/session || true
+
+echo
+echo "== TESTE WEB =="
+curl -I http://127.0.0.1:3010 || true
+
+echo
+echo "== LOG API =="
+tail -n 40 .run-logs/api.log || true
+
+echo
+echo "== LOG WEB =="
+tail -n 40 .run-logs/web.log || true

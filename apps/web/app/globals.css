@@ -1,0 +1,169 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+  --app-bg: #070b10;
+  --app-panel: #0f141b;
+  --app-panel-2: #111820;
+  --app-panel-3: #151b23;
+  --app-line: rgba(255, 255, 255, 0.08);
+  --app-line-strong: rgba(255, 255, 255, 0.14);
+  --app-text: #f2f5f8;
+  --app-text-soft: #c3ccd8;
+  --app-muted: #8793a3;
+  --app-faint: #596676;
+  --app-brand: #1d4ed8;
+  --app-brand-soft: rgba(59, 130, 246, 0.16);
+  --app-success: #34d399;
+  --app-warning: #fbbf24;
+  --app-danger: #fb7185;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100vh;
+  background: var(--app-bg);
+  color: var(--app-text);
+}
+
+body {
+  margin: 0;
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  overflow-x: hidden;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+::selection {
+  background: rgba(59, 130, 246, 0.25);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #070b10;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #222b36;
+  border: 2px solid #070b10;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #303a47;
+}
+
+.nova-app {
+  background:
+    radial-gradient(circle at 38% -12%, rgba(37, 99, 235, 0.11), transparent 32rem),
+    linear-gradient(180deg, #090e14 0%, #070b10 55%);
+  color: var(--app-text);
+}
+
+.nova-app main {
+  color: var(--app-text);
+}
+
+.nova-app main :where(section, article, details) {
+  border-color: var(--app-line);
+}
+
+.nova-app main :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+  min-height: 42px;
+  border: 1px solid var(--app-line-strong) !important;
+  background: #090e14 !important;
+  color: var(--app-text) !important;
+  border-radius: 14px !important;
+  outline: none;
+}
+
+.nova-app main :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea)::placeholder {
+  color: #697588 !important;
+}
+
+.nova-app main :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea):focus {
+  border-color: rgba(96, 165, 250, 0.6) !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.16);
+}
+
+.nova-app main form[method="GET"] {
+  align-items: end;
+}
+
+.nova-app main form[method="GET"] > button {
+  grid-column: auto !important;
+  justify-self: end;
+  min-width: 132px;
+  width: auto;
+  min-height: 42px;
+  border: 1px solid rgba(96, 165, 250, 0.28) !important;
+  background: #17213a !important;
+  color: var(--app-text) !important;
+  border-radius: 14px !important;
+  padding: 0.62rem 1rem !important;
+  font-weight: 700;
+}
+
+.nova-app main form[method="GET"] > button:hover {
+  background: #1b2946 !important;
+}
+
+@media (max-width: 640px) {
+  .nova-app main form[method="GET"] > button {
+    justify-self: stretch;
+    width: 100%;
+  }
+}
+
+.nova-app main table {
+  color: var(--app-text-soft);
+}
+
+.nova-app main thead {
+  background: #151b23 !important;
+  border-color: var(--app-line) !important;
+  color: var(--app-muted) !important;
+}
+
+.nova-app main tbody tr {
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+.nova-app main tbody tr:hover {
+  background: rgba(255, 255, 255, 0.025) !important;
+}
+
+.nova-app main summary {
+  list-style: none;
+}
+
+.nova-app main summary::-webkit-details-marker {
+  display: none;
+}
+
+.nova-app main [role="status"],
+.nova-app main [role="alert"] {
+  border-radius: 14px !important;
+}

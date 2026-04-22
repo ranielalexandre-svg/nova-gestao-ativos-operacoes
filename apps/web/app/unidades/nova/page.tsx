@@ -1,0 +1,477 @@
+import Link from "next/link";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { AppShell } from "@/components/app-shell";
+import { ActionForm } from "@/components/action-form";
+import { FormSubmitButton } from "@/components/form-submit-button";
+import {
+  WizardFieldLabel as FieldLabel,
+  WizardPanel,
+  WizardStep,
+  WizardSummaryItem as SummaryItem,
+} from "@/components/guided-wizard";
+import { SectionIntro, TonePill } from "@/components/ops-ui";
+import { apiJson } from "@/lib/server-api";
+import {
+  getActionErrorMessage,
+  type ActionFeedbackState,
+} from "@/lib/action-state";
+import {
+  readStringParam,
+  resolveSearchParams,
+  type PaginatedResponse,
+  type RawSearchParams,
+} from "@/lib/list-query";
+import { getServerWebSession, normalizeRole } from "@/lib/web-session";
+
+type PartnerOption = {
+  id: string;
+  code: string;
+  name: string;
+  isActive: boolean;
+  _count: { units: number };
+  createdAt: string;
+};
+
+function normalizeUpper(value: string) {
+  return value.trim().toUpperCase();
+}
+
+function buildWizardHref(
+  step: number,
+  values: {
+    code?: string;
+    name?: string;
+    city?: string;
+    state?: string;
+    partnerId?: string;
+    partnerCode?: string;
+    from?: string;
+  },
+) {
+  const params = new URLSearchParams();
+  params.set("step", String(step));
+
+  const entries = {
+    code: values.code?.trim() || "",
+    name: values.name?.trim() || "",
+    city: values.city?.trim() || "",
+    state: values.state?.trim() || "",
+    partnerId: values.partnerId?.trim() || "",
+    partnerCode: values.partnerCode?.trim() || "",
+    from: values.from?.trim() || "",
+  };
+
+  for (const [key, value] of Object.entries(entries)) {
+    if (value) params.set(key, value);
+  }
+
+  return `/unidades/nova?${params.toString()}`;
+}
+
+export default async function NovaUnidadePage({
+  searchParams,
+}: {
+  searchParams?: Promise<RawSearchParams> | RawSearchParams;
+}) {
+  const session = await getServerWebSession();
+
+  if (!session.authenticated) {
+    redirect("/login?next=/unidades/nova");
+  }
+
+  if (normalizeRole(session.user?.role || "") !== "admin") {
+    redirect("/unidades");
+  }
+
+  const params = await resolveSearchParams(searchParams);
+  const requestedStep = Number(readStringParam(params, "step", "1")) || 1;
+
+  const code = normalizeUpper(readStringParam(params, "code"));
+  const name = readStringParam(params, "name").trim();
+  const city = readStringParam(params, "city").trim();
+  const state = normalizeUpper(readStringParam(params, "state"));
+  const partnerIdParam = readStringParam(params, "partnerId").trim();
+  const partnerCode = normalizeUpper(readStringParam(params, "partnerCode"));
+  const origin = readStringParam(params, "from").trim();
+
+  const baseReady = code.length >= 2 && name.length >= 2;
+
+  const partnersResponse = await apiJson<PaginatedResponse<PartnerOption>>(
+    "/partners?page=1&pageSize=100&sortBy=code&sortDir=asc",
+  );
+  const partnerOptions = partnersResponse.items.filter((item) => item.isActive);
+  const partnerFromLegacy = partnerCode
+    ? partnerOptions.find((partner) => normalizeUpper(partner.code) === partnerCode)
+    : null;
+  const partnerId = partnerIdParam || partnerFromLegacy?.id || "";
+  const linkReady = baseReady && Boolean(partnerId);
+
+  let step = 1;
+  if (requestedStep >= 4 && linkReady) {
+    step = 4;
+  } else if (requestedStep >= 3 && linkReady) {
+    step = 3;
+  } else if (requestedStep >= 2 && baseReady) {
+    step = 2;
+  }
+
+  const selectedPartner =
+    partnerOptions.find((partner) => partner.id === partnerId) || partnerFromLegacy || null;
+  const wizardValues = { code, name, city, state, partnerId, partnerCode, from: origin };
+  async function createFromWizard(
+    _prevState: ActionFeedbackState,
+    formData: FormData,
+  ): Promise<ActionFeedbackState> {
+    "use server";
+
+    let createdId = "";
+    const createOrigin = String(formData.get("from") || "") === "legacy" ? "legacy" : "wizard";
+
+    try {
+      const actionSession = await getServerWebSession();
+      if (normalizeRole(actionSession.user?.role || "") !== "admin") {
+        return { status: "error", message: "Acesso negado." };
+      }
+
+      const created = await apiJson<{ id: string }>("/units", {
+        method: "POST",
+        body: JSON.stringify({
+          code: String(formData.get("code") || ""),
+          name: String(formData.get("name") || ""),
+          city: String(formData.get("city") || ""),
+          state: String(formData.get("state") || ""),
+          partnerId: String(formData.get("partnerId") || ""),
+        }),
+      });
+
+      createdId = created.id;
+      revalidatePath("/unidades");
+    } catch (error) {
+      return { status: "error", message: getActionErrorMessage(error) };
+    }
+
+    redirect(`/unidades/${createdId}?created=1&from=${createOrigin}`);
+  }
+
+  return (
+    <AppShell
+      title="Nova unidade"
+      subtitle="Cadastro guiado para criar a unidade, vincular parceiro e preparar o monitoramento."
+    >
+      <div className="mx-auto max-w-6xl rounded-[22px] border border-white/[0.08] bg-[#0c1016] shadow-[0_30px_80px_rgba(0,0,0,0.32)]">
+        <div className="flex items-start justify-between gap-4 border-b border-white/[0.08] px-5 py-5 sm:px-6">
+          <SectionIntro
+            eyebrow="Cadastro guiado"
+            title="Nova unidade"
+            description="Fluxo curto para identificar, vincular e revisar antes de criar."
+            actions={
+              origin === "legacy" ? (
+                <TonePill tone="info">pré-preenchido pelo legado</TonePill>
+              ) : undefined
+            }
+            compact
+          />
+          <div className="shrink-0">
+            <Link
+              href="/unidades"
+              aria-label="Fechar cadastro"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-[16px] border border-white/10 bg-white/[0.04] text-lg leading-none text-slate-300 transition hover:bg-white/[0.08] hover:text-white"
+            >
+              ×
+            </Link>
+          </div>
+        </div>
+
+        <div className="border-b border-white/[0.08] bg-[#0f141b] px-5 py-4 sm:px-6">
+          <div className="grid gap-3 lg:grid-cols-4">
+            <WizardStep
+              index={1}
+              title="Base"
+              description="Identificação principal."
+              state={step === 1 ? "current" : step > 1 ? "done" : "available"}
+              href={buildWizardHref(1, wizardValues)}
+            />
+            <WizardStep
+              index={2}
+              title="Vínculos"
+              description="Parceiro e localização."
+              state={step === 2 ? "current" : step > 2 ? "done" : baseReady ? "available" : "locked"}
+              href={baseReady ? buildWizardHref(2, wizardValues) : undefined}
+            />
+            <WizardStep
+              index={3}
+              title="Monitoramento"
+              description="Leitura e sync depois da criação."
+              state={step === 3 ? "current" : step > 3 ? "done" : linkReady ? "available" : "locked"}
+              href={linkReady ? buildWizardHref(3, wizardValues) : undefined}
+            />
+            <WizardStep
+              index={4}
+              title="Observações"
+              description="Revisão final."
+              state={step === 4 ? "current" : linkReady ? "available" : "locked"}
+              href={linkReady ? buildWizardHref(4, wizardValues) : undefined}
+            />
+          </div>
+        </div>
+
+        <div className="px-5 py-5 sm:px-6">
+          {step === 1 ? (
+            <WizardPanel
+              title="Base"
+              description="Identifique a unidade e sua posição operacional."
+            >
+              <form method="GET" className="grid gap-5">
+                <input type="hidden" name="step" value="2" />
+                <input type="hidden" name="city" value={city} />
+                <input type="hidden" name="state" value={state} />
+                <input type="hidden" name="partnerId" value={partnerId} />
+                <input type="hidden" name="partnerCode" value={partnerCode} />
+                <input type="hidden" name="from" value={origin} />
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="grid gap-2">
+                    <FieldLabel htmlFor="wizard-code" label="Código" hint="Mínimo de 2 caracteres" />
+                    <input
+                      id="wizard-code"
+                      name="code"
+                      defaultValue={code}
+                      placeholder="UNITINS-ARAGUAINA"
+                      minLength={2}
+                      required
+                      className="w-full rounded-[16px] border border-white/10 bg-[#090d13] px-4 py-3 text-sm uppercase text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <FieldLabel htmlFor="wizard-name" label="Nome da unidade" hint="Nome operacional claro" />
+                    <input
+                      id="wizard-name"
+                      name="name"
+                      defaultValue={name}
+                      placeholder="Unitins Araguaína"
+                      minLength={2}
+                      required
+                      className="w-full rounded-[16px] border border-white/10 bg-[#090d13] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between gap-3 border-t border-white/[0.08] pt-5">
+                  <Link
+                    href="/unidades"
+                    className="rounded-[16px] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]"
+                  >
+                    Voltar
+                  </Link>
+                  <button className="rounded-[16px] border border-white/10 bg-white/[0.04] px-5 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]">
+                    Próximo
+                  </button>
+                </div>
+              </form>
+            </WizardPanel>
+          ) : null}
+
+          {step === 2 ? (
+            <WizardPanel
+              title="Vínculos"
+              description="Associe o parceiro principal e guarde o mínimo de localização útil para consulta e reconciliação."
+            >
+              <form method="GET" className="grid gap-5">
+                <input type="hidden" name="step" value="3" />
+                <input type="hidden" name="code" value={code} />
+                <input type="hidden" name="name" value={name} />
+                <input type="hidden" name="partnerCode" value={partnerCode} />
+                <input type="hidden" name="from" value={origin} />
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="grid gap-2">
+                    <FieldLabel htmlFor="wizard-partner" label="Parceiro principal" hint="Obrigatório para avançar" />
+                    <select
+                      id="wizard-partner"
+                      name="partnerId"
+                      defaultValue={partnerId}
+                      required
+                      className="w-full rounded-[16px] border border-white/10 bg-[#090d13] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
+                    >
+                      <option value="">Selecione um parceiro</option>
+                      {partnerOptions.map((partner) => (
+                        <option key={partner.id} value={partner.id}>
+                          {partner.code} - {partner.name}
+                        </option>
+                      ))}
+                    </select>
+                    {partnerCode ? (
+                      <div className="text-xs leading-5 text-slate-500">
+                        Parceiro sugerido pelo legado:{" "}
+                        <span className="font-semibold text-slate-300">{partnerCode}</span>
+                        {partnerFromLegacy
+                          ? " · selecionado automaticamente"
+                          : " · selecione o equivalente antes de gravar"}
+                      </div>
+                    ) : null}
+                  </div>
+                  <div className="grid gap-2">
+                    <FieldLabel htmlFor="wizard-city" label="Cidade" hint="Opcional" />
+                    <input
+                      id="wizard-city"
+                      name="city"
+                      defaultValue={city}
+                      placeholder="Araguaína"
+                      className="w-full rounded-[16px] border border-white/10 bg-[#090d13] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="grid gap-2">
+                    <FieldLabel htmlFor="wizard-state" label="UF" hint="Sigla" />
+                    <input
+                      id="wizard-state"
+                      name="state"
+                      defaultValue={state}
+                      placeholder="TO"
+                      maxLength={2}
+                      className="w-full rounded-[16px] border border-white/10 bg-[#090d13] px-4 py-3 text-sm uppercase text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
+                    />
+                  </div>
+                  <div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] px-4 py-4">
+                    <div className="text-sm font-semibold text-slate-50">Leitura do vínculo</div>
+                    <div className="mt-2 text-sm leading-6 text-slate-400">
+                      O parceiro já entra aqui porque ele é a peça central do atendimento externo. O restante do contexto operacional continua no detalhe da unidade depois da criação.
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between gap-3 border-t border-white/[0.08] pt-5">
+                  <Link
+                    href={buildWizardHref(1, wizardValues)}
+                    className="rounded-[16px] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]"
+                  >
+                    Voltar
+                  </Link>
+                  <button className="rounded-[16px] border border-white/10 bg-white/[0.04] px-5 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]">
+                    Próximo
+                  </button>
+                </div>
+              </form>
+            </WizardPanel>
+          ) : null}
+
+          {step === 3 ? (
+            <WizardPanel
+              title="Monitoramento"
+              description="Prepare a unidade para o match técnico com host, legado e cobertura do parceiro."
+            >
+              <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+                <div className="grid gap-4">
+                  <div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4">
+                    <div className="text-sm font-semibold text-slate-50">Fluxo recomendado</div>
+                    <div className="mt-2 text-sm leading-6 text-slate-400">
+                      1. Crie a unidade com base e vínculo corretos. 2. Abra a ficha da unidade. 3. Resolva o match do host Zabbix, legado e cobertura do parceiro no detalhe operacional.
+                    </div>
+                  </div>
+                  <div className="grid gap-3 md:grid-cols-3">
+                    <SummaryItem label="Código" value={code} />
+                    <SummaryItem label="Nome" value={name} />
+                    <SummaryItem label="Parceiro" value={selectedPartner ? `${selectedPartner.code} - ${selectedPartner.name}` : "-"} />
+                    <SummaryItem label="Cidade" value={city || "-"} />
+                    <SummaryItem label="UF" value={state || "-"} />
+                    <SummaryItem label="Origem" value={origin === "legacy" ? "legado importado" : "cadastro manual"} />
+                  </div>
+                </div>
+
+                <div className="rounded-[16px] border border-sky-500/18 bg-sky-500/[0.06] p-4">
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-sky-100">
+                    pós-criação
+                  </div>
+                  <div className="mt-3 text-sm font-semibold text-white">
+                    O monitoramento nasce no detalhe
+                  </div>
+                  <div className="mt-2 text-sm leading-6 text-slate-300">
+                    Assim que a unidade existir, a tela de detalhe pode exibir match de host, contexto legado, backup, Starlink e lacunas de acionamento.
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-5 flex items-center justify-between gap-3 border-t border-white/[0.08] pt-5">
+                <Link
+                  href={buildWizardHref(2, wizardValues)}
+                  className="rounded-[16px] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]"
+                >
+                  Voltar
+                </Link>
+                <Link
+                  href={buildWizardHref(4, wizardValues)}
+                  className="rounded-[16px] border border-white/10 bg-white/[0.04] px-5 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]"
+                >
+                  Próximo
+                </Link>
+              </div>
+            </WizardPanel>
+          ) : null}
+
+          {step === 4 ? (
+            <WizardPanel
+              title="Observações"
+              description="Revise os dados antes de criar a unidade."
+            >
+              <ActionForm
+                action={createFromWizard}
+                className="grid gap-5"
+                submitLabel="Criar unidade"
+                pendingLabel="Criando unidade..."
+                hideSubmit
+              >
+                <input type="hidden" name="code" value={code} />
+                <input type="hidden" name="name" value={name} />
+                <input type="hidden" name="city" value={city} />
+                <input type="hidden" name="state" value={state} />
+                <input type="hidden" name="partnerId" value={partnerId} />
+                <input type="hidden" name="partnerCode" value={partnerCode} />
+                <input type="hidden" name="from" value={origin} />
+
+                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                  <SummaryItem label="Código" value={code} />
+                  <SummaryItem label="Nome da unidade" value={name} />
+                  <SummaryItem label="Parceiro" value={selectedPartner ? `${selectedPartner.code} - ${selectedPartner.name}` : "-"} />
+                  <SummaryItem label="Cidade" value={city || "-"} />
+                  <SummaryItem label="UF" value={state || "-"} />
+                  <SummaryItem label="Origem" value={origin === "legacy" ? "legado importado" : "cadastro manual"} />
+                </div>
+
+                <div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4 text-sm leading-6 text-slate-400">
+                  Depois de criar, abra a ficha da unidade para amarrar monitoramento, contexto legado, backup e equipamentos.
+                </div>
+
+                <div className="flex items-center justify-between gap-3 border-t border-white/[0.08] pt-5">
+                  <Link
+                    href={buildWizardHref(3, wizardValues)}
+                    className="rounded-[16px] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]"
+                  >
+                    Voltar
+                  </Link>
+                  <FormSubmitButton
+                    idleLabel="Criar unidade"
+                    pendingLabel="Criando unidade..."
+                    className="min-w-[148px]"
+                  />
+                </div>
+              </ActionForm>
+            </WizardPanel>
+          ) : null}
+        </div>
+
+        <div className="flex items-center justify-end gap-3 border-t border-white/[0.08] px-5 py-4 sm:px-6">
+          <TonePill tone="info">cadastro guiado</TonePill>
+          <Link
+            href="/unidades"
+            className="rounded-[16px] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]"
+          >
+            Cancelar
+          </Link>
+        </div>
+      </div>
+    </AppShell>
+  );
+}
