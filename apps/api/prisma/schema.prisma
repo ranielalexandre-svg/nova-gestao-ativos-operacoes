@@ -152,6 +152,23 @@ model Maintenance {
   @@index([status])
 }
 
+model DocumentAttachment {
+  id          String   @id @default(cuid())
+  entityType  String
+  entityId    String
+  name        String
+  storedName  String
+  mimeType    String?
+  size        Int      @default(0)
+  storagePath String
+  source      String   @default("upload")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
 model ExceptionCase {
   id                  String             @id @default(cuid())
   code                String             @unique

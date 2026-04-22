@@ -4,6 +4,10 @@ Levantamento feito em modo somente leitura contra `http://192.168.58.159` em
 2026-04-22. Nenhuma credencial foi registrada neste documento e nenhum dado foi
 alterado no servidor.
 
+Uma segunda leitura autenticada, tambem somente leitura, confirmou estas
+contagens do legado: 53 parceiros, 280 unidades, 33 equipamentos, 31 Starlinks,
+5 usuarios e 238 auditorias.
+
 ## Objetivo
 
 Este checklist orienta a substituicao gradual do site legado pelo NOVA. A meta
@@ -105,6 +109,12 @@ Ja existe cobertura funcional no NOVA para:
 - Fila, excecoes, SLA e automacoes.
 - Reconciliacao com pacote legado via `NOVA_LEGACY_IMPORT_PATH`.
 - Healthcheck e readiness da API.
+- Compatibilidade de prefixo `/api/*` no backend.
+- Endpoint dedicado de auditoria baseado em atividades (`/api/audits`).
+- Endpoint dedicado de Starlinks baseado em equipamentos do tipo Starlink.
+- Upload, listagem, download e remocao de anexos por entidade.
+- Templates, preview, execucao de importacao e exportacao CSV para parceiros,
+  unidades, equipamentos e Starlinks.
 
 ## Itens criticos antes da troca
 
@@ -128,18 +138,21 @@ Estes pontos devem estar ok antes de trocar o proxy do legado para o NOVA:
 Estes itens aparecem no legado, mas ainda precisam de decisao de produto ou
 implementacao equivalente no NOVA:
 
-- Auditoria dedicada: o NOVA tem atividades operacionais, mas nao uma tela
-  identica de auditoria do legado.
-- Starlinks como modulo proprio: o NOVA trata parte disso via equipamento e
-  reconciliacao legado, mas nao ha rota independente de Starlinks.
-- Anexos: o legado possui endpoints de upload/remocao por entidade.
-- Importacao/exportacao via UI: o NOVA hoje prioriza pacote legado e
-  reconciliacao, nao necessariamente os mesmos CSV/templates do legado.
+- Auditoria dedicada agora tem endpoint compativel; ainda falta decidir se a
+  tela visual deve ser identica ao legado ou se a tela de atividades do NOVA
+  substitui a experiencia.
+- Starlinks agora tem endpoint proprio; ainda falta decidir se tera CRUD visual
+  dedicado ou se continua como recorte de equipamentos.
+- Anexos agora tem endpoints de backend; falta encaixar exibicao/acao nas telas
+  onde a equipe realmente usa documentos.
+- Importacao/exportacao CSV agora existe no backend; falta decidir quais telas
+  terao botoes operacionais antes do corte.
 - Handover, RCA, playbooks, followups, mudancas, comunicacao, evidencias,
   war rooms, dependencias e despacho de campo parecem ser modulos avancados do
   legado. Podem virar fase 2 se nao forem usados no dia a dia.
-- Compatibilidade de URLs `/api/*`: verificar se algum consumidor externo chama
-  diretamente a API legada.
+- Compatibilidade de URLs `/api/*`: backend aceita o prefixo, mas contratos de
+  consumidores externos ainda devem ser testados caso existam integracoes fora
+  do navegador.
 
 ## Proxima investigacao segura
 

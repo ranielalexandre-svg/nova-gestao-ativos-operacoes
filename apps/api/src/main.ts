@@ -1,5 +1,6 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import type { NextFunction, Request, Response } from 'express';
 import { isProduction, readCsvEnv } from './common/env';
 import { AppModule } from './app.module';
 
@@ -21,6 +22,16 @@ function getPort() {
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  app.use((request: Request, _response: Response, next: NextFunction) => {
+    if (request.url === '/api') {
+      request.url = '/';
+    } else if (request.url.startsWith('/api/')) {
+      request.url = request.url.slice('/api'.length);
+    }
+
+    next();
+  });
 
   app.useGlobalPipes(
     new ValidationPipe({

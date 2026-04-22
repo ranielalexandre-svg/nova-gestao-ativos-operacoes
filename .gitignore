@@ -14,6 +14,7 @@ Thumbs.db
 *.db
 *.sqlite
 *.sqlite3
+uploads/
 *.py[cod]
 __pycache__/
 .run-logs/

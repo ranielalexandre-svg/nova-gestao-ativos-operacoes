@@ -70,6 +70,7 @@ INTEGRATION_SECRET_KEY=gere-outro-segredo-com-openssl-rand-base64-48
 CORS_ORIGINS=http://192.168.58.159
 ADMIN_EMAIL=admin@nova.local
 ADMIN_PASSWORD=senha-temporaria-forte
+NOVA_UPLOAD_DIR=/opt/nova/uploads
 ```
 
 Edite `apps/web/.env.local`:
@@ -87,6 +88,8 @@ Use `WEB_SESSION_COOKIE_SECURE=true` se o acesso final for HTTPS.
 
 ```bash
 createdb nova_gestao 2>/dev/null || true
+sudo mkdir -p /opt/nova/uploads
+sudo chown "$USER":"$USER" /opt/nova/uploads
 corepack pnpm --dir apps/api prisma:migrate:deploy
 corepack pnpm --dir apps/api seed
 corepack pnpm check:deploy
@@ -151,6 +154,7 @@ Valide localmente no servidor:
 ```bash
 curl -fsS http://127.0.0.1:4000/health
 curl -fsS http://127.0.0.1:4000/health/ready
+curl -fsS http://127.0.0.1:4000/api/health
 curl -I http://127.0.0.1:3010/login
 ```
 
@@ -164,6 +168,24 @@ server {
     server_name 192.168.58.159;
 
     client_max_body_size 20m;
+
+    location = /api/auth/web-session {
+        proxy_pass http://127.0.0.1:3010/api/auth/web-session;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /api/ {
+        proxy_pass http://127.0.0.1:4000/api/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
 
     location / {
         proxy_pass http://127.0.0.1:3010;
@@ -202,5 +224,8 @@ Nao remova o legado ate validar login, cadastros, operacao, reconciliacao e rela
 - `corepack pnpm check:deploy` passou no repositorio.
 - `curl http://127.0.0.1:4000/health/ready` retorna `ok: true` no servidor.
 - Login com usuario administrador funciona em `http://192.168.58.159/login`.
+- Endpoints de compatibilidade `/api/health`, `/api/dashboard`, `/api/audits`,
+  `/api/starlinks`, `/api/import/templates/units` e `/api/export/partners`
+  respondem no servidor.
 - Dados principais migrados/importados ou plano de convivencia definido.
 - Backup do legado feito e caminho de rollback testado.

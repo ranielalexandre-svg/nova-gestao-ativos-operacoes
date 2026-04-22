@@ -1,7 +1,7 @@
-import { Injectable, UnauthorizedException } from "@nestjs/common";
-import { JwtService } from "@nestjs/jwt";
-import bcrypt from "bcryptjs";
-import { PrismaService } from "../prisma/prisma.service";
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import bcrypt from 'bcryptjs';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class AuthService {
@@ -18,13 +18,13 @@ export class AuthService {
     });
 
     if (!user || !user.isActive) {
-      throw new UnauthorizedException("Credenciais inválidas");
+      throw new UnauthorizedException('Credenciais inválidas');
     }
 
     const valid = await bcrypt.compare(password, user.passwordHash);
 
     if (!valid) {
-      throw new UnauthorizedException("Credenciais inválidas");
+      throw new UnauthorizedException('Credenciais inválidas');
     }
 
     const accessToken = this.jwtService.sign({
@@ -34,8 +34,22 @@ export class AuthService {
       role: user.role,
     });
 
+    void this.prisma.activityEntry
+      .create({
+        data: {
+          kind: 'auth',
+          source: 'session',
+          title: 'Login',
+          description: 'Usuário autenticado no ambiente NOVA.',
+          severity: 'info',
+          userId: user.id,
+        },
+      })
+      .catch(() => undefined);
+
     return {
       accessToken,
+      token: accessToken,
       user: {
         id: user.id,
         email: user.email,
@@ -46,7 +60,7 @@ export class AuthService {
   }
 
   async getSession(user: Record<string, unknown>) {
-    const id = String(user.sub || "");
+    const id = String(user.sub || '');
 
     const dbUser = await this.prisma.user.findUnique({
       where: { id },
@@ -60,7 +74,7 @@ export class AuthService {
     });
 
     if (!dbUser || !dbUser.isActive) {
-      throw new UnauthorizedException("Sessão inválida");
+      throw new UnauthorizedException('Sessão inválida');
     }
 
     return {
@@ -69,7 +83,24 @@ export class AuthService {
     };
   }
 
-  logout() {
+  logout(user?: Record<string, unknown>) {
+    const userId = String(user?.sub || '');
+
+    if (userId) {
+      void this.prisma.activityEntry
+        .create({
+          data: {
+            kind: 'auth',
+            source: 'session',
+            title: 'Logout',
+            description: 'Usuário encerrou a sessão no ambiente NOVA.',
+            severity: 'info',
+            userId,
+          },
+        })
+        .catch(() => undefined);
+    }
+
     return { ok: true };
   }
 }
