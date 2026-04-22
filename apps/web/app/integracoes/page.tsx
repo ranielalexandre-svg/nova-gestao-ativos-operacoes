@@ -223,10 +223,12 @@ async function readUnitTelemetry() {
 }
 
 async function syncReadyUnitsAction(
-  _state: ActionFeedbackState,
-  _formData: FormData,
+  state: ActionFeedbackState,
+  formData: FormData,
 ): Promise<ActionFeedbackState> {
   "use server";
+  void state;
+  void formData;
 
   try {
     const session = await getServerWebSession();

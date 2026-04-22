@@ -18,6 +18,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <head>
+        {/* eslint-disable-next-line @next/next/no-css-tags */}
         <link
           id="nova-critical-css"
           rel="stylesheet"

@@ -261,9 +261,10 @@ type CurrentEquipmentForLegacy = {
 };
 
 async function syncReadyZabbixAction(
-  _state: ActionFeedbackState,
+  state: ActionFeedbackState,
 ): Promise<ActionFeedbackState> {
   "use server";
+  void state;
 
   try {
     const result = await apiJson<SyncReadyResult>("/units/sync-zabbix-ready", {

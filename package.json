@@ -9,6 +9,9 @@
     "build:web": "corepack pnpm --dir apps/web build",
     "build:api": "corepack pnpm --dir apps/api build",
     "build": "corepack pnpm build:web && corepack pnpm build:api",
+    "test:api": "corepack pnpm --dir apps/api exec jest --runInBand",
+    "lint:web": "corepack pnpm --dir apps/web lint",
+    "check:deploy": "bash scripts/predeploy-check.sh",
     "dev:up": "bash scripts/dev-up-local.sh",
     "dev:down": "bash scripts/dev-down-local.sh",
     "dev:status": "bash scripts/dev-status-local.sh"

@@ -2343,6 +2343,8 @@ export default async function MonitoramentoPage({
         ]}
       />
 
+      <SourcePanel telemetry={telemetry} />
+
       <MonitorTabs filters={filters} telemetry={filteredTelemetry} />
 
       <NocFilters filters={filters} partners={partners} resultCount={filteredTelemetry.counts.units} />

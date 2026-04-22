@@ -17,7 +17,6 @@ import {
   emptyCommandCenter,
   emptyTelemetry,
   operationPressure,
-  readUnitHostTelemetry,
   safeApiJson,
   type CommandCenter,
   type UnitHostTelemetry,

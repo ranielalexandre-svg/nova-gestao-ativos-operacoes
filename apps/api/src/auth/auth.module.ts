@@ -1,18 +1,19 @@
-import { Module } from "@nestjs/common";
-import { JwtModule } from "@nestjs/jwt";
-import { PrismaModule } from "../prisma/prisma.module";
-import { AuthController } from "./auth.controller";
-import { AuthService } from "./auth.service";
-import { JwtAuthGuard } from "./jwt-auth.guard";
-import { RolesGuard } from "./roles.guard";
+import { Module } from '@nestjs/common';
+import { JwtModule } from '@nestjs/jwt';
+import { getJwtSecret } from '../common/env';
+import { PrismaModule } from '../prisma/prisma.module';
+import { AuthController } from './auth.controller';
+import { AuthService } from './auth.service';
+import { JwtAuthGuard } from './jwt-auth.guard';
+import { RolesGuard } from './roles.guard';
 
 @Module({
   imports: [
     PrismaModule,
     JwtModule.register({
-      secret: process.env.JWT_SECRET || "nova-dev-secret-change",
+      secret: getJwtSecret(),
       signOptions: {
-        expiresIn: "12h",
+        expiresIn: '12h',
       },
     }),
   ],
