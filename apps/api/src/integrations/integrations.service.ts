@@ -91,6 +91,11 @@ type ZabbixHostInterface = {
   useip?: string;
 };
 
+type ZabbixHostGroupRef = {
+  groupid: string;
+  name: string;
+};
+
 type ZabbixHostCandidate = {
   hostid: string;
   host: string;
@@ -100,6 +105,13 @@ type ZabbixHostCandidate = {
   inheritedTags?: ZabbixHostTag[];
   inventory?: Record<string, unknown> | null;
   interfaces?: ZabbixHostInterface[];
+  hostgroups?: ZabbixHostGroupRef[];
+};
+
+type ZabbixHostGroupRecord = {
+  groupid: string;
+  name: string;
+  hosts?: string | Array<unknown>;
 };
 
 type ZabbixTelemetryItem = {
@@ -214,6 +226,16 @@ export class IntegrationsService {
 
     if (!integration) {
       throw new NotFoundException("Integração não encontrada");
+    }
+
+    return integration;
+  }
+
+  private async getActiveZabbixIntegrationByIdOrThrow(id: string) {
+    const integration = await this.prisma.integration.findUnique({ where: { id } });
+
+    if (!integration || integration.type !== "zabbix" || !integration.isActive) {
+      throw new NotFoundException("Integração Zabbix ativa não encontrada");
     }
 
     return integration;
@@ -742,6 +764,82 @@ export class IntegrationsService {
       matchedBy: best.reasons,
       candidates: ranked.filter((item) => item.score >= 55).length,
       syncReady: best.syncReady && !ambiguous,
+    };
+  }
+
+  private selectUnitMatchForHost(
+    host: ZabbixHostCandidate,
+    units: UnitTelemetryInput[],
+    integration: Pick<Integration, "id" | "code" | "name">,
+    targetUrl: string,
+  ) {
+    const ranked = units
+      .map((unit) => ({
+        unit,
+        ...this.scoreHostForUnit(unit, host),
+      }))
+      .filter((item) => item.score > 0)
+      .sort((a, b) => b.score - a.score);
+
+    const best = ranked[0];
+    const hostGroupNames = (host.hostgroups || []).map((group) => group.name);
+
+    if (!best || best.score < 55) {
+      return {
+        status: "unmatched" as const,
+        score: best?.score || 0,
+        confidence: Math.min(100, best?.score || 0),
+        unit: null,
+        matchedBy: best?.reasons || [],
+        candidates: ranked.length,
+        syncReady: false,
+        host: {
+          hostId: host.hostid,
+          host: host.host,
+          hostName: host.name,
+          hostStatus: host.status,
+          groups: hostGroupNames,
+        },
+        integration: {
+          id: integration.id,
+          code: integration.code,
+          name: integration.name,
+          targetUrl,
+        },
+      };
+    }
+
+    const second = ranked[1];
+    const ambiguous = Boolean(second && second.score >= 55 && best.score - second.score < 12);
+
+    return {
+      status: ambiguous ? ("ambiguous" as const) : ("matched" as const),
+      score: best.score,
+      confidence: Math.min(100, best.score),
+      unit: {
+        id: best.unit.id,
+        code: best.unit.code,
+        name: best.unit.name,
+        city: best.unit.city,
+        state: best.unit.state,
+        partner: best.unit.partner,
+      },
+      matchedBy: best.reasons,
+      candidates: ranked.filter((item) => item.score >= 55).length,
+      syncReady: best.syncReady && !ambiguous,
+      host: {
+        hostId: host.hostid,
+        host: host.host,
+        hostName: host.name,
+        hostStatus: host.status,
+        groups: hostGroupNames,
+      },
+      integration: {
+        id: integration.id,
+        code: integration.code,
+        name: integration.name,
+        targetUrl,
+      },
     };
   }
 
@@ -1561,6 +1659,167 @@ export class IntegrationsService {
       },
       items,
     };
+  }
+
+  async getZabbixReportGroupCatalog(integrationId: string) {
+    const integration = await this.getActiveZabbixIntegrationByIdOrThrow(integrationId);
+    const targetUrl = this.resolveTargetUrl(integration);
+    const { bearerToken, logoutToken } = await this.getZabbixBearerToken(integration, targetUrl);
+
+    if (!bearerToken) {
+      throw new Error("Credenciais Zabbix ausentes.");
+    }
+
+    try {
+      const groups = await this.zabbixRpc<ZabbixHostGroupRecord[]>(
+        targetUrl,
+        "hostgroup.get",
+        {
+          output: ["groupid", "name"],
+          with_monitored_hosts: true,
+          selectHosts: "count",
+          sortfield: "name",
+          sortorder: "ASC",
+        },
+        bearerToken,
+      );
+
+      return {
+        integration: {
+          id: integration.id,
+          code: integration.code,
+          name: integration.name,
+        },
+        items: groups.map((group) => ({
+          id: group.groupid,
+          name: group.name,
+          hostCount: Array.isArray(group.hosts) ? group.hosts.length : Number(group.hosts || 0),
+        })),
+      };
+    } finally {
+      await this.safeZabbixLogout(targetUrl, logoutToken);
+    }
+  }
+
+  async previewZabbixReportGroupSelection(
+    integrationId: string,
+    groupIds: string[],
+    units: UnitTelemetryInput[],
+  ) {
+    const integration = await this.getActiveZabbixIntegrationByIdOrThrow(integrationId);
+    const targetUrl = this.resolveTargetUrl(integration);
+    const { bearerToken, logoutToken } = await this.getZabbixBearerToken(integration, targetUrl);
+
+    if (!bearerToken) {
+      throw new Error("Credenciais Zabbix ausentes.");
+    }
+
+    try {
+      const selectedGroups = await this.zabbixRpc<Array<{ groupid: string; name: string }>>(
+        targetUrl,
+        "hostgroup.get",
+        {
+          output: ["groupid", "name"],
+          groupids: groupIds,
+          sortfield: "name",
+          sortorder: "ASC",
+        },
+        bearerToken,
+      );
+
+      const hosts = await this.zabbixRpc<ZabbixHostCandidate[]>(
+        targetUrl,
+        "host.get",
+        this.zabbixHostLookupParams({
+          groupids: groupIds,
+          selectHostGroups: ["groupid", "name"],
+        }),
+        bearerToken,
+      );
+
+      const hostMatches = hosts.map((host) =>
+        this.selectUnitMatchForHost(host, units, integration, targetUrl),
+      );
+
+      const groupedMatches = new Map<
+        string,
+        Array<(typeof hostMatches)[number] & { status: "matched" }>
+      >();
+
+      for (const match of hostMatches) {
+        if (match.status !== "matched" || !match.unit) {
+          continue;
+        }
+
+        groupedMatches.set(match.unit.id, [
+          ...(groupedMatches.get(match.unit.id) || []),
+          match as (typeof hostMatches)[number] & { status: "matched" },
+        ]);
+      }
+
+      const matchedUnits = Array.from(groupedMatches.values())
+        .map((matches) => {
+          const ordered = [...matches].sort((a, b) => b.score - a.score);
+          const primary = ordered[0];
+          const hostNames = ordered.map((item) => item.host.hostName || item.host.host || item.host.hostId);
+          const groups = Array.from(
+            new Set(ordered.flatMap((item) => item.host.groups || []).filter(Boolean)),
+          );
+
+          return {
+            unit: primary.unit,
+            primaryHost: primary.host,
+            allHosts: hostNames,
+            groups,
+            confidence: primary.confidence,
+            score: primary.score,
+            matchedBy: primary.matchedBy,
+            syncReady: primary.syncReady,
+            hostCount: ordered.length,
+          };
+        })
+        .sort((a, b) => a.unit.code.localeCompare(b.unit.code, "pt-BR"));
+
+      const unresolvedHosts = hostMatches
+        .filter((match) => match.status !== "matched")
+        .map((match) => ({
+          status: match.status,
+          score: match.score,
+          confidence: match.confidence,
+          matchedBy: match.matchedBy,
+          candidates: match.candidates,
+          host: match.host,
+        }))
+        .sort((a, b) =>
+          String(a.host.hostName || a.host.host || "").localeCompare(
+            String(b.host.hostName || b.host.host || ""),
+            "pt-BR",
+          ),
+        );
+
+      return {
+        integration: {
+          id: integration.id,
+          code: integration.code,
+          name: integration.name,
+        },
+        groups: selectedGroups.map((group) => ({
+          id: group.groupid,
+          name: group.name,
+        })),
+        counts: {
+          selectedGroups: selectedGroups.length,
+          hosts: hosts.length,
+          matchedUnits: matchedUnits.length,
+          unmatchedHosts: unresolvedHosts.filter((item) => item.status === "unmatched").length,
+          ambiguousHosts: unresolvedHosts.filter((item) => item.status === "ambiguous").length,
+        },
+        matchedUnits,
+        unresolvedHosts,
+      };
+    } finally {
+      await this.safeZabbixLogout(targetUrl, logoutToken);
+    }
   }
 
   async getZabbixPrtgStyleReport(unit: UnitTelemetryInput, period: { from: Date; to: Date }) {

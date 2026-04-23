@@ -3,6 +3,8 @@ import { PrismaService } from "../prisma/prisma.service";
 import { IntegrationsService } from "../integrations/integrations.service";
 import { ExportMonitoringReportDto } from "./dto/export-monitoring-report.dto";
 import { PrtgStyleReportQueryDto } from "./dto/prtg-style-report-query.dto";
+import { ZabbixReportGroupPreviewQueryDto } from "./dto/zabbix-report-group-preview-query.dto";
+import { ZabbixReportGroupsQueryDto } from "./dto/zabbix-report-groups-query.dto";
 import { MonitoringReportExportService } from "./report-export.service";
 import { MonitoringPrtgStyleReport } from "./report.types";
 
@@ -334,6 +336,43 @@ export class MonitoringService {
     return parsed;
   }
 
+  private async readActiveUnitsForMatching(limit = 500) {
+    return this.prisma.unit.findMany({
+      where: { isActive: true },
+      orderBy: [{ partner: { code: "asc" } }, { code: "asc" }],
+      take: limit,
+      select: {
+        id: true,
+        code: true,
+        name: true,
+        city: true,
+        state: true,
+        zabbixHost: true,
+        zabbixVisibleName: true,
+        isActive: true,
+        partner: {
+          select: {
+            id: true,
+            code: true,
+            name: true,
+          },
+        },
+        equipments: {
+          orderBy: { tag: "asc" },
+          select: {
+            id: true,
+            tag: true,
+            name: true,
+            type: true,
+            serialNumber: true,
+            status: true,
+            isActive: true,
+          },
+        },
+      },
+    });
+  }
+
   private resolveReportRange(fromInput?: string, toInput?: string) {
     const now = new Date();
     const defaultFrom = new Date(now);
@@ -397,6 +436,43 @@ export class MonitoringService {
   async getPrtgStyleReport(query: PrtgStyleReportQueryDto) {
     const { from, to } = this.resolveReportRange(query.from, query.to);
     return this.readPrtgStyleReportForUnit(query.unitId || "", from, to);
+  }
+
+  async getReportGroupSources() {
+    return this.prisma.integration.findMany({
+      where: { isActive: true, type: "zabbix" },
+      orderBy: { code: "asc" },
+      select: {
+        id: true,
+        code: true,
+        name: true,
+      },
+    });
+  }
+
+  async getZabbixReportGroups(query: ZabbixReportGroupsQueryDto) {
+    if (!query.integrationId) {
+      throw new BadRequestException("Informe integrationId para listar os grupos.");
+    }
+
+    return this.integrationsService.getZabbixReportGroupCatalog(query.integrationId);
+  }
+
+  async previewZabbixReportGroups(query: ZabbixReportGroupPreviewQueryDto) {
+    if (!query.integrationId) {
+      throw new BadRequestException("Informe integrationId para revisar os grupos.");
+    }
+
+    if (!query.groupIds?.length) {
+      throw new BadRequestException("Selecione ao menos um grupo do Zabbix.");
+    }
+
+    const units = await this.readActiveUnitsForMatching(500);
+    return this.integrationsService.previewZabbixReportGroupSelection(
+      query.integrationId,
+      query.groupIds,
+      units,
+    );
   }
 
   async exportPrtgStyleReports(payload: ExportMonitoringReportDto) {

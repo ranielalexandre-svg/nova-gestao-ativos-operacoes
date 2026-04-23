@@ -34,6 +34,78 @@ type ReportUnitCatalog = {
   }>;
 };
 
+type ReportSource = {
+  id: string;
+  code: string;
+  name: string;
+};
+
+type ZabbixGroupCatalog = {
+  integration: ReportSource;
+  items: Array<{
+    id: string;
+    name: string;
+    hostCount: number;
+  }>;
+};
+
+type ZabbixGroupPreview = {
+  integration: ReportSource;
+  groups: Array<{
+    id: string;
+    name: string;
+  }>;
+  counts: {
+    selectedGroups: number;
+    hosts: number;
+    matchedUnits: number;
+    unmatchedHosts: number;
+    ambiguousHosts: number;
+  };
+  matchedUnits: Array<{
+    unit: {
+      id: string;
+      code: string;
+      name: string;
+      city: string | null;
+      state: string | null;
+      partner: {
+        id: string;
+        code: string;
+        name: string;
+      };
+    };
+    primaryHost: {
+      hostId: string;
+      host?: string;
+      hostName?: string;
+      hostStatus?: string;
+      groups: string[];
+    };
+    allHosts: string[];
+    groups: string[];
+    confidence: number;
+    score: number;
+    matchedBy: string[];
+    syncReady: boolean;
+    hostCount: number;
+  }>;
+  unresolvedHosts: Array<{
+    status: "ambiguous" | "unmatched";
+    score: number;
+    confidence: number;
+    matchedBy: string[];
+    candidates: number;
+    host: {
+      hostId: string;
+      host?: string;
+      hostName?: string;
+      hostStatus?: string;
+      groups: string[];
+    };
+  }>;
+};
+
 type ReportPoint = {
   timestamp: string;
   value: number | null;
@@ -142,6 +214,14 @@ function monthRange(offset: number) {
 function reportHref(unitId: string, range: { from: string; to: string }) {
   const params = new URLSearchParams({ unitId, from: range.from, to: range.to });
   return `/relatorios/monitoramento?${params.toString()}`;
+}
+
+function readCsvParam(params: RawSearchParams, key: string) {
+  const raw = readStringParam(params, key, "");
+  return raw
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
 }
 
 function formatDateTime(value: string) {
@@ -502,6 +582,38 @@ async function readReport(unitId: string, from: string, to: string) {
   }
 }
 
+async function readReportSources() {
+  try {
+    return await apiJson<ReportSource[]>("/monitoring/reports/sources");
+  } catch {
+    return [];
+  }
+}
+
+async function readZabbixGroups(integrationId: string) {
+  try {
+    const query = new URLSearchParams({ integrationId });
+    return await apiJson<ZabbixGroupCatalog>(`/monitoring/reports/groups/zabbix?${query.toString()}`);
+  } catch {
+    return null;
+  }
+}
+
+async function readZabbixGroupPreview(integrationId: string, groupIds: string[]) {
+  try {
+    const query = new URLSearchParams({ integrationId, groupIds: groupIds.join(",") });
+    return {
+      preview: await apiJson<ZabbixGroupPreview>(`/monitoring/reports/groups/zabbix/preview?${query.toString()}`),
+      error: "",
+    };
+  } catch (error) {
+    return {
+      preview: null,
+      error: getActionErrorMessage(error),
+    };
+  }
+}
+
 export default async function MonitoringReportsPage({
   searchParams,
 }: {
@@ -516,11 +628,31 @@ export default async function MonitoringReportsPage({
   const params = await resolveSearchParams(searchParams);
   const defaults = defaultRange();
   const catalog = await readReportUnits();
+  const reportSources = await readReportSources();
   const requestedUnitId = readStringParam(params, "unitId", "");
+  const requestedGroupIntegrationId = readStringParam(params, "groupIntegrationId", "");
+  const requestedGroupIds = readCsvParam(params, "groupIds");
   const selectedUnitId = requestedUnitId || catalog.items[0]?.id || "";
   const from = readStringParam(params, "from", defaults.from);
   const to = readStringParam(params, "to", defaults.to);
   const selectedUnit = catalog.items.find((item) => item.id === selectedUnitId) || catalog.items[0];
+  const selectedGroupSource =
+    reportSources.find((item) => item.id === requestedGroupIntegrationId) || null;
+  const groupIntegrationDefaultId = selectedGroupSource?.id || reportSources[0]?.id || "";
+  const groupCatalog = selectedGroupSource ? await readZabbixGroups(selectedGroupSource.id) : null;
+  const {
+    preview: groupPreview,
+    error: groupPreviewError,
+  } =
+    selectedGroupSource && requestedGroupIds.length
+      ? await readZabbixGroupPreview(selectedGroupSource.id, requestedGroupIds)
+      : { preview: null, error: "" };
+  const previewUnitIds = groupPreview?.matchedUnits.map((item) => item.unit.id) || [];
+  const exportSelectedUnitIds = previewUnitIds.length
+    ? previewUnitIds
+    : selectedUnitId
+      ? [selectedUnitId]
+      : [];
   const { report, error } =
     requestedUnitId && selectedUnitId ? await readReport(selectedUnitId, from, to) : { report: null, error: "" };
 
@@ -554,10 +686,10 @@ export default async function MonitoringReportsPage({
             { label: "Fonte", value: "Zabbix", meta: "histórico e itens", tone: "success" },
             { label: "Entrega", value: "PRTG-like", meta: "layout e estatísticas", tone: "info" },
             { label: "Unidades", value: catalog.total, meta: `${catalog.items.length} carregadas no seletor`, tone: catalog.items.length ? "success" : "attention" },
-            { label: "Exportação", value: "PDF", meta: "via impressão do navegador", tone: "neutral" },
+            { label: "Exportação", value: "PDF / DOCX", meta: "download server-side", tone: "neutral" },
           ]}
           noteTitle="Decisão de arquitetura"
-          noteCopy="Não há coleta PRTG. A tela apenas reproduz o formato de apresentação usando os dados históricos vindos do Zabbix. A validação do host ocorre só quando você executa o relatório, para a página abrir mais leve."
+          noteCopy="Não há coleta PRTG. A tela apenas reproduz o formato de apresentação usando os dados históricos vindos do Zabbix. Agora você também pode montar a exportação a partir de grupos do Zabbix e revisar manualmente as unidades antes do download."
         />
 
         <Surface className="report-toolbar p-5 sm:p-6">
@@ -617,6 +749,158 @@ export default async function MonitoringReportsPage({
 
         <Surface className="report-toolbar p-5 sm:p-6">
           <SectionIntro
+            eyebrow="Origem por grupos"
+            title="Selecionar unidades a partir do Zabbix"
+            description="Escolha a integração, carregue um ou mais host groups do Zabbix e revise as unidades reconhecidas antes de exportar. O matching usa o vínculo manual do host e as heurísticas já existentes."
+            compact
+            actions={
+              selectedGroupSource ? (
+                <TonePill tone={groupPreview ? "success" : groupCatalog?.items.length ? "info" : "neutral"}>
+                  {selectedGroupSource.code} · {selectedGroupSource.name}
+                </TonePill>
+              ) : null
+            }
+          />
+
+          <form action="/relatorios/monitoramento" method="GET" className="mt-5 grid gap-4 xl:grid-cols-[260px_minmax(0,1fr)_auto]">
+            <input type="hidden" name="unitId" value={selectedUnitId} />
+            <input type="hidden" name="from" value={from} />
+            <input type="hidden" name="to" value={to} />
+
+            <label className="grid gap-2 text-sm font-semibold text-slate-200">
+              Integração Zabbix
+              <select name="groupIntegrationId" defaultValue={groupIntegrationDefaultId}>
+                {reportSources.length ? (
+                  reportSources.map((source) => (
+                    <option key={source.id} value={source.id}>
+                      {source.code} - {source.name}
+                    </option>
+                  ))
+                ) : (
+                  <option value="">Sem integrações Zabbix ativas</option>
+                )}
+              </select>
+            </label>
+
+            <label className="grid gap-2 text-sm font-semibold text-slate-200">
+              Host groups
+              <select
+                name="groupIds"
+                multiple
+                size={10}
+                defaultValue={requestedGroupIds}
+                disabled={!groupCatalog?.items.length}
+              >
+                {(groupCatalog?.items || []).map((group) => (
+                  <option key={group.id} value={group.id}>
+                    {group.name} · {group.hostCount} host(s)
+                  </option>
+                ))}
+              </select>
+              <span className="text-xs font-normal text-slate-400">
+                Selecione um ou mais grupos. Depois a tela monta um preview das unidades encontradas para você revisar antes da exportação.
+              </span>
+            </label>
+
+            <div className="flex flex-col justify-end gap-2">
+              <button type="submit">Revisar grupos</button>
+              <Link
+                href={`/relatorios/monitoramento?unitId=${encodeURIComponent(selectedUnitId)}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`}
+                className="inline-flex h-11 items-center justify-center rounded-[14px] border border-white/10 bg-white/[0.04] px-4 text-sm font-semibold text-slate-100 transition hover:bg-white/[0.08]"
+              >
+                Limpar seleção
+              </Link>
+            </div>
+          </form>
+
+          {groupPreviewError ? (
+            <div className="mt-4 rounded-[16px] border border-rose-500/25 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
+              Não foi possível revisar os grupos agora: {groupPreviewError}
+            </div>
+          ) : null}
+
+          {groupPreview ? (
+            <div className="mt-5 space-y-4">
+              <div className="grid gap-3 md:grid-cols-4">
+                <div className="rounded-[16px] border border-white/10 bg-white/[0.04] px-4 py-4">
+                  <div className="text-[11px] uppercase tracking-[0.32em] text-slate-500">Grupos</div>
+                  <div className="mt-2 text-2xl font-semibold text-slate-100">{groupPreview.counts.selectedGroups}</div>
+                  <div className="mt-1 text-xs text-slate-400">{groupPreview.groups.map((group) => group.name).join(" · ")}</div>
+                </div>
+                <div className="rounded-[16px] border border-white/10 bg-white/[0.04] px-4 py-4">
+                  <div className="text-[11px] uppercase tracking-[0.32em] text-slate-500">Hosts</div>
+                  <div className="mt-2 text-2xl font-semibold text-slate-100">{groupPreview.counts.hosts}</div>
+                  <div className="mt-1 text-xs text-slate-400">retornados pelo Zabbix</div>
+                </div>
+                <div className="rounded-[16px] border border-emerald-500/20 bg-emerald-500/10 px-4 py-4">
+                  <div className="text-[11px] uppercase tracking-[0.32em] text-emerald-200/80">Unidades reconhecidas</div>
+                  <div className="mt-2 text-2xl font-semibold text-emerald-50">{groupPreview.counts.matchedUnits}</div>
+                  <div className="mt-1 text-xs text-emerald-100/80">já entram pré-selecionadas na exportação</div>
+                </div>
+                <div className="rounded-[16px] border border-amber-500/20 bg-amber-500/10 px-4 py-4">
+                  <div className="text-[11px] uppercase tracking-[0.32em] text-amber-200/80">Pendências</div>
+                  <div className="mt-2 text-2xl font-semibold text-amber-50">{groupPreview.counts.ambiguousHosts + groupPreview.counts.unmatchedHosts}</div>
+                  <div className="mt-1 text-xs text-amber-100/80">{groupPreview.counts.ambiguousHosts} ambíguo(s) · {groupPreview.counts.unmatchedHosts} sem vínculo</div>
+                </div>
+              </div>
+
+              {groupPreview.matchedUnits.length ? (
+                <div className="rounded-[18px] border border-white/10 bg-white/[0.03]">
+                  <div className="border-b border-white/10 px-4 py-3 text-sm font-semibold text-slate-100">
+                    Unidades encontradas
+                  </div>
+                  <div className="grid gap-0">
+                    {groupPreview.matchedUnits.map((item) => (
+                      <div key={item.unit.id} className="grid gap-3 border-b border-white/5 px-4 py-4 text-sm text-slate-200 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_160px]">
+                        <div>
+                          <div className="font-semibold text-slate-100">{item.unit.code} - {item.unit.name}</div>
+                          <div className="mt-1 text-xs text-slate-400">
+                            {item.unit.partner.code} · {[item.unit.city, item.unit.state].filter(Boolean).join("/") || "sem cidade/UF"}
+                          </div>
+                        </div>
+                        <div>
+                          <div>{item.primaryHost.hostName || item.primaryHost.host || item.primaryHost.hostId}</div>
+                          <div className="mt-1 text-xs text-slate-400">
+                            {item.groups.join(" · ") || "sem grupo retornado"}{item.hostCount > 1 ? ` · ${item.hostCount} host(s)` : ""}
+                          </div>
+                        </div>
+                        <div className="text-xs text-slate-300">
+                          <div>Confiança: {item.confidence}%</div>
+                          <div className="mt-1">{item.matchedBy.join(" · ") || "heurística"}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {groupPreview.unresolvedHosts.length ? (
+                <div className="rounded-[18px] border border-white/10 bg-white/[0.03]">
+                  <div className="border-b border-white/10 px-4 py-3 text-sm font-semibold text-slate-100">
+                    Hosts que ainda precisam de revisão
+                  </div>
+                  <div className="grid gap-0">
+                    {groupPreview.unresolvedHosts.slice(0, 12).map((item) => (
+                      <div key={item.host.hostId} className="grid gap-2 border-b border-white/5 px-4 py-4 text-sm text-slate-200 md:grid-cols-[minmax(0,1fr)_180px]">
+                        <div>
+                          <div className="font-semibold text-slate-100">{item.host.hostName || item.host.host || item.host.hostId}</div>
+                          <div className="mt-1 text-xs text-slate-400">{item.host.groups.join(" · ") || "sem grupo retornado"}</div>
+                        </div>
+                        <div className="text-xs text-slate-300">
+                          <div>Status: {item.status === "ambiguous" ? "Ambíguo" : "Sem unidade"}</div>
+                          <div className="mt-1">Sinais: {item.matchedBy.join(" · ") || "sem sinais suficientes"}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+        </Surface>
+
+        <Surface className="report-toolbar p-5 sm:p-6">
+          <SectionIntro
             eyebrow="Exportação corporativa"
             title="Gerar arquivo para download"
             description="Monte o arquivo final com uma ou mais unidades, escolha PDF ou DOCX, decida se os gráficos entram e preencha os dados comerciais que ainda não existem no cadastro."
@@ -630,14 +914,19 @@ export default async function MonitoringReportsPage({
 
             <label className="grid gap-2 text-sm font-semibold text-slate-200 xl:col-span-2">
               Unidades da exportação
-              <select name="unitIds" multiple size={12} defaultValue={selectedUnitId ? [selectedUnitId] : undefined}>
+              <select name="unitIds" multiple size={12} defaultValue={exportSelectedUnitIds}>
                 {catalog.items.map((item) => (
                   <option key={`export-${item.id}`} value={item.id}>
                     {item.partner.code} · {item.code} - {item.name}
                   </option>
                 ))}
               </select>
-              <span className="text-xs font-normal text-slate-400">Use `Ctrl` ou `Cmd` para selecionar várias unidades. Nesta primeira entrega a seleção é manual; o filtro por host group do Zabbix entra no próximo passo.</span>
+              <span className="text-xs font-normal text-slate-400">
+                Use `Ctrl` ou `Cmd` para selecionar várias unidades.
+                {groupPreview
+                  ? ` ${groupPreview.counts.matchedUnits} unidade(s) reconhecida(s) a partir dos grupos já ficaram pré-selecionadas aqui.`
+                  : " Você também pode preencher essa lista manualmente mesmo sem usar os grupos do Zabbix."}
+              </span>
             </label>
 
             <label className="grid gap-2 text-sm font-semibold text-slate-200">

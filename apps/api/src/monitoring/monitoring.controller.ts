@@ -4,6 +4,8 @@ import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { MonitoringService } from "./monitoring.service";
 import { ExportMonitoringReportDto } from "./dto/export-monitoring-report.dto";
 import { PrtgStyleReportQueryDto } from "./dto/prtg-style-report-query.dto";
+import { ZabbixReportGroupPreviewQueryDto } from "./dto/zabbix-report-group-preview-query.dto";
+import { ZabbixReportGroupsQueryDto } from "./dto/zabbix-report-groups-query.dto";
 
 @Controller("monitoring")
 @UseGuards(JwtAuthGuard)
@@ -28,6 +30,21 @@ export class MonitoringController {
   @Get("reports/units")
   getReportUnits() {
     return this.monitoringService.getReportUnits();
+  }
+
+  @Get("reports/sources")
+  getReportSources() {
+    return this.monitoringService.getReportGroupSources();
+  }
+
+  @Get("reports/groups/zabbix")
+  getZabbixReportGroups(@Query() query: ZabbixReportGroupsQueryDto) {
+    return this.monitoringService.getZabbixReportGroups(query);
+  }
+
+  @Get("reports/groups/zabbix/preview")
+  previewZabbixReportGroups(@Query() query: ZabbixReportGroupPreviewQueryDto) {
+    return this.monitoringService.previewZabbixReportGroups(query);
   }
 
   @Get("reports/prtg-style")
