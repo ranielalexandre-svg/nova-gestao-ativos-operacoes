@@ -855,6 +855,70 @@ export class IntegrationsService {
     };
   }
 
+  private reportTrafficBits(points: Array<{ timestamp: string; value: number | null }>) {
+    const clean = points
+      .map((point) => ({
+        clock: new Date(point.timestamp).getTime(),
+        value: point.value,
+      }))
+      .filter(
+        (point): point is { clock: number; value: number } =>
+          Number.isFinite(point.clock) && typeof point.value === "number" && Number.isFinite(point.value),
+      )
+      .sort((a, b) => a.clock - b.clock);
+
+    if (clean.length < 2) {
+      return { bits: null as number | null, coveredSeconds: 0 };
+    }
+
+    let bits = 0;
+    let coveredSeconds = 0;
+
+    for (let index = 1; index < clean.length; index += 1) {
+      const previous = clean[index - 1];
+      const current = clean[index];
+      const seconds = (current.clock - previous.clock) / 1000;
+
+      if (!Number.isFinite(seconds) || seconds <= 0) continue;
+
+      bits += ((previous.value + current.value) / 2) * seconds;
+      coveredSeconds += seconds;
+    }
+
+    return {
+      bits: coveredSeconds > 0 ? bits : null,
+      coveredSeconds,
+    };
+  }
+
+  private reportTrafficConsumption(
+    series: Array<{
+      kind: string;
+      points: Array<{ timestamp: string; value: number | null }>;
+      stats: { avg: number | null; max: number | null };
+    }>,
+  ) {
+    const received = series.find((entry) => entry.kind === "trafficIn");
+    const sent = series.find((entry) => entry.kind === "trafficOut");
+    const receivedTraffic = received ? this.reportTrafficBits(received.points) : { bits: null, coveredSeconds: 0 };
+    const sentTraffic = sent ? this.reportTrafficBits(sent.points) : { bits: null, coveredSeconds: 0 };
+    const totalBits =
+      receivedTraffic.bits === null && sentTraffic.bits === null
+        ? null
+        : (receivedTraffic.bits || 0) + (sentTraffic.bits || 0);
+
+    return {
+      receivedBytes: receivedTraffic.bits === null ? null : receivedTraffic.bits / 8,
+      sentBytes: sentTraffic.bits === null ? null : sentTraffic.bits / 8,
+      totalBytes: totalBits === null ? null : totalBits / 8,
+      avgReceiveBps: received?.stats.avg ?? null,
+      avgSendBps: sent?.stats.avg ?? null,
+      peakReceiveBps: received?.stats.max ?? null,
+      peakSendBps: sent?.stats.max ?? null,
+      coveredSeconds: Math.max(receivedTraffic.coveredSeconds, sentTraffic.coveredSeconds),
+    };
+  }
+
   private reportBlockTitle(block: "traffic" | "ping" | "uptime", unitName: string) {
     if (block === "traffic") return `${unitName}: Link Traffic`;
     if (block === "ping") return `${unitName}: Ping`;
@@ -1598,6 +1662,11 @@ export class IntegrationsService {
               probePath: `${integration.name} > ${match.hostName || match.host || match.hostId}`,
               unit: firstSeries?.unit || "",
               series,
+              consumption: block === "traffic" ? this.reportTrafficConsumption(series as Array<{
+                kind: string;
+                points: Array<{ timestamp: string; value: number | null }>;
+                stats: { avg: number | null; max: number | null };
+              }>) : null,
             };
           })
           .filter(Boolean);

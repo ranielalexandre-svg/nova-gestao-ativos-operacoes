@@ -75,6 +75,16 @@ type ReportBlock = {
   probePath: string;
   unit: string;
   series: ReportSeries[];
+  consumption?: {
+    receivedBytes: number | null;
+    sentBytes: number | null;
+    totalBytes: number | null;
+    avgReceiveBps: number | null;
+    avgSendBps: number | null;
+    peakReceiveBps: number | null;
+    peakSendBps: number | null;
+    coveredSeconds: number;
+  } | null;
 };
 
 type MonitoringReport = {
@@ -179,6 +189,25 @@ function formatValue(value: number | null, unit: ReportSeries["unit"]) {
   const days = Math.floor(value);
   const hours = Math.round((value - days) * 24);
   return `${days}d ${hours}h`;
+}
+
+function formatBytes(value: number | null) {
+  if (value === null || !Number.isFinite(value)) return "-";
+
+  const abs = Math.abs(value);
+  if (abs >= 1024 ** 4) {
+    return `${(value / 1024 ** 4).toLocaleString("pt-BR", { maximumFractionDigits: 2 })} TB`;
+  }
+  if (abs >= 1024 ** 3) {
+    return `${(value / 1024 ** 3).toLocaleString("pt-BR", { maximumFractionDigits: 2 })} GB`;
+  }
+  if (abs >= 1024 ** 2) {
+    return `${(value / 1024 ** 2).toLocaleString("pt-BR", { maximumFractionDigits: 2 })} MB`;
+  }
+  if (abs >= 1024) {
+    return `${(value / 1024).toLocaleString("pt-BR", { maximumFractionDigits: 2 })} KB`;
+  }
+  return `${value.toLocaleString("pt-BR", { maximumFractionDigits: 0 })} B`;
 }
 
 function allValues(block: ReportBlock) {
@@ -299,8 +328,29 @@ function ReportBlockView({ block }: { block: ReportBlock }) {
         <div className="font-medium">{block.probePath}</div>
         <div>Média ({dominant?.label || "sensor"}):</div>
         <div className="font-medium">{dominant ? formatValue(dominant.stats.avg, dominant.unit) : "-"}</div>
+        {block.consumption ? (
+          <>
+            <div>Consumo recebido:</div>
+            <div className="font-medium">{formatBytes(block.consumption.receivedBytes)}</div>
+            <div>Consumo enviado:</div>
+            <div className="font-medium">{formatBytes(block.consumption.sentBytes)}</div>
+            <div>Total movimentado:</div>
+            <div className="font-medium">{formatBytes(block.consumption.totalBytes)}</div>
+            <div>Pico observado:</div>
+            <div className="font-medium">
+              down {formatValue(block.consumption.peakReceiveBps, "bps")} · up{" "}
+              {formatValue(block.consumption.peakSendBps, "bps")}
+            </div>
+          </>
+        ) : null}
       </div>
       <p className="mt-3 text-[11px] text-slate-600">{block.description}</p>
+      {block.consumption ? (
+        <p className="mt-2 text-[11px] text-slate-500">
+          Consumo estimado pela integral das séries de tráfego do Zabbix ao longo do período
+          selecionado.
+        </p>
+      ) : null}
       <ChartGrid block={block} />
       <div className="prtg-legend">
         {block.series.map((series) => (
@@ -318,7 +368,58 @@ function ReportBlockView({ block }: { block: ReportBlock }) {
   );
 }
 
+function TrafficConsumptionStrip({ block }: { block: ReportBlock }) {
+  if (!block.consumption) return null;
+
+  return (
+    <section className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+      <div className="rounded-[14px] border border-slate-200 bg-slate-50 px-4 py-3">
+        <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+          Recebido no período
+        </div>
+        <div className="mt-2 text-lg font-semibold text-slate-800">
+          {formatBytes(block.consumption.receivedBytes)}
+        </div>
+      </div>
+      <div className="rounded-[14px] border border-slate-200 bg-slate-50 px-4 py-3">
+        <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+          Enviado no período
+        </div>
+        <div className="mt-2 text-lg font-semibold text-slate-800">
+          {formatBytes(block.consumption.sentBytes)}
+        </div>
+      </div>
+      <div className="rounded-[14px] border border-slate-200 bg-slate-50 px-4 py-3">
+        <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+          Total movimentado
+        </div>
+        <div className="mt-2 text-lg font-semibold text-slate-800">
+          {formatBytes(block.consumption.totalBytes)}
+        </div>
+      </div>
+      <div className="rounded-[14px] border border-slate-200 bg-slate-50 px-4 py-3">
+        <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+          Pico de download
+        </div>
+        <div className="mt-2 text-lg font-semibold text-slate-800">
+          {formatValue(block.consumption.peakReceiveBps, "bps")}
+        </div>
+      </div>
+      <div className="rounded-[14px] border border-slate-200 bg-slate-50 px-4 py-3">
+        <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+          Pico de upload
+        </div>
+        <div className="mt-2 text-lg font-semibold text-slate-800">
+          {formatValue(block.consumption.peakSendBps, "bps")}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function ReportSheet({ report }: { report: MonitoringReport }) {
+  const trafficBlock = report.blocks.find((block) => block.id === "traffic" && block.consumption);
+
   return (
     <article className="prtg-report-sheet">
       <header className="prtg-letterhead">
@@ -358,6 +459,8 @@ function ReportSheet({ report }: { report: MonitoringReport }) {
             <span className="font-semibold">Confiança do vínculo:</span> {report.host?.confidence ?? "-"}%
           </div>
         </div>
+
+        {trafficBlock ? <TrafficConsumptionStrip block={trafficBlock} /> : null}
       </section>
 
       <section className="grid gap-8 px-7 py-6">
