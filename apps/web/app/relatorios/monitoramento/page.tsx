@@ -965,29 +965,6 @@ export default async function MonitoringReportsPage({
               </label>
 
               <label className="grid gap-2 text-sm font-semibold text-slate-200">
-                Integração Zabbix
-                <select name="groupIntegrationId" defaultValue={selectedGroupSource?.id || ""}>
-                  <option value="">Sem grupos</option>
-                  {reportSources.map((source) => (
-                    <option key={source.id} value={source.id}>
-                      {source.code} - {source.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="grid gap-2 text-sm font-semibold text-slate-200 xl:col-span-3">
-                Host groups
-                <select name="groupIds" multiple size={7} defaultValue={effectiveGroupIds} disabled={!groupCatalog?.items.length}>
-                  {(groupCatalog?.items || []).map((group) => (
-                    <option key={group.id} value={group.id}>
-                      {group.name} · {group.hostCount} host(s)
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="grid gap-2 text-sm font-semibold text-slate-200">
                 Data de início
                 <input name="from" type="date" defaultValue={from} />
               </label>
@@ -1255,15 +1232,21 @@ export default async function MonitoringReportsPage({
           ) : null}
 
           {report ? (
-            <div className="space-y-4">
-              <SectionIntro
-                eyebrow="Preview"
-                title="Prévia da unidade em foco"
-                description="Serve só para validar o visual antes de baixar o lote."
-                compact
-              />
-              <ReportSheet report={report} />
-            </div>
+            <details className="rounded-[18px] border border-white/10 bg-white/[0.03] p-5 sm:p-6">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
+                <div>
+                  <div className="text-sm font-semibold text-slate-100">Prévia da unidade em foco</div>
+                  <div className="mt-1 text-sm text-slate-400">
+                    Abra só quando quiser conferir o visual antes de baixar o lote.
+                  </div>
+                </div>
+                <TonePill tone="neutral">Preview</TonePill>
+              </summary>
+
+              <div className="mt-5">
+                <ReportSheet report={report} />
+              </div>
+            </details>
           ) : (
             <EmptyState
               title="Escolha uma unidade monitorada"
