@@ -23,6 +23,11 @@ export class MonitoringController {
     return this.monitoringService.getUnitHostTelemetry();
   }
 
+  @Get("reports/units")
+  getReportUnits() {
+    return this.monitoringService.getReportUnits();
+  }
+
   @Get("reports/prtg-style")
   getPrtgStyleReport(@Query() query: PrtgStyleReportQueryDto) {
     return this.monitoringService.getPrtgStyleReport(query);

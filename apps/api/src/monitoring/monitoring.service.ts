@@ -287,6 +287,38 @@ export class MonitoringService {
     return this.integrationsService.getZabbixUnitHostTelemetry(units);
   }
 
+  async getReportUnits() {
+    const [total, items] = await this.prisma.$transaction([
+      this.prisma.unit.count({
+        where: { isActive: true },
+      }),
+      this.prisma.unit.findMany({
+        where: { isActive: true },
+        orderBy: [{ partner: { code: "asc" } }, { code: "asc" }],
+        take: 500,
+        select: {
+          id: true,
+          code: true,
+          name: true,
+          city: true,
+          state: true,
+          partner: {
+            select: {
+              id: true,
+              code: true,
+              name: true,
+            },
+          },
+        },
+      }),
+    ]);
+
+    return {
+      total,
+      items,
+    };
+  }
+
   private parseReportDate(value: string | undefined, fallback: Date) {
     if (!value) return fallback;
 

@@ -18,28 +18,19 @@ import {
 import { apiJson } from "@/lib/server-api";
 import { getServerWebSession } from "@/lib/web-session";
 
-type UnitHostTelemetry = {
+type ReportUnitCatalog = {
+  total: number;
   items: Array<{
-    unit: {
-      id: string;
-      code: string;
-      name: string;
-      city: string | null;
-      state: string | null;
-    };
+    id: string;
+    code: string;
+    name: string;
+    city: string | null;
+    state: string | null;
     partner: {
       id: string;
       code: string;
       name: string;
     };
-    match: {
-      status: "matched" | "ambiguous" | "unmatched";
-      confidence: number;
-      hostName?: string;
-      host?: string;
-      integrationCode?: string;
-    };
-    health: string;
   }>;
 };
 
@@ -488,11 +479,11 @@ function ReportSheet({ report }: { report: MonitoringReport }) {
   );
 }
 
-async function readTelemetry() {
+async function readReportUnits() {
   try {
-    return await apiJson<UnitHostTelemetry>("/monitoring/unit-hosts");
+    return await apiJson<ReportUnitCatalog>("/monitoring/reports/units");
   } catch {
-    return { items: [] };
+    return { total: 0, items: [] };
   }
 }
 
@@ -524,13 +515,14 @@ export default async function MonitoringReportsPage({
 
   const params = await resolveSearchParams(searchParams);
   const defaults = defaultRange();
-  const telemetry = await readTelemetry();
-  const matchedUnits = telemetry.items.filter((item) => item.match.status === "matched");
-  const selectedUnitId = readStringParam(params, "unitId", matchedUnits[0]?.unit.id || telemetry.items[0]?.unit.id || "");
+  const catalog = await readReportUnits();
+  const requestedUnitId = readStringParam(params, "unitId", "");
+  const selectedUnitId = requestedUnitId || catalog.items[0]?.id || "";
   const from = readStringParam(params, "from", defaults.from);
   const to = readStringParam(params, "to", defaults.to);
-  const selectedUnit = telemetry.items.find((item) => item.unit.id === selectedUnitId) || matchedUnits[0] || telemetry.items[0];
-  const { report, error } = selectedUnitId ? await readReport(selectedUnitId, from, to) : { report: null, error: "" };
+  const selectedUnit = catalog.items.find((item) => item.id === selectedUnitId) || catalog.items[0];
+  const { report, error } =
+    requestedUnitId && selectedUnitId ? await readReport(selectedUnitId, from, to) : { report: null, error: "" };
 
   return (
     <AppShell
@@ -561,11 +553,11 @@ export default async function MonitoringReportsPage({
           items={[
             { label: "Fonte", value: "Zabbix", meta: "histórico e itens", tone: "success" },
             { label: "Entrega", value: "PRTG-like", meta: "layout e estatísticas", tone: "info" },
-            { label: "Unidades", value: telemetry.items.length, meta: `${matchedUnits.length} com host confiável`, tone: matchedUnits.length ? "success" : "attention" },
+            { label: "Unidades", value: catalog.total, meta: `${catalog.items.length} carregadas no seletor`, tone: catalog.items.length ? "success" : "attention" },
             { label: "Exportação", value: "PDF", meta: "via impressão do navegador", tone: "neutral" },
           ]}
           noteTitle="Decisão de arquitetura"
-          noteCopy="Não há coleta PRTG. A tela apenas reproduz o formato de apresentação usando os dados históricos vindos do Zabbix."
+          noteCopy="Não há coleta PRTG. A tela apenas reproduz o formato de apresentação usando os dados históricos vindos do Zabbix. A validação do host ocorre só quando você executa o relatório, para a página abrir mais leve."
         />
 
         <Surface className="report-toolbar p-5 sm:p-6">
@@ -574,16 +566,22 @@ export default async function MonitoringReportsPage({
             title="Executar relatório"
             description="Escolha a unidade e o intervalo. Os atalhos recriam o fluxo operacional da tela de relatórios do PRTG, mas o dataset vem do Zabbix."
             compact
-            actions={selectedUnit ? <TonePill tone={selectedUnit.match.status === "matched" ? "success" : "attention"}>{selectedUnit.health}</TonePill> : null}
+            actions={
+              selectedUnit ? (
+                <TonePill tone={report?.host?.hostId ? "success" : error ? "attention" : "neutral"}>
+                  {report?.host?.hostName || report?.host?.host || (error ? "Falha ao validar host" : "Host validado ao executar")}
+                </TonePill>
+              ) : null
+            }
           />
 
           <form action="/relatorios/monitoramento" method="GET" className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1fr)_180px_180px_auto]">
             <label className="grid gap-2 text-sm font-semibold text-slate-200">
               Unidade monitorada
               <select name="unitId" defaultValue={selectedUnitId}>
-                {telemetry.items.map((item) => (
-                  <option key={item.unit.id} value={item.unit.id}>
-                    {item.unit.code} - {item.unit.name} ({item.match.status})
+                {catalog.items.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.code} - {item.name}
                   </option>
                 ))}
               </select>
