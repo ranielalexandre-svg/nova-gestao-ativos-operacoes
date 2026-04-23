@@ -4,6 +4,7 @@ import { AppShell } from "@/components/app-shell";
 import { ReportPrintButton } from "@/components/report-print-button";
 import {
   EmptyState,
+  FilterChip,
   SectionIntro,
   Surface,
   TonePill,
@@ -248,6 +249,8 @@ type MonitoringReport = {
   warnings: string[];
 };
 
+type ReportWorkspace = "generate" | "library";
+
 function dateInput(value: Date) {
   return value.toISOString().slice(0, 10);
 }
@@ -273,9 +276,13 @@ function monthRange(offset: number) {
   return { from: dateInput(start), to: dateInput(end) };
 }
 
-function reportHref(unitId: string, range: { from: string; to: string }) {
-  const params = new URLSearchParams({ unitId, from: range.from, to: range.to });
+function reportHref(unitId: string, range: { from: string; to: string }, workspace: ReportWorkspace = "generate") {
+  const params = new URLSearchParams({ unitId, from: range.from, to: range.to, workspace });
   return `/relatorios/monitoramento?${params.toString()}`;
+}
+
+function normalizeReportWorkspace(value: string): ReportWorkspace {
+  return value === "library" ? "library" : "generate";
 }
 
 function readCsvParam(params: RawSearchParams, key: string) {
@@ -707,6 +714,48 @@ async function readReportTemplateRuns() {
   }
 }
 
+function ReportWorkspaceRail({
+  workspace,
+  generateHref,
+  libraryHref,
+  templateCount,
+  runCount,
+}: {
+  workspace: ReportWorkspace;
+  generateHref: string;
+  libraryHref: string;
+  templateCount: number;
+  runCount: number;
+}) {
+  return (
+    <Surface className="p-4 sm:p-5">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Workspace</div>
+          <div className="mt-1 text-sm font-semibold text-slate-50">
+            {workspace === "generate" ? "Gerar e exportar" : "Biblioteca e automação"}
+          </div>
+          <div className="mt-1 text-sm text-slate-400">
+            {workspace === "generate"
+              ? "Foque em período, grupos, seleção final e arquivo."
+              : "Foque em templates reutilizáveis, agenda e histórico de arquivos."}
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <FilterChip href={generateHref} active={workspace === "generate"} label="Gerar relatório" />
+          <FilterChip
+            href={libraryHref}
+            active={workspace === "library"}
+            label="Biblioteca e automação"
+            count={templateCount || runCount ? `${templateCount}/${runCount}` : undefined}
+          />
+        </div>
+      </div>
+    </Surface>
+  );
+}
+
 export default async function MonitoringReportsPage({
   searchParams,
 }: {
@@ -727,6 +776,7 @@ export default async function MonitoringReportsPage({
   const requestedUnitId = readStringParam(params, "unitId", "");
   const requestedGroupIntegrationId = readStringParam(params, "groupIntegrationId", "");
   const requestedGroupIds = readCsvParam(params, "groupIds");
+  const workspace = normalizeReportWorkspace(readStringParam(params, "workspace", "generate"));
   const templateStatus = readStringParam(params, "templateStatus", "");
   const templateMessage = readStringParam(params, "templateMessage", "");
   const automationStatus = readStringParam(params, "automationStatus", "");
@@ -755,15 +805,38 @@ export default async function MonitoringReportsPage({
   const templateSourceType = groupPreview && selectedGroupSource && requestedGroupIds.length ? "zabbix_group" : "manual";
   const templateIntegrationId = templateSourceType === "zabbix_group" ? selectedGroupSource?.id || "" : "";
   const templateUnitIds = templateSourceType === "zabbix_group" ? previewUnitIds : exportSelectedUnitIds;
-  const returnTo = (() => {
+  const baseQuery = (() => {
     const query = new URLSearchParams();
     if (selectedUnitId) query.set("unitId", selectedUnitId);
     if (from) query.set("from", from);
     if (to) query.set("to", to);
     if (selectedGroupSource?.id) query.set("groupIntegrationId", selectedGroupSource.id);
     if (requestedGroupIds.length) query.set("groupIds", requestedGroupIds.join(","));
+    return query;
+  })();
+  const returnTo = (() => {
+    const query = new URLSearchParams(baseQuery);
+    query.set("workspace", workspace);
     const qs = query.toString();
     return qs ? `/relatorios/monitoramento?${qs}` : "/relatorios/monitoramento";
+  })();
+  const generateHref = (() => {
+    const query = new URLSearchParams(baseQuery);
+    query.set("workspace", "generate");
+    return `/relatorios/monitoramento?${query.toString()}`;
+  })();
+  const libraryHref = (() => {
+    const query = new URLSearchParams(baseQuery);
+    query.set("workspace", "library");
+    return `/relatorios/monitoramento?${query.toString()}`;
+  })();
+  const clearGroupHref = (() => {
+    const query = new URLSearchParams();
+    if (selectedUnitId) query.set("unitId", selectedUnitId);
+    if (from) query.set("from", from);
+    if (to) query.set("to", to);
+    query.set("workspace", "generate");
+    return `/relatorios/monitoramento?${query.toString()}`;
   })();
   const { report, error } =
     requestedUnitId && selectedUnitId ? await readReport(selectedUnitId, from, to) : { report: null, error: "" };
@@ -804,6 +877,14 @@ export default async function MonitoringReportsPage({
           noteCopy="Não há coleta PRTG. A tela apenas reproduz o formato de apresentação usando os dados históricos vindos do Zabbix. Agora você também pode montar a exportação a partir de grupos do Zabbix e revisar manualmente as unidades antes do download."
         />
 
+        <ReportWorkspaceRail
+          workspace={workspace}
+          generateHref={generateHref}
+          libraryHref={libraryHref}
+          templateCount={templates.length}
+          runCount={recentTemplateRuns.length}
+        />
+
         {templateStatus ? (
           <Surface className={`p-4 text-sm ${templateStatus === "saved" ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-50" : "border-rose-500/20 bg-rose-500/10 text-rose-100"}`}>
             {templateStatus === "saved" ? "Template salvo com sucesso." : `Falha ao salvar template: ${templateMessage || "erro desconhecido"}`}
@@ -816,550 +897,623 @@ export default async function MonitoringReportsPage({
           </Surface>
         ) : null}
 
-        <Surface className="report-toolbar p-5 sm:p-6">
-          <SectionIntro
-            eyebrow="Período do relatório"
-            title="Executar relatório"
-            description="Escolha a unidade e o intervalo. Os atalhos recriam o fluxo operacional da tela de relatórios do PRTG, mas o dataset vem do Zabbix."
-            compact
-            actions={
-              selectedUnit ? (
-                <TonePill tone={report?.host?.hostId ? "success" : error ? "attention" : "neutral"}>
-                  {report?.host?.hostName || report?.host?.host || (error ? "Falha ao validar host" : "Host validado ao executar")}
-                </TonePill>
-              ) : null
-            }
-          />
+        {workspace === "generate" ? (
+          <>
+            <section className="grid gap-5 xl:grid-cols-[minmax(0,1.06fr)_minmax(360px,0.94fr)]">
+              <div className="space-y-5">
+                <Surface className="report-toolbar p-5 sm:p-6">
+                  <SectionIntro
+                    eyebrow="Etapa 1"
+                    title="Executar relatório"
+                    description="Escolha a unidade e o intervalo. O objetivo aqui é validar rapidamente o host e o período antes de partir para exportação."
+                    compact
+                    actions={
+                      selectedUnit ? (
+                        <TonePill tone={report?.host?.hostId ? "success" : error ? "attention" : "neutral"}>
+                          {report?.host?.hostName || report?.host?.host || (error ? "Falha ao validar host" : "Host validado ao executar")}
+                        </TonePill>
+                      ) : null
+                    }
+                  />
 
-          <form action="/relatorios/monitoramento" method="GET" className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1fr)_180px_180px_auto]">
-            <label className="grid gap-2 text-sm font-semibold text-slate-200">
-              Unidade monitorada
-              <select name="unitId" defaultValue={selectedUnitId}>
-                {catalog.items.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.code} - {item.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="grid gap-2 text-sm font-semibold text-slate-200">
-              Data de início
-              <input name="from" type="date" defaultValue={from} />
-            </label>
-            <label className="grid gap-2 text-sm font-semibold text-slate-200">
-              Data de encerramento
-              <input name="to" type="date" defaultValue={to} />
-            </label>
-            <button type="submit">Executar relatório</button>
-          </form>
+                  <form action="/relatorios/monitoramento" method="GET" className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1fr)_180px_180px_auto]">
+                    <input type="hidden" name="workspace" value="generate" />
+                    <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                      Unidade monitorada
+                      <select name="unitId" defaultValue={selectedUnitId}>
+                        {catalog.items.map((item) => (
+                          <option key={item.id} value={item.id}>
+                            {item.code} - {item.name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                      Data de início
+                      <input name="from" type="date" defaultValue={from} />
+                    </label>
+                    <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                      Data de encerramento
+                      <input name="to" type="date" defaultValue={to} />
+                    </label>
+                    <button type="submit">Executar relatório</button>
+                  </form>
 
-          {selectedUnitId ? (
-            <div className="mt-4 grid gap-2 md:grid-cols-4">
-              <Link className="rounded-[12px] border border-white/10 bg-white/[0.04] px-4 py-2 text-center text-sm font-semibold text-sky-100 transition hover:bg-white/[0.08]" href={reportHref(selectedUnitId, quickRange(1))}>
-                Hoje
-              </Link>
-              <Link className="rounded-[12px] border border-white/10 bg-white/[0.04] px-4 py-2 text-center text-sm font-semibold text-sky-100 transition hover:bg-white/[0.08]" href={reportHref(selectedUnitId, quickRange(7))}>
-                7 dias
-              </Link>
-              <Link className="rounded-[12px] border border-white/10 bg-white/[0.04] px-4 py-2 text-center text-sm font-semibold text-sky-100 transition hover:bg-white/[0.08]" href={reportHref(selectedUnitId, monthRange(0))}>
-                Este mês
-              </Link>
-              <Link className="rounded-[12px] border border-white/10 bg-white/[0.04] px-4 py-2 text-center text-sm font-semibold text-sky-100 transition hover:bg-white/[0.08]" href={reportHref(selectedUnitId, monthRange(-1))}>
-                Mês passado
-              </Link>
-            </div>
-          ) : null}
-        </Surface>
+                  {selectedUnitId ? (
+                    <div className="mt-4 grid gap-2 md:grid-cols-4">
+                      <Link className="rounded-[12px] border border-white/10 bg-white/[0.04] px-4 py-2 text-center text-sm font-semibold text-sky-100 transition hover:bg-white/[0.08]" href={reportHref(selectedUnitId, quickRange(1), "generate")}>
+                        Hoje
+                      </Link>
+                      <Link className="rounded-[12px] border border-white/10 bg-white/[0.04] px-4 py-2 text-center text-sm font-semibold text-sky-100 transition hover:bg-white/[0.08]" href={reportHref(selectedUnitId, quickRange(7), "generate")}>
+                        7 dias
+                      </Link>
+                      <Link className="rounded-[12px] border border-white/10 bg-white/[0.04] px-4 py-2 text-center text-sm font-semibold text-sky-100 transition hover:bg-white/[0.08]" href={reportHref(selectedUnitId, monthRange(0), "generate")}>
+                        Este mês
+                      </Link>
+                      <Link className="rounded-[12px] border border-white/10 bg-white/[0.04] px-4 py-2 text-center text-sm font-semibold text-sky-100 transition hover:bg-white/[0.08]" href={reportHref(selectedUnitId, monthRange(-1), "generate")}>
+                        Mês passado
+                      </Link>
+                    </div>
+                  ) : null}
+                </Surface>
 
-        <Surface className="report-toolbar p-5 sm:p-6">
-          <SectionIntro
-            eyebrow="Origem por grupos"
-            title="Selecionar unidades a partir do Zabbix"
-            description="Escolha a integração, carregue um ou mais host groups do Zabbix e revise as unidades reconhecidas antes de exportar. O matching usa o vínculo manual do host e as heurísticas já existentes."
-            compact
-            actions={
-              selectedGroupSource ? (
-                <TonePill tone={groupPreview ? "success" : groupCatalog?.items.length ? "info" : "neutral"}>
-                  {selectedGroupSource.code} · {selectedGroupSource.name}
-                </TonePill>
-              ) : null
-            }
-          />
+                <Surface className="report-toolbar p-5 sm:p-6">
+                  <SectionIntro
+                    eyebrow="Etapa 2"
+                    title="Selecionar unidades a partir do Zabbix"
+                    description="Se quiser sair do fluxo unitário, monte a seleção por host groups do Zabbix e revise o que virou unidade antes de exportar."
+                    compact
+                    actions={
+                      selectedGroupSource ? (
+                        <TonePill tone={groupPreview ? "success" : groupCatalog?.items.length ? "info" : "neutral"}>
+                          {selectedGroupSource.code} · {selectedGroupSource.name}
+                        </TonePill>
+                      ) : null
+                    }
+                  />
 
-          <form action="/relatorios/monitoramento" method="GET" className="mt-5 grid gap-4 xl:grid-cols-[260px_minmax(0,1fr)_auto]">
-            <input type="hidden" name="unitId" value={selectedUnitId} />
-            <input type="hidden" name="from" value={from} />
-            <input type="hidden" name="to" value={to} />
+                  <form action="/relatorios/monitoramento" method="GET" className="mt-5 grid gap-4 xl:grid-cols-[220px_minmax(0,1fr)_auto]">
+                    <input type="hidden" name="workspace" value="generate" />
+                    <input type="hidden" name="unitId" value={selectedUnitId} />
+                    <input type="hidden" name="from" value={from} />
+                    <input type="hidden" name="to" value={to} />
 
-            <label className="grid gap-2 text-sm font-semibold text-slate-200">
-              Integração Zabbix
-              <select name="groupIntegrationId" defaultValue={groupIntegrationDefaultId}>
-                {reportSources.length ? (
-                  reportSources.map((source) => (
-                    <option key={source.id} value={source.id}>
-                      {source.code} - {source.name}
-                    </option>
-                  ))
-                ) : (
-                  <option value="">Sem integrações Zabbix ativas</option>
-                )}
-              </select>
-            </label>
+                    <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                      Integração Zabbix
+                      <select name="groupIntegrationId" defaultValue={groupIntegrationDefaultId}>
+                        {reportSources.length ? (
+                          reportSources.map((source) => (
+                            <option key={source.id} value={source.id}>
+                              {source.code} - {source.name}
+                            </option>
+                          ))
+                        ) : (
+                          <option value="">Sem integrações Zabbix ativas</option>
+                        )}
+                      </select>
+                    </label>
 
-            <label className="grid gap-2 text-sm font-semibold text-slate-200">
-              Host groups
-              <select
-                name="groupIds"
-                multiple
-                size={10}
-                defaultValue={requestedGroupIds}
-                disabled={!groupCatalog?.items.length}
-              >
-                {(groupCatalog?.items || []).map((group) => (
-                  <option key={group.id} value={group.id}>
-                    {group.name} · {group.hostCount} host(s)
-                  </option>
-                ))}
-              </select>
-              <span className="text-xs font-normal text-slate-400">
-                Selecione um ou mais grupos. Depois a tela monta um preview das unidades encontradas para você revisar antes da exportação.
-              </span>
-            </label>
+                    <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                      Host groups
+                      <select
+                        name="groupIds"
+                        multiple
+                        size={10}
+                        defaultValue={requestedGroupIds}
+                        disabled={!groupCatalog?.items.length}
+                      >
+                        {(groupCatalog?.items || []).map((group) => (
+                          <option key={group.id} value={group.id}>
+                            {group.name} · {group.hostCount} host(s)
+                          </option>
+                        ))}
+                      </select>
+                      <span className="text-xs font-normal text-slate-400">
+                        Essa etapa serve para montar o lote automaticamente. A exportação continua aberta para ajuste manual depois.
+                      </span>
+                    </label>
 
-            <div className="flex flex-col justify-end gap-2">
-              <button type="submit">Revisar grupos</button>
-              <Link
-                href={`/relatorios/monitoramento?unitId=${encodeURIComponent(selectedUnitId)}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`}
-                className="inline-flex h-11 items-center justify-center rounded-[14px] border border-white/10 bg-white/[0.04] px-4 text-sm font-semibold text-slate-100 transition hover:bg-white/[0.08]"
-              >
-                Limpar seleção
-              </Link>
-            </div>
-          </form>
+                    <div className="flex flex-col justify-end gap-2">
+                      <button type="submit">Revisar grupos</button>
+                      <Link
+                        href={clearGroupHref}
+                        className="inline-flex h-11 items-center justify-center rounded-[14px] border border-white/10 bg-white/[0.04] px-4 text-sm font-semibold text-slate-100 transition hover:bg-white/[0.08]"
+                      >
+                        Limpar grupos
+                      </Link>
+                    </div>
+                  </form>
 
-          {groupPreviewError ? (
-            <div className="mt-4 rounded-[16px] border border-rose-500/25 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
-              Não foi possível revisar os grupos agora: {groupPreviewError}
-            </div>
-          ) : null}
+                  {groupPreviewError ? (
+                    <div className="mt-4 rounded-[16px] border border-rose-500/25 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
+                      Não foi possível revisar os grupos agora: {groupPreviewError}
+                    </div>
+                  ) : null}
 
-          {groupPreview ? (
-            <div className="mt-5 space-y-4">
-              <div className="grid gap-3 md:grid-cols-4">
-                <div className="rounded-[16px] border border-white/10 bg-white/[0.04] px-4 py-4">
-                  <div className="text-[11px] uppercase tracking-[0.32em] text-slate-500">Grupos</div>
-                  <div className="mt-2 text-2xl font-semibold text-slate-100">{groupPreview.counts.selectedGroups}</div>
-                  <div className="mt-1 text-xs text-slate-400">{groupPreview.groups.map((group) => group.name).join(" · ")}</div>
-                </div>
-                <div className="rounded-[16px] border border-white/10 bg-white/[0.04] px-4 py-4">
-                  <div className="text-[11px] uppercase tracking-[0.32em] text-slate-500">Hosts</div>
-                  <div className="mt-2 text-2xl font-semibold text-slate-100">{groupPreview.counts.hosts}</div>
-                  <div className="mt-1 text-xs text-slate-400">retornados pelo Zabbix</div>
-                </div>
-                <div className="rounded-[16px] border border-emerald-500/20 bg-emerald-500/10 px-4 py-4">
-                  <div className="text-[11px] uppercase tracking-[0.32em] text-emerald-200/80">Unidades reconhecidas</div>
-                  <div className="mt-2 text-2xl font-semibold text-emerald-50">{groupPreview.counts.matchedUnits}</div>
-                  <div className="mt-1 text-xs text-emerald-100/80">já entram pré-selecionadas na exportação</div>
-                </div>
-                <div className="rounded-[16px] border border-amber-500/20 bg-amber-500/10 px-4 py-4">
-                  <div className="text-[11px] uppercase tracking-[0.32em] text-amber-200/80">Pendências</div>
-                  <div className="mt-2 text-2xl font-semibold text-amber-50">{groupPreview.counts.ambiguousHosts + groupPreview.counts.unmatchedHosts}</div>
-                  <div className="mt-1 text-xs text-amber-100/80">{groupPreview.counts.ambiguousHosts} ambíguo(s) · {groupPreview.counts.unmatchedHosts} sem vínculo</div>
-                </div>
+                  {groupPreview ? (
+                    <div className="mt-5 space-y-4">
+                      <div className="grid gap-3 md:grid-cols-4">
+                        <div className="rounded-[16px] border border-white/10 bg-white/[0.04] px-4 py-4">
+                          <div className="text-[11px] uppercase tracking-[0.32em] text-slate-500">Grupos</div>
+                          <div className="mt-2 text-2xl font-semibold text-slate-100">{groupPreview.counts.selectedGroups}</div>
+                          <div className="mt-1 text-xs text-slate-400">{groupPreview.groups.map((group) => group.name).join(" · ")}</div>
+                        </div>
+                        <div className="rounded-[16px] border border-white/10 bg-white/[0.04] px-4 py-4">
+                          <div className="text-[11px] uppercase tracking-[0.32em] text-slate-500">Hosts</div>
+                          <div className="mt-2 text-2xl font-semibold text-slate-100">{groupPreview.counts.hosts}</div>
+                          <div className="mt-1 text-xs text-slate-400">retornados pelo Zabbix</div>
+                        </div>
+                        <div className="rounded-[16px] border border-emerald-500/20 bg-emerald-500/10 px-4 py-4">
+                          <div className="text-[11px] uppercase tracking-[0.32em] text-emerald-200/80">Unidades reconhecidas</div>
+                          <div className="mt-2 text-2xl font-semibold text-emerald-50">{groupPreview.counts.matchedUnits}</div>
+                          <div className="mt-1 text-xs text-emerald-100/80">prontas para entrar no lote</div>
+                        </div>
+                        <div className="rounded-[16px] border border-amber-500/20 bg-amber-500/10 px-4 py-4">
+                          <div className="text-[11px] uppercase tracking-[0.32em] text-amber-200/80">Pendências</div>
+                          <div className="mt-2 text-2xl font-semibold text-amber-50">{groupPreview.counts.ambiguousHosts + groupPreview.counts.unmatchedHosts}</div>
+                          <div className="mt-1 text-xs text-amber-100/80">{groupPreview.counts.ambiguousHosts} ambíguo(s) · {groupPreview.counts.unmatchedHosts} sem vínculo</div>
+                        </div>
+                      </div>
+
+                      {groupPreview.matchedUnits.length ? (
+                        <div className="rounded-[18px] border border-white/10 bg-white/[0.03]">
+                          <div className="border-b border-white/10 px-4 py-3 text-sm font-semibold text-slate-100">
+                            Unidades encontradas
+                          </div>
+                          <div className="grid gap-0">
+                            {groupPreview.matchedUnits.map((item) => (
+                              <div key={item.unit.id} className="grid gap-3 border-b border-white/5 px-4 py-4 text-sm text-slate-200 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_160px]">
+                                <div>
+                                  <div className="font-semibold text-slate-100">{item.unit.code} - {item.unit.name}</div>
+                                  <div className="mt-1 text-xs text-slate-400">
+                                    {item.unit.partner.code} · {[item.unit.city, item.unit.state].filter(Boolean).join("/") || "sem cidade/UF"}
+                                  </div>
+                                </div>
+                                <div>
+                                  <div>{item.primaryHost.hostName || item.primaryHost.host || item.primaryHost.hostId}</div>
+                                  <div className="mt-1 text-xs text-slate-400">
+                                    {item.groups.join(" · ") || "sem grupo retornado"}{item.hostCount > 1 ? ` · ${item.hostCount} host(s)` : ""}
+                                  </div>
+                                </div>
+                                <div className="text-xs text-slate-300">
+                                  <div>Confiança: {item.confidence}%</div>
+                                  <div className="mt-1">{item.matchedBy.join(" · ") || "heurística"}</div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {groupPreview.unresolvedHosts.length ? (
+                        <div className="rounded-[18px] border border-white/10 bg-white/[0.03]">
+                          <div className="border-b border-white/10 px-4 py-3 text-sm font-semibold text-slate-100">
+                            Hosts que ainda precisam de revisão
+                          </div>
+                          <div className="grid gap-0">
+                            {groupPreview.unresolvedHosts.slice(0, 12).map((item) => (
+                              <div key={item.host.hostId} className="grid gap-2 border-b border-white/5 px-4 py-4 text-sm text-slate-200 md:grid-cols-[minmax(0,1fr)_180px]">
+                                <div>
+                                  <div className="font-semibold text-slate-100">{item.host.hostName || item.host.host || item.host.hostId}</div>
+                                  <div className="mt-1 text-xs text-slate-400">{item.host.groups.join(" · ") || "sem grupo retornado"}</div>
+                                </div>
+                                <div className="text-xs text-slate-300">
+                                  <div>Status: {item.status === "ambiguous" ? "Ambíguo" : "Sem unidade"}</div>
+                                  <div className="mt-1">Sinais: {item.matchedBy.join(" · ") || "sem sinais suficientes"}</div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </Surface>
               </div>
 
-              {groupPreview.matchedUnits.length ? (
-                <div className="rounded-[18px] border border-white/10 bg-white/[0.03]">
-                  <div className="border-b border-white/10 px-4 py-3 text-sm font-semibold text-slate-100">
-                    Unidades encontradas
-                  </div>
-                  <div className="grid gap-0">
-                    {groupPreview.matchedUnits.map((item) => (
-                      <div key={item.unit.id} className="grid gap-3 border-b border-white/5 px-4 py-4 text-sm text-slate-200 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_160px]">
-                        <div>
-                          <div className="font-semibold text-slate-100">{item.unit.code} - {item.unit.name}</div>
-                          <div className="mt-1 text-xs text-slate-400">
-                            {item.unit.partner.code} · {[item.unit.city, item.unit.state].filter(Boolean).join("/") || "sem cidade/UF"}
-                          </div>
-                        </div>
-                        <div>
-                          <div>{item.primaryHost.hostName || item.primaryHost.host || item.primaryHost.hostId}</div>
-                          <div className="mt-1 text-xs text-slate-400">
-                            {item.groups.join(" · ") || "sem grupo retornado"}{item.hostCount > 1 ? ` · ${item.hostCount} host(s)` : ""}
-                          </div>
-                        </div>
-                        <div className="text-xs text-slate-300">
-                          <div>Confiança: {item.confidence}%</div>
-                          <div className="mt-1">{item.matchedBy.join(" · ") || "heurística"}</div>
-                        </div>
+              <div className="space-y-5">
+                <Surface className="p-5 sm:p-6">
+                  <SectionIntro
+                    eyebrow="Resumo da seleção"
+                    title="O que vai para o lote"
+                    description="Antes de exportar, confirme origem, período e tamanho da seleção final."
+                    compact
+                  />
+
+                  <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-[16px] border border-white/10 bg-white/[0.04] p-4">
+                      <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Origem</div>
+                      <div className="mt-2 text-sm font-semibold text-slate-50">
+                        {templateSourceType === "zabbix_group" ? "Host groups do Zabbix" : "Seleção manual por unidade"}
                       </div>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-
-              {groupPreview.unresolvedHosts.length ? (
-                <div className="rounded-[18px] border border-white/10 bg-white/[0.03]">
-                  <div className="border-b border-white/10 px-4 py-3 text-sm font-semibold text-slate-100">
-                    Hosts que ainda precisam de revisão
-                  </div>
-                  <div className="grid gap-0">
-                    {groupPreview.unresolvedHosts.slice(0, 12).map((item) => (
-                      <div key={item.host.hostId} className="grid gap-2 border-b border-white/5 px-4 py-4 text-sm text-slate-200 md:grid-cols-[minmax(0,1fr)_180px]">
-                        <div>
-                          <div className="font-semibold text-slate-100">{item.host.hostName || item.host.host || item.host.hostId}</div>
-                          <div className="mt-1 text-xs text-slate-400">{item.host.groups.join(" · ") || "sem grupo retornado"}</div>
-                        </div>
-                        <div className="text-xs text-slate-300">
-                          <div>Status: {item.status === "ambiguous" ? "Ambíguo" : "Sem unidade"}</div>
-                          <div className="mt-1">Sinais: {item.matchedBy.join(" · ") || "sem sinais suficientes"}</div>
-                        </div>
+                      <div className="mt-1 text-xs text-slate-400">
+                        {templateSourceType === "zabbix_group"
+                          ? `${requestedGroupIds.length} grupo(s) selecionado(s)`
+                          : selectedUnitId
+                            ? "Fluxo centrado na unidade em foco"
+                            : "Sem unidade escolhida"}
                       </div>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-            </div>
-          ) : null}
-        </Surface>
-
-        <Surface className="report-toolbar p-5 sm:p-6">
-          <SectionIntro
-            eyebrow="Exportação corporativa"
-            title="Gerar arquivo para download"
-            description="Monte o arquivo final com uma ou mais unidades, escolha PDF ou DOCX, decida se os gráficos entram e preencha os dados comerciais que ainda não existem no cadastro."
-            compact
-            actions={<TonePill tone="info">Download server-side</TonePill>}
-          />
-
-          <form action="/relatorios/monitoramento/export" method="POST" target="_blank" className="mt-5 grid gap-4 xl:grid-cols-2">
-            <input type="hidden" name="from" value={from} />
-            <input type="hidden" name="to" value={to} />
-
-            <label className="grid gap-2 text-sm font-semibold text-slate-200 xl:col-span-2">
-              Unidades da exportação
-              <select name="unitIds" multiple size={12} defaultValue={exportSelectedUnitIds}>
-                {catalog.items.map((item) => (
-                  <option key={`export-${item.id}`} value={item.id}>
-                    {item.partner.code} · {item.code} - {item.name}
-                  </option>
-                ))}
-              </select>
-              <span className="text-xs font-normal text-slate-400">
-                Use `Ctrl` ou `Cmd` para selecionar várias unidades.
-                {groupPreview
-                  ? ` ${groupPreview.counts.matchedUnits} unidade(s) reconhecida(s) a partir dos grupos já ficaram pré-selecionadas aqui.`
-                  : " Você também pode preencher essa lista manualmente mesmo sem usar os grupos do Zabbix."}
-              </span>
-            </label>
-
-            <label className="grid gap-2 text-sm font-semibold text-slate-200">
-              Formato do arquivo
-              <select name="format" defaultValue="pdf">
-                <option value="pdf">PDF</option>
-                <option value="docx">DOCX</option>
-              </select>
-            </label>
-
-            <label className="flex items-center gap-3 rounded-[16px] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-slate-100">
-              <input type="checkbox" name="includeCharts" defaultChecked className="h-4 w-4" />
-              Incluir gráficos no arquivo
-            </label>
-
-            <label className="grid gap-2 text-sm font-semibold text-slate-200">
-              Título do relatório
-              <input name="title" defaultValue="Relatório de Consumo" />
-            </label>
-
-            <label className="grid gap-2 text-sm font-semibold text-slate-200">
-              Interessado
-              <input name="interestedParty" defaultValue={selectedUnit?.partner.name || ""} placeholder="Ex.: Secretaria Municipal de Administração" />
-            </label>
-
-            <label className="grid gap-2 text-sm font-semibold text-slate-200">
-              Contrato
-              <input name="contractLabel" placeholder="Ex.: Contrato 123/2026" />
-            </label>
-
-            <label className="grid gap-2 text-sm font-semibold text-slate-200">
-              Banda contratada
-              <input name="contractedBandwidth" placeholder="Ex.: 300 Mbit/s" />
-            </label>
-
-            <label className="grid gap-2 text-sm font-semibold text-slate-200 xl:col-span-2">
-              Endereço ou observação comercial
-              <input name="addressLine" placeholder="Ex.: Rua X, Centro, Gurupi - TO" />
-            </label>
-
-            <div className="xl:col-span-2 flex flex-wrap items-center justify-between gap-3 rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-4">
-              <p className="max-w-3xl text-sm text-slate-300">
-                O arquivo é montado no servidor e sai com cabeçalho, rodapé e estrutura comercial no estilo do modelo enviado. Se desmarcar os gráficos, a exportação sai só com as informações gerais e métricas resumidas.
-              </p>
-              <button type="submit">Baixar arquivo</button>
-            </div>
-          </form>
-        </Surface>
-
-        <Surface className="report-toolbar p-5 sm:p-6">
-          <SectionIntro
-            eyebrow="Template salvo"
-            title="Salvar configuração para reutilizar"
-            description="Congele a seleção atual como um template do NOVA. Se você estiver vendo um preview por grupos do Zabbix, o template já nasce vinculado aos grupos escolhidos; caso contrário, ele salva a seleção manual."
-            compact
-            actions={<TonePill tone={templateSourceType === "zabbix_group" ? "success" : "info"}>{templateSourceType === "zabbix_group" ? "Template por grupo" : "Template manual"}</TonePill>}
-          />
-
-          <form action="/relatorios/monitoramento/templates" method="POST" className="mt-5 grid gap-4 xl:grid-cols-2">
-            <input type="hidden" name="returnTo" value={returnTo} />
-            <input type="hidden" name="sourceType" value={templateSourceType} />
-            <input type="hidden" name="integrationId" value={templateIntegrationId} />
-            {templateUnitIds.map((unitId) => (
-              <input key={`template-unit-${unitId}`} type="hidden" name="unitIds" value={unitId} />
-            ))}
-            {requestedGroupIds.map((groupId) => (
-              <input key={`template-group-${groupId}`} type="hidden" name="groupIds" value={groupId} />
-            ))}
-
-            <label className="grid gap-2 text-sm font-semibold text-slate-200">
-              Código do template
-              <input name="code" placeholder="Ex.: REL-UNITINS-GRUPO" />
-            </label>
-
-            <label className="grid gap-2 text-sm font-semibold text-slate-200">
-              Nome do template
-              <input name="name" placeholder="Ex.: Relatório mensal UNITINS" />
-            </label>
-
-            <label className="grid gap-2 text-sm font-semibold text-slate-200">
-              Período padrão
-              <select name="periodPreset" defaultValue="last_7_days">
-                <option value="last_7_days">Últimos 7 dias</option>
-                <option value="current_month">Mês atual</option>
-                <option value="previous_month">Mês anterior</option>
-              </select>
-            </label>
-
-            <label className="grid gap-2 text-sm font-semibold text-slate-200">
-              Formato padrão
-              <select name="outputFormat" defaultValue="pdf">
-                <option value="pdf">PDF</option>
-                <option value="docx">DOCX</option>
-              </select>
-            </label>
-
-            <label className="flex items-center gap-3 rounded-[16px] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-slate-100 xl:col-span-2">
-              <input type="checkbox" name="includeCharts" defaultChecked className="h-4 w-4" />
-              Incluir gráficos por padrão neste template
-            </label>
-
-            <label className="grid gap-2 text-sm font-semibold text-slate-200">
-              Título
-              <input name="title" defaultValue="Relatório de Consumo" />
-            </label>
-
-            <label className="grid gap-2 text-sm font-semibold text-slate-200">
-              Interessado
-              <input name="interestedParty" defaultValue={selectedUnit?.partner.name || ""} />
-            </label>
-
-            <label className="grid gap-2 text-sm font-semibold text-slate-200">
-              Contrato
-              <input name="contractLabel" />
-            </label>
-
-            <label className="grid gap-2 text-sm font-semibold text-slate-200">
-              Banda contratada
-              <input name="contractedBandwidth" />
-            </label>
-
-            <label className="grid gap-2 text-sm font-semibold text-slate-200 xl:col-span-2">
-              Endereço
-              <input name="addressLine" />
-            </label>
-
-            <div className="xl:col-span-2 flex flex-wrap items-center justify-between gap-3 rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-4">
-              <p className="max-w-3xl text-sm text-slate-300">
-                {templateSourceType === "zabbix_group"
-                  ? `Este template ficará ligado aos grupos selecionados e poderá resolver automaticamente as unidades a cada execução.`
-                  : `Este template ficará com ${templateUnitIds.length} unidade(s) na seleção manual atual.`}
-              </p>
-              <button type="submit">Salvar template</button>
-            </div>
-          </form>
-        </Surface>
-
-        <Surface className="report-toolbar p-5 sm:p-6">
-          <SectionIntro
-            eyebrow="Automação recorrente"
-            title="Agendar geração automática"
-            description="Crie uma regra recorrente para executar um template salvo. O arquivo gerado fica registrado na execução da automação e pode ser baixado depois."
-            compact
-            actions={<TonePill tone="violet">Scheduler do NOVA</TonePill>}
-          />
-
-          <form action="/relatorios/monitoramento/automacoes" method="POST" className="mt-5 grid gap-4 xl:grid-cols-2">
-            <input type="hidden" name="returnTo" value={returnTo} />
-
-            <label className="grid gap-2 text-sm font-semibold text-slate-200">
-              Template
-              <select name="templateId" defaultValue={templates[0]?.id || ""}>
-                {templates.length ? (
-                  templates.map((template) => (
-                    <option key={template.id} value={template.id}>
-                      {template.code} - {template.name}
-                    </option>
-                  ))
-                ) : (
-                  <option value="">Salve um template antes</option>
-                )}
-              </select>
-            </label>
-
-            <label className="grid gap-2 text-sm font-semibold text-slate-200">
-              Código da automação
-              <input name="code" placeholder="Ex.: AUTO-REL-UNITINS" />
-            </label>
-
-            <label className="grid gap-2 text-sm font-semibold text-slate-200">
-              Nome da automação
-              <input name="name" placeholder="Ex.: Relatório recorrente UNITINS" />
-            </label>
-
-            <label className="grid gap-2 text-sm font-semibold text-slate-200">
-              Cadência
-              <select name="cadence" defaultValue="hourly">
-                <option value="every_5_minutes">A cada 5 minutos</option>
-                <option value="hourly">Por hora</option>
-                <option value="every_minute">A cada minuto</option>
-              </select>
-            </label>
-
-            <label className="flex items-center gap-3 rounded-[16px] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-slate-100 xl:col-span-2">
-              <input type="checkbox" name="enabled" defaultChecked className="h-4 w-4" />
-              Ativar automação imediatamente
-            </label>
-
-            <div className="xl:col-span-2 flex flex-wrap items-center justify-between gap-3 rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-4">
-              <p className="max-w-3xl text-sm text-slate-300">
-                A automação usa o scheduler interno do NOVA. Quando o template for baseado em grupos do Zabbix, a execução resolve as unidades daquele grupo novamente a cada rodada.
-              </p>
-              <button type="submit" disabled={!templates.length}>Criar automação</button>
-            </div>
-          </form>
-        </Surface>
-
-        <Surface className="report-toolbar p-5 sm:p-6">
-          <SectionIntro
-            eyebrow="Biblioteca"
-            title="Templates e execuções recentes"
-            description="Acompanhe os templates já salvos, veja as automações ligadas a eles e baixe os últimos arquivos gerados automaticamente."
-            compact
-          />
-
-          <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-            <div className="space-y-4">
-              {templates.length ? (
-                templates.map((template) => (
-                  <div key={template.id} className="rounded-[18px] border border-white/10 bg-white/[0.03] p-4">
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <div className="text-sm font-semibold text-slate-100">{template.code} · {template.name}</div>
-                        <div className="mt-1 text-xs text-slate-400">
-                          {template.sourceType === "zabbix_group" ? "Origem: grupos do Zabbix" : "Origem: seleção manual"} · {formatPeriodPreset(template.periodPreset)} · {template.outputFormat.toUpperCase()} · {template.includeCharts ? "com gráficos" : "sem gráficos"}
-                        </div>
-                      </div>
-                      <TonePill tone={template.automations.length ? "success" : "neutral"}>
-                        {template.automations.length ? `${template.automations.length} automação(ões)` : "sem automação"}
-                      </TonePill>
                     </div>
-
-                    <div className="mt-3 text-xs text-slate-400">
-                      {template.sourceType === "zabbix_group"
-                        ? `${template.groupIds.length} grupo(s) · ${template.integration?.code || "sem integração"}`
-                        : `${template.unitIds.length} unidade(s) manual(is)`}
+                    <div className="rounded-[16px] border border-white/10 bg-white/[0.04] p-4">
+                      <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Período</div>
+                      <div className="mt-2 text-sm font-semibold text-slate-50">{formatDate(from)} - {formatDate(to)}</div>
+                      <div className="mt-1 text-xs text-slate-400">Intervalo que será usado na leitura do Zabbix</div>
                     </div>
+                    <div className="rounded-[16px] border border-white/10 bg-white/[0.04] p-4">
+                      <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Unidades prontas</div>
+                      <div className="mt-2 text-sm font-semibold text-slate-50">{exportSelectedUnitIds.length}</div>
+                      <div className="mt-1 text-xs text-slate-400">
+                        {groupPreview
+                          ? `${groupPreview.counts.matchedUnits} vieram da revisão por grupos`
+                          : "Você ainda pode selecionar manualmente no bloco de exportação"}
+                      </div>
+                    </div>
+                    <div className="rounded-[16px] border border-white/10 bg-white/[0.04] p-4">
+                      <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Unidade em foco</div>
+                      <div className="mt-2 text-sm font-semibold text-slate-50">
+                        {selectedUnit ? `${selectedUnit.code}` : "Sem foco"}
+                      </div>
+                      <div className="mt-1 text-xs text-slate-400">
+                        {selectedUnit ? selectedUnit.name : "Escolha uma unidade para preview pontual"}
+                      </div>
+                    </div>
+                  </div>
+                </Surface>
 
-                    {template.automations.length ? (
-                      <div className="mt-3 grid gap-2">
-                        {template.automations.map((automation) => (
-                          <div key={automation.id} className="rounded-[14px] border border-white/8 bg-black/20 px-3 py-3 text-xs text-slate-300">
-                            <div className="font-semibold text-slate-100">{automation.code} · {automation.name}</div>
-                            <div className="mt-1">{formatCadence(automation.cadence)} · {automation.enabled ? "ativa" : "pausada"}</div>
-                            <div className="mt-1">Última: {formatDateTime(automation.lastRunAt)} · Próxima: {formatDateTime(automation.nextRunAt)}</div>
-                          </div>
+                <Surface className="report-toolbar p-5 sm:p-6">
+                  <SectionIntro
+                    eyebrow="Etapa 3"
+                    title="Gerar arquivo para download"
+                    description="Agora sim: escolha o formato, ajuste os dados comerciais e monte o arquivo final."
+                    compact
+                    actions={<TonePill tone="info">Download server-side</TonePill>}
+                  />
+
+                  <form action="/relatorios/monitoramento/export" method="POST" target="_blank" className="mt-5 grid gap-4 xl:grid-cols-2">
+                    <input type="hidden" name="from" value={from} />
+                    <input type="hidden" name="to" value={to} />
+
+                    <label className="grid gap-2 text-sm font-semibold text-slate-200 xl:col-span-2">
+                      Unidades da exportação
+                      <select name="unitIds" multiple size={12} defaultValue={exportSelectedUnitIds}>
+                        {catalog.items.map((item) => (
+                          <option key={`export-${item.id}`} value={item.id}>
+                            {item.partner.code} · {item.code} - {item.name}
+                          </option>
                         ))}
-                      </div>
-                    ) : null}
-                  </div>
-                ))
-              ) : (
-                <EmptyState
-                  title="Nenhum template salvo ainda"
-                  description="Use o bloco acima para congelar uma seleção manual ou por grupos do Zabbix e reaproveitar depois."
-                />
-              )}
-            </div>
+                      </select>
+                      <span className="text-xs font-normal text-slate-400">
+                        Use `Ctrl` ou `Cmd` para selecionar várias unidades.
+                        {groupPreview
+                          ? ` ${groupPreview.counts.matchedUnits} unidade(s) reconhecida(s) a partir dos grupos já ficaram pré-selecionadas aqui.`
+                          : " Você também pode preencher essa lista manualmente mesmo sem usar os grupos do Zabbix."}
+                      </span>
+                    </label>
 
-            <div className="space-y-4">
-              {recentTemplateRuns.length ? (
-                recentTemplateRuns.map((run) => (
-                  <div key={run.id} className="rounded-[18px] border border-white/10 bg-white/[0.03] p-4">
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <div className="text-sm font-semibold text-slate-100">
-                          {run.rule.reportTemplate?.code || "Sem template"} · {run.rule.name}
-                        </div>
-                        <div className="mt-1 text-xs text-slate-400">
-                          {formatCadence(run.rule.cadence)} · Início {formatDateTime(run.startedAt)}
-                        </div>
-                      </div>
-                      <TonePill tone={run.status === "success" ? "success" : run.status === "error" ? "critical" : "attention"}>
-                        {run.status}
-                      </TonePill>
+                    <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                      Formato do arquivo
+                      <select name="format" defaultValue="pdf">
+                        <option value="pdf">PDF</option>
+                        <option value="docx">DOCX</option>
+                      </select>
+                    </label>
+
+                    <label className="flex items-center gap-3 rounded-[16px] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-slate-100">
+                      <input type="checkbox" name="includeCharts" defaultChecked className="h-4 w-4" />
+                      Incluir gráficos no arquivo
+                    </label>
+
+                    <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                      Título do relatório
+                      <input name="title" defaultValue="Relatório de Consumo" />
+                    </label>
+
+                    <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                      Interessado
+                      <input name="interestedParty" defaultValue={selectedUnit?.partner.name || ""} placeholder="Ex.: Secretaria Municipal de Administração" />
+                    </label>
+
+                    <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                      Contrato
+                      <input name="contractLabel" placeholder="Ex.: Contrato 123/2026" />
+                    </label>
+
+                    <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                      Banda contratada
+                      <input name="contractedBandwidth" placeholder="Ex.: 300 Mbit/s" />
+                    </label>
+
+                    <label className="grid gap-2 text-sm font-semibold text-slate-200 xl:col-span-2">
+                      Endereço ou observação comercial
+                      <input name="addressLine" placeholder="Ex.: Rua X, Centro, Gurupi - TO" />
+                    </label>
+
+                    <div className="xl:col-span-2 flex flex-wrap items-center justify-between gap-3 rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-4">
+                      <p className="max-w-3xl text-sm text-slate-300">
+                        O arquivo é montado no servidor e sai com cabeçalho, rodapé e estrutura comercial no estilo do modelo enviado. Se desmarcar os gráficos, a exportação sai só com as informações gerais e métricas resumidas.
+                      </p>
+                      <button type="submit">Baixar arquivo</button>
                     </div>
+                  </form>
+                </Surface>
+              </div>
+            </section>
 
-                    <div className="mt-3 text-xs text-slate-300">
-                      {run.summary || run.errorMessage || `${run.hitsCount} unidade(s) processada(s)`}
-                    </div>
+            {error ? (
+              <Surface className="report-toolbar border-rose-500/20 bg-rose-500/10 p-5 text-sm text-rose-100">
+                Não foi possível gerar o relatório agora: {error}
+              </Surface>
+            ) : null}
 
-                    {run.attachments.length ? (
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {run.attachments.map((attachment) => (
-                          <Link
-                            key={attachment.id}
-                            href={attachment.url}
-                            className="inline-flex h-10 items-center justify-center rounded-[12px] border border-white/10 bg-white/[0.05] px-3 text-xs font-semibold text-slate-100 transition hover:bg-white/[0.09]"
-                          >
-                            Baixar {attachment.name}
-                          </Link>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
-                ))
-              ) : (
-                <EmptyState
-                  title="Nenhuma execução automática ainda"
-                  description="Depois de criar uma automação de relatório, os arquivos gerados aparecerão aqui com link de download."
-                />
-              )}
-            </div>
-          </div>
-        </Surface>
-
-        {error ? (
-          <Surface className="report-toolbar border-rose-500/20 bg-rose-500/10 p-5 text-sm text-rose-100">
-            Não foi possível gerar o relatório agora: {error}
-          </Surface>
-        ) : null}
-
-        {report ? (
-          <ReportSheet report={report} />
+            {report ? (
+              <ReportSheet report={report} />
+            ) : (
+              <EmptyState
+                title="Selecione uma unidade monitorada"
+                description="Assim que houver um host Zabbix confiável para a unidade, o NOVA consegue montar o relatório no formato de entrega."
+              />
+            )}
+          </>
         ) : (
-          <EmptyState
-            title="Selecione uma unidade monitorada"
-            description="Assim que houver um host Zabbix confiável para a unidade, o NOVA consegue montar o relatório no formato de entrega."
-          />
+          <section className="grid gap-5 xl:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)]">
+            <div className="space-y-5">
+              <Surface className="report-toolbar p-5 sm:p-6">
+                <SectionIntro
+                  eyebrow="Template salvo"
+                  title="Salvar configuração para reutilizar"
+                  description="Congele a seleção atual como um template do NOVA. Se você estiver vendo um preview por grupos do Zabbix, o template já nasce vinculado aos grupos escolhidos; caso contrário, ele salva a seleção manual."
+                  compact
+                  actions={<TonePill tone={templateSourceType === "zabbix_group" ? "success" : "info"}>{templateSourceType === "zabbix_group" ? "Template por grupo" : "Template manual"}</TonePill>}
+                />
+
+                <form action="/relatorios/monitoramento/templates" method="POST" className="mt-5 grid gap-4 xl:grid-cols-2">
+                  <input type="hidden" name="returnTo" value={returnTo} />
+                  <input type="hidden" name="sourceType" value={templateSourceType} />
+                  <input type="hidden" name="integrationId" value={templateIntegrationId} />
+                  {templateUnitIds.map((unitId) => (
+                    <input key={`template-unit-${unitId}`} type="hidden" name="unitIds" value={unitId} />
+                  ))}
+                  {requestedGroupIds.map((groupId) => (
+                    <input key={`template-group-${groupId}`} type="hidden" name="groupIds" value={groupId} />
+                  ))}
+
+                  <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                    Código do template
+                    <input name="code" placeholder="Ex.: REL-UNITINS-GRUPO" />
+                  </label>
+
+                  <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                    Nome do template
+                    <input name="name" placeholder="Ex.: Relatório mensal UNITINS" />
+                  </label>
+
+                  <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                    Período padrão
+                    <select name="periodPreset" defaultValue="last_7_days">
+                      <option value="last_7_days">Últimos 7 dias</option>
+                      <option value="current_month">Mês atual</option>
+                      <option value="previous_month">Mês anterior</option>
+                    </select>
+                  </label>
+
+                  <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                    Formato padrão
+                    <select name="outputFormat" defaultValue="pdf">
+                      <option value="pdf">PDF</option>
+                      <option value="docx">DOCX</option>
+                    </select>
+                  </label>
+
+                  <label className="flex items-center gap-3 rounded-[16px] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-slate-100 xl:col-span-2">
+                    <input type="checkbox" name="includeCharts" defaultChecked className="h-4 w-4" />
+                    Incluir gráficos por padrão neste template
+                  </label>
+
+                  <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                    Título
+                    <input name="title" defaultValue="Relatório de Consumo" />
+                  </label>
+
+                  <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                    Interessado
+                    <input name="interestedParty" defaultValue={selectedUnit?.partner.name || ""} />
+                  </label>
+
+                  <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                    Contrato
+                    <input name="contractLabel" />
+                  </label>
+
+                  <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                    Banda contratada
+                    <input name="contractedBandwidth" />
+                  </label>
+
+                  <label className="grid gap-2 text-sm font-semibold text-slate-200 xl:col-span-2">
+                    Endereço
+                    <input name="addressLine" />
+                  </label>
+
+                  <div className="xl:col-span-2 flex flex-wrap items-center justify-between gap-3 rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-4">
+                    <p className="max-w-3xl text-sm text-slate-300">
+                      {templateSourceType === "zabbix_group"
+                        ? "Este template ficará ligado aos grupos selecionados e poderá resolver automaticamente as unidades a cada execução."
+                        : `Este template ficará com ${templateUnitIds.length} unidade(s) na seleção manual atual.`}
+                    </p>
+                    <button type="submit">Salvar template</button>
+                  </div>
+                </form>
+              </Surface>
+
+              <Surface className="report-toolbar p-5 sm:p-6">
+                <SectionIntro
+                  eyebrow="Biblioteca"
+                  title="Templates salvos"
+                  description="Veja o que já foi consolidado e quais automações estão apontando para cada template."
+                  compact
+                />
+
+                <div className="mt-5 space-y-4">
+                  {templates.length ? (
+                    templates.map((template) => (
+                      <div key={template.id} className="rounded-[18px] border border-white/10 bg-white/[0.03] p-4">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div>
+                            <div className="text-sm font-semibold text-slate-100">{template.code} · {template.name}</div>
+                            <div className="mt-1 text-xs text-slate-400">
+                              {template.sourceType === "zabbix_group" ? "Origem: grupos do Zabbix" : "Origem: seleção manual"} · {formatPeriodPreset(template.periodPreset)} · {template.outputFormat.toUpperCase()} · {template.includeCharts ? "com gráficos" : "sem gráficos"}
+                            </div>
+                          </div>
+                          <TonePill tone={template.automations.length ? "success" : "neutral"}>
+                            {template.automations.length ? `${template.automations.length} automação(ões)` : "sem automação"}
+                          </TonePill>
+                        </div>
+
+                        <div className="mt-3 text-xs text-slate-400">
+                          {template.sourceType === "zabbix_group"
+                            ? `${template.groupIds.length} grupo(s) · ${template.integration?.code || "sem integração"}`
+                            : `${template.unitIds.length} unidade(s) manual(is)`}
+                        </div>
+
+                        {template.automations.length ? (
+                          <div className="mt-3 grid gap-2">
+                            {template.automations.map((automation) => (
+                              <div key={automation.id} className="rounded-[14px] border border-white/8 bg-black/20 px-3 py-3 text-xs text-slate-300">
+                                <div className="font-semibold text-slate-100">{automation.code} · {automation.name}</div>
+                                <div className="mt-1">{formatCadence(automation.cadence)} · {automation.enabled ? "ativa" : "pausada"}</div>
+                                <div className="mt-1">Última: {formatDateTime(automation.lastRunAt)} · Próxima: {formatDateTime(automation.nextRunAt)}</div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : null}
+                      </div>
+                    ))
+                  ) : (
+                    <EmptyState
+                      title="Nenhum template salvo ainda"
+                      description="Use o bloco acima para congelar uma seleção manual ou por grupos do Zabbix e reaproveitar depois."
+                    />
+                  )}
+                </div>
+              </Surface>
+            </div>
+
+            <div className="space-y-5">
+              <Surface className="report-toolbar p-5 sm:p-6">
+                <SectionIntro
+                  eyebrow="Automação recorrente"
+                  title="Agendar geração automática"
+                  description="Crie uma regra recorrente para executar um template salvo. O arquivo gerado fica registrado na execução da automação e pode ser baixado depois."
+                  compact
+                  actions={<TonePill tone="violet">Scheduler do NOVA</TonePill>}
+                />
+
+                <form action="/relatorios/monitoramento/automacoes" method="POST" className="mt-5 grid gap-4 xl:grid-cols-2">
+                  <input type="hidden" name="returnTo" value={returnTo} />
+
+                  <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                    Template
+                    <select name="templateId" defaultValue={templates[0]?.id || ""}>
+                      {templates.length ? (
+                        templates.map((template) => (
+                          <option key={template.id} value={template.id}>
+                            {template.code} - {template.name}
+                          </option>
+                        ))
+                      ) : (
+                        <option value="">Salve um template antes</option>
+                      )}
+                    </select>
+                  </label>
+
+                  <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                    Código da automação
+                    <input name="code" placeholder="Ex.: AUTO-REL-UNITINS" />
+                  </label>
+
+                  <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                    Nome da automação
+                    <input name="name" placeholder="Ex.: Relatório recorrente UNITINS" />
+                  </label>
+
+                  <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                    Cadência
+                    <select name="cadence" defaultValue="hourly">
+                      <option value="every_5_minutes">A cada 5 minutos</option>
+                      <option value="hourly">Por hora</option>
+                      <option value="every_minute">A cada minuto</option>
+                    </select>
+                  </label>
+
+                  <label className="flex items-center gap-3 rounded-[16px] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-slate-100 xl:col-span-2">
+                    <input type="checkbox" name="enabled" defaultChecked className="h-4 w-4" />
+                    Ativar automação imediatamente
+                  </label>
+
+                  <div className="xl:col-span-2 flex flex-wrap items-center justify-between gap-3 rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-4">
+                    <p className="max-w-3xl text-sm text-slate-300">
+                      A automação usa o scheduler interno do NOVA. Quando o template for baseado em grupos do Zabbix, a execução resolve as unidades daquele grupo novamente a cada rodada.
+                    </p>
+                    <button type="submit" disabled={!templates.length}>Criar automação</button>
+                  </div>
+                </form>
+              </Surface>
+
+              <Surface className="report-toolbar p-5 sm:p-6">
+                <SectionIntro
+                  eyebrow="Histórico"
+                  title="Execuções recentes"
+                  description="Aqui ficam as últimas rodadas automáticas com o link direto para o arquivo já gerado."
+                  compact
+                />
+
+                <div className="mt-5 space-y-4">
+                  {recentTemplateRuns.length ? (
+                    recentTemplateRuns.map((run) => (
+                      <div key={run.id} className="rounded-[18px] border border-white/10 bg-white/[0.03] p-4">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div>
+                            <div className="text-sm font-semibold text-slate-100">
+                              {run.rule.reportTemplate?.code || "Sem template"} · {run.rule.name}
+                            </div>
+                            <div className="mt-1 text-xs text-slate-400">
+                              {formatCadence(run.rule.cadence)} · Início {formatDateTime(run.startedAt)}
+                            </div>
+                          </div>
+                          <TonePill tone={run.status === "success" ? "success" : run.status === "error" ? "critical" : "attention"}>
+                            {run.status}
+                          </TonePill>
+                        </div>
+
+                        <div className="mt-3 text-xs text-slate-300">
+                          {run.summary || run.errorMessage || `${run.hitsCount} unidade(s) processada(s)`}
+                        </div>
+
+                        {run.attachments.length ? (
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {run.attachments.map((attachment) => (
+                              <Link
+                                key={attachment.id}
+                                href={attachment.url}
+                                className="inline-flex h-10 items-center justify-center rounded-[12px] border border-white/10 bg-white/[0.05] px-3 text-xs font-semibold text-slate-100 transition hover:bg-white/[0.09]"
+                              >
+                                Baixar {attachment.name}
+                              </Link>
+                            ))}
+                          </div>
+                        ) : null}
+                      </div>
+                    ))
+                  ) : (
+                    <EmptyState
+                      title="Nenhuma execução automática ainda"
+                      description="Depois de criar uma automação de relatório, os arquivos gerados aparecerão aqui com link de download."
+                    />
+                  )}
+                </div>
+              </Surface>
+            </div>
+          </section>
         )}
       </div>
     </AppShell>

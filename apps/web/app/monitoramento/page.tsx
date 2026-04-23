@@ -15,8 +15,7 @@ import {
   TonePill,
 } from "@/components/ops-ui";
 import {
-  OperationsGuidanceGrid,
-  OperationsLinkGrid,
+  OperationsCommandDeck,
 } from "@/components/operations-workspace";
 import {
   getLegacyMonitorContextForUnits,
@@ -2285,10 +2284,10 @@ export default async function MonitoramentoPage({
     >
       <HostHero telemetry={telemetry} commandCenter={commandCenter} isAdmin={isAdmin} />
 
-      <OperationsLinkGrid
-        eyebrow="Trilho"
+      <OperationsCommandDeck
+        eyebrow="Fluxo do turno"
         title="Monitoramento encaixado no produto"
-        description="A leitura do host não fica isolada: ela precisa conversar com o painel, a fila, as integrações e o cadastro da unidade para virar decisão útil."
+        description="A leitura do host precisa conversar com fila, integrações e cadastro, mas sem esconder a operação atrás de blocos demais."
         links={[
           {
             href: "/dashboard",
@@ -2315,12 +2314,6 @@ export default async function MonitoramentoPage({
             badge: <TonePill tone={filteredTelemetry.counts.syncReady ? "success" : "neutral"}>{filteredTelemetry.counts.syncReady} sync ok</TonePill>,
           },
         ]}
-      />
-
-      <OperationsGuidanceGrid
-        eyebrow="Leitura"
-        title="Como usar a mesa de monitoramento"
-        description="O objetivo aqui é decidir rápido se o problema é do host, do acionamento, do vínculo ou do cadastro."
         items={[
           {
             label: "Ver",
@@ -2343,11 +2336,11 @@ export default async function MonitoramentoPage({
         ]}
       />
 
-      <SourcePanel telemetry={telemetry} />
-
       <MonitorTabs filters={filters} telemetry={filteredTelemetry} />
 
       <NocFilters filters={filters} partners={partners} resultCount={filteredTelemetry.counts.units} />
+
+      <SourcePanel telemetry={telemetry} />
 
       {filters.view === "overview" ? (
         <>
