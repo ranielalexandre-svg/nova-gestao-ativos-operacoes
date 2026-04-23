@@ -45,10 +45,14 @@ export function ReportFocusUnitField({
   name,
   units,
   initialSelectedId,
+  label = "Unidade em foco",
+  helpText,
 }: {
   name: string;
   units: UnitOption[];
   initialSelectedId?: string;
+  label?: string;
+  helpText?: string;
 }) {
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState(initialSelectedId || units[0]?.id || "");
@@ -61,7 +65,8 @@ export function ReportFocusUnitField({
 
   return (
     <div className="grid gap-2 text-sm font-semibold text-slate-200">
-      <span>Unidade em foco</span>
+      <span>{label}</span>
+      {helpText ? <span className="text-xs font-normal text-slate-400">{helpText}</span> : null}
       <input type="hidden" name={name} value={selectedId} />
       <input
         type="search"
@@ -109,10 +114,14 @@ export function ReportUnitBatchSelector({
   name,
   units,
   initialSelectedIds,
+  title = "Lote atual",
+  description = "Busque, adicione ou remova unidades sem precisar usar Ctrl/Cmd.",
 }: {
   name: string;
   units: UnitOption[];
   initialSelectedIds: string[];
+  title?: string;
+  description?: string;
 }) {
   const [search, setSearch] = useState("");
   const [selectedIds, setSelectedIds] = useState<string[]>(() => {
@@ -150,8 +159,8 @@ export function ReportUnitBatchSelector({
 
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <div className="text-sm font-semibold text-slate-100">Lote atual</div>
-          <div className="mt-1 text-xs text-slate-400">Busque, adicione ou remova unidades sem precisar usar Ctrl/Cmd.</div>
+          <div className="text-sm font-semibold text-slate-100">{title}</div>
+          <div className="mt-1 text-xs text-slate-400">{description}</div>
         </div>
         <div className={`rounded-full border px-3 py-1 text-xs font-semibold ${selectedIds.length ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-50" : "border-amber-500/20 bg-amber-500/10 text-amber-50"}`}>
           {selectedIds.length} unidade(s)
