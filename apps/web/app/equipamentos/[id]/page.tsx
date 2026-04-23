@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { ActionForm } from "@/components/action-form";
 import { AppShell } from "@/components/app-shell";
+import { AttachmentPanel } from "@/components/attachment-panel";
 import {
   RegistryDetailHero,
   RegistryInfoGrid,
@@ -360,7 +361,9 @@ export default async function EquipamentoDetailPage({
   const query = await resolveSearchParams(searchParams);
   const created = readStringParam(query, "created");
   const from = readStringParam(query, "from");
-  const isAdmin = normalizeRole(session.user?.role || "") === "admin";
+  const role = normalizeRole(session.user?.role || "");
+  const isAdmin = role === "admin";
+  const canEditAttachments = ["admin", "editor"].includes(role);
   const [equipment, monitorResponse, unitsResponse] = await Promise.all([
     apiJson<EquipmentDetail>(`/equipments/${resolved.id}`),
     readMonitorSnapshots(),
@@ -692,6 +695,14 @@ export default async function EquipamentoDetailPage({
       </section>
 
       <LegacyEquipmentBlock profile={legacyProfile} />
+
+      <AttachmentPanel
+        entityPath="equipments"
+        entityId={equipment.id}
+        entityLabel="equipamento"
+        returnPath={`/equipamentos/${equipment.id}`}
+        canEdit={canEditAttachments}
+      />
 
       <section className="grid gap-5 xl:grid-cols-2">
         <Surface className="p-5 sm:p-6">

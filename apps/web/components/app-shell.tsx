@@ -9,6 +9,7 @@ const NAV = [
   { href: "/parceiros", label: "Parceiros", short: "PR", section: "Core" },
   { href: "/unidades", label: "Unidades", short: "UN", section: "Core" },
   { href: "/equipamentos", label: "Equipamentos", short: "EQ", section: "Core" },
+  { href: "/equipamentos/starlinks", label: "Starlinks", short: "ST", section: "Core" },
   { href: "/monitoramento", label: "Monitoramento", short: "MO", section: "Core" },
   { href: "/ocorrencias", label: "Ocorrências", short: "OC", section: "Core" },
   { href: "/operacao/fila", label: "Fila", short: "FL", section: "Operação" },
@@ -17,6 +18,7 @@ const NAV = [
   { href: "/operacao/sla", label: "SLA", short: "SL", section: "Operação", adminOnly: true },
   { href: "/usuarios", label: "Usuários", short: "US", section: "Admin", adminOnly: true },
   { href: "/operacao/atividade", label: "Atividade", short: "AT", section: "Admin", adminOnly: true },
+  { href: "/operacao/importacao", label: "Importação", short: "IM", section: "Admin", adminOnly: true },
   { href: "/reconciliacao-central", label: "Reconciliação", short: "RC", section: "Admin", adminOnly: true },
   { href: "/integracoes", label: "Integrações", short: "IN", section: "Admin", adminOnly: true },
 ];

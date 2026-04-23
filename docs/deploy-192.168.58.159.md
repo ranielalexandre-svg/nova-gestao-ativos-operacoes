@@ -227,5 +227,9 @@ Nao remova o legado ate validar login, cadastros, operacao, reconciliacao e rela
 - Endpoints de compatibilidade `/api/health`, `/api/dashboard`, `/api/audits`,
   `/api/starlinks`, `/api/import/templates/units` e `/api/export/partners`
   respondem no servidor.
+- Rotas web `/equipamentos/starlinks`, `/operacao/importacao` e
+  `/export/equipments` respondem autenticadas pelo Next.
+- Upload e download de anexos foram testados em pelo menos uma unidade ou
+  equipamento.
 - Dados principais migrados/importados ou plano de convivencia definido.
 - Backup do legado feito e caminho de rollback testado.

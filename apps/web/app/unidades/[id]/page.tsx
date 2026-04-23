@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { ActionForm } from "@/components/action-form";
 import { AppShell } from "@/components/app-shell";
+import { AttachmentPanel } from "@/components/attachment-panel";
 import {
   RegistryDetailHero,
   RegistryInfoGrid,
@@ -504,7 +505,9 @@ export default async function UnidadeDetailPage({
     readUnitZabbixSnapshot(resolvedParams.id),
   ]);
   const legacyProfile = (await getLegacyUnitProfileForUnit(unit)) satisfies LegacyUnitProfile | null;
-  const isAdmin = normalizeRole(session.user?.role || "") === "admin";
+  const role = normalizeRole(session.user?.role || "");
+  const isAdmin = role === "admin";
+  const canEditAttachments = ["admin", "editor"].includes(role);
 
   return (
     <AppShell
@@ -739,6 +742,14 @@ export default async function UnidadeDetailPage({
       </section>
 
       <LegacyUnitBlock profile={legacyProfile} />
+
+      <AttachmentPanel
+        entityPath="units"
+        entityId={unit.id}
+        entityLabel="unidade"
+        returnPath={`/unidades/${unit.id}`}
+        canEdit={canEditAttachments}
+      />
 
       <Surface className="p-5 sm:p-6">
         <SectionIntro

@@ -283,14 +283,28 @@ export default async function EquipamentosPage({
         title="Base técnica com vínculo e telemetria"
         description="Inventário em leitura densa: unidade, parceiro, rastreabilidade e indício de monitoramento visíveis na mesma linha."
         actions={
-          isAdmin ? (
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/equipamentos/starlinks"
+              className="inline-flex h-11 items-center justify-center rounded-[14px] border border-white/10 bg-white/[0.05] px-4 text-sm font-semibold text-slate-100 transition hover:bg-white/[0.09]"
+            >
+              Ver Starlinks
+            </Link>
+            <Link
+              href="/export/equipments"
+              className="inline-flex h-11 items-center justify-center rounded-[14px] border border-white/10 bg-white/[0.05] px-4 text-sm font-semibold text-slate-100 transition hover:bg-white/[0.09]"
+            >
+              Exportar CSV
+            </Link>
+            {isAdmin ? (
             <Link
               href="/equipamentos/nova"
               className="inline-flex h-11 items-center justify-center rounded-[14px] border border-sky-500/28 bg-sky-500/14 px-4 text-sm font-semibold text-sky-50 transition hover:bg-sky-500/18"
             >
               Novo equipamento
             </Link>
-          ) : null
+            ) : null}
+          </div>
         }
       />
 

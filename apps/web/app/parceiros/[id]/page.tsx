@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { ActionForm } from "@/components/action-form";
 import { AppShell } from "@/components/app-shell";
+import { AttachmentPanel } from "@/components/attachment-panel";
 import {
   RegistryDetailHero,
   RegistryInfoGrid,
@@ -298,7 +299,9 @@ export default async function ParceiroDetailPage({
   const query = await resolveSearchParams(searchParams);
   const created = readStringParam(query, "created");
   const from = readStringParam(query, "from");
-  const isAdmin = normalizeRole(session.user?.role || "") === "admin";
+  const role = normalizeRole(session.user?.role || "");
+  const isAdmin = role === "admin";
+  const canEditAttachments = ["admin", "editor"].includes(role);
   const partner = await apiJson<PartnerDetail>(`/partners/${resolved.id}`);
   const legacyProfile = (await getLegacyPartnerProfileForPartner(partner)) satisfies LegacyPartnerProfile | null;
   const totalEquipments = partner.units.reduce((sum, unit) => sum + unit._count.equipments, 0);
@@ -591,6 +594,14 @@ export default async function ParceiroDetailPage({
       </section>
 
       <LegacyPartnerBlock profile={legacyProfile} />
+
+      <AttachmentPanel
+        entityPath="partners"
+        entityId={partner.id}
+        entityLabel="parceiro"
+        returnPath={`/parceiros/${partner.id}`}
+        canEdit={canEditAttachments}
+      />
 
       <section className="grid gap-5 xl:grid-cols-2">
         <Surface className="p-5 sm:p-6">

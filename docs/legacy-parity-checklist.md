@@ -115,6 +115,12 @@ Ja existe cobertura funcional no NOVA para:
 - Upload, listagem, download e remocao de anexos por entidade.
 - Templates, preview, execucao de importacao e exportacao CSV para parceiros,
   unidades, equipamentos e Starlinks.
+- Tela dedicada de Starlinks em `/equipamentos/starlinks`.
+- Painel de anexos nas telas de unidades, parceiros, equipamentos e
+  ocorrencias.
+- Central administrativa de importacao/exportacao em `/operacao/importacao`.
+- Rotas web autenticadas para exportar CSV e baixar anexos sem depender de
+  token Bearer no navegador.
 
 ## Itens criticos antes da troca
 
@@ -138,15 +144,16 @@ Estes pontos devem estar ok antes de trocar o proxy do legado para o NOVA:
 Estes itens aparecem no legado, mas ainda precisam de decisao de produto ou
 implementacao equivalente no NOVA:
 
-- Auditoria dedicada agora tem endpoint compativel; ainda falta decidir se a
-  tela visual deve ser identica ao legado ou se a tela de atividades do NOVA
-  substitui a experiencia.
-- Starlinks agora tem endpoint proprio; ainda falta decidir se tera CRUD visual
-  dedicado ou se continua como recorte de equipamentos.
-- Anexos agora tem endpoints de backend; falta encaixar exibicao/acao nas telas
-  onde a equipe realmente usa documentos.
-- Importacao/exportacao CSV agora existe no backend; falta decidir quais telas
-  terao botoes operacionais antes do corte.
+- Auditoria dedicada agora tem endpoint compativel; a tela de atividades do
+  NOVA cobre a experiencia operacional inicial. Ainda falta decidir se o visual
+  deve ser identico ao legado.
+- Starlinks agora tem endpoint proprio e tela dedicada de consulta/importacao.
+  CRUD profundo continua no cadastro de equipamentos.
+- Anexos agora tem endpoints de backend e painel nas telas principais de
+  registro. Ainda falta validar com a equipe se outras entidades precisam do
+  mesmo painel.
+- Importacao/exportacao CSV agora existe no backend e na central administrativa.
+  Antes do corte, validar um lote real pequeno em ambiente controlado.
 - Handover, RCA, playbooks, followups, mudancas, comunicacao, evidencias,
   war rooms, dependencias e despacho de campo parecem ser modulos avancados do
   legado. Podem virar fase 2 se nao forem usados no dia a dia.

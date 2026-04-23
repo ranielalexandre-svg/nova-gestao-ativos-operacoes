@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
+import { AttachmentPanel } from "@/components/attachment-panel";
 import { LinkedHostPanel } from "@/components/linked-host-panel";
 import {
   ConnectedRoutesPanel,
@@ -28,7 +29,7 @@ import {
   type CommandCenter,
 } from "@/lib/noc-overview";
 import { apiJson } from "@/lib/server-api";
-import { getServerWebSession } from "@/lib/web-session";
+import { getServerWebSession, normalizeRole } from "@/lib/web-session";
 
 type OccurrenceDetail = {
   id: string;
@@ -181,6 +182,9 @@ export default async function OcorrenciaDetailPage({
   const scheduledMaintenances = occurrence.maintenances.filter(
     (item) => Boolean(item.scheduledAt),
   ).length;
+  const canEditAttachments = ["admin", "editor"].includes(
+    normalizeRole(session.user?.role || ""),
+  );
   const connectedRoutes = [
     {
       href: "/operacao/fila?view=pending",
@@ -402,6 +406,14 @@ export default async function OcorrenciaDetailPage({
           </Surface>
         </div>
       </section>
+
+      <AttachmentPanel
+        entityPath="occurrences"
+        entityId={occurrence.id}
+        entityLabel="ocorrência"
+        returnPath={`/ocorrencias/${occurrence.id}`}
+        canEdit={canEditAttachments}
+      />
 
       <Surface className="p-5 sm:p-6">
         <SectionIntro
