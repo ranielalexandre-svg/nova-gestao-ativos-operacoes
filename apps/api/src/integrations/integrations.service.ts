@@ -133,6 +133,26 @@ type ReportItemProfile = {
   sensorType: string;
 };
 
+type ReportRenderSeries = {
+  id: string;
+  name: string;
+  key: string;
+  label: string;
+  kind: ReportSeriesKind;
+  color: string;
+  unit: "bps" | "ms" | "%" | "d";
+  zabbixUnits: string;
+  points: Array<{ timestamp: string; value: number | null }>;
+  renderPoints: Array<{ timestamp: string; value: number | null }>;
+  stats: {
+    last: number | null;
+    min: number | null;
+    avg: number | null;
+    max: number | null;
+    points: number;
+  };
+};
+
 type ZabbixHostProblem = {
   eventid: string;
   name: string;
@@ -734,13 +754,26 @@ export class IntegrationsService {
     const key = item.key_.toLowerCase();
     const name = this.normalizeSearchText(item.name);
     const units = (item.units || "").toLowerCase();
+    const isSpeedMetric =
+      key.includes("speed") ||
+      key.includes("ifhighspeed") ||
+      name.includes(" speed") ||
+      name.startsWith("speed ") ||
+      name.includes("velocidade") ||
+      name.includes("bandwidth");
     const isTraffic =
-      units.includes("bps") ||
-      key.includes("net.if.") ||
-      name.includes("traffic") ||
-      name.includes("trafego") ||
-      name.includes("bits received") ||
-      name.includes("bits sent");
+      !isSpeedMetric &&
+      (units.includes("bps") ||
+        key.includes("net.if.in") ||
+        key.includes("net.if.out") ||
+        key.includes("ifhcinoctets") ||
+        key.includes("ifhcoutoctets") ||
+        key.includes("ifinoctets") ||
+        key.includes("ifoutoctets") ||
+        name.includes("traffic") ||
+        name.includes("trafego") ||
+        name.includes("bits received") ||
+        name.includes("bits sent"));
 
     if (key.includes("system.uptime") || name.includes("system uptime") || name.includes("uptime")) {
       return {
@@ -808,6 +841,42 @@ export class IntegrationsService {
     }
 
     return null;
+  }
+
+  private reportItemPriority(item: ZabbixTelemetryItem, profile: ReportItemProfile) {
+    const key = item.key_.toLowerCase();
+    const name = this.normalizeSearchText(item.name);
+
+    let score = 0;
+
+    if (profile.kind === "trafficIn") {
+      if (key.includes("net.if.in") || key.includes("ifhcinoctets") || key.includes("ifinoctets")) score += 120;
+      if (name.includes("bits received") || name.includes("received")) score += 80;
+      if (name.includes("traffic") || name.includes("trafego")) score += 30;
+    }
+
+    if (profile.kind === "trafficOut") {
+      if (key.includes("net.if.out") || key.includes("ifhcoutoctets") || key.includes("ifoutoctets")) score += 120;
+      if (name.includes("bits sent") || name.includes("sent") || name.includes("upload")) score += 80;
+      if (name.includes("traffic") || name.includes("trafego")) score += 30;
+    }
+
+    if (profile.kind === "ping") {
+      if (key.startsWith("icmppingsec")) score += 120;
+      if (name.includes("latencia") || name.includes("latency") || name.includes("response time")) score += 80;
+    }
+
+    if (profile.kind === "loss") {
+      if (key.startsWith("icmppingloss")) score += 120;
+      if (name.includes("packet loss") || name.includes("perda de pacote") || name.includes("loss")) score += 80;
+    }
+
+    if (profile.kind === "uptime") {
+      if (key.startsWith("system.uptime")) score += 120;
+      if (name.includes("system uptime") || name.includes("uptime")) score += 80;
+    }
+
+    return score;
   }
 
   private reportHistoryType(item: ZabbixTelemetryItem) {
@@ -891,6 +960,32 @@ export class IntegrationsService {
     };
   }
 
+  private slimReportPoints(
+    points: Array<{ timestamp: string; value: number | null }>,
+    maxPoints = 360,
+  ) {
+    if (points.length <= maxPoints) {
+      return points;
+    }
+
+    const slimmed: Array<{ timestamp: string; value: number | null }> = [];
+    const step = (points.length - 1) / Math.max(maxPoints - 1, 1);
+    let previousIndex = -1;
+
+    for (let sample = 0; sample < maxPoints; sample += 1) {
+      const index = Math.min(points.length - 1, Math.round(sample * step));
+      if (index === previousIndex) continue;
+      slimmed.push(points[index]);
+      previousIndex = index;
+    }
+
+    if (slimmed[slimmed.length - 1] !== points[points.length - 1]) {
+      slimmed.push(points[points.length - 1]);
+    }
+
+    return slimmed;
+  }
+
   private reportTrafficConsumption(
     series: Array<{
       kind: string;
@@ -942,9 +1037,15 @@ export class IntegrationsService {
 
       const currentValue = this.parseNumber(item.lastvalue) ?? 0;
       const existing = byKind.get(profile.kind);
+      const currentPriority = this.reportItemPriority(item, profile);
+      const existingPriority = existing ? this.reportItemPriority(existing.item, existing.profile) : -Infinity;
       const existingValue = this.parseNumber(existing?.item.lastvalue) ?? -Infinity;
 
-      if (!existing || currentValue > existingValue) {
+      if (
+        !existing ||
+        currentPriority > existingPriority ||
+        (currentPriority === existingPriority && currentValue > existingValue)
+      ) {
         byKind.set(profile.kind, { item, profile });
       }
     }
@@ -1599,7 +1700,7 @@ export class IntegrationsService {
 
         const selectedItems = this.selectReportItems(items);
         const historyByItem = await this.readReportHistory(targetUrl, bearerToken, selectedItems, period);
-        const blocksByType = new Map<"traffic" | "ping" | "uptime", Array<Record<string, unknown>>>();
+        const blocksByType = new Map<"traffic" | "ping" | "uptime", ReportRenderSeries[]>();
 
         for (const entry of selectedItems) {
           const rawPoints = historyByItem.get(entry.item.itemid) || [];
@@ -1640,6 +1741,7 @@ export class IntegrationsService {
               unit: entry.profile.unit,
               zabbixUnits: entry.item.units || "",
               points: finalPoints,
+              renderPoints: this.slimReportPoints(finalPoints),
               stats: this.reportStats(values),
             },
           ]);
@@ -1661,7 +1763,10 @@ export class IntegrationsService {
               sensorType: profile?.sensorType || "Sensor Zabbix",
               probePath: `${integration.name} > ${match.hostName || match.host || match.hostId}`,
               unit: firstSeries?.unit || "",
-              series,
+              series: series.map(({ renderPoints, ...entry }) => ({
+                ...entry,
+                points: renderPoints,
+              })),
               consumption: block === "traffic" ? this.reportTrafficConsumption(series as Array<{
                 kind: string;
                 points: Array<{ timestamp: string; value: number | null }>;
