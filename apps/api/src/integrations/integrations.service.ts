@@ -67,6 +67,8 @@ type UnitTelemetryInput = {
   name: string;
   city: string | null;
   state: string | null;
+  zabbixHost: string | null;
+  zabbixVisibleName: string | null;
   isActive: boolean;
   partner: {
     id: string;
@@ -570,8 +572,12 @@ export class IntegrationsService {
     const unitName = this.compactToken(unit.name);
     const city = this.compactToken(unit.city);
     const state = this.compactToken(unit.state);
+    const manualHost = this.compactToken(unit.zabbixHost);
+    const manualVisibleName = this.compactToken(unit.zabbixVisibleName);
     const partnerCode = this.compactToken(unit.partner.code);
     const partnerName = this.compactToken(unit.partner.name);
+    const hostCode = this.compactToken(host.host);
+    const hostVisibleName = this.compactToken(host.name);
 
     const tagUnitId = this.compactToken(this.hostTagValue(host, ["nova.unit_id", "unit_id", "unidade_id"]));
     const tagUnitCode = this.compactToken(
@@ -580,6 +586,18 @@ export class IntegrationsService {
     const tagPartner = this.compactToken(
       this.hostTagValue(host, ["nova.partner_code", "partner_code", "partner", "parceiro"]),
     );
+
+    if (manualHost && hostCode === manualHost) {
+      score += 1000;
+      syncReady = true;
+      reasons.push("host manual");
+    }
+
+    if (manualVisibleName && hostVisibleName === manualVisibleName) {
+      score += 1000;
+      syncReady = true;
+      reasons.push("nome visível manual");
+    }
 
     if (unitId && tagUnitId === unitId) {
       score += 100;
@@ -653,7 +671,7 @@ export class IntegrationsService {
     }
 
     return {
-      score: Math.min(100, score),
+      score,
       reasons: Array.from(new Set(reasons)),
       syncReady,
     };
@@ -679,7 +697,7 @@ export class IntegrationsService {
       return {
         status: "unmatched",
         score: best?.score || 0,
-        confidence: best?.score || 0,
+        confidence: Math.min(100, best?.score || 0),
         matchedBy: best?.reasons || [],
         candidates: ranked.length,
         syncReady: false,
@@ -692,7 +710,7 @@ export class IntegrationsService {
     return {
       status: ambiguous ? "ambiguous" : "matched",
       score: best.score,
-      confidence: best.score,
+      confidence: Math.min(100, best.score),
       integrationId: integration.id,
       integrationCode: integration.code,
       integrationName: integration.name,
@@ -1324,6 +1342,8 @@ export class IntegrationsService {
           name: unit.name,
           city: unit.city,
           state: unit.state,
+          zabbixHost: unit.zabbixHost,
+          zabbixVisibleName: unit.zabbixVisibleName,
           isActive: unit.isActive,
         },
         partner: unit.partner,
@@ -1671,6 +1691,8 @@ export class IntegrationsService {
         message:
           sourceErrors.length && !candidates.length
             ? `Não foi possível consultar Zabbix: ${sourceErrors.join("; ")}.`
+            : unit.zabbixHost || unit.zabbixVisibleName
+              ? `Nenhum host Zabbix corresponde ao vínculo manual informado. Revise o nome do host ou o nome visível antes de sincronizar.`
             : `Nenhum host com vínculo explícito foi encontrado. Use a tag nova.unit_code=${unit.code} no host correto antes de sincronizar.`,
       };
     }

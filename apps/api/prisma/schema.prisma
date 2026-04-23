@@ -43,6 +43,8 @@ model Unit {
   name           String
   city           String?
   state          String?
+  zabbixHost     String?
+  zabbixVisibleName String?
   isActive       Boolean        @default(true)
   partnerId      String
   partner        Partner        @relation(fields: [partnerId], references: [id], onDelete: Restrict)

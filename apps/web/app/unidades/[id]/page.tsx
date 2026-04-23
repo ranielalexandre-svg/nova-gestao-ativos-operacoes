@@ -37,6 +37,8 @@ type UnitDetail = {
   name: string;
   city: string | null;
   state: string | null;
+  zabbixHost: string | null;
+  zabbixVisibleName: string | null;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -545,6 +547,41 @@ export default async function UnidadeDetailPage({
     }
   }
 
+  async function updateUnitZabbixLink(
+    _prevState: ActionFeedbackState,
+    formData: FormData,
+  ): Promise<ActionFeedbackState> {
+    "use server";
+
+    try {
+      const actionSession = await getServerWebSession();
+      if (normalizeRole(actionSession.user?.role || "") !== "admin") {
+        return { status: "error", message: "Acesso negado." };
+      }
+
+      const id = String(formData.get("id") || "");
+
+      await apiJson(`/units/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          zabbixHost: String(formData.get("zabbixHost") || ""),
+          zabbixVisibleName: String(formData.get("zabbixVisibleName") || ""),
+        }),
+      });
+
+      revalidatePath("/unidades");
+      revalidatePath(`/unidades/${id}`);
+      revalidatePath("/monitoramento");
+      revalidatePath("/integracoes");
+      revalidatePath("/reconciliacao-central");
+      revalidatePath("/relatorios/monitoramento");
+
+      return { status: "success", message: "Vínculo manual do Zabbix atualizado." };
+    } catch (error) {
+      return { status: "error", message: getActionErrorMessage(error) };
+    }
+  }
+
   const resolvedParams = await params;
   const resolvedSearchParams = await resolveSearchParams(searchParams);
   const created = readStringParam(resolvedSearchParams, "created") === "1";
@@ -561,6 +598,7 @@ export default async function UnidadeDetailPage({
   const role = normalizeRole(session.user?.role || "");
   const isAdmin = role === "admin";
   const canEditAttachments = ["admin", "editor"].includes(role);
+  const hasManualZabbixLink = Boolean(unit.zabbixHost || unit.zabbixVisibleName);
   const partnerOptions = partnersResponse.items;
 
   const unitEditSteps = [
@@ -714,6 +752,88 @@ export default async function UnidadeDetailPage({
     },
   ];
 
+  const zabbixLinkSteps = [
+    {
+      title: "Vínculo manual",
+      description: "Informe o nome técnico do host ou o nome visível para localizar o host certo no Zabbix.",
+      body: (
+        <div className="grid gap-4">
+          <input type="hidden" name="id" value={unit.id} />
+
+          <div className="grid gap-2">
+            <label
+              htmlFor="unit-zabbix-host"
+              className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
+            >
+              Nome do host
+            </label>
+            <input
+              id="unit-zabbix-host"
+              name="zabbixHost"
+              defaultValue={unit.zabbixHost || ""}
+              placeholder="Ex.: PMG Cras Alice Barbosa"
+              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
+            />
+            <div className="text-xs leading-5 text-slate-500">
+              Campo <span className="font-semibold text-slate-300">Host</span> do cadastro do
+              Zabbix.
+            </div>
+          </div>
+
+          <div className="grid gap-2">
+            <label
+              htmlFor="unit-zabbix-visible-name"
+              className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
+            >
+              Nome visível
+            </label>
+            <input
+              id="unit-zabbix-visible-name"
+              name="zabbixVisibleName"
+              defaultValue={unit.zabbixVisibleName || ""}
+              placeholder="Ex.: PMG SEMUS CRAS ALICE BARBOSA (27357)(56554)(O)"
+              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
+            />
+            <div className="text-xs leading-5 text-slate-500">
+              Campo <span className="font-semibold text-slate-300">Nome visível</span> do host
+              no Zabbix.
+            </div>
+          </div>
+
+          <div className="rounded-[16px] border border-white/[0.08] bg-black/20 p-4 text-sm leading-6 text-slate-400">
+            Você pode preencher um dos dois campos ou ambos. Se os dois ficarem vazios, o sistema
+            volta a depender apenas do vínculo automático por tag e heurística.
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: "Fechamento",
+      description: "Revise o impacto do vínculo manual antes de salvar.",
+      body: (
+        <div className="grid gap-4">
+          <div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4">
+            <div className="text-sm font-semibold text-slate-100">Como a sincronização vai agir</div>
+            <div className="mt-3 grid gap-3 text-sm text-slate-400">
+              <div>
+                Se o nome informado bater exatamente com o host do Zabbix, o vínculo passa a ser
+                tratado como confiável para sincronização.
+              </div>
+              <div>
+                Se mais de um host bater com o vínculo manual, a sincronização continua bloqueada
+                para evitar escrita no host errado.
+              </div>
+              <div>
+                Depois da primeira sincronização, as tags da unidade ajudam a manter o vínculo mais
+                estável.
+              </div>
+            </div>
+          </div>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <AppShell
       title={`${unit.code} · ${unit.name}`}
@@ -827,7 +947,7 @@ export default async function UnidadeDetailPage({
             <SectionIntro
               eyebrow="Zabbix"
               title="Host vinculado à unidade"
-              description="Leitura do host encontrado para esta unidade. A sincronização só roda quando o vínculo está seguro."
+              description="Leitura do host encontrado para esta unidade. Você pode travar o vínculo pelo nome do host ou pelo nome visível quando o match automático não estiver seguro."
               actions={
                 <TonePill tone={zabbixSnapshot ? toneForHealth(zabbixSnapshot.health) : "neutral"}>
                   {zabbixSnapshot ? labelForHealth(zabbixSnapshot.health) : "sem leitura"}
@@ -915,21 +1035,72 @@ export default async function UnidadeDetailPage({
               Atualiza tags e inventário do host no Zabbix com código da unidade, parceiro,
               localização e serial/MAC dos equipamentos cadastrados.
             </p>
-            <div className="mt-3 rounded-[12px] border border-white/[0.08] bg-white/[0.035] px-3 py-2 text-xs leading-5 text-slate-400">
-              Requer tag <span className="font-semibold text-slate-200">nova.unit_code={unit.code}</span> no host correto.
+
+            <div className="mt-4 rounded-[12px] border border-white/[0.08] bg-white/[0.035] p-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+                  Vínculo manual
+                </div>
+                <TonePill tone={hasManualZabbixLink ? "info" : "neutral"}>
+                  {hasManualZabbixLink ? "configurado" : "automático"}
+                </TonePill>
+              </div>
+
+              <div className="mt-3 grid gap-2 text-sm text-slate-400">
+                <div>
+                  Host: <span className="text-slate-200">{unit.zabbixHost || "-"}</span>
+                </div>
+                <div>
+                  Nome visível:{" "}
+                  <span className="text-slate-200">{unit.zabbixVisibleName || "-"}</span>
+                </div>
+              </div>
             </div>
-            {isAdmin ? (
-              <ActionForm
-                action={syncZabbixAction}
-                submitLabel="Sincronizar Zabbix"
-                pendingLabel="Sincronizando..."
-                variant="secondary"
-                className="mt-4"
-                submitClassName="justify-start"
-              >
-                <input type="hidden" name="unitId" value={unit.id} />
-              </ActionForm>
-            ) : null}
+
+            <div className="mt-3 rounded-[12px] border border-white/[0.08] bg-white/[0.035] px-3 py-2 text-xs leading-5 text-slate-400">
+              {hasManualZabbixLink ? (
+                <>
+                  O vínculo manual informado terá prioridade para localizar o host. Depois da
+                  sincronização, a tag{" "}
+                  <span className="font-semibold text-slate-200">nova.unit_code={unit.code}</span>{" "}
+                  será reforçada no cadastro do host.
+                </>
+              ) : (
+                <>
+                  Requer tag{" "}
+                  <span className="font-semibold text-slate-200">
+                    nova.unit_code={unit.code}
+                  </span>{" "}
+                  no host correto.
+                </>
+              )}
+            </div>
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              {isAdmin ? (
+                <EntityEditModal
+                  triggerLabel={hasManualZabbixLink ? "Editar vínculo" : "Informar vínculo"}
+                  title="Vínculo manual com host Zabbix"
+                  kicker="Zabbix"
+                  description="Use o nome do host ou o nome visível para destravar a sincronização sem depender apenas da tag."
+                  submitLabel="Salvar vínculo"
+                  pendingLabel="Salvando..."
+                  steps={zabbixLinkSteps}
+                  action={updateUnitZabbixLink}
+                />
+              ) : null}
+
+              {isAdmin ? (
+                <ActionForm
+                  action={syncZabbixAction}
+                  submitLabel="Sincronizar Zabbix"
+                  pendingLabel="Sincronizando..."
+                  variant="secondary"
+                  submitClassName="justify-start"
+                >
+                  <input type="hidden" name="unitId" value={unit.id} />
+                </ActionForm>
+              ) : null}
+            </div>
           </div>
         </div>
       </Surface>

@@ -25,6 +25,8 @@ export class EquipmentsService {
       name: true,
       city: true,
       state: true,
+      zabbixHost: true,
+      zabbixVisibleName: true,
       isActive: true,
       partner: {
         select: {

@@ -21,6 +21,14 @@ export class UpdateUnitDto {
 
   @IsOptional()
   @IsString()
+  zabbixHost?: string;
+
+  @IsOptional()
+  @IsString()
+  zabbixVisibleName?: string;
+
+  @IsOptional()
+  @IsString()
   partnerId?: string;
 
   @IsOptional()

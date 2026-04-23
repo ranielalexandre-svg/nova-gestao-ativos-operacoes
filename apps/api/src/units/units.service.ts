@@ -25,6 +25,8 @@ export class UnitsService {
       name: true,
       city: true,
       state: true,
+      zabbixHost: true,
+      zabbixVisibleName: true,
       isActive: true,
       partner: {
         select: {
@@ -192,6 +194,8 @@ export class UnitsService {
         name: true,
         city: true,
         state: true,
+        zabbixHost: true,
+        zabbixVisibleName: true,
         isActive: true,
         createdAt: true,
         updatedAt: true,
@@ -332,6 +336,14 @@ export class UnitsService {
 
     if (payload.state !== undefined) {
       data.state = payload.state.trim().toUpperCase() || null;
+    }
+
+    if (payload.zabbixHost !== undefined) {
+      data.zabbixHost = payload.zabbixHost.trim() || null;
+    }
+
+    if (payload.zabbixVisibleName !== undefined) {
+      data.zabbixVisibleName = payload.zabbixVisibleName.trim() || null;
     }
 
     if (payload.partnerId !== undefined) {

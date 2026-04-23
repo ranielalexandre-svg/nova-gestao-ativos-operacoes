@@ -259,6 +259,8 @@ export class MonitoringService {
         name: true,
         city: true,
         state: true,
+        zabbixHost: true,
+        zabbixVisibleName: true,
         isActive: true,
         partner: {
           select: {
@@ -320,6 +322,8 @@ export class MonitoringService {
         name: true,
         city: true,
         state: true,
+        zabbixHost: true,
+        zabbixVisibleName: true,
         isActive: true,
         partner: {
           select: {
