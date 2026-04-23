@@ -18,6 +18,11 @@ const ENTITY_ALIASES: Record<string, string> = {
   partners: 'partner',
   occurrence: 'occurrence',
   occurrences: 'occurrence',
+  automation_run: 'automation_run',
+  automationrun: 'automation_run',
+  template: 'report_template',
+  report_template: 'report_template',
+  reporttemplate: 'report_template',
 };
 
 export type UploadedFile = {
@@ -88,6 +93,20 @@ export class AttachmentsService {
       case 'occurrence':
         return Boolean(
           await this.prisma.occurrence.findUnique({
+            where: { id },
+            select: { id: true },
+          }),
+        );
+      case 'automation_run':
+        return Boolean(
+          await this.prisma.automationRun.findUnique({
+            where: { id },
+            select: { id: true },
+          }),
+        );
+      case 'report_template':
+        return Boolean(
+          await this.prisma.monitoringReportTemplate.findUnique({
             where: { id },
             select: { id: true },
           }),

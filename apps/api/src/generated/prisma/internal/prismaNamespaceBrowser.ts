@@ -63,6 +63,7 @@ export const ModelName = {
   SlaPolicy: 'SlaPolicy',
   ExceptionComment: 'ExceptionComment',
   AutomationRule: 'AutomationRule',
+  MonitoringReportTemplate: 'MonitoringReportTemplate',
   AutomationRun: 'AutomationRun',
   ActivityEntry: 'ActivityEntry'
 } as const
@@ -290,6 +291,7 @@ export const AutomationRuleScalarFieldEnum = {
   code: 'code',
   name: 'name',
   detector: 'detector',
+  reportTemplateId: 'reportTemplateId',
   severity: 'severity',
   cadence: 'cadence',
   thresholdMinutes: 'thresholdMinutes',
@@ -304,6 +306,30 @@ export const AutomationRuleScalarFieldEnum = {
 } as const
 
 export type AutomationRuleScalarFieldEnum = (typeof AutomationRuleScalarFieldEnum)[keyof typeof AutomationRuleScalarFieldEnum]
+
+
+export const MonitoringReportTemplateScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  name: 'name',
+  integrationId: 'integrationId',
+  sourceType: 'sourceType',
+  periodPreset: 'periodPreset',
+  groupIds: 'groupIds',
+  unitIds: 'unitIds',
+  outputFormat: 'outputFormat',
+  includeCharts: 'includeCharts',
+  title: 'title',
+  interestedParty: 'interestedParty',
+  contractLabel: 'contractLabel',
+  addressLine: 'addressLine',
+  contractedBandwidth: 'contractedBandwidth',
+  enabled: 'enabled',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MonitoringReportTemplateScalarFieldEnum = (typeof MonitoringReportTemplateScalarFieldEnum)[keyof typeof MonitoringReportTemplateScalarFieldEnum]
 
 
 export const AutomationRunScalarFieldEnum = {

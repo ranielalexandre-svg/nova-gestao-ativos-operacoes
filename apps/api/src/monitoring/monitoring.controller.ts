@@ -2,7 +2,9 @@ import { Body, Controller, Get, Post, Query, Res, UseGuards } from "@nestjs/comm
 import type { Response } from "express";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { MonitoringService } from "./monitoring.service";
+import { CreateReportTemplateDto } from "./dto/create-report-template.dto";
 import { ExportMonitoringReportDto } from "./dto/export-monitoring-report.dto";
+import { ListReportTemplateRunsQueryDto } from "./dto/list-report-template-runs-query.dto";
 import { PrtgStyleReportQueryDto } from "./dto/prtg-style-report-query.dto";
 import { ZabbixReportGroupPreviewQueryDto } from "./dto/zabbix-report-group-preview-query.dto";
 import { ZabbixReportGroupsQueryDto } from "./dto/zabbix-report-groups-query.dto";
@@ -35,6 +37,21 @@ export class MonitoringController {
   @Get("reports/sources")
   getReportSources() {
     return this.monitoringService.getReportGroupSources();
+  }
+
+  @Get("report-templates")
+  listReportTemplates() {
+    return this.monitoringService.listReportTemplates();
+  }
+
+  @Get("report-template-runs")
+  listReportTemplateRuns(@Query() query: ListReportTemplateRunsQueryDto) {
+    return this.monitoringService.listReportTemplateRuns(query);
+  }
+
+  @Post("report-templates")
+  createReportTemplate(@Body() body: CreateReportTemplateDto) {
+    return this.monitoringService.createReportTemplate(body);
   }
 
   @Get("reports/groups/zabbix")

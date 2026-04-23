@@ -10,5 +10,6 @@ import { AuthModule } from "../auth/auth.module";
   imports: [PrismaModule, IntegrationsModule, AuthModule],
   controllers: [MonitoringController],
   providers: [MonitoringService, MonitoringReportExportService],
+  exports: [MonitoringService, MonitoringReportExportService],
 })
 export class MonitoringModule {}

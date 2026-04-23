@@ -39,6 +39,7 @@ export type AutomationRuleMinAggregateOutputType = {
   code: string | null
   name: string | null
   detector: string | null
+  reportTemplateId: string | null
   severity: string | null
   cadence: string | null
   thresholdMinutes: number | null
@@ -57,6 +58,7 @@ export type AutomationRuleMaxAggregateOutputType = {
   code: string | null
   name: string | null
   detector: string | null
+  reportTemplateId: string | null
   severity: string | null
   cadence: string | null
   thresholdMinutes: number | null
@@ -75,6 +77,7 @@ export type AutomationRuleCountAggregateOutputType = {
   code: number
   name: number
   detector: number
+  reportTemplateId: number
   severity: number
   cadence: number
   thresholdMinutes: number
@@ -103,6 +106,7 @@ export type AutomationRuleMinAggregateInputType = {
   code?: true
   name?: true
   detector?: true
+  reportTemplateId?: true
   severity?: true
   cadence?: true
   thresholdMinutes?: true
@@ -121,6 +125,7 @@ export type AutomationRuleMaxAggregateInputType = {
   code?: true
   name?: true
   detector?: true
+  reportTemplateId?: true
   severity?: true
   cadence?: true
   thresholdMinutes?: true
@@ -139,6 +144,7 @@ export type AutomationRuleCountAggregateInputType = {
   code?: true
   name?: true
   detector?: true
+  reportTemplateId?: true
   severity?: true
   cadence?: true
   thresholdMinutes?: true
@@ -244,6 +250,7 @@ export type AutomationRuleGroupByOutputType = {
   code: string
   name: string
   detector: string
+  reportTemplateId: string | null
   severity: string
   cadence: string
   thresholdMinutes: number | null
@@ -285,6 +292,7 @@ export type AutomationRuleWhereInput = {
   code?: Prisma.StringFilter<"AutomationRule"> | string
   name?: Prisma.StringFilter<"AutomationRule"> | string
   detector?: Prisma.StringFilter<"AutomationRule"> | string
+  reportTemplateId?: Prisma.StringNullableFilter<"AutomationRule"> | string | null
   severity?: Prisma.StringFilter<"AutomationRule"> | string
   cadence?: Prisma.StringFilter<"AutomationRule"> | string
   thresholdMinutes?: Prisma.IntNullableFilter<"AutomationRule"> | number | null
@@ -296,6 +304,7 @@ export type AutomationRuleWhereInput = {
   nextRunAt?: Prisma.DateTimeNullableFilter<"AutomationRule"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"AutomationRule"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"AutomationRule"> | Date | string
+  reportTemplate?: Prisma.XOR<Prisma.MonitoringReportTemplateNullableScalarRelationFilter, Prisma.MonitoringReportTemplateWhereInput> | null
   exceptionCases?: Prisma.ExceptionCaseListRelationFilter
   runs?: Prisma.AutomationRunListRelationFilter
   activities?: Prisma.ActivityEntryListRelationFilter
@@ -306,6 +315,7 @@ export type AutomationRuleOrderByWithRelationInput = {
   code?: Prisma.SortOrder
   name?: Prisma.SortOrder
   detector?: Prisma.SortOrder
+  reportTemplateId?: Prisma.SortOrderInput | Prisma.SortOrder
   severity?: Prisma.SortOrder
   cadence?: Prisma.SortOrder
   thresholdMinutes?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -317,6 +327,7 @@ export type AutomationRuleOrderByWithRelationInput = {
   nextRunAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  reportTemplate?: Prisma.MonitoringReportTemplateOrderByWithRelationInput
   exceptionCases?: Prisma.ExceptionCaseOrderByRelationAggregateInput
   runs?: Prisma.AutomationRunOrderByRelationAggregateInput
   activities?: Prisma.ActivityEntryOrderByRelationAggregateInput
@@ -330,6 +341,7 @@ export type AutomationRuleWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.AutomationRuleWhereInput | Prisma.AutomationRuleWhereInput[]
   name?: Prisma.StringFilter<"AutomationRule"> | string
   detector?: Prisma.StringFilter<"AutomationRule"> | string
+  reportTemplateId?: Prisma.StringNullableFilter<"AutomationRule"> | string | null
   severity?: Prisma.StringFilter<"AutomationRule"> | string
   cadence?: Prisma.StringFilter<"AutomationRule"> | string
   thresholdMinutes?: Prisma.IntNullableFilter<"AutomationRule"> | number | null
@@ -341,6 +353,7 @@ export type AutomationRuleWhereUniqueInput = Prisma.AtLeast<{
   nextRunAt?: Prisma.DateTimeNullableFilter<"AutomationRule"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"AutomationRule"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"AutomationRule"> | Date | string
+  reportTemplate?: Prisma.XOR<Prisma.MonitoringReportTemplateNullableScalarRelationFilter, Prisma.MonitoringReportTemplateWhereInput> | null
   exceptionCases?: Prisma.ExceptionCaseListRelationFilter
   runs?: Prisma.AutomationRunListRelationFilter
   activities?: Prisma.ActivityEntryListRelationFilter
@@ -351,6 +364,7 @@ export type AutomationRuleOrderByWithAggregationInput = {
   code?: Prisma.SortOrder
   name?: Prisma.SortOrder
   detector?: Prisma.SortOrder
+  reportTemplateId?: Prisma.SortOrderInput | Prisma.SortOrder
   severity?: Prisma.SortOrder
   cadence?: Prisma.SortOrder
   thresholdMinutes?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -377,6 +391,7 @@ export type AutomationRuleScalarWhereWithAggregatesInput = {
   code?: Prisma.StringWithAggregatesFilter<"AutomationRule"> | string
   name?: Prisma.StringWithAggregatesFilter<"AutomationRule"> | string
   detector?: Prisma.StringWithAggregatesFilter<"AutomationRule"> | string
+  reportTemplateId?: Prisma.StringNullableWithAggregatesFilter<"AutomationRule"> | string | null
   severity?: Prisma.StringWithAggregatesFilter<"AutomationRule"> | string
   cadence?: Prisma.StringWithAggregatesFilter<"AutomationRule"> | string
   thresholdMinutes?: Prisma.IntNullableWithAggregatesFilter<"AutomationRule"> | number | null
@@ -406,6 +421,7 @@ export type AutomationRuleCreateInput = {
   nextRunAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  reportTemplate?: Prisma.MonitoringReportTemplateCreateNestedOneWithoutAutomationsInput
   exceptionCases?: Prisma.ExceptionCaseCreateNestedManyWithoutAutomationInput
   runs?: Prisma.AutomationRunCreateNestedManyWithoutRuleInput
   activities?: Prisma.ActivityEntryCreateNestedManyWithoutAutomationInput
@@ -416,6 +432,7 @@ export type AutomationRuleUncheckedCreateInput = {
   code: string
   name: string
   detector: string
+  reportTemplateId?: string | null
   severity?: string
   cadence?: string
   thresholdMinutes?: number | null
@@ -448,6 +465,7 @@ export type AutomationRuleUpdateInput = {
   nextRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reportTemplate?: Prisma.MonitoringReportTemplateUpdateOneWithoutAutomationsNestedInput
   exceptionCases?: Prisma.ExceptionCaseUpdateManyWithoutAutomationNestedInput
   runs?: Prisma.AutomationRunUpdateManyWithoutRuleNestedInput
   activities?: Prisma.ActivityEntryUpdateManyWithoutAutomationNestedInput
@@ -458,6 +476,7 @@ export type AutomationRuleUncheckedUpdateInput = {
   code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   detector?: Prisma.StringFieldUpdateOperationsInput | string
+  reportTemplateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   severity?: Prisma.StringFieldUpdateOperationsInput | string
   cadence?: Prisma.StringFieldUpdateOperationsInput | string
   thresholdMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -479,6 +498,7 @@ export type AutomationRuleCreateManyInput = {
   code: string
   name: string
   detector: string
+  reportTemplateId?: string | null
   severity?: string
   cadence?: string
   thresholdMinutes?: number | null
@@ -515,6 +535,7 @@ export type AutomationRuleUncheckedUpdateManyInput = {
   code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   detector?: Prisma.StringFieldUpdateOperationsInput | string
+  reportTemplateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   severity?: Prisma.StringFieldUpdateOperationsInput | string
   cadence?: Prisma.StringFieldUpdateOperationsInput | string
   thresholdMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -538,6 +559,7 @@ export type AutomationRuleCountOrderByAggregateInput = {
   code?: Prisma.SortOrder
   name?: Prisma.SortOrder
   detector?: Prisma.SortOrder
+  reportTemplateId?: Prisma.SortOrder
   severity?: Prisma.SortOrder
   cadence?: Prisma.SortOrder
   thresholdMinutes?: Prisma.SortOrder
@@ -560,6 +582,7 @@ export type AutomationRuleMaxOrderByAggregateInput = {
   code?: Prisma.SortOrder
   name?: Prisma.SortOrder
   detector?: Prisma.SortOrder
+  reportTemplateId?: Prisma.SortOrder
   severity?: Prisma.SortOrder
   cadence?: Prisma.SortOrder
   thresholdMinutes?: Prisma.SortOrder
@@ -578,6 +601,7 @@ export type AutomationRuleMinOrderByAggregateInput = {
   code?: Prisma.SortOrder
   name?: Prisma.SortOrder
   detector?: Prisma.SortOrder
+  reportTemplateId?: Prisma.SortOrder
   severity?: Prisma.SortOrder
   cadence?: Prisma.SortOrder
   thresholdMinutes?: Prisma.SortOrder
@@ -593,6 +617,16 @@ export type AutomationRuleMinOrderByAggregateInput = {
 
 export type AutomationRuleSumOrderByAggregateInput = {
   thresholdMinutes?: Prisma.SortOrder
+}
+
+export type AutomationRuleListRelationFilter = {
+  every?: Prisma.AutomationRuleWhereInput
+  some?: Prisma.AutomationRuleWhereInput
+  none?: Prisma.AutomationRuleWhereInput
+}
+
+export type AutomationRuleOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
 }
 
 export type AutomationRuleScalarRelationFilter = {
@@ -622,6 +656,48 @@ export type NullableIntFieldUpdateOperationsInput = {
   decrement?: number
   multiply?: number
   divide?: number
+}
+
+export type AutomationRuleCreateNestedManyWithoutReportTemplateInput = {
+  create?: Prisma.XOR<Prisma.AutomationRuleCreateWithoutReportTemplateInput, Prisma.AutomationRuleUncheckedCreateWithoutReportTemplateInput> | Prisma.AutomationRuleCreateWithoutReportTemplateInput[] | Prisma.AutomationRuleUncheckedCreateWithoutReportTemplateInput[]
+  connectOrCreate?: Prisma.AutomationRuleCreateOrConnectWithoutReportTemplateInput | Prisma.AutomationRuleCreateOrConnectWithoutReportTemplateInput[]
+  createMany?: Prisma.AutomationRuleCreateManyReportTemplateInputEnvelope
+  connect?: Prisma.AutomationRuleWhereUniqueInput | Prisma.AutomationRuleWhereUniqueInput[]
+}
+
+export type AutomationRuleUncheckedCreateNestedManyWithoutReportTemplateInput = {
+  create?: Prisma.XOR<Prisma.AutomationRuleCreateWithoutReportTemplateInput, Prisma.AutomationRuleUncheckedCreateWithoutReportTemplateInput> | Prisma.AutomationRuleCreateWithoutReportTemplateInput[] | Prisma.AutomationRuleUncheckedCreateWithoutReportTemplateInput[]
+  connectOrCreate?: Prisma.AutomationRuleCreateOrConnectWithoutReportTemplateInput | Prisma.AutomationRuleCreateOrConnectWithoutReportTemplateInput[]
+  createMany?: Prisma.AutomationRuleCreateManyReportTemplateInputEnvelope
+  connect?: Prisma.AutomationRuleWhereUniqueInput | Prisma.AutomationRuleWhereUniqueInput[]
+}
+
+export type AutomationRuleUpdateManyWithoutReportTemplateNestedInput = {
+  create?: Prisma.XOR<Prisma.AutomationRuleCreateWithoutReportTemplateInput, Prisma.AutomationRuleUncheckedCreateWithoutReportTemplateInput> | Prisma.AutomationRuleCreateWithoutReportTemplateInput[] | Prisma.AutomationRuleUncheckedCreateWithoutReportTemplateInput[]
+  connectOrCreate?: Prisma.AutomationRuleCreateOrConnectWithoutReportTemplateInput | Prisma.AutomationRuleCreateOrConnectWithoutReportTemplateInput[]
+  upsert?: Prisma.AutomationRuleUpsertWithWhereUniqueWithoutReportTemplateInput | Prisma.AutomationRuleUpsertWithWhereUniqueWithoutReportTemplateInput[]
+  createMany?: Prisma.AutomationRuleCreateManyReportTemplateInputEnvelope
+  set?: Prisma.AutomationRuleWhereUniqueInput | Prisma.AutomationRuleWhereUniqueInput[]
+  disconnect?: Prisma.AutomationRuleWhereUniqueInput | Prisma.AutomationRuleWhereUniqueInput[]
+  delete?: Prisma.AutomationRuleWhereUniqueInput | Prisma.AutomationRuleWhereUniqueInput[]
+  connect?: Prisma.AutomationRuleWhereUniqueInput | Prisma.AutomationRuleWhereUniqueInput[]
+  update?: Prisma.AutomationRuleUpdateWithWhereUniqueWithoutReportTemplateInput | Prisma.AutomationRuleUpdateWithWhereUniqueWithoutReportTemplateInput[]
+  updateMany?: Prisma.AutomationRuleUpdateManyWithWhereWithoutReportTemplateInput | Prisma.AutomationRuleUpdateManyWithWhereWithoutReportTemplateInput[]
+  deleteMany?: Prisma.AutomationRuleScalarWhereInput | Prisma.AutomationRuleScalarWhereInput[]
+}
+
+export type AutomationRuleUncheckedUpdateManyWithoutReportTemplateNestedInput = {
+  create?: Prisma.XOR<Prisma.AutomationRuleCreateWithoutReportTemplateInput, Prisma.AutomationRuleUncheckedCreateWithoutReportTemplateInput> | Prisma.AutomationRuleCreateWithoutReportTemplateInput[] | Prisma.AutomationRuleUncheckedCreateWithoutReportTemplateInput[]
+  connectOrCreate?: Prisma.AutomationRuleCreateOrConnectWithoutReportTemplateInput | Prisma.AutomationRuleCreateOrConnectWithoutReportTemplateInput[]
+  upsert?: Prisma.AutomationRuleUpsertWithWhereUniqueWithoutReportTemplateInput | Prisma.AutomationRuleUpsertWithWhereUniqueWithoutReportTemplateInput[]
+  createMany?: Prisma.AutomationRuleCreateManyReportTemplateInputEnvelope
+  set?: Prisma.AutomationRuleWhereUniqueInput | Prisma.AutomationRuleWhereUniqueInput[]
+  disconnect?: Prisma.AutomationRuleWhereUniqueInput | Prisma.AutomationRuleWhereUniqueInput[]
+  delete?: Prisma.AutomationRuleWhereUniqueInput | Prisma.AutomationRuleWhereUniqueInput[]
+  connect?: Prisma.AutomationRuleWhereUniqueInput | Prisma.AutomationRuleWhereUniqueInput[]
+  update?: Prisma.AutomationRuleUpdateWithWhereUniqueWithoutReportTemplateInput | Prisma.AutomationRuleUpdateWithWhereUniqueWithoutReportTemplateInput[]
+  updateMany?: Prisma.AutomationRuleUpdateManyWithWhereWithoutReportTemplateInput | Prisma.AutomationRuleUpdateManyWithWhereWithoutReportTemplateInput[]
+  deleteMany?: Prisma.AutomationRuleScalarWhereInput | Prisma.AutomationRuleScalarWhereInput[]
 }
 
 export type AutomationRuleCreateNestedOneWithoutRunsInput = {
@@ -670,6 +746,7 @@ export type AutomationRuleCreateWithoutExceptionCasesInput = {
   nextRunAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  reportTemplate?: Prisma.MonitoringReportTemplateCreateNestedOneWithoutAutomationsInput
   runs?: Prisma.AutomationRunCreateNestedManyWithoutRuleInput
   activities?: Prisma.ActivityEntryCreateNestedManyWithoutAutomationInput
 }
@@ -679,6 +756,7 @@ export type AutomationRuleUncheckedCreateWithoutExceptionCasesInput = {
   code: string
   name: string
   detector: string
+  reportTemplateId?: string | null
   severity?: string
   cadence?: string
   thresholdMinutes?: number | null
@@ -726,6 +804,7 @@ export type AutomationRuleUpdateWithoutExceptionCasesInput = {
   nextRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reportTemplate?: Prisma.MonitoringReportTemplateUpdateOneWithoutAutomationsNestedInput
   runs?: Prisma.AutomationRunUpdateManyWithoutRuleNestedInput
   activities?: Prisma.ActivityEntryUpdateManyWithoutAutomationNestedInput
 }
@@ -735,6 +814,7 @@ export type AutomationRuleUncheckedUpdateWithoutExceptionCasesInput = {
   code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   detector?: Prisma.StringFieldUpdateOperationsInput | string
+  reportTemplateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   severity?: Prisma.StringFieldUpdateOperationsInput | string
   cadence?: Prisma.StringFieldUpdateOperationsInput | string
   thresholdMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -748,6 +828,96 @@ export type AutomationRuleUncheckedUpdateWithoutExceptionCasesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   runs?: Prisma.AutomationRunUncheckedUpdateManyWithoutRuleNestedInput
   activities?: Prisma.ActivityEntryUncheckedUpdateManyWithoutAutomationNestedInput
+}
+
+export type AutomationRuleCreateWithoutReportTemplateInput = {
+  id?: string
+  code: string
+  name: string
+  detector: string
+  severity?: string
+  cadence?: string
+  thresholdMinutes?: number | null
+  enabled?: boolean
+  createExceptions?: boolean
+  createActivities?: boolean
+  resolveOnRecovery?: boolean
+  lastRunAt?: Date | string | null
+  nextRunAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  exceptionCases?: Prisma.ExceptionCaseCreateNestedManyWithoutAutomationInput
+  runs?: Prisma.AutomationRunCreateNestedManyWithoutRuleInput
+  activities?: Prisma.ActivityEntryCreateNestedManyWithoutAutomationInput
+}
+
+export type AutomationRuleUncheckedCreateWithoutReportTemplateInput = {
+  id?: string
+  code: string
+  name: string
+  detector: string
+  severity?: string
+  cadence?: string
+  thresholdMinutes?: number | null
+  enabled?: boolean
+  createExceptions?: boolean
+  createActivities?: boolean
+  resolveOnRecovery?: boolean
+  lastRunAt?: Date | string | null
+  nextRunAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  exceptionCases?: Prisma.ExceptionCaseUncheckedCreateNestedManyWithoutAutomationInput
+  runs?: Prisma.AutomationRunUncheckedCreateNestedManyWithoutRuleInput
+  activities?: Prisma.ActivityEntryUncheckedCreateNestedManyWithoutAutomationInput
+}
+
+export type AutomationRuleCreateOrConnectWithoutReportTemplateInput = {
+  where: Prisma.AutomationRuleWhereUniqueInput
+  create: Prisma.XOR<Prisma.AutomationRuleCreateWithoutReportTemplateInput, Prisma.AutomationRuleUncheckedCreateWithoutReportTemplateInput>
+}
+
+export type AutomationRuleCreateManyReportTemplateInputEnvelope = {
+  data: Prisma.AutomationRuleCreateManyReportTemplateInput | Prisma.AutomationRuleCreateManyReportTemplateInput[]
+  skipDuplicates?: boolean
+}
+
+export type AutomationRuleUpsertWithWhereUniqueWithoutReportTemplateInput = {
+  where: Prisma.AutomationRuleWhereUniqueInput
+  update: Prisma.XOR<Prisma.AutomationRuleUpdateWithoutReportTemplateInput, Prisma.AutomationRuleUncheckedUpdateWithoutReportTemplateInput>
+  create: Prisma.XOR<Prisma.AutomationRuleCreateWithoutReportTemplateInput, Prisma.AutomationRuleUncheckedCreateWithoutReportTemplateInput>
+}
+
+export type AutomationRuleUpdateWithWhereUniqueWithoutReportTemplateInput = {
+  where: Prisma.AutomationRuleWhereUniqueInput
+  data: Prisma.XOR<Prisma.AutomationRuleUpdateWithoutReportTemplateInput, Prisma.AutomationRuleUncheckedUpdateWithoutReportTemplateInput>
+}
+
+export type AutomationRuleUpdateManyWithWhereWithoutReportTemplateInput = {
+  where: Prisma.AutomationRuleScalarWhereInput
+  data: Prisma.XOR<Prisma.AutomationRuleUpdateManyMutationInput, Prisma.AutomationRuleUncheckedUpdateManyWithoutReportTemplateInput>
+}
+
+export type AutomationRuleScalarWhereInput = {
+  AND?: Prisma.AutomationRuleScalarWhereInput | Prisma.AutomationRuleScalarWhereInput[]
+  OR?: Prisma.AutomationRuleScalarWhereInput[]
+  NOT?: Prisma.AutomationRuleScalarWhereInput | Prisma.AutomationRuleScalarWhereInput[]
+  id?: Prisma.StringFilter<"AutomationRule"> | string
+  code?: Prisma.StringFilter<"AutomationRule"> | string
+  name?: Prisma.StringFilter<"AutomationRule"> | string
+  detector?: Prisma.StringFilter<"AutomationRule"> | string
+  reportTemplateId?: Prisma.StringNullableFilter<"AutomationRule"> | string | null
+  severity?: Prisma.StringFilter<"AutomationRule"> | string
+  cadence?: Prisma.StringFilter<"AutomationRule"> | string
+  thresholdMinutes?: Prisma.IntNullableFilter<"AutomationRule"> | number | null
+  enabled?: Prisma.BoolFilter<"AutomationRule"> | boolean
+  createExceptions?: Prisma.BoolFilter<"AutomationRule"> | boolean
+  createActivities?: Prisma.BoolFilter<"AutomationRule"> | boolean
+  resolveOnRecovery?: Prisma.BoolFilter<"AutomationRule"> | boolean
+  lastRunAt?: Prisma.DateTimeNullableFilter<"AutomationRule"> | Date | string | null
+  nextRunAt?: Prisma.DateTimeNullableFilter<"AutomationRule"> | Date | string | null
+  createdAt?: Prisma.DateTimeFilter<"AutomationRule"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"AutomationRule"> | Date | string
 }
 
 export type AutomationRuleCreateWithoutRunsInput = {
@@ -766,6 +936,7 @@ export type AutomationRuleCreateWithoutRunsInput = {
   nextRunAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  reportTemplate?: Prisma.MonitoringReportTemplateCreateNestedOneWithoutAutomationsInput
   exceptionCases?: Prisma.ExceptionCaseCreateNestedManyWithoutAutomationInput
   activities?: Prisma.ActivityEntryCreateNestedManyWithoutAutomationInput
 }
@@ -775,6 +946,7 @@ export type AutomationRuleUncheckedCreateWithoutRunsInput = {
   code: string
   name: string
   detector: string
+  reportTemplateId?: string | null
   severity?: string
   cadence?: string
   thresholdMinutes?: number | null
@@ -822,6 +994,7 @@ export type AutomationRuleUpdateWithoutRunsInput = {
   nextRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reportTemplate?: Prisma.MonitoringReportTemplateUpdateOneWithoutAutomationsNestedInput
   exceptionCases?: Prisma.ExceptionCaseUpdateManyWithoutAutomationNestedInput
   activities?: Prisma.ActivityEntryUpdateManyWithoutAutomationNestedInput
 }
@@ -831,6 +1004,7 @@ export type AutomationRuleUncheckedUpdateWithoutRunsInput = {
   code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   detector?: Prisma.StringFieldUpdateOperationsInput | string
+  reportTemplateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   severity?: Prisma.StringFieldUpdateOperationsInput | string
   cadence?: Prisma.StringFieldUpdateOperationsInput | string
   thresholdMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -862,6 +1036,7 @@ export type AutomationRuleCreateWithoutActivitiesInput = {
   nextRunAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  reportTemplate?: Prisma.MonitoringReportTemplateCreateNestedOneWithoutAutomationsInput
   exceptionCases?: Prisma.ExceptionCaseCreateNestedManyWithoutAutomationInput
   runs?: Prisma.AutomationRunCreateNestedManyWithoutRuleInput
 }
@@ -871,6 +1046,7 @@ export type AutomationRuleUncheckedCreateWithoutActivitiesInput = {
   code: string
   name: string
   detector: string
+  reportTemplateId?: string | null
   severity?: string
   cadence?: string
   thresholdMinutes?: number | null
@@ -918,11 +1094,72 @@ export type AutomationRuleUpdateWithoutActivitiesInput = {
   nextRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reportTemplate?: Prisma.MonitoringReportTemplateUpdateOneWithoutAutomationsNestedInput
   exceptionCases?: Prisma.ExceptionCaseUpdateManyWithoutAutomationNestedInput
   runs?: Prisma.AutomationRunUpdateManyWithoutRuleNestedInput
 }
 
 export type AutomationRuleUncheckedUpdateWithoutActivitiesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  detector?: Prisma.StringFieldUpdateOperationsInput | string
+  reportTemplateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  severity?: Prisma.StringFieldUpdateOperationsInput | string
+  cadence?: Prisma.StringFieldUpdateOperationsInput | string
+  thresholdMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createExceptions?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createActivities?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  resolveOnRecovery?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  lastRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  nextRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  exceptionCases?: Prisma.ExceptionCaseUncheckedUpdateManyWithoutAutomationNestedInput
+  runs?: Prisma.AutomationRunUncheckedUpdateManyWithoutRuleNestedInput
+}
+
+export type AutomationRuleCreateManyReportTemplateInput = {
+  id?: string
+  code: string
+  name: string
+  detector: string
+  severity?: string
+  cadence?: string
+  thresholdMinutes?: number | null
+  enabled?: boolean
+  createExceptions?: boolean
+  createActivities?: boolean
+  resolveOnRecovery?: boolean
+  lastRunAt?: Date | string | null
+  nextRunAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type AutomationRuleUpdateWithoutReportTemplateInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  detector?: Prisma.StringFieldUpdateOperationsInput | string
+  severity?: Prisma.StringFieldUpdateOperationsInput | string
+  cadence?: Prisma.StringFieldUpdateOperationsInput | string
+  thresholdMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createExceptions?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createActivities?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  resolveOnRecovery?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  lastRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  nextRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  exceptionCases?: Prisma.ExceptionCaseUpdateManyWithoutAutomationNestedInput
+  runs?: Prisma.AutomationRunUpdateManyWithoutRuleNestedInput
+  activities?: Prisma.ActivityEntryUpdateManyWithoutAutomationNestedInput
+}
+
+export type AutomationRuleUncheckedUpdateWithoutReportTemplateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
@@ -940,6 +1177,25 @@ export type AutomationRuleUncheckedUpdateWithoutActivitiesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   exceptionCases?: Prisma.ExceptionCaseUncheckedUpdateManyWithoutAutomationNestedInput
   runs?: Prisma.AutomationRunUncheckedUpdateManyWithoutRuleNestedInput
+  activities?: Prisma.ActivityEntryUncheckedUpdateManyWithoutAutomationNestedInput
+}
+
+export type AutomationRuleUncheckedUpdateManyWithoutReportTemplateInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  detector?: Prisma.StringFieldUpdateOperationsInput | string
+  severity?: Prisma.StringFieldUpdateOperationsInput | string
+  cadence?: Prisma.StringFieldUpdateOperationsInput | string
+  thresholdMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createExceptions?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createActivities?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  resolveOnRecovery?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  lastRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  nextRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -996,6 +1252,7 @@ export type AutomationRuleSelect<ExtArgs extends runtime.Types.Extensions.Intern
   code?: boolean
   name?: boolean
   detector?: boolean
+  reportTemplateId?: boolean
   severity?: boolean
   cadence?: boolean
   thresholdMinutes?: boolean
@@ -1007,6 +1264,7 @@ export type AutomationRuleSelect<ExtArgs extends runtime.Types.Extensions.Intern
   nextRunAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  reportTemplate?: boolean | Prisma.AutomationRule$reportTemplateArgs<ExtArgs>
   exceptionCases?: boolean | Prisma.AutomationRule$exceptionCasesArgs<ExtArgs>
   runs?: boolean | Prisma.AutomationRule$runsArgs<ExtArgs>
   activities?: boolean | Prisma.AutomationRule$activitiesArgs<ExtArgs>
@@ -1018,6 +1276,7 @@ export type AutomationRuleSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   code?: boolean
   name?: boolean
   detector?: boolean
+  reportTemplateId?: boolean
   severity?: boolean
   cadence?: boolean
   thresholdMinutes?: boolean
@@ -1029,6 +1288,7 @@ export type AutomationRuleSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   nextRunAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  reportTemplate?: boolean | Prisma.AutomationRule$reportTemplateArgs<ExtArgs>
 }, ExtArgs["result"]["automationRule"]>
 
 export type AutomationRuleSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1036,6 +1296,7 @@ export type AutomationRuleSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   code?: boolean
   name?: boolean
   detector?: boolean
+  reportTemplateId?: boolean
   severity?: boolean
   cadence?: boolean
   thresholdMinutes?: boolean
@@ -1047,6 +1308,7 @@ export type AutomationRuleSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   nextRunAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  reportTemplate?: boolean | Prisma.AutomationRule$reportTemplateArgs<ExtArgs>
 }, ExtArgs["result"]["automationRule"]>
 
 export type AutomationRuleSelectScalar = {
@@ -1054,6 +1316,7 @@ export type AutomationRuleSelectScalar = {
   code?: boolean
   name?: boolean
   detector?: boolean
+  reportTemplateId?: boolean
   severity?: boolean
   cadence?: boolean
   thresholdMinutes?: boolean
@@ -1067,19 +1330,25 @@ export type AutomationRuleSelectScalar = {
   updatedAt?: boolean
 }
 
-export type AutomationRuleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "name" | "detector" | "severity" | "cadence" | "thresholdMinutes" | "enabled" | "createExceptions" | "createActivities" | "resolveOnRecovery" | "lastRunAt" | "nextRunAt" | "createdAt" | "updatedAt", ExtArgs["result"]["automationRule"]>
+export type AutomationRuleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "name" | "detector" | "reportTemplateId" | "severity" | "cadence" | "thresholdMinutes" | "enabled" | "createExceptions" | "createActivities" | "resolveOnRecovery" | "lastRunAt" | "nextRunAt" | "createdAt" | "updatedAt", ExtArgs["result"]["automationRule"]>
 export type AutomationRuleInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  reportTemplate?: boolean | Prisma.AutomationRule$reportTemplateArgs<ExtArgs>
   exceptionCases?: boolean | Prisma.AutomationRule$exceptionCasesArgs<ExtArgs>
   runs?: boolean | Prisma.AutomationRule$runsArgs<ExtArgs>
   activities?: boolean | Prisma.AutomationRule$activitiesArgs<ExtArgs>
   _count?: boolean | Prisma.AutomationRuleCountOutputTypeDefaultArgs<ExtArgs>
 }
-export type AutomationRuleIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
-export type AutomationRuleIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
+export type AutomationRuleIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  reportTemplate?: boolean | Prisma.AutomationRule$reportTemplateArgs<ExtArgs>
+}
+export type AutomationRuleIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  reportTemplate?: boolean | Prisma.AutomationRule$reportTemplateArgs<ExtArgs>
+}
 
 export type $AutomationRulePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "AutomationRule"
   objects: {
+    reportTemplate: Prisma.$MonitoringReportTemplatePayload<ExtArgs> | null
     exceptionCases: Prisma.$ExceptionCasePayload<ExtArgs>[]
     runs: Prisma.$AutomationRunPayload<ExtArgs>[]
     activities: Prisma.$ActivityEntryPayload<ExtArgs>[]
@@ -1089,6 +1358,7 @@ export type $AutomationRulePayload<ExtArgs extends runtime.Types.Extensions.Inte
     code: string
     name: string
     detector: string
+    reportTemplateId: string | null
     severity: string
     cadence: string
     thresholdMinutes: number | null
@@ -1494,6 +1764,7 @@ readonly fields: AutomationRuleFieldRefs;
  */
 export interface Prisma__AutomationRuleClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  reportTemplate<T extends Prisma.AutomationRule$reportTemplateArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AutomationRule$reportTemplateArgs<ExtArgs>>): Prisma.Prisma__MonitoringReportTemplateClient<runtime.Types.Result.GetResult<Prisma.$MonitoringReportTemplatePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   exceptionCases<T extends Prisma.AutomationRule$exceptionCasesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AutomationRule$exceptionCasesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ExceptionCasePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   runs<T extends Prisma.AutomationRule$runsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AutomationRule$runsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AutomationRunPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   activities<T extends Prisma.AutomationRule$activitiesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AutomationRule$activitiesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ActivityEntryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -1530,6 +1801,7 @@ export interface AutomationRuleFieldRefs {
   readonly code: Prisma.FieldRef<"AutomationRule", 'String'>
   readonly name: Prisma.FieldRef<"AutomationRule", 'String'>
   readonly detector: Prisma.FieldRef<"AutomationRule", 'String'>
+  readonly reportTemplateId: Prisma.FieldRef<"AutomationRule", 'String'>
   readonly severity: Prisma.FieldRef<"AutomationRule", 'String'>
   readonly cadence: Prisma.FieldRef<"AutomationRule", 'String'>
   readonly thresholdMinutes: Prisma.FieldRef<"AutomationRule", 'Int'>
@@ -1795,6 +2067,10 @@ export type AutomationRuleCreateManyAndReturnArgs<ExtArgs extends runtime.Types.
    */
   data: Prisma.AutomationRuleCreateManyInput | Prisma.AutomationRuleCreateManyInput[]
   skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AutomationRuleIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1865,6 +2141,10 @@ export type AutomationRuleUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.
    * Limit how many AutomationRules to update.
    */
   limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AutomationRuleIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1931,6 +2211,25 @@ export type AutomationRuleDeleteManyArgs<ExtArgs extends runtime.Types.Extension
    * Limit how many AutomationRules to delete.
    */
   limit?: number
+}
+
+/**
+ * AutomationRule.reportTemplate
+ */
+export type AutomationRule$reportTemplateArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the MonitoringReportTemplate
+   */
+  select?: Prisma.MonitoringReportTemplateSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the MonitoringReportTemplate
+   */
+  omit?: Prisma.MonitoringReportTemplateOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MonitoringReportTemplateInclude<ExtArgs> | null
+  where?: Prisma.MonitoringReportTemplateWhereInput
 }
 
 /**

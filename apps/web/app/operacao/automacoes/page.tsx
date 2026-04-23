@@ -79,6 +79,7 @@ const detectorOptions = [
   { value: "critical_open_occurrence", label: "Ocorrência crítica aberta" },
   { value: "integration_failure", label: "Falha de integração" },
   { value: "aged_open_occurrence", label: "Ocorrência antiga aberta" },
+  { value: "monitoring_report_export", label: "Exportação de relatório" },
 ];
 
 const severityOptions = [

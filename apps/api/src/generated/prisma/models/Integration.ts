@@ -246,6 +246,7 @@ export type IntegrationWhereInput = {
   isActive?: Prisma.BoolFilter<"Integration"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Integration"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Integration"> | Date | string
+  reportTemplates?: Prisma.MonitoringReportTemplateListRelationFilter
   exceptionCases?: Prisma.ExceptionCaseListRelationFilter
   activities?: Prisma.ActivityEntryListRelationFilter
 }
@@ -264,6 +265,7 @@ export type IntegrationOrderByWithRelationInput = {
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  reportTemplates?: Prisma.MonitoringReportTemplateOrderByRelationAggregateInput
   exceptionCases?: Prisma.ExceptionCaseOrderByRelationAggregateInput
   activities?: Prisma.ActivityEntryOrderByRelationAggregateInput
 }
@@ -285,6 +287,7 @@ export type IntegrationWhereUniqueInput = Prisma.AtLeast<{
   isActive?: Prisma.BoolFilter<"Integration"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Integration"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Integration"> | Date | string
+  reportTemplates?: Prisma.MonitoringReportTemplateListRelationFilter
   exceptionCases?: Prisma.ExceptionCaseListRelationFilter
   activities?: Prisma.ActivityEntryListRelationFilter
 }, "id" | "code">
@@ -341,6 +344,7 @@ export type IntegrationCreateInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  reportTemplates?: Prisma.MonitoringReportTemplateCreateNestedManyWithoutIntegrationInput
   exceptionCases?: Prisma.ExceptionCaseCreateNestedManyWithoutIntegrationInput
   activities?: Prisma.ActivityEntryCreateNestedManyWithoutIntegrationInput
 }
@@ -359,6 +363,7 @@ export type IntegrationUncheckedCreateInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  reportTemplates?: Prisma.MonitoringReportTemplateUncheckedCreateNestedManyWithoutIntegrationInput
   exceptionCases?: Prisma.ExceptionCaseUncheckedCreateNestedManyWithoutIntegrationInput
   activities?: Prisma.ActivityEntryUncheckedCreateNestedManyWithoutIntegrationInput
 }
@@ -377,6 +382,7 @@ export type IntegrationUpdateInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reportTemplates?: Prisma.MonitoringReportTemplateUpdateManyWithoutIntegrationNestedInput
   exceptionCases?: Prisma.ExceptionCaseUpdateManyWithoutIntegrationNestedInput
   activities?: Prisma.ActivityEntryUpdateManyWithoutIntegrationNestedInput
 }
@@ -395,6 +401,7 @@ export type IntegrationUncheckedUpdateInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reportTemplates?: Prisma.MonitoringReportTemplateUncheckedUpdateManyWithoutIntegrationNestedInput
   exceptionCases?: Prisma.ExceptionCaseUncheckedUpdateManyWithoutIntegrationNestedInput
   activities?: Prisma.ActivityEntryUncheckedUpdateManyWithoutIntegrationNestedInput
 }
@@ -516,6 +523,22 @@ export type IntegrationUpdateOneWithoutExceptionCasesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.IntegrationUpdateToOneWithWhereWithoutExceptionCasesInput, Prisma.IntegrationUpdateWithoutExceptionCasesInput>, Prisma.IntegrationUncheckedUpdateWithoutExceptionCasesInput>
 }
 
+export type IntegrationCreateNestedOneWithoutReportTemplatesInput = {
+  create?: Prisma.XOR<Prisma.IntegrationCreateWithoutReportTemplatesInput, Prisma.IntegrationUncheckedCreateWithoutReportTemplatesInput>
+  connectOrCreate?: Prisma.IntegrationCreateOrConnectWithoutReportTemplatesInput
+  connect?: Prisma.IntegrationWhereUniqueInput
+}
+
+export type IntegrationUpdateOneWithoutReportTemplatesNestedInput = {
+  create?: Prisma.XOR<Prisma.IntegrationCreateWithoutReportTemplatesInput, Prisma.IntegrationUncheckedCreateWithoutReportTemplatesInput>
+  connectOrCreate?: Prisma.IntegrationCreateOrConnectWithoutReportTemplatesInput
+  upsert?: Prisma.IntegrationUpsertWithoutReportTemplatesInput
+  disconnect?: Prisma.IntegrationWhereInput | boolean
+  delete?: Prisma.IntegrationWhereInput | boolean
+  connect?: Prisma.IntegrationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.IntegrationUpdateToOneWithWhereWithoutReportTemplatesInput, Prisma.IntegrationUpdateWithoutReportTemplatesInput>, Prisma.IntegrationUncheckedUpdateWithoutReportTemplatesInput>
+}
+
 export type IntegrationCreateNestedOneWithoutActivitiesInput = {
   create?: Prisma.XOR<Prisma.IntegrationCreateWithoutActivitiesInput, Prisma.IntegrationUncheckedCreateWithoutActivitiesInput>
   connectOrCreate?: Prisma.IntegrationCreateOrConnectWithoutActivitiesInput
@@ -546,6 +569,7 @@ export type IntegrationCreateWithoutExceptionCasesInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  reportTemplates?: Prisma.MonitoringReportTemplateCreateNestedManyWithoutIntegrationInput
   activities?: Prisma.ActivityEntryCreateNestedManyWithoutIntegrationInput
 }
 
@@ -563,6 +587,7 @@ export type IntegrationUncheckedCreateWithoutExceptionCasesInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  reportTemplates?: Prisma.MonitoringReportTemplateUncheckedCreateNestedManyWithoutIntegrationInput
   activities?: Prisma.ActivityEntryUncheckedCreateNestedManyWithoutIntegrationInput
 }
 
@@ -596,6 +621,7 @@ export type IntegrationUpdateWithoutExceptionCasesInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reportTemplates?: Prisma.MonitoringReportTemplateUpdateManyWithoutIntegrationNestedInput
   activities?: Prisma.ActivityEntryUpdateManyWithoutIntegrationNestedInput
 }
 
@@ -613,6 +639,95 @@ export type IntegrationUncheckedUpdateWithoutExceptionCasesInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reportTemplates?: Prisma.MonitoringReportTemplateUncheckedUpdateManyWithoutIntegrationNestedInput
+  activities?: Prisma.ActivityEntryUncheckedUpdateManyWithoutIntegrationNestedInput
+}
+
+export type IntegrationCreateWithoutReportTemplatesInput = {
+  id?: string
+  code: string
+  name: string
+  type: string
+  baseUrl: string
+  apiPath?: string | null
+  authMode?: string
+  apiTokenEnc?: string | null
+  usernameEnc?: string | null
+  passwordEnc?: string | null
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  exceptionCases?: Prisma.ExceptionCaseCreateNestedManyWithoutIntegrationInput
+  activities?: Prisma.ActivityEntryCreateNestedManyWithoutIntegrationInput
+}
+
+export type IntegrationUncheckedCreateWithoutReportTemplatesInput = {
+  id?: string
+  code: string
+  name: string
+  type: string
+  baseUrl: string
+  apiPath?: string | null
+  authMode?: string
+  apiTokenEnc?: string | null
+  usernameEnc?: string | null
+  passwordEnc?: string | null
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  exceptionCases?: Prisma.ExceptionCaseUncheckedCreateNestedManyWithoutIntegrationInput
+  activities?: Prisma.ActivityEntryUncheckedCreateNestedManyWithoutIntegrationInput
+}
+
+export type IntegrationCreateOrConnectWithoutReportTemplatesInput = {
+  where: Prisma.IntegrationWhereUniqueInput
+  create: Prisma.XOR<Prisma.IntegrationCreateWithoutReportTemplatesInput, Prisma.IntegrationUncheckedCreateWithoutReportTemplatesInput>
+}
+
+export type IntegrationUpsertWithoutReportTemplatesInput = {
+  update: Prisma.XOR<Prisma.IntegrationUpdateWithoutReportTemplatesInput, Prisma.IntegrationUncheckedUpdateWithoutReportTemplatesInput>
+  create: Prisma.XOR<Prisma.IntegrationCreateWithoutReportTemplatesInput, Prisma.IntegrationUncheckedCreateWithoutReportTemplatesInput>
+  where?: Prisma.IntegrationWhereInput
+}
+
+export type IntegrationUpdateToOneWithWhereWithoutReportTemplatesInput = {
+  where?: Prisma.IntegrationWhereInput
+  data: Prisma.XOR<Prisma.IntegrationUpdateWithoutReportTemplatesInput, Prisma.IntegrationUncheckedUpdateWithoutReportTemplatesInput>
+}
+
+export type IntegrationUpdateWithoutReportTemplatesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.StringFieldUpdateOperationsInput | string
+  baseUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  apiPath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  authMode?: Prisma.StringFieldUpdateOperationsInput | string
+  apiTokenEnc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usernameEnc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordEnc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  exceptionCases?: Prisma.ExceptionCaseUpdateManyWithoutIntegrationNestedInput
+  activities?: Prisma.ActivityEntryUpdateManyWithoutIntegrationNestedInput
+}
+
+export type IntegrationUncheckedUpdateWithoutReportTemplatesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.StringFieldUpdateOperationsInput | string
+  baseUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  apiPath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  authMode?: Prisma.StringFieldUpdateOperationsInput | string
+  apiTokenEnc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usernameEnc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordEnc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  exceptionCases?: Prisma.ExceptionCaseUncheckedUpdateManyWithoutIntegrationNestedInput
   activities?: Prisma.ActivityEntryUncheckedUpdateManyWithoutIntegrationNestedInput
 }
 
@@ -630,6 +745,7 @@ export type IntegrationCreateWithoutActivitiesInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  reportTemplates?: Prisma.MonitoringReportTemplateCreateNestedManyWithoutIntegrationInput
   exceptionCases?: Prisma.ExceptionCaseCreateNestedManyWithoutIntegrationInput
 }
 
@@ -647,6 +763,7 @@ export type IntegrationUncheckedCreateWithoutActivitiesInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  reportTemplates?: Prisma.MonitoringReportTemplateUncheckedCreateNestedManyWithoutIntegrationInput
   exceptionCases?: Prisma.ExceptionCaseUncheckedCreateNestedManyWithoutIntegrationInput
 }
 
@@ -680,6 +797,7 @@ export type IntegrationUpdateWithoutActivitiesInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reportTemplates?: Prisma.MonitoringReportTemplateUpdateManyWithoutIntegrationNestedInput
   exceptionCases?: Prisma.ExceptionCaseUpdateManyWithoutIntegrationNestedInput
 }
 
@@ -697,6 +815,7 @@ export type IntegrationUncheckedUpdateWithoutActivitiesInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reportTemplates?: Prisma.MonitoringReportTemplateUncheckedUpdateManyWithoutIntegrationNestedInput
   exceptionCases?: Prisma.ExceptionCaseUncheckedUpdateManyWithoutIntegrationNestedInput
 }
 
@@ -706,11 +825,13 @@ export type IntegrationUncheckedUpdateWithoutActivitiesInput = {
  */
 
 export type IntegrationCountOutputType = {
+  reportTemplates: number
   exceptionCases: number
   activities: number
 }
 
 export type IntegrationCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  reportTemplates?: boolean | IntegrationCountOutputTypeCountReportTemplatesArgs
   exceptionCases?: boolean | IntegrationCountOutputTypeCountExceptionCasesArgs
   activities?: boolean | IntegrationCountOutputTypeCountActivitiesArgs
 }
@@ -723,6 +844,13 @@ export type IntegrationCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.
    * Select specific fields to fetch from the IntegrationCountOutputType
    */
   select?: Prisma.IntegrationCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * IntegrationCountOutputType without action
+ */
+export type IntegrationCountOutputTypeCountReportTemplatesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.MonitoringReportTemplateWhereInput
 }
 
 /**
@@ -754,6 +882,7 @@ export type IntegrationSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  reportTemplates?: boolean | Prisma.Integration$reportTemplatesArgs<ExtArgs>
   exceptionCases?: boolean | Prisma.Integration$exceptionCasesArgs<ExtArgs>
   activities?: boolean | Prisma.Integration$activitiesArgs<ExtArgs>
   _count?: boolean | Prisma.IntegrationCountOutputTypeDefaultArgs<ExtArgs>
@@ -809,6 +938,7 @@ export type IntegrationSelectScalar = {
 
 export type IntegrationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "name" | "type" | "baseUrl" | "apiPath" | "authMode" | "apiTokenEnc" | "usernameEnc" | "passwordEnc" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["integration"]>
 export type IntegrationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  reportTemplates?: boolean | Prisma.Integration$reportTemplatesArgs<ExtArgs>
   exceptionCases?: boolean | Prisma.Integration$exceptionCasesArgs<ExtArgs>
   activities?: boolean | Prisma.Integration$activitiesArgs<ExtArgs>
   _count?: boolean | Prisma.IntegrationCountOutputTypeDefaultArgs<ExtArgs>
@@ -819,6 +949,7 @@ export type IntegrationIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.
 export type $IntegrationPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Integration"
   objects: {
+    reportTemplates: Prisma.$MonitoringReportTemplatePayload<ExtArgs>[]
     exceptionCases: Prisma.$ExceptionCasePayload<ExtArgs>[]
     activities: Prisma.$ActivityEntryPayload<ExtArgs>[]
   }
@@ -1230,6 +1361,7 @@ readonly fields: IntegrationFieldRefs;
  */
 export interface Prisma__IntegrationClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  reportTemplates<T extends Prisma.Integration$reportTemplatesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Integration$reportTemplatesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MonitoringReportTemplatePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   exceptionCases<T extends Prisma.Integration$exceptionCasesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Integration$exceptionCasesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ExceptionCasePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   activities<T extends Prisma.Integration$activitiesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Integration$activitiesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ActivityEntryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
@@ -1664,6 +1796,30 @@ export type IntegrationDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.I
    * Limit how many Integrations to delete.
    */
   limit?: number
+}
+
+/**
+ * Integration.reportTemplates
+ */
+export type Integration$reportTemplatesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the MonitoringReportTemplate
+   */
+  select?: Prisma.MonitoringReportTemplateSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the MonitoringReportTemplate
+   */
+  omit?: Prisma.MonitoringReportTemplateOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MonitoringReportTemplateInclude<ExtArgs> | null
+  where?: Prisma.MonitoringReportTemplateWhereInput
+  orderBy?: Prisma.MonitoringReportTemplateOrderByWithRelationInput | Prisma.MonitoringReportTemplateOrderByWithRelationInput[]
+  cursor?: Prisma.MonitoringReportTemplateWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.MonitoringReportTemplateScalarFieldEnum | Prisma.MonitoringReportTemplateScalarFieldEnum[]
 }
 
 /**

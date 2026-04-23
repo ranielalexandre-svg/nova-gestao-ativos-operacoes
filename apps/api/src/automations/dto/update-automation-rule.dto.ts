@@ -8,8 +8,12 @@ export class UpdateAutomationRuleDto {
 
   @IsOptional()
   @IsString()
-  @IsIn(["maintenance_overdue", "critical_open_occurrence", "integration_failure", "aged_open_occurrence"])
+  @IsIn(["maintenance_overdue", "critical_open_occurrence", "integration_failure", "aged_open_occurrence", "monitoring_report_export"])
   detector?: string;
+
+  @IsOptional()
+  @IsString()
+  reportTemplateId?: string;
 
   @IsOptional()
   @IsString()

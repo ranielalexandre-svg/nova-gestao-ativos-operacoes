@@ -91,6 +91,7 @@ model Integration {
   usernameEnc    String?
   passwordEnc    String?
   isActive       Boolean        @default(true)
+  reportTemplates MonitoringReportTemplate[]
   exceptionCases ExceptionCase[]
   activities     ActivityEntry[]
   createdAt      DateTime       @default(now())
@@ -278,6 +279,7 @@ model AutomationRule {
   code              String          @unique
   name              String
   detector          String
+  reportTemplateId  String?
   severity          String          @default("high")
   cadence           String          @default("every_5_minutes")
   thresholdMinutes  Int?
@@ -287,6 +289,7 @@ model AutomationRule {
   resolveOnRecovery Boolean         @default(true)
   lastRunAt         DateTime?
   nextRunAt         DateTime?
+  reportTemplate    MonitoringReportTemplate? @relation(fields: [reportTemplateId], references: [id], onDelete: SetNull)
   exceptionCases    ExceptionCase[]
   runs              AutomationRun[]
   activities        ActivityEntry[]
@@ -297,6 +300,35 @@ model AutomationRule {
   @@index([detector])
   @@index([cadence])
   @@index([nextRunAt])
+  @@index([reportTemplateId])
+}
+
+model MonitoringReportTemplate {
+  id                  String           @id @default(cuid())
+  code                String           @unique
+  name                String
+  integrationId       String?
+  sourceType          String           @default("manual")
+  periodPreset        String           @default("last_7_days")
+  groupIds            String?
+  unitIds             String?
+  outputFormat        String           @default("pdf")
+  includeCharts       Boolean          @default(true)
+  title               String?
+  interestedParty     String?
+  contractLabel       String?
+  addressLine         String?
+  contractedBandwidth String?
+  enabled             Boolean          @default(true)
+  integration         Integration?     @relation(fields: [integrationId], references: [id], onDelete: SetNull)
+  automations         AutomationRule[]
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  @@index([integrationId])
+  @@index([sourceType])
+  @@index([periodPreset])
+  @@index([enabled])
 }
 
 model AutomationRun {

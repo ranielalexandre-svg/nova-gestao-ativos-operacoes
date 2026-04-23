@@ -78,6 +78,11 @@ export type ExceptionComment = Prisma.ExceptionCommentModel
  */
 export type AutomationRule = Prisma.AutomationRuleModel
 /**
+ * Model MonitoringReportTemplate
+ * 
+ */
+export type MonitoringReportTemplate = Prisma.MonitoringReportTemplateModel
+/**
  * Model AutomationRun
  * 
  */

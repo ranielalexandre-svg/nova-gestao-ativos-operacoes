@@ -396,6 +396,7 @@ export const ModelName = {
   SlaPolicy: 'SlaPolicy',
   ExceptionComment: 'ExceptionComment',
   AutomationRule: 'AutomationRule',
+  MonitoringReportTemplate: 'MonitoringReportTemplate',
   AutomationRun: 'AutomationRun',
   ActivityEntry: 'ActivityEntry'
 } as const
@@ -413,7 +414,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "partner" | "unit" | "equipment" | "integration" | "occurrence" | "maintenance" | "documentAttachment" | "exceptionCase" | "slaPolicy" | "exceptionComment" | "automationRule" | "automationRun" | "activityEntry"
+    modelProps: "user" | "partner" | "unit" | "equipment" | "integration" | "occurrence" | "maintenance" | "documentAttachment" | "exceptionCase" | "slaPolicy" | "exceptionComment" | "automationRule" | "monitoringReportTemplate" | "automationRun" | "activityEntry"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1305,6 +1306,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    MonitoringReportTemplate: {
+      payload: Prisma.$MonitoringReportTemplatePayload<ExtArgs>
+      fields: Prisma.MonitoringReportTemplateFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.MonitoringReportTemplateFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MonitoringReportTemplatePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.MonitoringReportTemplateFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MonitoringReportTemplatePayload>
+        }
+        findFirst: {
+          args: Prisma.MonitoringReportTemplateFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MonitoringReportTemplatePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.MonitoringReportTemplateFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MonitoringReportTemplatePayload>
+        }
+        findMany: {
+          args: Prisma.MonitoringReportTemplateFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MonitoringReportTemplatePayload>[]
+        }
+        create: {
+          args: Prisma.MonitoringReportTemplateCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MonitoringReportTemplatePayload>
+        }
+        createMany: {
+          args: Prisma.MonitoringReportTemplateCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.MonitoringReportTemplateCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MonitoringReportTemplatePayload>[]
+        }
+        delete: {
+          args: Prisma.MonitoringReportTemplateDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MonitoringReportTemplatePayload>
+        }
+        update: {
+          args: Prisma.MonitoringReportTemplateUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MonitoringReportTemplatePayload>
+        }
+        deleteMany: {
+          args: Prisma.MonitoringReportTemplateDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.MonitoringReportTemplateUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.MonitoringReportTemplateUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MonitoringReportTemplatePayload>[]
+        }
+        upsert: {
+          args: Prisma.MonitoringReportTemplateUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MonitoringReportTemplatePayload>
+        }
+        aggregate: {
+          args: Prisma.MonitoringReportTemplateAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMonitoringReportTemplate>
+        }
+        groupBy: {
+          args: Prisma.MonitoringReportTemplateGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MonitoringReportTemplateGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.MonitoringReportTemplateCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MonitoringReportTemplateCountAggregateOutputType> | number
+        }
+      }
+    }
     AutomationRun: {
       payload: Prisma.$AutomationRunPayload<ExtArgs>
       fields: Prisma.AutomationRunFieldRefs
@@ -1699,6 +1774,7 @@ export const AutomationRuleScalarFieldEnum = {
   code: 'code',
   name: 'name',
   detector: 'detector',
+  reportTemplateId: 'reportTemplateId',
   severity: 'severity',
   cadence: 'cadence',
   thresholdMinutes: 'thresholdMinutes',
@@ -1713,6 +1789,30 @@ export const AutomationRuleScalarFieldEnum = {
 } as const
 
 export type AutomationRuleScalarFieldEnum = (typeof AutomationRuleScalarFieldEnum)[keyof typeof AutomationRuleScalarFieldEnum]
+
+
+export const MonitoringReportTemplateScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  name: 'name',
+  integrationId: 'integrationId',
+  sourceType: 'sourceType',
+  periodPreset: 'periodPreset',
+  groupIds: 'groupIds',
+  unitIds: 'unitIds',
+  outputFormat: 'outputFormat',
+  includeCharts: 'includeCharts',
+  title: 'title',
+  interestedParty: 'interestedParty',
+  contractLabel: 'contractLabel',
+  addressLine: 'addressLine',
+  contractedBandwidth: 'contractedBandwidth',
+  enabled: 'enabled',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MonitoringReportTemplateScalarFieldEnum = (typeof MonitoringReportTemplateScalarFieldEnum)[keyof typeof MonitoringReportTemplateScalarFieldEnum]
 
 
 export const AutomationRunScalarFieldEnum = {
@@ -1954,6 +2054,7 @@ export type GlobalOmitConfig = {
   slaPolicy?: Prisma.SlaPolicyOmit
   exceptionComment?: Prisma.ExceptionCommentOmit
   automationRule?: Prisma.AutomationRuleOmit
+  monitoringReportTemplate?: Prisma.MonitoringReportTemplateOmit
   automationRun?: Prisma.AutomationRunOmit
   activityEntry?: Prisma.ActivityEntryOmit
 }
