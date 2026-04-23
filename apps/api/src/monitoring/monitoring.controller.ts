@@ -1,6 +1,7 @@
-import { Controller, Get, UseGuards } from "@nestjs/common";
+import { Controller, Get, Query, UseGuards } from "@nestjs/common";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { MonitoringService } from "./monitoring.service";
+import { PrtgStyleReportQueryDto } from "./dto/prtg-style-report-query.dto";
 
 @Controller("monitoring")
 @UseGuards(JwtAuthGuard)
@@ -20,5 +21,10 @@ export class MonitoringController {
   @Get("unit-hosts")
   getUnitHostTelemetry() {
     return this.monitoringService.getUnitHostTelemetry();
+  }
+
+  @Get("reports/prtg-style")
+  getPrtgStyleReport(@Query() query: PrtgStyleReportQueryDto) {
+    return this.monitoringService.getPrtgStyleReport(query);
   }
 }

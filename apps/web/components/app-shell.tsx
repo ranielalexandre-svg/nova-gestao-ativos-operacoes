@@ -11,6 +11,7 @@ const NAV = [
   { href: "/equipamentos", label: "Equipamentos", short: "EQ", section: "Core" },
   { href: "/equipamentos/starlinks", label: "Starlinks", short: "ST", section: "Core" },
   { href: "/monitoramento", label: "Monitoramento", short: "MO", section: "Core" },
+  { href: "/relatorios/monitoramento", label: "Relatórios", short: "RL", section: "Core" },
   { href: "/ocorrencias", label: "Ocorrências", short: "OC", section: "Core" },
   { href: "/operacao/fila", label: "Fila", short: "FL", section: "Operação" },
   { href: "/operacao/excecoes", label: "Exceções", short: "EX", section: "Operação" },

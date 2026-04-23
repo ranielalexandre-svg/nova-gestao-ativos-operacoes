@@ -114,6 +114,23 @@ type ZabbixTelemetryItem = {
   error?: string;
 };
 
+type ZabbixHistoryPoint = {
+  itemid: string;
+  clock: string;
+  value: string;
+};
+
+type ReportSeriesKind = "trafficIn" | "trafficOut" | "ping" | "loss" | "uptime";
+
+type ReportItemProfile = {
+  kind: ReportSeriesKind;
+  block: "traffic" | "ping" | "uptime";
+  label: string;
+  color: string;
+  unit: "bps" | "ms" | "%" | "d";
+  sensorType: string;
+};
+
 type ZabbixHostProblem = {
   eventid: string;
   name: string;
@@ -695,6 +712,208 @@ export class IntegrationsService {
     return Number.isFinite(parsed) ? parsed : null;
   }
 
+  private reportItemProfile(item: ZabbixTelemetryItem): ReportItemProfile | null {
+    const key = item.key_.toLowerCase();
+    const name = this.normalizeSearchText(item.name);
+    const units = (item.units || "").toLowerCase();
+    const isTraffic =
+      units.includes("bps") ||
+      key.includes("net.if.") ||
+      name.includes("traffic") ||
+      name.includes("trafego") ||
+      name.includes("bits received") ||
+      name.includes("bits sent");
+
+    if (key.includes("system.uptime") || name.includes("system uptime") || name.includes("uptime")) {
+      return {
+        kind: "uptime",
+        block: "uptime",
+        label: "Tempo de atividade do sistema",
+        color: "#1f3b77",
+        unit: "d",
+        sensorType: "Tempo de atividade do sistema (SNMP)",
+      };
+    }
+
+    if (
+      key.startsWith("icmppingloss") ||
+      name.includes("packet loss") ||
+      name.includes("perda de pacote") ||
+      name.includes("loss")
+    ) {
+      return {
+        kind: "loss",
+        block: "ping",
+        label: "Perda de pacote",
+        color: "#8a7b33",
+        unit: "%",
+        sensorType: "Ping (60 s Intervalo)",
+      };
+    }
+
+    if (
+      key.startsWith("icmppingsec") ||
+      key.includes("latency") ||
+      key.includes("response.time") ||
+      name.includes("latencia") ||
+      name.includes("latency") ||
+      name.includes("response time") ||
+      name.includes("tempo de resposta")
+    ) {
+      return {
+        kind: "ping",
+        block: "ping",
+        label: "Tempo de ping",
+        color: "#f06292",
+        unit: "ms",
+        sensorType: "Ping (60 s Intervalo)",
+      };
+    }
+
+    if (isTraffic) {
+      const outbound =
+        key.includes(".out") ||
+        key.includes("ifout") ||
+        name.includes("bits sent") ||
+        name.includes("outgoing") ||
+        name.includes("upload") ||
+        name.includes("saida");
+
+      return {
+        kind: outbound ? "trafficOut" : "trafficIn",
+        block: "traffic",
+        label: outbound ? "Tráfego enviado" : "Tráfego recebido",
+        color: outbound ? "#ffb74d" : "#2fbf3a",
+        unit: "bps",
+        sensorType: "Tráfego (SNMP) 64bit",
+      };
+    }
+
+    return null;
+  }
+
+  private reportHistoryType(item: ZabbixTelemetryItem) {
+    return item.value_type === "3" ? 3 : item.value_type === "0" ? 0 : null;
+  }
+
+  private normalizeReportValue(item: ZabbixTelemetryItem, value: number, profile: ReportItemProfile) {
+    const key = item.key_.toLowerCase();
+    const units = (item.units || "").toLowerCase();
+
+    if (profile.unit === "ms") {
+      if (key.startsWith("icmppingsec") || ["s", "sec", "second", "seconds"].includes(units)) {
+        return value * 1000;
+      }
+      return value;
+    }
+
+    if (profile.unit === "d") {
+      return value / 86400;
+    }
+
+    return value;
+  }
+
+  private reportStats(values: number[]) {
+    const clean = values.filter((item) => Number.isFinite(item));
+    if (!clean.length) {
+      return {
+        last: null,
+        min: null,
+        avg: null,
+        max: null,
+        points: 0,
+      };
+    }
+
+    const sum = clean.reduce((total, item) => total + item, 0);
+
+    return {
+      last: clean[clean.length - 1],
+      min: Math.min(...clean),
+      avg: sum / clean.length,
+      max: Math.max(...clean),
+      points: clean.length,
+    };
+  }
+
+  private reportBlockTitle(block: "traffic" | "ping" | "uptime", unitName: string) {
+    if (block === "traffic") return `${unitName}: Link Traffic`;
+    if (block === "ping") return `${unitName}: Ping`;
+    return `${unitName}: System Uptime`;
+  }
+
+  private reportBlockDescription(block: "traffic" | "ping" | "uptime") {
+    if (block === "traffic") return "Consumo de banda renderizado no padrão visual de relatório PRTG, com dados coletados do Zabbix.";
+    if (block === "ping") return "Latência e perda de pacote a partir dos itens de ICMP do Zabbix.";
+    return "Tempo de atividade do host monitorado no Zabbix.";
+  }
+
+  private selectReportItems(items: ZabbixTelemetryItem[]) {
+    const byKind = new Map<ReportSeriesKind, { item: ZabbixTelemetryItem; profile: ReportItemProfile }>();
+
+    for (const item of items) {
+      if (item.status !== "0") continue;
+
+      const profile = this.reportItemProfile(item);
+      if (!profile || this.reportHistoryType(item) === null) continue;
+
+      const currentValue = this.parseNumber(item.lastvalue) ?? 0;
+      const existing = byKind.get(profile.kind);
+      const existingValue = this.parseNumber(existing?.item.lastvalue) ?? -Infinity;
+
+      if (!existing || currentValue > existingValue) {
+        byKind.set(profile.kind, { item, profile });
+      }
+    }
+
+    return Array.from(byKind.values());
+  }
+
+  private async readReportHistory(
+    targetUrl: string,
+    bearerToken: string,
+    selected: Array<{ item: ZabbixTelemetryItem; profile: ReportItemProfile }>,
+    period: { from: Date; to: Date },
+  ) {
+    const byHistoryType = new Map<number, string[]>();
+
+    for (const entry of selected) {
+      const type = this.reportHistoryType(entry.item);
+      if (type === null) continue;
+
+      byHistoryType.set(type, [...(byHistoryType.get(type) || []), entry.item.itemid]);
+    }
+
+    const results = await Promise.all(
+      Array.from(byHistoryType.entries()).map(([history, itemids]) =>
+        this.zabbixRpc<ZabbixHistoryPoint[]>(
+          targetUrl,
+          "history.get",
+          {
+            output: ["itemid", "clock", "value"],
+            history,
+            itemids,
+            time_from: Math.floor(period.from.getTime() / 1000),
+            time_till: Math.floor(period.to.getTime() / 1000),
+            sortfield: "clock",
+            sortorder: "ASC",
+            limit: Math.min(30000, Math.max(6000, itemids.length * 6000)),
+          },
+          bearerToken,
+        ),
+      ),
+    );
+
+    const pointsByItem = new Map<string, ZabbixHistoryPoint[]>();
+
+    for (const point of results.flat()) {
+      pointsByItem.set(point.itemid, [...(pointsByItem.get(point.itemid) || []), point]);
+    }
+
+    return pointsByItem;
+  }
+
   private latestItem(
     items: ZabbixTelemetryItem[],
     predicate: (item: ZabbixTelemetryItem) => boolean,
@@ -1156,6 +1375,235 @@ export class IntegrationsService {
       },
       items,
     };
+  }
+
+  async getZabbixPrtgStyleReport(unit: UnitTelemetryInput, period: { from: Date; to: Date }) {
+    const generatedAt = new Date();
+    const integrations = await this.prisma.integration.findMany({
+      where: { isActive: true, type: "zabbix" },
+      orderBy: { code: "asc" },
+    });
+
+    const warnings: string[] = [];
+    const candidates: Array<{
+      integration: Integration;
+      targetUrl: string;
+      match: UnitHostMatch;
+    }> = [];
+
+    for (const integration of integrations) {
+      const targetUrl = this.resolveTargetUrl(integration);
+
+      try {
+        const { bearerToken, logoutToken } = await this.getZabbixBearerToken(integration, targetUrl);
+
+        if (!bearerToken) {
+          warnings.push(`${integration.code}: credenciais Zabbix ausentes.`);
+          continue;
+        }
+
+        try {
+          const hosts = await this.zabbixRpc<ZabbixHostCandidate[]>(
+            targetUrl,
+            "host.get",
+            this.zabbixHostLookupParams(),
+            bearerToken,
+          );
+          const match = this.selectHostMatch(unit, hosts, integration, targetUrl);
+
+          if (match.status === "matched" && match.hostId) {
+            candidates.push({ integration, targetUrl, match });
+          } else if (match.status === "ambiguous") {
+            warnings.push(`${integration.code}: host ambíguo para ${unit.code}; relatório bloqueado nessa origem.`);
+          }
+        } finally {
+          await this.safeZabbixLogout(targetUrl, logoutToken);
+        }
+      } catch (error) {
+        warnings.push(`${integration.code}: ${error instanceof Error ? error.message : "falha ao consultar Zabbix"}.`);
+      }
+    }
+
+    const selected = candidates.sort((a, b) => b.match.score - a.match.score)[0];
+
+    const base = {
+      generatedAt: generatedAt.toISOString(),
+      source: "zabbix",
+      deliveryStyle: "prtg-like",
+      period: {
+        from: period.from.toISOString(),
+        to: period.to.toISOString(),
+        timezone: "America/Araguaina",
+      },
+      unit: {
+        id: unit.id,
+        code: unit.code,
+        name: unit.name,
+        city: unit.city,
+        state: unit.state,
+      },
+      partner: unit.partner,
+      warnings,
+    };
+
+    if (!selected) {
+      return {
+        ...base,
+        integration: null,
+        host: null,
+        blocks: [],
+        warnings: warnings.length
+          ? warnings
+          : [`Nenhum host Zabbix confiável foi encontrado para a unidade ${unit.code}.`],
+      };
+    }
+
+    const { integration, targetUrl, match } = selected;
+    const host = {
+      status: match.status,
+      score: match.score,
+      confidence: match.confidence,
+      integrationCode: match.integrationCode,
+      integrationName: match.integrationName,
+      hostId: match.hostId,
+      host: match.host,
+      hostName: match.hostName,
+      hostStatus: match.hostStatus,
+      matchedBy: match.matchedBy,
+      candidates: match.candidates,
+      syncReady: match.syncReady,
+    };
+
+    try {
+      const { bearerToken, logoutToken } = await this.getZabbixBearerToken(integration, targetUrl);
+
+      if (!bearerToken || !match.hostId) {
+        return {
+          ...base,
+          integration: { id: integration.id, code: integration.code, name: integration.name },
+          host,
+          blocks: [],
+          warnings: [...warnings, "Credenciais Zabbix ausentes para leitura de histórico."],
+        };
+      }
+
+      try {
+        const items = await this.zabbixRpc<ZabbixTelemetryItem[]>(
+          targetUrl,
+          "item.get",
+          {
+            output: [
+              "itemid",
+              "hostid",
+              "name",
+              "key_",
+              "lastvalue",
+              "lastclock",
+              "units",
+              "value_type",
+              "status",
+              "state",
+              "error",
+            ],
+            hostids: [match.hostId],
+            filter: { status: "0" },
+            sortfield: "name",
+          },
+          bearerToken,
+        );
+
+        const selectedItems = this.selectReportItems(items);
+        const historyByItem = await this.readReportHistory(targetUrl, bearerToken, selectedItems, period);
+        const blocksByType = new Map<"traffic" | "ping" | "uptime", Array<Record<string, unknown>>>();
+
+        for (const entry of selectedItems) {
+          const rawPoints = historyByItem.get(entry.item.itemid) || [];
+          const points = rawPoints.map((point) => {
+            const value = this.parseNumber(point.value);
+
+            return {
+              timestamp: new Date(Number(point.clock) * 1000).toISOString(),
+              value: value === null ? null : this.normalizeReportValue(entry.item, value, entry.profile),
+            };
+          });
+
+          const fallbackValue = this.parseNumber(entry.item.lastvalue);
+          const finalPoints =
+            points.length || fallbackValue === null
+              ? points
+              : [
+                  {
+                    timestamp: entry.item.lastclock
+                      ? new Date(Number(entry.item.lastclock) * 1000).toISOString()
+                      : generatedAt.toISOString(),
+                    value: this.normalizeReportValue(entry.item, fallbackValue, entry.profile),
+                  },
+                ];
+          const values = finalPoints
+            .map((point) => point.value)
+            .filter((value): value is number => typeof value === "number" && Number.isFinite(value));
+
+          blocksByType.set(entry.profile.block, [
+            ...(blocksByType.get(entry.profile.block) || []),
+            {
+              id: entry.item.itemid,
+              name: entry.item.name,
+              key: entry.item.key_,
+              label: entry.profile.label,
+              kind: entry.profile.kind,
+              color: entry.profile.color,
+              unit: entry.profile.unit,
+              zabbixUnits: entry.item.units || "",
+              points: finalPoints,
+              stats: this.reportStats(values),
+            },
+          ]);
+        }
+
+        const blockOrder: Array<"traffic" | "ping" | "uptime"> = ["traffic", "ping", "uptime"];
+        const blocks = blockOrder
+          .map((block) => {
+            const series = blocksByType.get(block) || [];
+            if (!series.length) return null;
+
+            const firstSeries = series[0] as { unit?: string } | undefined;
+            const profile = selectedItems.find((entry) => entry.profile.block === block)?.profile;
+
+            return {
+              id: block,
+              title: this.reportBlockTitle(block, unit.name),
+              description: this.reportBlockDescription(block),
+              sensorType: profile?.sensorType || "Sensor Zabbix",
+              probePath: `${integration.name} > ${match.hostName || match.host || match.hostId}`,
+              unit: firstSeries?.unit || "",
+              series,
+            };
+          })
+          .filter(Boolean);
+
+        if (!blocks.length) {
+          warnings.push("Nenhum item de tráfego, ping ou uptime com histórico numérico foi encontrado no host.");
+        }
+
+        return {
+          ...base,
+          integration: { id: integration.id, code: integration.code, name: integration.name },
+          host,
+          blocks,
+          warnings,
+        };
+      } finally {
+        await this.safeZabbixLogout(targetUrl, logoutToken);
+      }
+    } catch (error) {
+      return {
+        ...base,
+        integration: { id: integration.id, code: integration.code, name: integration.name },
+        host,
+        blocks: [],
+        warnings: [...warnings, error instanceof Error ? error.message : "Falha ao gerar relatório Zabbix."],
+      };
+    }
   }
 
   async syncUnitToZabbix(unit: UnitTelemetryInput): Promise<UnitZabbixSyncResult> {

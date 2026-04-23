@@ -167,3 +167,122 @@ textarea {
 .nova-app main [role="alert"] {
   border-radius: 14px !important;
 }
+
+.prtg-report-sheet {
+  width: min(100%, 1120px);
+  margin: 0 auto;
+  overflow: hidden;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #fff;
+  color: #263238;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+}
+
+.prtg-letterhead {
+  display: flex;
+  min-height: 26px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: #515151;
+  padding: 0.28rem 1.75rem;
+}
+
+.prtg-report-block {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.prtg-sensor-title {
+  margin: 0 0 0.85rem;
+  color: #008dcc;
+  font-size: 1.05rem;
+  font-weight: 500;
+}
+
+.prtg-summary-grid {
+  display: grid;
+  grid-template-columns: minmax(170px, 240px) minmax(0, 1fr);
+  gap: 0;
+  border-bottom: 1px solid #e9ecef;
+  color: #374151;
+  font-size: 0.76rem;
+}
+
+.prtg-summary-grid > div {
+  border-top: 1px solid #e9ecef;
+  padding: 0.32rem 0.45rem;
+}
+
+.prtg-summary-grid > div:nth-child(odd) {
+  font-weight: 700;
+}
+
+.prtg-legend {
+  display: grid;
+  gap: 0.25rem;
+  border-top: 1px solid #eceff1;
+  padding-top: 0.65rem;
+  color: #263238;
+  font-size: 0.72rem;
+}
+
+.prtg-report-footer {
+  border-top: 1px solid #e5e7eb;
+  padding: 0.75rem 1.75rem 1rem;
+  color: #697586;
+  font-size: 0.68rem;
+  line-height: 1.45;
+  text-align: center;
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 9mm;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+    color: #263238 !important;
+  }
+
+  .nova-app,
+  .nova-main,
+  .nova-content {
+    background: #fff !important;
+  }
+
+  .nova-layout {
+    display: block !important;
+  }
+
+  .nova-sidebar,
+  .nova-topbar,
+  .report-toolbar,
+  .report-workbench > :not(.prtg-report-sheet) {
+    display: none !important;
+  }
+
+  .nova-content {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  .prtg-report-sheet {
+    width: 100% !important;
+    min-height: auto;
+    margin: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .prtg-report-block {
+    margin-bottom: 8mm;
+  }
+
+  a {
+    text-decoration: none !important;
+  }
+}

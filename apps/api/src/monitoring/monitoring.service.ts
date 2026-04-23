@@ -1,6 +1,7 @@
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { IntegrationsService } from "../integrations/integrations.service";
+import { PrtgStyleReportQueryDto } from "./dto/prtg-style-report-query.dto";
 
 @Injectable()
 export class MonitoringService {
@@ -282,5 +283,70 @@ export class MonitoringService {
     });
 
     return this.integrationsService.getZabbixUnitHostTelemetry(units);
+  }
+
+  private parseReportDate(value: string | undefined, fallback: Date) {
+    if (!value) return fallback;
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      throw new BadRequestException(`Data inválida: ${value}`);
+    }
+
+    return parsed;
+  }
+
+  async getPrtgStyleReport(query: PrtgStyleReportQueryDto) {
+    if (!query.unitId) {
+      throw new BadRequestException("Informe unitId para gerar o relatório.");
+    }
+
+    const now = new Date();
+    const defaultFrom = new Date(now);
+    defaultFrom.setDate(defaultFrom.getDate() - 7);
+
+    const from = this.parseReportDate(query.from, defaultFrom);
+    const to = this.parseReportDate(query.to, now);
+
+    if (from >= to) {
+      throw new BadRequestException("A data inicial precisa ser menor que a data final.");
+    }
+
+    const unit = await this.prisma.unit.findUnique({
+      where: { id: query.unitId },
+      select: {
+        id: true,
+        code: true,
+        name: true,
+        city: true,
+        state: true,
+        isActive: true,
+        partner: {
+          select: {
+            id: true,
+            code: true,
+            name: true,
+          },
+        },
+        equipments: {
+          orderBy: { tag: "asc" },
+          select: {
+            id: true,
+            tag: true,
+            name: true,
+            type: true,
+            serialNumber: true,
+            status: true,
+            isActive: true,
+          },
+        },
+      },
+    });
+
+    if (!unit) {
+      throw new NotFoundException("Unidade não encontrada.");
+    }
+
+    return this.integrationsService.getZabbixPrtgStyleReport(unit, { from, to });
   }
 }
