@@ -828,6 +828,10 @@ export default async function MonitoringReportsPage({
   const defaultBandwidth = selectedTemplate?.contractedBandwidth || "";
   const defaultAddressLine = selectedTemplate?.addressLine || "";
   const selectedTemplateId = selectedTemplate?.id || "";
+  const unitCatalogById = new Map(catalog.items.map((item) => [item.id, item] as const));
+  const exportSelectedUnits = exportSelectedUnitIds
+    .map((unitId) => unitCatalogById.get(unitId))
+    .filter((item): item is NonNullable<typeof item> => Boolean(item));
   const currentBuilderQuery: BuilderQuery = {
     templateId: selectedTemplateId || undefined,
     unitId: selectedUnitId || undefined,
@@ -1064,7 +1068,7 @@ export default async function MonitoringReportsPage({
             ) : null}
 
             {groupPreview ? (
-              <details className="mt-4 rounded-[18px] border border-white/10 bg-white/[0.03] p-4" open>
+              <details className="mt-4 rounded-[18px] border border-white/10 bg-white/[0.03] p-4">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
                   <div>
                     <div className="text-sm font-semibold text-slate-100">
@@ -1146,23 +1150,71 @@ export default async function MonitoringReportsPage({
               <input type="hidden" name="from" value={from} />
               <input type="hidden" name="to" value={to} />
 
-              <label className="grid gap-2 text-sm font-semibold text-slate-200 xl:col-span-2">
-                Unidades da exportação
-                <select name="unitIds" multiple size={10} defaultValue={exportSelectedUnitIds}>
-                  {catalog.items.map((item) => (
-                    <option key={`export-${item.id}`} value={item.id}>
-                      {item.partner.code} · {item.code} - {item.name}
-                    </option>
-                  ))}
-                </select>
-                <span className="text-xs font-normal text-slate-400">
-                  Use `Ctrl` ou `Cmd` para montar o lote final. {groupPreview
-                    ? `${groupPreview.counts.matchedUnits} unidade(s) reconhecida(s) a partir dos grupos já ficaram pré-selecionadas aqui.`
-                    : templateManualUnitIds.length
-                      ? `${templateManualUnitIds.length} unidade(s) vieram do template manual carregado.`
-                      : "Você também pode fazer tudo manualmente, mesmo sem grupos do Zabbix."}
-                </span>
-              </label>
+              <div className="xl:col-span-2 rounded-[18px] border border-white/10 bg-white/[0.03] p-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <div className="text-sm font-semibold text-slate-100">Lote atual</div>
+                    <div className="mt-1 text-xs text-slate-400">
+                      {groupPreview
+                        ? `${groupPreview.counts.matchedUnits} unidade(s) vieram da resolução por grupos.`
+                        : templateManualUnitIds.length
+                          ? `${templateManualUnitIds.length} unidade(s) vieram do template carregado.`
+                          : "O lote está baseado na unidade em foco ou na sua seleção manual."}
+                    </div>
+                  </div>
+                  <TonePill tone={exportSelectedUnits.length ? "success" : "attention"}>
+                    {exportSelectedUnits.length} unidade(s)
+                  </TonePill>
+                </div>
+
+                {exportSelectedUnits.length ? (
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {exportSelectedUnits.slice(0, 8).map((item) => (
+                      <span
+                        key={`selected-unit-badge-${item.id}`}
+                        className="inline-flex rounded-full border border-white/10 bg-black/15 px-3 py-1 text-xs text-slate-200"
+                      >
+                        {item.code} - {item.name}
+                      </span>
+                    ))}
+                    {exportSelectedUnits.length > 8 ? (
+                      <span className="inline-flex rounded-full border border-white/10 bg-black/15 px-3 py-1 text-xs text-slate-400">
+                        +{exportSelectedUnits.length - 8} unidade(s)
+                      </span>
+                    ) : null}
+                  </div>
+                ) : (
+                  <div className="mt-4 rounded-[14px] border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-50">
+                    Nenhuma unidade entrou no lote atual. Abra a edição manual abaixo para escolher as unidades.
+                  </div>
+                )}
+
+                <details className="mt-4 rounded-[16px] border border-white/10 bg-black/10 p-4">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
+                    <div>
+                      <div className="text-sm font-semibold text-slate-100">Editar unidades manualmente</div>
+                      <div className="mt-1 text-xs text-slate-400">
+                        Abra só se quiser incluir ou tirar unidades antes do download.
+                      </div>
+                    </div>
+                    <TonePill tone="neutral">Editar</TonePill>
+                  </summary>
+
+                  <label className="mt-4 grid gap-2 text-sm font-semibold text-slate-200">
+                    Unidades da exportação
+                    <select name="unitIds" multiple size={10} defaultValue={exportSelectedUnitIds}>
+                      {catalog.items.map((item) => (
+                        <option key={`export-${item.id}`} value={item.id}>
+                          {item.partner.code} · {item.code} - {item.name}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="text-xs font-normal text-slate-400">
+                      Use `Ctrl` ou `Cmd` para ajustar o lote final.
+                    </span>
+                  </label>
+                </details>
+              </div>
 
               <label className="grid gap-2 text-sm font-semibold text-slate-200">
                 Formato do arquivo
