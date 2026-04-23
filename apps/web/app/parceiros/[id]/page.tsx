@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { ActionForm } from "@/components/action-form";
 import { AppShell } from "@/components/app-shell";
 import { AttachmentPanel } from "@/components/attachment-panel";
+import { EntityEditModal } from "@/components/entity-edit-modal";
 import {
   RegistryDetailHero,
   RegistryInfoGrid,
@@ -338,6 +338,108 @@ export default async function ParceiroDetailPage({
     }
   }
 
+  const partnerEditSteps = [
+    {
+      title: "Identificação",
+      description: "Código interno e nome comercial do parceiro.",
+      body: (
+        <div className="grid gap-4 md:grid-cols-2">
+          <input type="hidden" name="id" value={partner.id} />
+          <div className="grid gap-2">
+            <label
+              htmlFor="partner-code"
+              className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
+            >
+              Código
+            </label>
+            <input
+              id="partner-code"
+              name="code"
+              defaultValue={partner.code}
+              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm uppercase text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
+            />
+          </div>
+          <div className="grid gap-2">
+            <label
+              htmlFor="partner-name"
+              className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
+            >
+              Nome
+            </label>
+            <input
+              id="partner-name"
+              name="name"
+              defaultValue={partner.name}
+              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
+            />
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: "Operação",
+      description: "Cobertura atual e leitura herdada do legado.",
+      body: (
+        <div className="grid gap-4">
+          <div className="rounded-[16px] border border-white/[0.08] bg-black/20 p-4">
+            <div className="text-sm font-semibold text-slate-100">Resumo atual</div>
+            <div className="mt-3 grid gap-3 text-sm text-slate-400 md:grid-cols-2">
+              <div>
+                Unidades vinculadas: <span className="text-slate-200">{partner._count.units}</span>
+              </div>
+              <div>
+                Ativos associados: <span className="text-slate-200">{totalEquipments}</span>
+              </div>
+              <div>
+                Base legada:{" "}
+                <span className="text-slate-200">
+                  {legacyProfile?.partner ? "conectada" : "sem associação"}
+                </span>
+              </div>
+              <div>
+                Contatos legados:{" "}
+                <span className="text-slate-200">{legacyProfile?.contacts.length || 0}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-[16px] border border-amber-400/18 bg-amber-400/[0.08] p-4 text-sm leading-6 text-amber-50">
+            O legado traz contatos, cidades-base e cobertura detalhada. Esses campos ainda não
+            fazem parte do modelo persistido no NOVA, então ficam visíveis na leitura
+            operacional ao lado e entram na próxima etapa de modelagem.
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: "Fechamento",
+      description: "Status do parceiro e revisão final antes de salvar.",
+      body: (
+        <div className="grid gap-4">
+          <label className="flex items-start gap-3 rounded-[16px] border border-white/[0.08] bg-black/20 px-4 py-4 text-sm text-slate-300">
+            <input
+              type="checkbox"
+              name="isActive"
+              defaultChecked={partner.isActive}
+              className="mt-1"
+            />
+            <span>
+              <span className="block font-medium text-slate-100">Parceiro ativo</span>
+              <span className="mt-1 block text-slate-400">
+                Mantém o parceiro disponível para novas unidades e leitura operacional.
+              </span>
+            </span>
+          </label>
+
+          <div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4 text-sm leading-6 text-slate-400">
+            A edição segue o padrão do legado: revisão curta, poucos campos por etapa e
+            fechamento no final do fluxo.
+          </div>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <AppShell
       title="Detalhes do parceiro"
@@ -380,12 +482,16 @@ export default async function ParceiroDetailPage({
               </Link>
             ) : null}
             {isAdmin ? (
-              <Link
-                href="#editar-cadastro"
-                className="rounded-full border border-white/10 bg-black/20 px-4 py-2.5 text-sm text-slate-200 transition hover:bg-white/[0.06] hover:text-white"
-              >
-                Editar cadastro
-              </Link>
+              <EntityEditModal
+                triggerLabel="Editar parceiro"
+                title="Editar parceiro"
+                kicker="Cadastro"
+                description="Fluxo inspirado no legado, com revisão em etapas antes de salvar."
+                submitLabel="Salvar parceiro"
+                pendingLabel="Salvando..."
+                steps={partnerEditSteps}
+                action={updatePartner}
+              />
             ) : null}
           </>
         }
@@ -510,64 +616,6 @@ export default async function ParceiroDetailPage({
         </Surface>
 
         <div className="grid gap-5">
-          <Surface id="editar-cadastro" className="p-5 sm:p-6">
-            <SectionIntro
-              eyebrow="Cadastro"
-              title="Editar parceiro"
-              description="Ajuste curto do cadastro mantendo a leitura operacional logo ao lado."
-              compact
-            />
-            <div className="mt-5">
-              {isAdmin ? (
-                <ActionForm
-                  action={updatePartner}
-                  className="grid gap-3"
-                  submitLabel="Salvar parceiro"
-                  pendingLabel="Salvando..."
-                  variant="secondary"
-                >
-                  <input type="hidden" name="id" value={partner.id} />
-                  <div className="grid gap-2">
-                    <label
-                      htmlFor="partner-code"
-                      className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
-                    >
-                      Código
-                    </label>
-                    <input
-                      id="partner-code"
-                      name="code"
-                      defaultValue={partner.code}
-                      className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm uppercase text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <label
-                      htmlFor="partner-name"
-                      className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
-                    >
-                      Nome
-                    </label>
-                    <input
-                      id="partner-name"
-                      name="name"
-                      defaultValue={partner.name}
-                      className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
-                    />
-                  </div>
-                  <label className="flex items-center gap-2 text-sm text-slate-300">
-                    <input type="checkbox" name="isActive" defaultChecked={partner.isActive} />
-                    Parceiro ativo
-                  </label>
-                </ActionForm>
-              ) : (
-                <div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4 text-sm text-slate-400">
-                  Apenas administradores podem alterar o parceiro.
-                </div>
-              )}
-            </div>
-          </Surface>
-
           <Surface className="p-5 sm:p-6">
             <SectionIntro
               eyebrow="Auditoria"

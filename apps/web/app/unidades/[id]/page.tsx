@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { ActionForm } from "@/components/action-form";
 import { AppShell } from "@/components/app-shell";
 import { AttachmentPanel } from "@/components/attachment-panel";
+import { EntityEditModal } from "@/components/entity-edit-modal";
 import {
   RegistryDetailHero,
   RegistryInfoGrid,
@@ -562,6 +563,157 @@ export default async function UnidadeDetailPage({
   const canEditAttachments = ["admin", "editor"].includes(role);
   const partnerOptions = partnersResponse.items;
 
+  const unitEditSteps = [
+    {
+      title: "Base",
+      description: "Código, nome e localização principal da unidade.",
+      body: (
+        <div className="grid gap-4 md:grid-cols-2">
+          <input type="hidden" name="id" value={unit.id} />
+          <input type="hidden" name="previousPartnerId" value={unit.partner.id} />
+
+          <div className="grid gap-2">
+            <label
+              htmlFor="unit-code"
+              className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
+            >
+              Código
+            </label>
+            <input
+              id="unit-code"
+              name="code"
+              defaultValue={unit.code}
+              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm uppercase text-white outline-none transition focus:border-sky-400/40"
+            />
+          </div>
+          <div className="grid gap-2">
+            <label
+              htmlFor="unit-name"
+              className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
+            >
+              Nome
+            </label>
+            <input
+              id="unit-name"
+              name="name"
+              defaultValue={unit.name}
+              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
+            />
+          </div>
+          <div className="grid gap-2">
+            <label
+              htmlFor="unit-city"
+              className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
+            >
+              Cidade
+            </label>
+            <input
+              id="unit-city"
+              name="city"
+              defaultValue={unit.city || ""}
+              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
+            />
+          </div>
+          <div className="grid gap-2">
+            <label
+              htmlFor="unit-state"
+              className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
+            >
+              UF
+            </label>
+            <input
+              id="unit-state"
+              name="state"
+              maxLength={2}
+              defaultValue={unit.state || ""}
+              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm uppercase text-white outline-none transition focus:border-sky-400/40"
+            />
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: "Vínculos",
+      description: "Parceiro responsável e contexto de monitoramento da unidade.",
+      body: (
+        <div className="grid gap-4">
+          <div className="grid gap-2">
+            <label
+              htmlFor="unit-partner"
+              className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
+            >
+              Parceiro responsável
+            </label>
+            <select
+              id="unit-partner"
+              name="partnerId"
+              defaultValue={unit.partner.id}
+              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
+            >
+              {partnerOptions.map((partner) => (
+                <option key={partner.id} value={partner.id}>
+                  {partner.code} - {partner.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4">
+            <div className="text-sm font-semibold text-slate-100">Leitura operacional</div>
+            <div className="mt-3 grid gap-3 text-sm text-slate-400 md:grid-cols-2">
+              <div>
+                Parceiro atual:{" "}
+                <span className="text-slate-200">{unit.partner.code} - {unit.partner.name}</span>
+              </div>
+              <div>
+                Equipamentos vinculados: <span className="text-slate-200">{unit._count.equipments}</span>
+              </div>
+              <div>
+                Host Zabbix:{" "}
+                <span className="text-slate-200">
+                  {zabbixSnapshot?.match.hostName || zabbixSnapshot?.match.host || "sem vínculo"}
+                </span>
+              </div>
+              <div>
+                Confiança:{" "}
+                <span className="text-slate-200">
+                  {zabbixSnapshot ? `${zabbixSnapshot.match.confidence}%` : "-"}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: "Fechamento",
+      description: "Status final e revisão rápida antes de salvar.",
+      body: (
+        <div className="grid gap-4">
+          <label className="flex items-start gap-3 rounded-[16px] border border-white/[0.08] bg-black/20 px-4 py-4 text-sm text-slate-300">
+            <input
+              type="checkbox"
+              name="isActive"
+              defaultChecked={unit.isActive}
+              className="mt-1"
+            />
+            <span>
+              <span className="block font-medium text-slate-100">Unidade ativa</span>
+              <span className="mt-1 block text-slate-400">
+                Mantém a unidade disponível para operação, monitoramento e novos vínculos.
+              </span>
+            </span>
+          </label>
+
+          <div className="rounded-[16px] border border-amber-400/18 bg-amber-400/[0.08] p-4 text-sm leading-6 text-amber-50">
+            Endereço detalhado, observações de acesso e contatos ainda vivem no contexto legado.
+            Aqui seguimos apenas com o conjunto de campos já persistidos no domínio atual.
+          </div>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <AppShell
       title={`${unit.code} · ${unit.name}`}
@@ -625,12 +777,16 @@ export default async function UnidadeDetailPage({
               Voltar
             </Link>
             {isAdmin ? (
-              <Link
-                href="#editar-cadastro"
-                className="rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/[0.06] hover:text-white"
-              >
-                Editar cadastro
-              </Link>
+              <EntityEditModal
+                triggerLabel="Editar unidade"
+                title="Editar unidade"
+                kicker="Cadastro"
+                description="Fluxo inspirado no legado, com etapas curtas para revisar a base da unidade."
+                submitLabel="Salvar unidade"
+                pendingLabel="Salvando..."
+                steps={unitEditSteps}
+                action={updateUnit}
+              />
             ) : null}
           </>
         }
@@ -802,98 +958,6 @@ export default async function UnidadeDetailPage({
             />
           </div>
         </Surface>
-
-        {isAdmin ? (
-          <Surface id="editar-cadastro" className="p-5 sm:p-6">
-            <SectionIntro
-              eyebrow="Cadastro"
-              title="Editar unidade"
-              description="Ajuste código, localização, parceiro responsável e status sem sair da ficha."
-              compact
-            />
-            <div className="mt-5">
-              <ActionForm
-                action={updateUnit}
-                className="grid gap-3 md:grid-cols-2 xl:grid-cols-6"
-                noticeClassName="md:col-span-2 xl:col-span-6"
-                submitClassName="md:col-span-2 xl:col-span-6"
-                submitLabel="Salvar unidade"
-                pendingLabel="Salvando..."
-                variant="secondary"
-              >
-                <input type="hidden" name="id" value={unit.id} />
-                <input type="hidden" name="previousPartnerId" value={unit.partner.id} />
-
-                <div className="grid gap-2 xl:col-span-1">
-                  <label htmlFor="unit-code" className="text-[10px] uppercase tracking-[0.16em] text-slate-500">
-                    Código
-                  </label>
-                  <input
-                    id="unit-code"
-                    name="code"
-                    defaultValue={unit.code}
-                    className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm uppercase text-white outline-none transition focus:border-sky-400/40"
-                  />
-                </div>
-                <div className="grid gap-2 xl:col-span-2">
-                  <label htmlFor="unit-name" className="text-[10px] uppercase tracking-[0.16em] text-slate-500">
-                    Nome
-                  </label>
-                  <input
-                    id="unit-name"
-                    name="name"
-                    defaultValue={unit.name}
-                    className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-                  />
-                </div>
-                <div className="grid gap-2 xl:col-span-1">
-                  <label htmlFor="unit-city" className="text-[10px] uppercase tracking-[0.16em] text-slate-500">
-                    Cidade
-                  </label>
-                  <input
-                    id="unit-city"
-                    name="city"
-                    defaultValue={unit.city || ""}
-                    className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-                  />
-                </div>
-                <div className="grid gap-2 xl:col-span-1">
-                  <label htmlFor="unit-state" className="text-[10px] uppercase tracking-[0.16em] text-slate-500">
-                    UF
-                  </label>
-                  <input
-                    id="unit-state"
-                    name="state"
-                    maxLength={2}
-                    defaultValue={unit.state || ""}
-                    className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm uppercase text-white outline-none transition focus:border-sky-400/40"
-                  />
-                </div>
-                <div className="grid gap-2 xl:col-span-2">
-                  <label htmlFor="unit-partner" className="text-[10px] uppercase tracking-[0.16em] text-slate-500">
-                    Parceiro responsável
-                  </label>
-                  <select
-                    id="unit-partner"
-                    name="partnerId"
-                    defaultValue={unit.partner.id}
-                    className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-                  >
-                    {partnerOptions.map((partner) => (
-                      <option key={partner.id} value={partner.id}>
-                        {partner.code} - {partner.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <label className="flex items-center gap-2 text-sm text-slate-300 xl:col-span-2 xl:self-end">
-                  <input type="checkbox" name="isActive" defaultChecked={unit.isActive} />
-                  Unidade ativa
-                </label>
-              </ActionForm>
-            </div>
-          </Surface>
-        ) : null}
       </section>
 
       <LegacyUnitBlock profile={legacyProfile} />

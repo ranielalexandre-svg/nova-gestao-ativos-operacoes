@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { ActionForm } from "@/components/action-form";
 import { AppShell } from "@/components/app-shell";
 import { AttachmentPanel } from "@/components/attachment-panel";
+import { EntityEditModal } from "@/components/entity-edit-modal";
 import {
   RegistryDetailHero,
   RegistryInfoGrid,
@@ -410,6 +410,183 @@ export default async function EquipamentoDetailPage({
     }
   }
 
+  const equipmentEditSteps = [
+    {
+      title: "Inventário",
+      description: "Tag, nome operacional e tipo do ativo.",
+      body: (
+        <div className="grid gap-4 md:grid-cols-2">
+          <input type="hidden" name="id" value={equipment.id} />
+          <div className="grid gap-2">
+            <label
+              htmlFor="equipment-tag"
+              className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
+            >
+              Tag
+            </label>
+            <input
+              id="equipment-tag"
+              name="tag"
+              defaultValue={equipment.tag}
+              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm uppercase text-white outline-none transition focus:border-sky-400/40"
+            />
+          </div>
+          <div className="grid gap-2">
+            <label
+              htmlFor="equipment-name"
+              className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
+            >
+              Nome
+            </label>
+            <input
+              id="equipment-name"
+              name="name"
+              defaultValue={equipment.name}
+              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
+            />
+          </div>
+          <div className="grid gap-2 md:col-span-2">
+            <label
+              htmlFor="equipment-type"
+              className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
+            >
+              Tipo
+            </label>
+            <input
+              id="equipment-type"
+              name="type"
+              defaultValue={equipment.type}
+              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
+            />
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: "Rede",
+      description: "Identificador técnico e situação do equipamento.",
+      body: (
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-2">
+            <label
+              htmlFor="equipment-serial"
+              className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
+            >
+              Serial / MAC
+            </label>
+            <input
+              id="equipment-serial"
+              name="serialNumber"
+              defaultValue={equipment.serialNumber || ""}
+              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
+            />
+          </div>
+          <div className="grid gap-2">
+            <label
+              htmlFor="equipment-status"
+              className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
+            >
+              Status
+            </label>
+            <select
+              id="equipment-status"
+              name="status"
+              defaultValue={equipment.status}
+              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
+            >
+              <option value="active">Ativo</option>
+              <option value="stock">Estoque</option>
+              <option value="repair">Reparo</option>
+              <option value="retired">Retirado</option>
+            </select>
+          </div>
+
+          <div className="md:col-span-2 rounded-[16px] border border-white/[0.08] bg-black/20 p-4 text-sm leading-6 text-slate-400">
+            Campos como IP, firmware, fabricante e modelo ainda não estão no contrato real do
+            ativo. Por enquanto, o fluxo segue enxuto como no legado: edita o essencial e salva
+            no fechamento.
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: "Vínculos",
+      description: "Unidade atendida e contexto operacional ligado ao ativo.",
+      body: (
+        <div className="grid gap-4">
+          <div className="grid gap-2">
+            <label
+              htmlFor="equipment-unit"
+              className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
+            >
+              Unidade
+            </label>
+            <select
+              id="equipment-unit"
+              name="unitId"
+              defaultValue={equipment.unit.id}
+              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
+            >
+              {unitsResponse.items.map((unit) => (
+                <option key={unit.id} value={unit.id}>
+                  {unit.code} - {unit.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4">
+            <div className="text-sm font-semibold text-slate-100">Vínculo atual</div>
+            <div className="mt-3 grid gap-3 text-sm text-slate-400 md:grid-cols-2">
+              <div>
+                Unidade: <span className="text-slate-200">{equipment.unit.code}</span>
+              </div>
+              <div>
+                Parceiro: <span className="text-slate-200">{equipment.unit.partner.name}</span>
+              </div>
+              <div>
+                Localização: <span className="text-slate-200">{locationLabel(equipment)}</span>
+              </div>
+              <div>
+                Saúde monitorada:{" "}
+                <span className="text-slate-200">
+                  {monitor ? healthLabel(monitor.health) : "sem leitura"}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: "Fechamento",
+      description: "Status final do cadastro antes de persistir as mudanças.",
+      body: (
+        <div className="grid gap-4">
+          <label className="flex items-start gap-3 rounded-[16px] border border-white/[0.08] bg-black/20 px-4 py-4 text-sm text-slate-300">
+            <input
+              type="checkbox"
+              name="isActive"
+              defaultChecked={equipment.isActive}
+              className="mt-1"
+            />
+            <span>
+              <span className="block font-medium text-slate-100">Equipamento ativo</span>
+              <span className="mt-1 block text-slate-400">
+                Mantém o ativo disponível para operação, ocorrências e monitoramento.
+              </span>
+            </span>
+          </label>
+
+          <div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4 text-sm leading-6 text-slate-400">
+            O modal reproduz a leitura que você já usava no legado: inventário, rede, vínculos e
+            fechamento em blocos curtos.
+          </div>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <AppShell
       title="Detalhes do equipamento"
@@ -447,12 +624,16 @@ export default async function EquipamentoDetailPage({
               Abrir unidade
             </Link>
             {isAdmin ? (
-              <Link
-                href="#editar-cadastro"
-                className="rounded-full border border-white/10 bg-black/20 px-4 py-2.5 text-sm text-slate-200 transition hover:bg-white/[0.06] hover:text-white"
-              >
-                Editar cadastro
-              </Link>
+              <EntityEditModal
+                triggerLabel="Editar ativo"
+                title="Editar ativo"
+                kicker="Cadastro"
+                description="Fluxo inspirado no legado para ajustar o essencial do ativo sem poluir a ficha."
+                submitLabel="Salvar ativo"
+                pendingLabel="Salvando..."
+                steps={equipmentEditSteps}
+                action={updateEquipment}
+              />
             ) : null}
           </>
         }
@@ -485,130 +666,6 @@ export default async function EquipamentoDetailPage({
           },
         ]}
       />
-
-      {isAdmin ? (
-        <Surface id="editar-cadastro" className="p-5 sm:p-6">
-          <SectionIntro
-            eyebrow="Cadastro"
-            title="Editar equipamento"
-            description="Ajuste técnico direto, com o formulário exposto no mesmo fluxo da leitura operacional."
-            compact
-          />
-          <div className="mt-5">
-            <ActionForm
-              action={updateEquipment}
-              className="grid gap-3 md:grid-cols-2 xl:grid-cols-6"
-              noticeClassName="md:col-span-2 xl:col-span-6"
-              submitClassName="md:col-span-2 xl:col-span-6"
-              submitLabel="Salvar equipamento"
-              pendingLabel="Salvando..."
-              variant="secondary"
-            >
-              <input type="hidden" name="id" value={equipment.id} />
-
-              <div className="grid gap-2 xl:col-span-1">
-                <label
-                  htmlFor="equipment-tag"
-                  className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
-                >
-                  Tag
-                </label>
-                <input
-                  id="equipment-tag"
-                  name="tag"
-                  defaultValue={equipment.tag}
-                  className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm uppercase text-white outline-none transition focus:border-sky-400/40"
-                />
-              </div>
-              <div className="grid gap-2 xl:col-span-2">
-                <label
-                  htmlFor="equipment-name"
-                  className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
-                >
-                  Nome
-                </label>
-                <input
-                  id="equipment-name"
-                  name="name"
-                  defaultValue={equipment.name}
-                  className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-                />
-              </div>
-              <div className="grid gap-2 xl:col-span-1">
-                <label
-                  htmlFor="equipment-type"
-                  className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
-                >
-                  Tipo
-                </label>
-                <input
-                  id="equipment-type"
-                  name="type"
-                  defaultValue={equipment.type}
-                  className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-                />
-              </div>
-              <div className="grid gap-2 xl:col-span-2">
-                <label
-                  htmlFor="equipment-serial"
-                  className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
-                >
-                  Serial / MAC
-                </label>
-                <input
-                  id="equipment-serial"
-                  name="serialNumber"
-                  defaultValue={equipment.serialNumber || ""}
-                  className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-                />
-              </div>
-              <div className="grid gap-2 xl:col-span-2">
-                <label
-                  htmlFor="equipment-unit"
-                  className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
-                >
-                  Unidade
-                </label>
-                <select
-                  id="equipment-unit"
-                  name="unitId"
-                  defaultValue={equipment.unit.id}
-                  className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-                >
-                  {unitsResponse.items.map((unit) => (
-                    <option key={unit.id} value={unit.id}>
-                      {unit.code} - {unit.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="grid gap-2 xl:col-span-1">
-                <label
-                  htmlFor="equipment-status"
-                  className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
-                >
-                  Status
-                </label>
-                <select
-                  id="equipment-status"
-                  name="status"
-                  defaultValue={equipment.status}
-                  className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-                >
-                  <option value="active">Ativo</option>
-                  <option value="stock">Estoque</option>
-                  <option value="repair">Reparo</option>
-                  <option value="retired">Retirado</option>
-                </select>
-              </div>
-              <label className="flex items-center gap-2 text-sm text-slate-300 xl:col-span-3 xl:self-end">
-                <input type="checkbox" name="isActive" defaultChecked={equipment.isActive} />
-                Equipamento ativo
-              </label>
-            </ActionForm>
-          </div>
-        </Surface>
-      ) : null}
 
       <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
         <Surface className="p-5 sm:p-6">
