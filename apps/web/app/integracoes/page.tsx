@@ -295,6 +295,8 @@ function ConnectorConfigForm({
     formData: FormData,
   ) => Promise<ActionFeedbackState>;
 }) {
+  const zabbixWithoutAuth = integration.type === "zabbix" && integration.authMode === "none";
+
   return (
     <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
       <ActionForm
@@ -357,6 +359,14 @@ function ConnectorConfigForm({
         <div className="text-xs leading-5 text-slate-500 md:col-span-2">
           Segredos não são exibidos. Deixe token, usuário e senha em branco para preservar os valores atuais.
         </div>
+        {zabbixWithoutAuth ? (
+          <div className="rounded-[14px] border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm leading-6 text-amber-100 md:col-span-2">
+            Este conector Zabbix está em <span className="font-semibold">sem auth</span>. Leitura de
+            versão ainda funciona, mas <span className="font-semibold">host.get</span>, telemetria e
+            sincronização de host exigem <span className="font-semibold">token</span> ou{" "}
+            <span className="font-semibold">usuário/senha</span>.
+          </div>
+        ) : null}
       </ActionForm>
 
       <ActionForm

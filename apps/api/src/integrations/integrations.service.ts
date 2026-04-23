@@ -1150,7 +1150,8 @@ export class IntegrationsService {
             code: integration.code,
             name: integration.name,
             ok: false,
-            message: "Versão lida, mas credenciais são necessárias para consultar hosts",
+            message:
+              "Versão lida, mas faltam credenciais para consultar hosts. Configure o conector em /integracoes.",
             targetUrl,
             version,
             totalHosts: 0,
@@ -1654,7 +1655,9 @@ export class IntegrationsService {
         const { bearerToken, logoutToken } = await this.getZabbixBearerToken(integration, targetUrl);
 
         if (!bearerToken) {
-          sourceErrors.push(`${integration.code}: credenciais ausentes`);
+          sourceErrors.push(
+            `${integration.code}: credenciais ausentes (configure authMode/token/usuario em /integracoes)`,
+          );
           continue;
         }
 
