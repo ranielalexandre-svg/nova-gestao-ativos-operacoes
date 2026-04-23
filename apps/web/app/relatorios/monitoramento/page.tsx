@@ -952,19 +952,7 @@ export default async function MonitoringReportsPage({
               compact
             />
 
-            <form action="/relatorios/monitoramento" method="GET" className="mt-5 grid gap-4 xl:grid-cols-3">
-              <label className="grid gap-2 text-sm font-semibold text-slate-200">
-                Template
-                <select name="templateId" defaultValue={selectedTemplateId}>
-                  <option value="">Sem template</option>
-                  {templates.map((template) => (
-                    <option key={template.id} value={template.id}>
-                      {template.code} - {template.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
+            <form action="/relatorios/monitoramento" method="GET" className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1fr)_180px_180px_auto]">
               <label className="grid gap-2 text-sm font-semibold text-slate-200">
                 Unidade em foco
                 <select name="unitId" defaultValue={selectedUnitId}>
@@ -1018,6 +1006,57 @@ export default async function MonitoringReportsPage({
                 </Link>
                 <button type="submit">Aplicar filtros</button>
               </div>
+
+              <details className="xl:col-span-4 rounded-[18px] border border-white/10 bg-white/[0.03] p-4">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
+                  <div>
+                    <div className="text-sm font-semibold text-slate-100">Mais filtros</div>
+                    <div className="mt-1 text-xs text-slate-400">
+                      Template, integração Zabbix e host groups ficam aqui.
+                    </div>
+                  </div>
+                  <TonePill tone="neutral">Avançado</TonePill>
+                </summary>
+
+                <div className="mt-4 grid gap-4 xl:grid-cols-3">
+                  <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                    Template
+                    <select name="templateId" defaultValue={selectedTemplateId}>
+                      <option value="">Sem template</option>
+                      {templates.map((template) => (
+                        <option key={template.id} value={template.id}>
+                          {template.code} - {template.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                    Integração Zabbix
+                    <select name="groupIntegrationId" defaultValue={selectedGroupSource?.id || ""}>
+                      <option value="">Sem grupos</option>
+                      {reportSources.map((source) => (
+                        <option key={source.id} value={source.id}>
+                          {source.code} - {source.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <div className="hidden xl:block" />
+
+                  <label className="grid gap-2 text-sm font-semibold text-slate-200 xl:col-span-3">
+                    Host groups
+                    <select name="groupIds" multiple size={7} defaultValue={effectiveGroupIds} disabled={!groupCatalog?.items.length}>
+                      {(groupCatalog?.items || []).map((group) => (
+                        <option key={group.id} value={group.id}>
+                          {group.name} · {group.hostCount} host(s)
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+              </details>
             </form>
 
             <div className="mt-4 grid gap-2 md:grid-cols-4">
@@ -1035,9 +1074,8 @@ export default async function MonitoringReportsPage({
               </Link>
             </div>
 
-            <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <div className="mt-5 grid gap-3 md:grid-cols-3">
               <CompactMetric label="Origem" value={activeOriginLabel} tone={selectedTemplate ? "info" : effectiveGroupIds.length ? "success" : "neutral"} />
-              <CompactMetric label="Período" value={`${formatDate(from)} - ${formatDate(to)}`} />
               <CompactMetric label="Unidades" value={exportSelectedUnitIds.length} tone={exportSelectedUnitIds.length ? "success" : "attention"} />
               <CompactMetric label="Pendências" value={unresolvedCount} tone={unresolvedCount ? "attention" : "success"} />
             </div>
@@ -1128,71 +1166,85 @@ export default async function MonitoringReportsPage({
             />
 
             <form id="builder-export-form" action="/relatorios/monitoramento/export" method="POST" target="_blank" className="mt-5 grid gap-4 xl:grid-cols-2">
-                <input type="hidden" name="from" value={from} />
-                <input type="hidden" name="to" value={to} />
+              <input type="hidden" name="from" value={from} />
+              <input type="hidden" name="to" value={to} />
 
-                <label className="grid gap-2 text-sm font-semibold text-slate-200 xl:col-span-2">
-                  Unidades da exportação
-                  <select name="unitIds" multiple size={12} defaultValue={exportSelectedUnitIds}>
-                    {catalog.items.map((item) => (
-                      <option key={`export-${item.id}`} value={item.id}>
-                        {item.partner.code} · {item.code} - {item.name}
-                      </option>
-                    ))}
-                  </select>
-                  <span className="text-xs font-normal text-slate-400">
-                    Use `Ctrl` ou `Cmd` para montar o lote final. {groupPreview
-                      ? `${groupPreview.counts.matchedUnits} unidade(s) reconhecida(s) a partir dos grupos já ficaram pré-selecionadas aqui.`
-                      : templateManualUnitIds.length
-                        ? `${templateManualUnitIds.length} unidade(s) vieram do template manual carregado.`
-                        : "Você também pode fazer tudo manualmente, mesmo sem grupos do Zabbix."}
-                  </span>
-                </label>
+              <label className="grid gap-2 text-sm font-semibold text-slate-200 xl:col-span-2">
+                Unidades da exportação
+                <select name="unitIds" multiple size={10} defaultValue={exportSelectedUnitIds}>
+                  {catalog.items.map((item) => (
+                    <option key={`export-${item.id}`} value={item.id}>
+                      {item.partner.code} · {item.code} - {item.name}
+                    </option>
+                  ))}
+                </select>
+                <span className="text-xs font-normal text-slate-400">
+                  Use `Ctrl` ou `Cmd` para montar o lote final. {groupPreview
+                    ? `${groupPreview.counts.matchedUnits} unidade(s) reconhecida(s) a partir dos grupos já ficaram pré-selecionadas aqui.`
+                    : templateManualUnitIds.length
+                      ? `${templateManualUnitIds.length} unidade(s) vieram do template manual carregado.`
+                      : "Você também pode fazer tudo manualmente, mesmo sem grupos do Zabbix."}
+                </span>
+              </label>
 
-                <label className="grid gap-2 text-sm font-semibold text-slate-200">
-                  Formato do arquivo
-                  <select name="format" defaultValue={defaultFormat}>
-                    <option value="pdf">PDF</option>
-                    <option value="docx">DOCX</option>
-                  </select>
-                </label>
+              <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                Formato do arquivo
+                <select name="format" defaultValue={defaultFormat}>
+                  <option value="pdf">PDF</option>
+                  <option value="docx">DOCX</option>
+                </select>
+              </label>
 
-                <label className="flex items-center gap-3 rounded-[16px] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-slate-100">
-                  <input type="checkbox" name="includeCharts" defaultChecked={defaultIncludeCharts} className="h-4 w-4" />
-                  Incluir gráficos no arquivo
-                </label>
+              <label className="flex items-center gap-3 rounded-[16px] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-slate-100">
+                <input type="checkbox" name="includeCharts" defaultChecked={defaultIncludeCharts} className="h-4 w-4" />
+                Incluir gráficos no arquivo
+              </label>
 
-                <label className="grid gap-2 text-sm font-semibold text-slate-200">
-                  Título do relatório
-                  <input name="title" defaultValue={defaultTitle} />
-                </label>
+              <details className="xl:col-span-2 rounded-[18px] border border-white/10 bg-white/[0.03] p-4">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
+                  <div>
+                    <div className="text-sm font-semibold text-slate-100">Mais opções do arquivo</div>
+                    <div className="mt-1 text-xs text-slate-400">
+                      Título, interessado, contrato, banda e endereço.
+                    </div>
+                  </div>
+                  <TonePill tone="neutral">Opcional</TonePill>
+                </summary>
 
-                <label className="grid gap-2 text-sm font-semibold text-slate-200">
-                  Interessado
-                  <input name="interestedParty" defaultValue={defaultInterestedParty} placeholder="Ex.: Secretaria Municipal de Administração" />
-                </label>
+                <div className="mt-4 grid gap-4 xl:grid-cols-2">
+                  <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                    Título do relatório
+                    <input name="title" defaultValue={defaultTitle} />
+                  </label>
 
-                <label className="grid gap-2 text-sm font-semibold text-slate-200">
-                  Contrato
-                  <input name="contractLabel" defaultValue={defaultContractLabel} placeholder="Ex.: Contrato 123/2026" />
-                </label>
+                  <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                    Interessado
+                    <input name="interestedParty" defaultValue={defaultInterestedParty} placeholder="Ex.: Secretaria Municipal de Administração" />
+                  </label>
 
-                <label className="grid gap-2 text-sm font-semibold text-slate-200">
-                  Banda contratada
-                  <input name="contractedBandwidth" defaultValue={defaultBandwidth} placeholder="Ex.: 300 Mbit/s" />
-                </label>
+                  <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                    Contrato
+                    <input name="contractLabel" defaultValue={defaultContractLabel} placeholder="Ex.: Contrato 123/2026" />
+                  </label>
 
-                <label className="grid gap-2 text-sm font-semibold text-slate-200 xl:col-span-2">
-                  Endereço ou observação comercial
-                  <input name="addressLine" defaultValue={defaultAddressLine} placeholder="Ex.: Rua X, Centro, Gurupi - TO" />
-                </label>
+                  <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                    Banda contratada
+                    <input name="contractedBandwidth" defaultValue={defaultBandwidth} placeholder="Ex.: 300 Mbit/s" />
+                  </label>
 
-                <div className="xl:col-span-2 flex flex-wrap items-center justify-between gap-3 rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-4">
-                  <p className="max-w-3xl text-sm text-slate-300">
-                    O arquivo sai pronto para download com cabeçalho, rodapé e estrutura comercial no padrão que você está perseguindo. Se os gráficos forem desmarcados, a entrega sai só com informações gerais e métricas resumidas.
-                  </p>
-                  <button type="submit">Baixar arquivo</button>
+                  <label className="grid gap-2 text-sm font-semibold text-slate-200 xl:col-span-2">
+                    Endereço ou observação comercial
+                    <input name="addressLine" defaultValue={defaultAddressLine} placeholder="Ex.: Rua X, Centro, Gurupi - TO" />
+                  </label>
                 </div>
+              </details>
+
+              <div className="xl:col-span-2 flex flex-wrap items-center justify-between gap-3 rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-4">
+                <p className="max-w-3xl text-sm text-slate-300">
+                  O arquivo sai pronto para download com cabeçalho, rodapé e estrutura comercial no padrão que você está perseguindo.
+                </p>
+                <button type="submit">Baixar arquivo</button>
+              </div>
             </form>
           </Surface>
 
