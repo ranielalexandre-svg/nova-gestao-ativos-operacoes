@@ -615,6 +615,78 @@ export default async function MonitoringReportsPage({
           ) : null}
         </Surface>
 
+        <Surface className="report-toolbar p-5 sm:p-6">
+          <SectionIntro
+            eyebrow="Exportação corporativa"
+            title="Gerar arquivo para download"
+            description="Monte o arquivo final com uma ou mais unidades, escolha PDF ou DOCX, decida se os gráficos entram e preencha os dados comerciais que ainda não existem no cadastro."
+            compact
+            actions={<TonePill tone="info">Download server-side</TonePill>}
+          />
+
+          <form action="/relatorios/monitoramento/export" method="POST" target="_blank" className="mt-5 grid gap-4 xl:grid-cols-2">
+            <input type="hidden" name="from" value={from} />
+            <input type="hidden" name="to" value={to} />
+
+            <label className="grid gap-2 text-sm font-semibold text-slate-200 xl:col-span-2">
+              Unidades da exportação
+              <select name="unitIds" multiple size={12} defaultValue={selectedUnitId ? [selectedUnitId] : undefined}>
+                {catalog.items.map((item) => (
+                  <option key={`export-${item.id}`} value={item.id}>
+                    {item.partner.code} · {item.code} - {item.name}
+                  </option>
+                ))}
+              </select>
+              <span className="text-xs font-normal text-slate-400">Use `Ctrl` ou `Cmd` para selecionar várias unidades. Nesta primeira entrega a seleção é manual; o filtro por host group do Zabbix entra no próximo passo.</span>
+            </label>
+
+            <label className="grid gap-2 text-sm font-semibold text-slate-200">
+              Formato do arquivo
+              <select name="format" defaultValue="pdf">
+                <option value="pdf">PDF</option>
+                <option value="docx">DOCX</option>
+              </select>
+            </label>
+
+            <label className="flex items-center gap-3 rounded-[16px] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-slate-100">
+              <input type="checkbox" name="includeCharts" defaultChecked className="h-4 w-4" />
+              Incluir gráficos no arquivo
+            </label>
+
+            <label className="grid gap-2 text-sm font-semibold text-slate-200">
+              Título do relatório
+              <input name="title" defaultValue="Relatório de Consumo" />
+            </label>
+
+            <label className="grid gap-2 text-sm font-semibold text-slate-200">
+              Interessado
+              <input name="interestedParty" defaultValue={selectedUnit?.partner.name || ""} placeholder="Ex.: Secretaria Municipal de Administração" />
+            </label>
+
+            <label className="grid gap-2 text-sm font-semibold text-slate-200">
+              Contrato
+              <input name="contractLabel" placeholder="Ex.: Contrato 123/2026" />
+            </label>
+
+            <label className="grid gap-2 text-sm font-semibold text-slate-200">
+              Banda contratada
+              <input name="contractedBandwidth" placeholder="Ex.: 300 Mbit/s" />
+            </label>
+
+            <label className="grid gap-2 text-sm font-semibold text-slate-200 xl:col-span-2">
+              Endereço ou observação comercial
+              <input name="addressLine" placeholder="Ex.: Rua X, Centro, Gurupi - TO" />
+            </label>
+
+            <div className="xl:col-span-2 flex flex-wrap items-center justify-between gap-3 rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-4">
+              <p className="max-w-3xl text-sm text-slate-300">
+                O arquivo é montado no servidor e sai com cabeçalho, rodapé e estrutura comercial no estilo do modelo enviado. Se desmarcar os gráficos, a exportação sai só com as informações gerais e métricas resumidas.
+              </p>
+              <button type="submit">Baixar arquivo</button>
+            </div>
+          </form>
+        </Surface>
+
         {error ? (
           <Surface className="report-toolbar border-rose-500/20 bg-rose-500/10 p-5 text-sm text-rose-100">
             Não foi possível gerar o relatório agora: {error}

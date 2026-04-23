@@ -1,13 +1,17 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { IntegrationsService } from "../integrations/integrations.service";
+import { ExportMonitoringReportDto } from "./dto/export-monitoring-report.dto";
 import { PrtgStyleReportQueryDto } from "./dto/prtg-style-report-query.dto";
+import { MonitoringReportExportService } from "./report-export.service";
+import { MonitoringPrtgStyleReport } from "./report.types";
 
 @Injectable()
 export class MonitoringService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly integrationsService: IntegrationsService,
+    private readonly reportExportService: MonitoringReportExportService,
   ) {}
 
   private bucketCount(input: unknown, key: string): number {
@@ -330,24 +334,28 @@ export class MonitoringService {
     return parsed;
   }
 
-  async getPrtgStyleReport(query: PrtgStyleReportQueryDto) {
-    if (!query.unitId) {
-      throw new BadRequestException("Informe unitId para gerar o relatório.");
-    }
-
+  private resolveReportRange(fromInput?: string, toInput?: string) {
     const now = new Date();
     const defaultFrom = new Date(now);
     defaultFrom.setDate(defaultFrom.getDate() - 7);
 
-    const from = this.parseReportDate(query.from, defaultFrom);
-    const to = this.parseReportDate(query.to, now);
+    const from = this.parseReportDate(fromInput, defaultFrom);
+    const to = this.parseReportDate(toInput, now);
 
     if (from >= to) {
       throw new BadRequestException("A data inicial precisa ser menor que a data final.");
     }
 
+    return { from, to };
+  }
+
+  private async readPrtgStyleReportForUnit(unitId: string, from: Date, to: Date): Promise<MonitoringPrtgStyleReport> {
+    if (!unitId) {
+      throw new BadRequestException("Informe unitId para gerar o relatório.");
+    }
+
     const unit = await this.prisma.unit.findUnique({
-      where: { id: query.unitId },
+      where: { id: unitId },
       select: {
         id: true,
         code: true,
@@ -383,6 +391,35 @@ export class MonitoringService {
       throw new NotFoundException("Unidade não encontrada.");
     }
 
-    return this.integrationsService.getZabbixPrtgStyleReport(unit, { from, to });
+    return this.integrationsService.getZabbixPrtgStyleReport(unit, { from, to }) as Promise<MonitoringPrtgStyleReport>;
+  }
+
+  async getPrtgStyleReport(query: PrtgStyleReportQueryDto) {
+    const { from, to } = this.resolveReportRange(query.from, query.to);
+    return this.readPrtgStyleReportForUnit(query.unitId || "", from, to);
+  }
+
+  async exportPrtgStyleReports(payload: ExportMonitoringReportDto) {
+    const { from, to } = this.resolveReportRange(payload.from, payload.to);
+    const unitIds = [...new Set((payload.unitIds || []).map((item) => String(item || "").trim()).filter(Boolean))];
+
+    if (!unitIds.length) {
+      throw new BadRequestException("Selecione ao menos uma unidade para exportar.");
+    }
+
+    const reports: MonitoringPrtgStyleReport[] = [];
+    for (const unitId of unitIds) {
+      reports.push(await this.readPrtgStyleReportForUnit(unitId, from, to));
+    }
+
+    return this.reportExportService.exportReports(reports, {
+      format: payload.format,
+      includeCharts: payload.includeCharts,
+      title: payload.title,
+      interestedParty: payload.interestedParty,
+      contractLabel: payload.contractLabel,
+      addressLine: payload.addressLine,
+      contractedBandwidth: payload.contractedBandwidth,
+    });
   }
 }
