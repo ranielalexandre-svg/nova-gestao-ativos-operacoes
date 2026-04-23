@@ -8,7 +8,7 @@ import {
   Surface,
   TonePill,
 } from "@/components/ops-ui";
-import { RegistryHero, RegistrySummaryStrip } from "@/components/registry-shell";
+import { RegistryHero } from "@/components/registry-shell";
 import { getActionErrorMessage } from "@/lib/action-state";
 import {
   readStringParam,
@@ -729,138 +729,29 @@ async function readReportTemplateRuns() {
   }
 }
 
-function MetricCard({
+function CompactMetric({
   label,
   value,
-  meta,
   tone = "neutral",
 }: {
   label: string;
   value: string | number;
-  meta: string;
-  tone?: "neutral" | "info" | "success" | "attention";
+  tone?: "neutral" | "success" | "attention" | "info";
 }) {
   const toneClass =
     tone === "success"
-      ? "border-emerald-500/20 bg-emerald-500/10"
+      ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-50"
       : tone === "attention"
-        ? "border-amber-500/20 bg-amber-500/10"
+        ? "border-amber-500/20 bg-amber-500/10 text-amber-50"
         : tone === "info"
-          ? "border-sky-500/20 bg-sky-500/10"
-          : "border-white/10 bg-white/[0.04]";
-  const labelClass =
-    tone === "success"
-      ? "text-emerald-100/85"
-      : tone === "attention"
-        ? "text-amber-100/85"
-        : tone === "info"
-          ? "text-sky-100/85"
-          : "text-slate-500";
-  const valueClass =
-    tone === "success"
-      ? "text-emerald-50"
-      : tone === "attention"
-        ? "text-amber-50"
-        : tone === "info"
-          ? "text-sky-50"
-          : "text-slate-50";
-  const metaClass =
-    tone === "success"
-      ? "text-emerald-100/75"
-      : tone === "attention"
-        ? "text-amber-100/75"
-        : tone === "info"
-          ? "text-sky-100/75"
-          : "text-slate-400";
+          ? "border-sky-500/20 bg-sky-500/10 text-sky-50"
+          : "border-white/10 bg-white/[0.04] text-slate-100";
 
   return (
-    <div className={`rounded-[18px] border p-4 ${toneClass}`}>
-      <div className={`text-[10px] font-semibold uppercase tracking-[0.18em] ${labelClass}`}>{label}</div>
-      <div className={`mt-2 text-xl font-semibold ${valueClass}`}>{value}</div>
-      <div className={`mt-1 text-xs ${metaClass}`}>{meta}</div>
+    <div className={`rounded-[14px] border px-4 py-3 ${toneClass}`}>
+      <div className="text-[10px] font-semibold uppercase tracking-[0.14em] opacity-75">{label}</div>
+      <div className="mt-1 text-sm font-semibold">{value}</div>
     </div>
-  );
-}
-
-function BuilderSummaryPanel({
-  selectedTemplate,
-  selectedGroupSource,
-  groupIds,
-  from,
-  to,
-  exportSelectedUnitIds,
-  unresolvedCount,
-  selectedUnit,
-  report,
-}: {
-  selectedTemplate: ReportTemplate | null;
-  selectedGroupSource: ReportSource | null;
-  groupIds: string[];
-  from: string;
-  to: string;
-  exportSelectedUnitIds: string[];
-  unresolvedCount: number;
-  selectedUnit:
-    | {
-        id: string;
-        code: string;
-        name: string;
-        city: string | null;
-        state: string | null;
-        partner: {
-          id: string;
-          code: string;
-          name: string;
-        };
-      }
-    | undefined;
-  report: MonitoringReport | null;
-}) {
-  const originLabel = selectedTemplate
-    ? `Template ${selectedTemplate.code}`
-    : groupIds.length
-      ? "Host groups do Zabbix"
-      : "Unidade manual";
-  const originMeta = selectedTemplate
-    ? `${selectedTemplate.name} · ${formatPeriodPreset(selectedTemplate.periodPreset)}`
-    : groupIds.length
-      ? `${groupIds.length} grupo(s) usando ${selectedGroupSource?.code || "integração"}`
-      : selectedUnit
-        ? `${selectedUnit.code} - ${selectedUnit.name}`
-        : "Defina a origem do lote";
-
-  return (
-    <Surface className="p-5 sm:p-6 xl:sticky xl:top-24">
-      <SectionIntro
-        eyebrow="Resumo"
-        title="Builder do relatório"
-        description="Tudo o que vai para o arquivo final fica consolidado aqui antes de baixar, salvar ou agendar."
-        compact
-      />
-
-      <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-        <MetricCard label="Origem ativa" value={originLabel} meta={originMeta} tone={selectedTemplate ? "info" : groupIds.length ? "success" : "neutral"} />
-        <MetricCard label="Período" value={`${formatDate(from)} - ${formatDate(to)}`} meta="Intervalo usado para leitura histórica e exportação" tone="neutral" />
-        <MetricCard label="Lote pronto" value={exportSelectedUnitIds.length} meta="Unidade(s) que já entram pré-selecionadas na exportação" tone={exportSelectedUnitIds.length ? "success" : "attention"} />
-        <MetricCard label="Pendências" value={unresolvedCount} meta={unresolvedCount ? "Há hosts do grupo ainda sem vínculo ou ambíguos" : "Nenhum host pendente de revisão"} tone={unresolvedCount ? "attention" : "success"} />
-        <MetricCard label="Preview em foco" value={selectedUnit?.code || "Sem foco"} meta={report?.host?.hostName || report?.host?.host || selectedUnit?.name || "Escolha uma unidade para visualizar antes do download"} tone={report ? "success" : "neutral"} />
-      </div>
-
-      <div className="mt-5 space-y-2 text-sm text-slate-300">
-        <a href="#builder-output" className="flex items-center justify-between rounded-[14px] border border-white/10 bg-white/[0.04] px-4 py-3 transition hover:bg-white/[0.07]">
-          <span>Ir para saída e download</span>
-          <span className="text-slate-500">↓</span>
-        </a>
-        <a href="#builder-actions" className="flex items-center justify-between rounded-[14px] border border-white/10 bg-white/[0.04] px-4 py-3 transition hover:bg-white/[0.07]">
-          <span>Salvar template ou agendar</span>
-          <span className="text-slate-500">↓</span>
-        </a>
-        <a href="#builder-library" className="flex items-center justify-between rounded-[14px] border border-white/10 bg-white/[0.04] px-4 py-3 transition hover:bg-white/[0.07]">
-          <span>Abrir biblioteca operacional</span>
-          <span className="text-slate-500">↓</span>
-        </a>
-      </div>
-    </Surface>
   );
 }
 
@@ -974,6 +865,18 @@ export default async function MonitoringReportsPage({
     from: monthRange(-1).from,
     to: monthRange(-1).to,
   });
+  const activeOriginLabel = selectedTemplate
+    ? `Template ${selectedTemplate.code}`
+    : effectiveGroupIds.length
+      ? "Host groups do Zabbix"
+      : "Unidade manual";
+  const activeOriginMeta = selectedTemplate
+    ? selectedTemplate.name
+    : effectiveGroupIds.length
+      ? `${effectiveGroupIds.length} grupo(s) em ${selectedGroupSource?.code || "integração"}`
+      : selectedUnit
+        ? `${selectedUnit.code} - ${selectedUnit.name}`
+        : "Sem origem definida";
   const { report, error } =
     selectedUnitId && selectedUnit ? await readReport(selectedUnitId, from, to) : { report: null, error: "" };
 
@@ -1002,46 +905,31 @@ export default async function MonitoringReportsPage({
           }
         />
 
-        <RegistrySummaryStrip
-          items={[
-            { label: "Fonte", value: "Zabbix", meta: "histórico e itens", tone: "success" },
-            { label: "Entrega", value: "PDF / DOCX", meta: "download server-side", tone: "info" },
-            { label: "Templates", value: templates.length, meta: `${recentTemplateRuns.length} execução(ões) recentes`, tone: templates.length ? "success" : "attention" },
-            { label: "Lote atual", value: exportSelectedUnitIds.length, meta: groupPreview ? "resolvido por grupo ou template" : "manual ou em foco", tone: exportSelectedUnitIds.length ? "neutral" : "attention" },
-          ]}
-          noteTitle="Como o builder pensa"
-          noteCopy="Primeiro você define o escopo do relatório, depois revisa o lote, escolhe o conteúdo e só então decide se vai baixar, salvar como template ou agendar. Templates e automações continuam existindo, mas agora como continuidade da mesma configuração, não como uma tela paralela."
-        />
+        <Surface className="p-4 sm:p-5">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Filtro ativo</div>
+              <div className="mt-1 text-sm font-semibold text-slate-50">{activeOriginLabel}</div>
+              <div className="mt-1 text-sm text-slate-400">{activeOriginMeta}</div>
+            </div>
 
-        {selectedTemplate ? (
-          <Surface className="p-4 sm:p-5">
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Template carregado</div>
-                <div className="mt-1 text-sm font-semibold text-slate-50">
-                  {selectedTemplate.code} · {selectedTemplate.name}
-                </div>
-                <div className="mt-1 text-sm text-slate-400">
-                  {selectedTemplate.sourceType === "zabbix_group" ? "A origem veio de grupos do Zabbix." : "A origem veio de uma seleção manual de unidades."} Você ainda pode ajustar período, foco, grupos e saída antes do download.
-                </div>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                <TonePill tone="info">{formatPeriodPreset(selectedTemplate.periodPreset)}</TonePill>
-                <TonePill tone={selectedTemplate.includeCharts ? "success" : "neutral"}>
-                  {selectedTemplate.includeCharts ? "com gráficos" : "sem gráficos"}
-                </TonePill>
-                <TonePill tone="neutral">{selectedTemplate.outputFormat.toUpperCase()}</TonePill>
+            <div className="flex flex-wrap gap-2">
+              <TonePill tone="success">Zabbix</TonePill>
+              <TonePill tone="info">PDF / DOCX</TonePill>
+              <TonePill tone={exportSelectedUnitIds.length ? "success" : "neutral"}>
+                {exportSelectedUnitIds.length} unidade(s)
+              </TonePill>
+              {selectedTemplate ? (
                 <Link
                   href={resetHref}
                   className="inline-flex h-10 items-center justify-center rounded-[12px] border border-white/10 bg-white/[0.04] px-3 text-xs font-semibold text-slate-100 transition hover:bg-white/[0.08]"
                 >
-                  Voltar ao builder em branco
+                  Limpar template
                 </Link>
-              </div>
+              ) : null}
             </div>
-          </Surface>
-        ) : null}
+          </div>
+        </Surface>
 
         {templateStatus ? (
           <Surface className={`p-4 text-sm ${templateStatus === "saved" ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-50" : "border-rose-500/20 bg-rose-500/10 text-rose-100"}`}>
@@ -1055,245 +943,191 @@ export default async function MonitoringReportsPage({
           </Surface>
         ) : null}
 
-        <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
-          <div className="space-y-5">
-            <Surface className="report-toolbar p-5 sm:p-6">
-              <SectionIntro
-                eyebrow="1. Escopo e período"
-                title="Defina a base do relatório"
-                description="Você pode começar de um template salvo, de uma unidade em foco ou de host groups do Zabbix. Tudo converge para a mesma seleção final de unidades."
-                compact
-              />
+        <section className="space-y-5">
+          <Surface className="report-toolbar p-5 sm:p-6">
+            <SectionIntro
+              eyebrow="Filtros"
+              title="Gerar relatório"
+              description="Escolha a origem, o período e a lista final de unidades. O resto fica escondido como avançado."
+              compact
+            />
 
-              <form action="/relatorios/monitoramento" method="GET" className="mt-5 grid gap-4 xl:grid-cols-2">
-                <label className="grid gap-2 text-sm font-semibold text-slate-200">
-                  Partir de um template salvo
-                  <select name="templateId" defaultValue={selectedTemplateId}>
-                    <option value="">Builder em branco</option>
-                    {templates.map((template) => (
-                      <option key={template.id} value={template.id}>
-                        {template.code} - {template.name}
-                      </option>
-                    ))}
-                  </select>
-                  <span className="text-xs font-normal text-slate-400">
-                    O template injeta origem, período padrão, formato e conteúdo, mas você ainda pode ajustar tudo abaixo.
-                  </span>
-                </label>
+            <form action="/relatorios/monitoramento" method="GET" className="mt-5 grid gap-4 xl:grid-cols-3">
+              <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                Template
+                <select name="templateId" defaultValue={selectedTemplateId}>
+                  <option value="">Sem template</option>
+                  {templates.map((template) => (
+                    <option key={template.id} value={template.id}>
+                      {template.code} - {template.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
 
-                <label className="grid gap-2 text-sm font-semibold text-slate-200">
-                  Unidade em foco para preview
-                  <select name="unitId" defaultValue={selectedUnitId}>
-                    {catalog.items.map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.code} - {item.name}
-                      </option>
-                    ))}
-                  </select>
-                  <span className="text-xs font-normal text-slate-400">
-                    Essa unidade serve para validar host, gráficos e período antes da exportação final do lote.
-                  </span>
-                </label>
+              <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                Unidade em foco
+                <select name="unitId" defaultValue={selectedUnitId}>
+                  {catalog.items.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.code} - {item.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
 
-                <label className="grid gap-2 text-sm font-semibold text-slate-200">
-                  Integração Zabbix
-                  <select name="groupIntegrationId" defaultValue={selectedGroupSource?.id || ""}>
-                    <option value="">Não usar grupos nesta rodada</option>
-                    {reportSources.map((source) => (
-                      <option key={source.id} value={source.id}>
-                        {source.code} - {source.name}
-                      </option>
-                    ))}
-                  </select>
-                  <span className="text-xs font-normal text-slate-400">
-                    Se você escolher grupos, o lote passa a ser resolvido automaticamente pelo Zabbix e depois refinado manualmente.
-                  </span>
-                </label>
+              <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                Integração Zabbix
+                <select name="groupIntegrationId" defaultValue={selectedGroupSource?.id || ""}>
+                  <option value="">Sem grupos</option>
+                  {reportSources.map((source) => (
+                    <option key={source.id} value={source.id}>
+                      {source.code} - {source.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
 
-                <label className="grid gap-2 text-sm font-semibold text-slate-200">
-                  Host groups
-                  <select name="groupIds" multiple size={9} defaultValue={effectiveGroupIds} disabled={!groupCatalog?.items.length}>
-                    {(groupCatalog?.items || []).map((group) => (
-                      <option key={group.id} value={group.id}>
-                        {group.name} · {group.hostCount} host(s)
-                      </option>
-                    ))}
-                  </select>
-                  <span className="text-xs font-normal text-slate-400">
-                    Se ficar vazio, o builder usa só a unidade em foco ou a seleção trazida pelo template manual.
-                  </span>
-                </label>
+              <label className="grid gap-2 text-sm font-semibold text-slate-200 xl:col-span-3">
+                Host groups
+                <select name="groupIds" multiple size={7} defaultValue={effectiveGroupIds} disabled={!groupCatalog?.items.length}>
+                  {(groupCatalog?.items || []).map((group) => (
+                    <option key={group.id} value={group.id}>
+                      {group.name} · {group.hostCount} host(s)
+                    </option>
+                  ))}
+                </select>
+              </label>
 
-                <label className="grid gap-2 text-sm font-semibold text-slate-200">
-                  Data de início
-                  <input name="from" type="date" defaultValue={from} />
-                </label>
+              <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                Data de início
+                <input name="from" type="date" defaultValue={from} />
+              </label>
 
-                <label className="grid gap-2 text-sm font-semibold text-slate-200">
-                  Data de encerramento
-                  <input name="to" type="date" defaultValue={to} />
-                </label>
+              <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                Data de encerramento
+                <input name="to" type="date" defaultValue={to} />
+              </label>
 
-                <div className="xl:col-span-2 flex flex-wrap items-center justify-between gap-3 rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-4">
-                  <p className="max-w-3xl text-sm text-slate-300">
-                    A ordem mental do builder é esta: origem, período e resolução do lote. Depois disso, a saída, o template e a automação apenas reaproveitam essa mesma configuração.
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    <Link
-                      href={resetHref}
-                      className="inline-flex h-11 items-center justify-center rounded-[14px] border border-white/10 bg-white/[0.04] px-4 text-sm font-semibold text-slate-100 transition hover:bg-white/[0.08]"
-                    >
-                      Limpar tudo
-                    </Link>
-                    <button type="submit">Atualizar builder</button>
-                  </div>
-                </div>
-              </form>
-
-              <div className="mt-4 grid gap-2 md:grid-cols-4">
-                <Link className="rounded-[12px] border border-white/10 bg-white/[0.04] px-4 py-2 text-center text-sm font-semibold text-sky-100 transition hover:bg-white/[0.08]" href={quickTodayHref}>
-                  Hoje
+              <div className="flex items-end gap-2">
+                <Link
+                  href={resetHref}
+                  className="inline-flex h-11 items-center justify-center rounded-[14px] border border-white/10 bg-white/[0.04] px-4 text-sm font-semibold text-slate-100 transition hover:bg-white/[0.08]"
+                >
+                  Limpar
                 </Link>
-                <Link className="rounded-[12px] border border-white/10 bg-white/[0.04] px-4 py-2 text-center text-sm font-semibold text-sky-100 transition hover:bg-white/[0.08]" href={quickWeekHref}>
-                  7 dias
-                </Link>
-                <Link className="rounded-[12px] border border-white/10 bg-white/[0.04] px-4 py-2 text-center text-sm font-semibold text-sky-100 transition hover:bg-white/[0.08]" href={quickMonthHref}>
-                  Este mês
-                </Link>
-                <Link className="rounded-[12px] border border-white/10 bg-white/[0.04] px-4 py-2 text-center text-sm font-semibold text-sky-100 transition hover:bg-white/[0.08]" href={quickPrevMonthHref}>
-                  Mês passado
-                </Link>
+                <button type="submit">Aplicar filtros</button>
               </div>
-            </Surface>
+            </form>
 
-            <Surface className="report-toolbar p-5 sm:p-6">
-              <SectionIntro
-                eyebrow="2. Revisão do lote"
-                title="Veja o que virou unidade exportável"
-                description="Quando você usa grupos do Zabbix, o NOVA resolve hosts para unidades e te mostra imediatamente o que entrou, o que ficou ambíguo e o que ainda não tem vínculo."
-                compact
-                actions={
-                  selectedGroupSource ? (
-                    <TonePill tone={groupPreview ? "success" : groupCatalog?.items.length ? "info" : "neutral"}>
-                      {selectedGroupSource.code}
-                    </TonePill>
-                  ) : (
-                    <TonePill tone="neutral">Sem grupos nesta rodada</TonePill>
-                  )
-                }
-              />
+            <div className="mt-4 grid gap-2 md:grid-cols-4">
+              <Link className="rounded-[12px] border border-white/10 bg-white/[0.04] px-4 py-2 text-center text-sm font-semibold text-sky-100 transition hover:bg-white/[0.08]" href={quickTodayHref}>
+                Hoje
+              </Link>
+              <Link className="rounded-[12px] border border-white/10 bg-white/[0.04] px-4 py-2 text-center text-sm font-semibold text-sky-100 transition hover:bg-white/[0.08]" href={quickWeekHref}>
+                7 dias
+              </Link>
+              <Link className="rounded-[12px] border border-white/10 bg-white/[0.04] px-4 py-2 text-center text-sm font-semibold text-sky-100 transition hover:bg-white/[0.08]" href={quickMonthHref}>
+                Este mês
+              </Link>
+              <Link className="rounded-[12px] border border-white/10 bg-white/[0.04] px-4 py-2 text-center text-sm font-semibold text-sky-100 transition hover:bg-white/[0.08]" href={quickPrevMonthHref}>
+                Mês passado
+              </Link>
+            </div>
 
-              {groupPreview ? (
-                <div className="mt-5 space-y-4">
-                  <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                    <MetricCard label="Grupos" value={groupPreview.counts.selectedGroups} meta={groupPreview.groups.map((group) => group.name).join(" · ") || "Sem grupos"} tone="info" />
-                    <MetricCard label="Hosts" value={groupPreview.counts.hosts} meta="retornados pelo Zabbix" tone="neutral" />
-                    <MetricCard label="Unidades reconhecidas" value={groupPreview.counts.matchedUnits} meta="já entraram no lote" tone="success" />
-                    <MetricCard label="Pendências" value={unresolvedCount} meta={`${groupPreview.counts.ambiguousHosts} ambíguo(s) · ${groupPreview.counts.unmatchedHosts} sem vínculo`} tone={unresolvedCount ? "attention" : "success"} />
+            <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+              <CompactMetric label="Origem" value={activeOriginLabel} tone={selectedTemplate ? "info" : effectiveGroupIds.length ? "success" : "neutral"} />
+              <CompactMetric label="Período" value={`${formatDate(from)} - ${formatDate(to)}`} />
+              <CompactMetric label="Unidades" value={exportSelectedUnitIds.length} tone={exportSelectedUnitIds.length ? "success" : "attention"} />
+              <CompactMetric label="Pendências" value={unresolvedCount} tone={unresolvedCount ? "attention" : "success"} />
+            </div>
+
+            {groupPreviewError ? (
+              <div className="mt-4 rounded-[16px] border border-rose-500/25 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
+                Não foi possível revisar os grupos agora: {groupPreviewError}
+              </div>
+            ) : null}
+
+            {groupPreview ? (
+              <details className="mt-4 rounded-[18px] border border-white/10 bg-white/[0.03] p-4" open>
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
+                  <div>
+                    <div className="text-sm font-semibold text-slate-100">
+                      {groupPreview.counts.matchedUnits} unidade(s) reconhecida(s)
+                    </div>
+                    <div className="mt-1 text-xs text-slate-400">
+                      {groupPreview.groups.map((group) => group.name).join(" · ")} · {groupPreview.counts.hosts} host(s)
+                    </div>
+                  </div>
+                  <TonePill tone={unresolvedCount ? "attention" : "success"}>
+                    {unresolvedCount ? `${unresolvedCount} pendência(s)` : "lote limpo"}
+                  </TonePill>
+                </summary>
+
+                <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+                  <div className="rounded-[16px] border border-white/10 bg-black/10">
+                    {groupPreview.matchedUnits.length ? (
+                      groupPreview.matchedUnits.map((item) => (
+                        <div key={item.unit.id} className="grid gap-2 border-b border-white/5 px-4 py-3 text-sm text-slate-200 md:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
+                          <div>
+                            <div className="font-semibold text-slate-100">{item.unit.code} - {item.unit.name}</div>
+                            <div className="mt-1 text-xs text-slate-400">
+                              {item.unit.partner.code} · {[item.unit.city, item.unit.state].filter(Boolean).join("/") || "sem cidade/UF"}
+                            </div>
+                          </div>
+                          <div className="text-xs text-slate-300">
+                            <div>{item.primaryHost.hostName || item.primaryHost.host || item.primaryHost.hostId}</div>
+                            <div className="mt-1">
+                              Confiança {item.confidence}% · {item.matchedBy.join(" · ") || "heurística"}
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="px-4 py-4 text-sm text-slate-400">
+                        Nenhuma unidade foi reconhecida com segurança para os grupos selecionados.
+                      </div>
+                    )}
                   </div>
 
-                  <div className="grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)]">
-                    <div className="rounded-[18px] border border-white/10 bg-white/[0.03]">
-                      <div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-3">
-                        <div className="text-sm font-semibold text-slate-100">Unidades reconhecidas</div>
-                        <TonePill tone="success">{groupPreview.counts.matchedUnits} pronta(s)</TonePill>
-                      </div>
-                      {groupPreview.matchedUnits.length ? (
-                        <div className="grid gap-0">
-                          {groupPreview.matchedUnits.map((item) => (
-                            <div key={item.unit.id} className="grid gap-3 border-b border-white/5 px-4 py-4 text-sm text-slate-200 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_160px]">
-                              <div>
-                                <div className="font-semibold text-slate-100">{item.unit.code} - {item.unit.name}</div>
-                                <div className="mt-1 text-xs text-slate-400">
-                                  {item.unit.partner.code} · {[item.unit.city, item.unit.state].filter(Boolean).join("/") || "sem cidade/UF"}
-                                </div>
-                              </div>
-                              <div>
-                                <div>{item.primaryHost.hostName || item.primaryHost.host || item.primaryHost.hostId}</div>
-                                <div className="mt-1 text-xs text-slate-400">
-                                  {item.groups.join(" · ") || "sem grupo retornado"}
-                                  {item.hostCount > 1 ? ` · ${item.hostCount} host(s)` : ""}
-                                </div>
-                              </div>
-                              <div className="text-xs text-slate-300">
-                                <div>Confiança: {item.confidence}%</div>
-                                <div className="mt-1">{item.matchedBy.join(" · ") || "heurística"}</div>
-                              </div>
+                  <div className="space-y-3">
+                    <div className="rounded-[16px] border border-white/10 bg-black/10 px-4 py-3 text-sm text-slate-300">
+                      As unidades reconhecidas já ficam pré-selecionadas na exportação, mas você ainda pode ajustar a lista manualmente.
+                    </div>
+                    {groupPreview.unresolvedHosts.length ? (
+                      <div className="rounded-[16px] border border-amber-500/20 bg-amber-500/10 px-4 py-3">
+                        <div className="text-sm font-semibold text-amber-50">Hosts pendentes</div>
+                        <div className="mt-2 space-y-2 text-xs text-amber-50/90">
+                          {groupPreview.unresolvedHosts.slice(0, 6).map((item) => (
+                            <div key={item.host.hostId}>
+                              {item.host.hostName || item.host.host || item.host.hostId}
                             </div>
                           ))}
                         </div>
-                      ) : (
-                        <div className="px-4 py-5 text-sm text-slate-400">
-                          Nenhuma unidade foi reconhecida com segurança para os grupos selecionados.
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="space-y-4">
-                      <div className="rounded-[18px] border border-white/10 bg-white/[0.03] p-4">
-                        <div className="text-sm font-semibold text-slate-100">O que acontece daqui para frente</div>
-                        <ul className="mt-3 space-y-2 text-sm text-slate-300">
-                          <li>As unidades reconhecidas já ficam pré-selecionadas no download.</li>
-                          <li>Você ainda pode incluir ou tirar unidades manualmente na etapa de saída.</li>
-                          <li>Se salvar como template, os grupos continuam ligados à configuração.</li>
-                        </ul>
                       </div>
-
-                      {groupPreview.unresolvedHosts.length ? (
-                        <div className="rounded-[18px] border border-amber-500/20 bg-amber-500/10 p-4">
-                          <div className="text-sm font-semibold text-amber-50">Hosts que ainda precisam de revisão</div>
-                          <div className="mt-3 space-y-3 text-sm text-amber-50/90">
-                            {groupPreview.unresolvedHosts.slice(0, 8).map((item) => (
-                              <div key={item.host.hostId} className="rounded-[14px] border border-amber-200/10 bg-black/10 px-3 py-3">
-                                <div className="font-semibold">{item.host.hostName || item.host.host || item.host.hostId}</div>
-                                <div className="mt-1 text-xs text-amber-100/80">
-                                  {item.status === "ambiguous" ? "Ambíguo" : "Sem unidade reconhecida"} · {item.host.groups.join(" · ") || "sem grupo retornado"}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="rounded-[18px] border border-emerald-500/20 bg-emerald-500/10 p-4 text-sm text-emerald-50">
-                          Nenhum host ficou pendente nesta rodada. O lote está limpo para exportação.
-                        </div>
-                      )}
-                    </div>
+                    ) : null}
+                    <Link
+                      href={clearGroupsHref}
+                      className="inline-flex h-11 w-full items-center justify-center rounded-[14px] border border-white/10 bg-white/[0.04] px-4 text-sm font-semibold text-slate-100 transition hover:bg-white/[0.08]"
+                    >
+                      Limpar grupos
+                    </Link>
                   </div>
                 </div>
-              ) : (
-                <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_240px]">
-                  <div className="rounded-[18px] border border-white/10 bg-white/[0.03] p-4 text-sm text-slate-300">
-                    {selectedTemplate?.sourceType === "manual"
-                      ? `O template carregado já trouxe ${templateManualUnitIds.length} unidade(s) manual(is) para o lote. Se quiser usar grupos do Zabbix nesta rodada, escolha uma integração e revise os grupos acima.`
-                      : "Nesta rodada o lote ainda não está vindo de grupos. Você pode seguir só com a unidade em foco ou selecionar uma integração e revisar host groups para expandir a exportação."}
-                  </div>
-                  <Link
-                    href={clearGroupsHref}
-                    className="inline-flex h-11 items-center justify-center rounded-[14px] border border-white/10 bg-white/[0.04] px-4 text-sm font-semibold text-slate-100 transition hover:bg-white/[0.08]"
-                  >
-                    Limpar seleção por grupos
-                  </Link>
-                </div>
-              )}
+              </details>
+            ) : null}
+          </Surface>
 
-              {groupPreviewError ? (
-                <div className="mt-4 rounded-[16px] border border-rose-500/25 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
-                  Não foi possível revisar os grupos agora: {groupPreviewError}
-                </div>
-              ) : null}
-            </Surface>
+          <Surface id="builder-output" className="report-toolbar p-5 sm:p-6">
+            <SectionIntro
+              eyebrow="Saída"
+              title="Exportar arquivo"
+              description="Defina a lista final, escolha PDF ou DOCX e baixe."
+              compact
+              actions={<TonePill tone="info">Download server-side</TonePill>}
+            />
 
-            <Surface id="builder-output" className="report-toolbar p-5 sm:p-6">
-              <SectionIntro
-                eyebrow="3. Conteúdo e saída"
-                title="Monte o arquivo final"
-                description="Aqui você fecha a lista final de unidades, escolhe PDF ou DOCX, decide se os gráficos entram e define os dados comerciais do documento."
-                compact
-                actions={<TonePill tone="info">Download server-side</TonePill>}
-              />
-
-              <form id="builder-export-form" action="/relatorios/monitoramento/export" method="POST" target="_blank" className="mt-5 grid gap-4 xl:grid-cols-2">
+            <form id="builder-export-form" action="/relatorios/monitoramento/export" method="POST" target="_blank" className="mt-5 grid gap-4 xl:grid-cols-2">
                 <input type="hidden" name="from" value={from} />
                 <input type="hidden" name="to" value={to} />
 
@@ -1359,48 +1193,50 @@ export default async function MonitoringReportsPage({
                   </p>
                   <button type="submit">Baixar arquivo</button>
                 </div>
-              </form>
+            </form>
+          </Surface>
+
+          {error ? (
+            <Surface className="report-toolbar border-rose-500/20 bg-rose-500/10 p-5 text-sm text-rose-100">
+              Não foi possível gerar o preview agora: {error}
             </Surface>
+          ) : null}
 
-            {error ? (
-              <Surface className="report-toolbar border-rose-500/20 bg-rose-500/10 p-5 text-sm text-rose-100">
-                Não foi possível gerar o preview agora: {error}
-              </Surface>
-            ) : null}
-
-            {report ? (
-              <div className="space-y-4">
-                <SectionIntro
-                  eyebrow="4. Preview"
-                  title="Validação visual da unidade em foco"
-                  description="Antes do lote final, você consegue enxergar como o relatório está se comportando em uma unidade representativa da seleção atual."
-                  compact
-                />
-                <ReportSheet report={report} />
-              </div>
-            ) : (
-              <EmptyState
-                title="Escolha uma unidade monitorada"
-                description="Assim que houver uma unidade em foco com host Zabbix confiável, o NOVA consegue montar o preview no formato de entrega."
-              />
-            )}
-
-            <Surface id="builder-actions" className="report-toolbar p-5 sm:p-6">
+          {report ? (
+            <div className="space-y-4">
               <SectionIntro
-                eyebrow="4. Reutilização"
-                title="Transforme essa configuração em ativo operacional"
-                description="Depois que o builder estiver do jeito certo, você decide se quer congelar a configuração como template, automatizar a execução ou apenas seguir baixando manualmente."
+                eyebrow="Preview"
+                title="Prévia da unidade em foco"
+                description="Serve só para validar o visual antes de baixar o lote."
                 compact
               />
+              <ReportSheet report={report} />
+            </div>
+          ) : (
+            <EmptyState
+              title="Escolha uma unidade monitorada"
+              description="Assim que houver uma unidade em foco com host Zabbix confiável, o NOVA consegue montar o preview no formato de entrega."
+            />
+          )}
 
-              <div className="mt-5 grid gap-4 xl:grid-cols-2">
-                <details className="group rounded-[18px] border border-white/10 bg-white/[0.03] p-4" open={templateStatus === "error"}>
+          <details id="builder-actions" className="rounded-[18px] border border-white/10 bg-white/[0.03] p-5 sm:p-6">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
+              <div>
+                <div className="text-sm font-semibold text-slate-100">Opções avançadas</div>
+                <div className="mt-1 text-sm text-slate-400">
+                  Template, automação, biblioteca e histórico ficam aqui para não poluir a geração manual.
+                </div>
+              </div>
+              <TonePill tone="neutral">Expandir</TonePill>
+            </summary>
+
+            <div className="mt-5 space-y-5">
+              <div className="grid gap-4 xl:grid-cols-2">
+                <details className="group rounded-[18px] border border-white/10 bg-black/10 p-4" open={templateStatus === "error"}>
                   <summary className="flex cursor-pointer list-none items-start justify-between gap-3">
                     <div>
-                      <div className="text-sm font-semibold text-slate-100">Salvar a configuração atual como template</div>
-                      <div className="mt-1 text-sm text-slate-400">
-                        Use quando o lote, o período padrão e a saída estiverem estáveis o suficiente para virar base de reuso.
-                      </div>
+                      <div className="text-sm font-semibold text-slate-100">Salvar como template</div>
+                      <div className="mt-1 text-sm text-slate-400">Congele os filtros atuais para reutilizar depois.</div>
                     </div>
                     <TonePill tone={templateSourceType === "zabbix_group" ? "success" : "info"}>
                       {templateSourceType === "zabbix_group" ? "Template por grupo" : "Template manual"}
@@ -1490,13 +1326,11 @@ export default async function MonitoringReportsPage({
                   </form>
                 </details>
 
-                <details className="group rounded-[18px] border border-white/10 bg-white/[0.03] p-4" open={automationStatus === "error"}>
+                <details className="group rounded-[18px] border border-white/10 bg-black/10 p-4" open={automationStatus === "error"}>
                   <summary className="flex cursor-pointer list-none items-start justify-between gap-3">
                     <div>
-                      <div className="text-sm font-semibold text-slate-100">Agendar uma execução recorrente</div>
-                      <div className="mt-1 text-sm text-slate-400">
-                        A automação sempre parte de um template salvo. Primeiro a configuração vira template; depois ela entra no scheduler interno do NOVA.
-                      </div>
+                      <div className="text-sm font-semibold text-slate-100">Agendar automação</div>
+                      <div className="mt-1 text-sm text-slate-400">Sempre parte de um template salvo.</div>
                     </div>
                     <TonePill tone="violet">Scheduler do NOVA</TonePill>
                   </summary>
@@ -1554,139 +1388,78 @@ export default async function MonitoringReportsPage({
                   </form>
                 </details>
               </div>
-            </Surface>
-          </div>
 
-          <BuilderSummaryPanel
-            selectedTemplate={selectedTemplate}
-            selectedGroupSource={selectedGroupSource}
-            groupIds={effectiveGroupIds}
-            from={from}
-            to={to}
-            exportSelectedUnitIds={exportSelectedUnitIds}
-            unresolvedCount={unresolvedCount}
-            selectedUnit={selectedUnit}
-            report={report}
-          />
-        </section>
-
-        <section id="builder-library" className="grid gap-5 xl:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)]">
-          <Surface className="report-toolbar p-5 sm:p-6">
-            <SectionIntro
-              eyebrow="Biblioteca operacional"
-              title="Templates salvos"
-              description="Aqui ficam as bases reutilizáveis do builder. O importante é que cada template agora pode ser carregado de volta para a própria tela, sem sair do fluxo."
-              compact
-            />
-
-            <div className="mt-5 space-y-4">
-              {templates.length ? (
-                templates.map((template) => (
-                  <div key={template.id} className="rounded-[18px] border border-white/10 bg-white/[0.03] p-4">
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <div className="text-sm font-semibold text-slate-100">{template.code} · {template.name}</div>
-                        <div className="mt-1 text-xs text-slate-400">
-                          {template.sourceType === "zabbix_group" ? "Origem: grupos do Zabbix" : "Origem: seleção manual"} · {formatPeriodPreset(template.periodPreset)} · {template.outputFormat.toUpperCase()} · {template.includeCharts ? "com gráficos" : "sem gráficos"}
-                        </div>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        <TonePill tone={template.automations.length ? "success" : "neutral"}>
-                          {template.automations.length ? `${template.automations.length} automação(ões)` : "sem automação"}
-                        </TonePill>
-                        <Link
-                          href={templateApplyHref(template.id)}
-                          className="inline-flex h-10 items-center justify-center rounded-[12px] border border-white/10 bg-white/[0.05] px-3 text-xs font-semibold text-slate-100 transition hover:bg-white/[0.09]"
-                        >
-                          Carregar no builder
-                        </Link>
-                      </div>
-                    </div>
-
-                    <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs text-slate-400">
-                      <span>
-                        {template.sourceType === "zabbix_group"
-                          ? `${template.groupIds.length} grupo(s) · ${template.integration?.code || "sem integração"}`
-                          : `${template.unitIds.length} unidade(s) manual(is)`}
-                      </span>
-                      <span>Atualizado em {formatDateTime(template.updatedAt)}</span>
-                    </div>
-
-                    {template.automations.length ? (
-                      <div className="mt-3 grid gap-2">
-                        {template.automations.map((automation) => (
-                          <div key={automation.id} className="rounded-[14px] border border-white/8 bg-black/20 px-3 py-3 text-xs text-slate-300">
-                            <div className="font-semibold text-slate-100">{automation.code} · {automation.name}</div>
-                            <div className="mt-1">{formatCadence(automation.cadence)} · {automation.enabled ? "ativa" : "pausada"}</div>
-                            <div className="mt-1">Última: {formatDateTime(automation.lastRunAt)} · Próxima: {formatDateTime(automation.nextRunAt)}</div>
+              <div id="builder-library" className="grid gap-4 xl:grid-cols-2">
+                <div className="rounded-[18px] border border-white/10 bg-black/10 p-4">
+                  <div className="text-sm font-semibold text-slate-100">Templates salvos</div>
+                  <div className="mt-3 space-y-3">
+                    {templates.length ? (
+                      templates.map((template) => (
+                        <div key={template.id} className="rounded-[14px] border border-white/8 bg-white/[0.03] p-3">
+                          <div className="flex flex-wrap items-start justify-between gap-2">
+                            <div>
+                              <div className="text-sm font-semibold text-slate-100">{template.code} · {template.name}</div>
+                              <div className="mt-1 text-xs text-slate-400">
+                                {formatPeriodPreset(template.periodPreset)} · {template.outputFormat.toUpperCase()} · {template.includeCharts ? "com gráficos" : "sem gráficos"}
+                              </div>
+                            </div>
+                            <Link
+                              href={templateApplyHref(template.id)}
+                              className="inline-flex h-9 items-center justify-center rounded-[12px] border border-white/10 bg-white/[0.05] px-3 text-xs font-semibold text-slate-100 transition hover:bg-white/[0.09]"
+                            >
+                              Carregar
+                            </Link>
                           </div>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
-                ))
-              ) : (
-                <EmptyState
-                  title="Nenhum template salvo ainda"
-                  description="Quando a configuração do builder estiver estável, você pode congelá-la como template e reaproveitar depois."
-                />
-              )}
-            </div>
-          </Surface>
-
-          <Surface className="report-toolbar p-5 sm:p-6">
-            <SectionIntro
-              eyebrow="Histórico"
-              title="Execuções recentes"
-              description="As execuções automáticas continuam acessíveis, mas agora aparecem como consequência da configuração do builder e dos templates que você consolidou."
-              compact
-            />
-
-            <div className="mt-5 space-y-4">
-              {recentTemplateRuns.length ? (
-                recentTemplateRuns.map((run) => (
-                  <div key={run.id} className="rounded-[18px] border border-white/10 bg-white/[0.03] p-4">
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <div className="text-sm font-semibold text-slate-100">
-                          {run.rule.reportTemplate?.code || "Sem template"} · {run.rule.name}
                         </div>
-                        <div className="mt-1 text-xs text-slate-400">
-                          {formatCadence(run.rule.cadence)} · Início {formatDateTime(run.startedAt)}
-                        </div>
-                      </div>
-                      <TonePill tone={run.status === "success" ? "success" : run.status === "error" ? "critical" : "attention"}>
-                        {run.status}
-                      </TonePill>
-                    </div>
-
-                    <div className="mt-3 text-xs text-slate-300">
-                      {run.summary || run.errorMessage || `${run.hitsCount} unidade(s) processada(s)`}
-                    </div>
-
-                    {run.attachments.length ? (
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {run.attachments.map((attachment) => (
-                          <Link
-                            key={attachment.id}
-                            href={attachment.url}
-                            className="inline-flex h-10 items-center justify-center rounded-[12px] border border-white/10 bg-white/[0.05] px-3 text-xs font-semibold text-slate-100 transition hover:bg-white/[0.09]"
-                          >
-                            Baixar {attachment.name}
-                          </Link>
-                        ))}
-                      </div>
-                    ) : null}
+                      ))
+                    ) : (
+                      <div className="text-sm text-slate-400">Nenhum template salvo ainda.</div>
+                    )}
                   </div>
-                ))
-              ) : (
-                <EmptyState
-                  title="Nenhuma execução automática ainda"
-                  description="Depois de criar uma automação a partir de um template salvo, os arquivos gerados aparecerão aqui com link direto de download."
-                />
-              )}
+                </div>
+
+                <div className="rounded-[18px] border border-white/10 bg-black/10 p-4">
+                  <div className="text-sm font-semibold text-slate-100">Execuções recentes</div>
+                  <div className="mt-3 space-y-3">
+                    {recentTemplateRuns.length ? (
+                      recentTemplateRuns.map((run) => (
+                        <div key={run.id} className="rounded-[14px] border border-white/8 bg-white/[0.03] p-3">
+                          <div className="flex flex-wrap items-start justify-between gap-2">
+                            <div>
+                              <div className="text-sm font-semibold text-slate-100">
+                                {run.rule.reportTemplate?.code || "Sem template"} · {run.rule.name}
+                              </div>
+                              <div className="mt-1 text-xs text-slate-400">
+                                {formatCadence(run.rule.cadence)} · {formatDateTime(run.startedAt)}
+                              </div>
+                            </div>
+                            <TonePill tone={run.status === "success" ? "success" : run.status === "error" ? "critical" : "attention"}>
+                              {run.status}
+                            </TonePill>
+                          </div>
+                          {run.attachments.length ? (
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              {run.attachments.map((attachment) => (
+                                <Link
+                                  key={attachment.id}
+                                  href={attachment.url}
+                                  className="inline-flex h-9 items-center justify-center rounded-[12px] border border-white/10 bg-white/[0.05] px-3 text-xs font-semibold text-slate-100 transition hover:bg-white/[0.09]"
+                                >
+                                  Baixar {attachment.name}
+                                </Link>
+                              ))}
+                            </div>
+                          ) : null}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-sm text-slate-400">Nenhuma execução automática ainda.</div>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
-          </Surface>
+          </details>
         </section>
       </div>
     </AppShell>
