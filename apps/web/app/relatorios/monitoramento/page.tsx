@@ -1,15 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
-import { ReportPrintButton } from "@/components/report-print-button";
 import {
   ReportFocusUnitField,
   ReportUnitBatchSelector,
 } from "@/components/report-unit-selector";
-import {
-  EmptyState,
-  Surface,
-} from "@/components/ops-ui";
+import { Surface } from "@/components/ops-ui";
 import { getActionErrorMessage } from "@/lib/action-state";
 import {
   readStringParam,
@@ -83,20 +79,11 @@ type ZabbixGroupPreview = {
       hostStatus?: string;
       groups: string[];
     };
-    allHosts: string[];
-    groups: string[];
     confidence: number;
-    score: number;
     matchedBy: string[];
-    syncReady: boolean;
-    hostCount: number;
   }>;
   unresolvedHosts: Array<{
     status: "ambiguous" | "unmatched";
-    score: number;
-    confidence: number;
-    matchedBy: string[];
-    candidates: number;
     host: {
       hostId: string;
       host?: string;
@@ -120,101 +107,9 @@ type ReportTemplate = {
   contractLabel: string | null;
   addressLine: string | null;
   contractedBandwidth: string | null;
-  enabled: boolean;
   groupIds: string[];
   unitIds: string[];
   integration: ReportSource | null;
-  automations: Array<{
-    id: string;
-    code: string;
-    name: string;
-    cadence: string;
-    enabled: boolean;
-    lastRunAt: string | null;
-    nextRunAt: string | null;
-  }>;
-  createdAt: string;
-  updatedAt: string;
-};
-
-type ReportPoint = {
-  timestamp: string;
-  value: number | null;
-};
-
-type ReportSeries = {
-  id: string;
-  name: string;
-  key: string;
-  label: string;
-  kind: string;
-  color: string;
-  unit: "bps" | "ms" | "%" | "d";
-  zabbixUnits: string;
-  points: ReportPoint[];
-  stats: {
-    last: number | null;
-    min: number | null;
-    avg: number | null;
-    max: number | null;
-    points: number;
-  };
-};
-
-type ReportBlock = {
-  id: string;
-  title: string;
-  description: string;
-  sensorType: string;
-  probePath: string;
-  unit: string;
-  series: ReportSeries[];
-  consumption?: {
-    receivedBytes: number | null;
-    sentBytes: number | null;
-    totalBytes: number | null;
-    avgReceiveBps: number | null;
-    avgSendBps: number | null;
-    peakReceiveBps: number | null;
-    peakSendBps: number | null;
-    coveredSeconds: number;
-  } | null;
-};
-
-type MonitoringReport = {
-  generatedAt: string;
-  source: "zabbix";
-  deliveryStyle: "prtg-like";
-  period: {
-    from: string;
-    to: string;
-    timezone: string;
-  };
-  unit: {
-    id: string;
-    code: string;
-    name: string;
-    city: string | null;
-    state: string | null;
-  };
-  partner: {
-    id: string;
-    code: string;
-    name: string;
-  };
-  integration: {
-    id: string;
-    code: string;
-    name: string;
-  } | null;
-  host: {
-    hostId?: string;
-    host?: string;
-    hostName?: string;
-    confidence?: number;
-  } | null;
-  blocks: ReportBlock[];
-  warnings: string[];
 };
 
 type ReportSourceMode = "unit" | "template" | "zabbix_group";
@@ -281,341 +176,8 @@ function readCsvParam(params: RawSearchParams, key: string) {
     .filter(Boolean);
 }
 
-function formatDateTime(value?: string | null) {
-  if (!value) return "-";
-
-  return new Date(value).toLocaleString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
 function formatDate(value: string) {
   return new Date(value).toLocaleDateString("pt-BR");
-}
-
-function formatValue(value: number | null, unit: ReportSeries["unit"]) {
-  if (value === null || !Number.isFinite(value)) return "-";
-
-  if (unit === "bps") {
-    const abs = Math.abs(value);
-    if (abs >= 1_000_000_000) return `${(value / 1_000_000_000).toLocaleString("pt-BR", { maximumFractionDigits: 2 })} Gbps`;
-    if (abs >= 1_000_000) return `${(value / 1_000_000).toLocaleString("pt-BR", { maximumFractionDigits: 2 })} Mbps`;
-    if (abs >= 1_000) return `${(value / 1_000).toLocaleString("pt-BR", { maximumFractionDigits: 2 })} Kbps`;
-    return `${value.toLocaleString("pt-BR", { maximumFractionDigits: 0 })} bps`;
-  }
-
-  if (unit === "ms") {
-    return `${value.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} ms`;
-  }
-
-  if (unit === "%") {
-    return `${value.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} %`;
-  }
-
-  const days = Math.floor(value);
-  const hours = Math.round((value - days) * 24);
-  return `${days}d ${hours}h`;
-}
-
-function formatBytes(value: number | null) {
-  if (value === null || !Number.isFinite(value)) return "-";
-
-  const abs = Math.abs(value);
-  if (abs >= 1024 ** 4) {
-    return `${(value / 1024 ** 4).toLocaleString("pt-BR", { maximumFractionDigits: 2 })} TB`;
-  }
-  if (abs >= 1024 ** 3) {
-    return `${(value / 1024 ** 3).toLocaleString("pt-BR", { maximumFractionDigits: 2 })} GB`;
-  }
-  if (abs >= 1024 ** 2) {
-    return `${(value / 1024 ** 2).toLocaleString("pt-BR", { maximumFractionDigits: 2 })} MB`;
-  }
-  if (abs >= 1024) {
-    return `${(value / 1024).toLocaleString("pt-BR", { maximumFractionDigits: 2 })} KB`;
-  }
-  return `${value.toLocaleString("pt-BR", { maximumFractionDigits: 0 })} B`;
-}
-
-function allValues(block: ReportBlock) {
-  return block.series
-    .flatMap((series) => series.points.map((point) => point.value))
-    .filter((value): value is number => typeof value === "number" && Number.isFinite(value));
-}
-
-function downsample(points: ReportPoint[], maxPoints = 420) {
-  const valid = points.filter((point) => typeof point.value === "number" && Number.isFinite(point.value));
-  if (valid.length <= maxPoints) return valid;
-
-  const step = Math.ceil(valid.length / maxPoints);
-  return valid.filter((_, index) => index % step === 0);
-}
-
-function ChartGrid({
-  block,
-}: {
-  block: ReportBlock;
-}) {
-  const values = allValues(block);
-  const unit = block.series[0]?.unit || "bps";
-  const min = unit === "d" && values.length ? Math.max(0, Math.min(...values) * 0.96) : 0;
-  const max = values.length ? Math.max(...values, min + 1) : 1;
-  const width = 940;
-  const height = 250;
-  const left = 58;
-  const right = 24;
-  const top = 22;
-  const bottom = 54;
-  const plotWidth = width - left - right;
-  const plotHeight = height - top - bottom;
-
-  function x(index: number, total: number) {
-    return left + (index / Math.max(total - 1, 1)) * plotWidth;
-  }
-
-  function y(value: number) {
-    return top + (1 - (value - min) / Math.max(max - min, 1)) * plotHeight;
-  }
-
-  const labelPoints = block.series[0]?.points || [];
-  const first = labelPoints[0]?.timestamp;
-  const last = labelPoints[labelPoints.length - 1]?.timestamp;
-
-  return (
-    <div className="overflow-x-auto">
-      <svg viewBox={`0 0 ${width} ${height}`} className="h-auto min-w-[840px] max-w-full border-t border-slate-300 bg-white text-slate-700">
-        <rect x={left} y={top} width={plotWidth} height={plotHeight} fill="#f8f8f8" />
-        {Array.from({ length: 8 }).map((_, index) => {
-          const gx = left + (index / 7) * plotWidth;
-          return <line key={`gx-${index}`} x1={gx} x2={gx} y1={top} y2={top + plotHeight} stroke="#d5d9de" strokeWidth="1" />;
-        })}
-        {Array.from({ length: 6 }).map((_, index) => {
-          const gy = top + (index / 5) * plotHeight;
-          const value = max - (index / 5) * (max - min);
-          return (
-            <g key={`gy-${index}`}>
-              <line x1={left} x2={left + plotWidth} y1={gy} y2={gy} stroke="#d5d9de" strokeWidth="1" />
-              <text x={left - 8} y={gy + 4} textAnchor="end" fontSize="10" fill="#263238">
-                {formatValue(value, unit)}
-              </text>
-            </g>
-          );
-        })}
-        {block.series.map((series) => {
-          const points = downsample(series.points);
-          const path = points
-            .map((point, index) => `${index === 0 ? "M" : "L"} ${x(index, points.length).toFixed(2)} ${y(point.value || 0).toFixed(2)}`)
-            .join(" ");
-
-          return (
-            <path
-              key={series.id}
-              d={path}
-              fill="none"
-              stroke={series.color}
-              strokeWidth={series.unit === "d" ? 3 : 1.4}
-              opacity={series.unit === "bps" ? 0.86 : 0.95}
-            />
-          );
-        })}
-        <line x1={left} x2={left + plotWidth} y1={top + plotHeight} y2={top + plotHeight} stroke="#6b7280" strokeWidth="1" />
-        <line x1={left} x2={left} y1={top} y2={top + plotHeight} stroke="#6b7280" strokeWidth="1" />
-        <text x={left + plotWidth / 2} y={16} textAnchor="middle" fontSize="13" fill="#263238">
-          {block.title}
-        </text>
-        {first ? (
-          <text x={left} y={height - 22} fontSize="10" fill="#d32f2f" transform={`rotate(-90 ${left} ${height - 22})`}>
-            {formatDate(first)}
-          </text>
-        ) : null}
-        {last ? (
-          <text x={left + plotWidth} y={height - 22} fontSize="10" fill="#d32f2f" transform={`rotate(-90 ${left + plotWidth} ${height - 22})`}>
-            {formatDate(last)}
-          </text>
-        ) : null}
-      </svg>
-    </div>
-  );
-}
-
-function ReportBlockView({ block }: { block: ReportBlock }) {
-  const dominant = block.series[0];
-
-  return (
-    <section className="prtg-report-block">
-      <h3 className="prtg-sensor-title">{block.title}</h3>
-      <div className="prtg-summary-grid">
-        <div>Período do relatório:</div>
-        <div className="font-medium">informado no cabeçalho</div>
-        <div>Horas de relatório:</div>
-        <div className="font-medium">24 / 7</div>
-        <div>Tipo de sensor:</div>
-        <div className="font-medium">{block.sensorType}</div>
-        <div>Sonda, grupo, dispositivo:</div>
-        <div className="font-medium">{block.probePath}</div>
-        <div>Média ({dominant?.label || "sensor"}):</div>
-        <div className="font-medium">{dominant ? formatValue(dominant.stats.avg, dominant.unit) : "-"}</div>
-        {block.consumption ? (
-          <>
-            <div>Consumo recebido:</div>
-            <div className="font-medium">{formatBytes(block.consumption.receivedBytes)}</div>
-            <div>Consumo enviado:</div>
-            <div className="font-medium">{formatBytes(block.consumption.sentBytes)}</div>
-            <div>Total movimentado:</div>
-            <div className="font-medium">{formatBytes(block.consumption.totalBytes)}</div>
-            <div>Pico observado:</div>
-            <div className="font-medium">
-              down {formatValue(block.consumption.peakReceiveBps, "bps")} · up {" "}
-              {formatValue(block.consumption.peakSendBps, "bps")}
-            </div>
-          </>
-        ) : null}
-      </div>
-      <p className="mt-3 text-[11px] text-slate-600">{block.description}</p>
-      {block.consumption ? (
-        <p className="mt-2 text-[11px] text-slate-500">
-          Consumo estimado pela integral das séries de tráfego do Zabbix ao longo do período
-          selecionado.
-        </p>
-      ) : null}
-      <ChartGrid block={block} />
-      <div className="prtg-legend">
-        {block.series.map((series) => (
-          <div key={series.id} className="grid grid-cols-[14px_minmax(190px,1fr)_repeat(4,minmax(70px,auto))] items-center gap-2">
-            <span className="h-3 w-3" style={{ backgroundColor: series.color }} />
-            <span className="truncate">{series.label}</span>
-            <span>último {formatValue(series.stats.last, series.unit)}</span>
-            <span>mín {formatValue(series.stats.min, series.unit)}</span>
-            <span>méd {formatValue(series.stats.avg, series.unit)}</span>
-            <span>máx {formatValue(series.stats.max, series.unit)}</span>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function TrafficConsumptionStrip({ block }: { block: ReportBlock }) {
-  if (!block.consumption) return null;
-
-  return (
-    <section className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-      <div className="rounded-[14px] border border-slate-200 bg-slate-50 px-4 py-3">
-        <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
-          Recebido no período
-        </div>
-        <div className="mt-2 text-lg font-semibold text-slate-800">
-          {formatBytes(block.consumption.receivedBytes)}
-        </div>
-      </div>
-      <div className="rounded-[14px] border border-slate-200 bg-slate-50 px-4 py-3">
-        <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
-          Enviado no período
-        </div>
-        <div className="mt-2 text-lg font-semibold text-slate-800">
-          {formatBytes(block.consumption.sentBytes)}
-        </div>
-      </div>
-      <div className="rounded-[14px] border border-slate-200 bg-slate-50 px-4 py-3">
-        <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
-          Total movimentado
-        </div>
-        <div className="mt-2 text-lg font-semibold text-slate-800">
-          {formatBytes(block.consumption.totalBytes)}
-        </div>
-      </div>
-      <div className="rounded-[14px] border border-slate-200 bg-slate-50 px-4 py-3">
-        <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
-          Pico de download
-        </div>
-        <div className="mt-2 text-lg font-semibold text-slate-800">
-          {formatValue(block.consumption.peakReceiveBps, "bps")}
-        </div>
-      </div>
-      <div className="rounded-[14px] border border-slate-200 bg-slate-50 px-4 py-3">
-        <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
-          Pico de upload
-        </div>
-        <div className="mt-2 text-lg font-semibold text-slate-800">
-          {formatValue(block.consumption.peakSendBps, "bps")}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function ReportSheet({ report }: { report: MonitoringReport }) {
-  const trafficBlock = report.blocks.find((block) => block.id === "traffic" && block.consumption);
-
-  return (
-    <article className="prtg-report-sheet">
-      <header className="prtg-letterhead">
-        <div className="text-[11px] font-bold uppercase tracking-[0.16em] text-white">NOVA TELECOM</div>
-        <div className="text-[11px] font-bold uppercase tracking-[0.16em] text-white">PRTG NETWORK MONITOR STYLE</div>
-      </header>
-
-      <section className="px-7 pt-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <div className="text-[11px] italic text-sky-600">Relatório</div>
-            <h2 className="mt-1 text-[18px] font-semibold text-sky-600">
-              {report.partner.name}: Monitoramento Zabbix
-            </h2>
-            <p className="mt-1 text-sm text-slate-600">
-              {report.unit.code} - {report.unit.name}
-              {report.unit.city ? ` · ${report.unit.city}/${report.unit.state || "-"}` : ""}
-            </p>
-          </div>
-          <div className="text-right text-[11px] text-slate-500">
-            <div>Gerado em {formatDateTime(report.generatedAt)}</div>
-            <div>Fonte: Zabbix · Entrega visual: PRTG-like</div>
-          </div>
-        </div>
-
-        <div className="mt-5 grid gap-2 border-y border-slate-200 py-3 text-[12px] text-slate-700 md:grid-cols-2">
-          <div>
-            <span className="font-semibold">Período:</span> {formatDateTime(report.period.from)} - {formatDateTime(report.period.to)}
-          </div>
-          <div>
-            <span className="font-semibold">Host:</span> {report.host?.hostName || report.host?.host || "sem host confiável"}
-          </div>
-          <div>
-            <span className="font-semibold">Integração:</span> {report.integration?.name || "não vinculada"}
-          </div>
-          <div>
-            <span className="font-semibold">Confiança do vínculo:</span> {report.host?.confidence ?? "-"}%
-          </div>
-        </div>
-
-        {trafficBlock ? <TrafficConsumptionStrip block={trafficBlock} /> : null}
-      </section>
-
-      <section className="grid gap-8 px-7 py-6">
-        {report.warnings.length ? (
-          <div className="rounded border border-amber-300 bg-amber-50 px-4 py-3 text-[12px] text-amber-900">
-            {report.warnings.join(" ")}
-          </div>
-        ) : null}
-
-        {report.blocks.length ? (
-          report.blocks.map((block) => <ReportBlockView key={block.id} block={block} />)
-        ) : (
-          <EmptyState
-            title="Sem séries históricas para renderizar"
-            description="A unidade tem vínculo de monitoramento, mas o host ainda não retornou itens de tráfego, ping ou uptime com histórico numérico."
-          />
-        )}
-      </section>
-
-      <footer className="prtg-report-footer">
-        <div>Q. 106 Norte, Alameda 2, Lote 04, Sala 1001, 10º Andar, Edifício Palmas Business</div>
-        <div>CEP 77.006-054 - Palmas - Tocantins · sac@novatelecom.com.br · 0800 494 0103 · www.novatelecom.com.br</div>
-      </footer>
-    </article>
-  );
 }
 
 async function readReportUnits() {
@@ -623,21 +185,6 @@ async function readReportUnits() {
     return await apiJson<ReportUnitCatalog>("/monitoring/reports/units");
   } catch {
     return { total: 0, items: [] };
-  }
-}
-
-async function readReport(unitId: string, from: string, to: string) {
-  try {
-    const query = new URLSearchParams({ unitId, from, to });
-    return {
-      report: await apiJson<MonitoringReport>(`/monitoring/reports/prtg-style?${query.toString()}`),
-      error: "",
-    };
-  } catch (error) {
-    return {
-      report: null,
-      error: getActionErrorMessage(error),
-    };
   }
 }
 
@@ -699,6 +246,10 @@ export default async function MonitoringReportsPage({
 
   const requestedSource = readStringParam(params, "source", "");
   const requestedTemplateId = readStringParam(params, "templateId", "");
+  const requestedUnitId = readStringParam(params, "unitId", "");
+  const requestedGroupIntegrationId = readStringParam(params, "groupIntegrationId", "");
+  const requestedGroupIds = readCsvParam(params, "groupIds");
+
   const selectedTemplate = templates.find((item) => item.id === requestedTemplateId) || null;
   const sourceMode: ReportSourceMode =
     requestedSource === "template" || requestedSource === "zabbix_group" || requestedSource === "unit"
@@ -706,42 +257,35 @@ export default async function MonitoringReportsPage({
       : selectedTemplate
         ? "template"
         : "unit";
+
   const presetRange = rangeFromPreset(selectedTemplate?.periodPreset);
   const from = readStringParam(params, "from", presetRange.from);
   const to = readStringParam(params, "to", presetRange.to);
-  const requestedUnitId = readStringParam(params, "unitId", "");
-  const requestedGroupIntegrationId = readStringParam(params, "groupIntegrationId", "");
-  const requestedGroupIds = readCsvParam(params, "groupIds");
-  const templateStatus = readStringParam(params, "templateStatus", "");
-  const templateMessage = readStringParam(params, "templateMessage", "");
-  const automationStatus = readStringParam(params, "automationStatus", "");
-  const automationMessage = readStringParam(params, "automationMessage", "");
 
   const templateManualUnitIds = selectedTemplate?.sourceType === "manual" ? selectedTemplate.unitIds : [];
   const templateGroupIds = selectedTemplate?.sourceType === "zabbix_group" ? selectedTemplate.groupIds : [];
-  const usesTemplate = sourceMode === "template" && Boolean(selectedTemplate);
+
   const usesGroupResolution =
     sourceMode === "zabbix_group" ||
     (sourceMode === "template" && selectedTemplate?.sourceType === "zabbix_group");
-  const effectiveGroupIntegrationId =
-    usesGroupResolution
-      ? requestedGroupIntegrationId ||
-        (selectedTemplate?.sourceType === "zabbix_group" ? selectedTemplate.integration?.id || "" : "")
-      : "";
+
+  const effectiveGroupIntegrationId = usesGroupResolution
+    ? requestedGroupIntegrationId ||
+      (selectedTemplate?.sourceType === "zabbix_group" ? selectedTemplate.integration?.id || "" : "")
+    : "";
   const effectiveGroupIds = usesGroupResolution
     ? requestedGroupIds.length
       ? requestedGroupIds
       : templateGroupIds
     : [];
+
   const selectedGroupSource = reportSources.find((item) => item.id === effectiveGroupIntegrationId) || null;
   const groupCatalog = usesGroupResolution && selectedGroupSource ? await readZabbixGroups(selectedGroupSource.id) : null;
-  const {
-    preview: groupPreview,
-    error: groupPreviewError,
-  } =
+  const { preview: groupPreview, error: groupPreviewError } =
     usesGroupResolution && selectedGroupSource && effectiveGroupIds.length
       ? await readZabbixGroupPreview(selectedGroupSource.id, effectiveGroupIds)
       : { preview: null, error: "" };
+
   const previewUnitIds = groupPreview?.matchedUnits.map((item) => item.unit.id) || [];
   const selectedUnitId =
     requestedUnitId ||
@@ -749,24 +293,26 @@ export default async function MonitoringReportsPage({
     templateManualUnitIds[0] ||
     catalog.items[0]?.id ||
     "";
-  const selectedUnit = catalog.items.find((item) => item.id === selectedUnitId) || catalog.items[0];
-  const exportSelectedUnitIds = usesGroupResolution
+  const selectedUnit = catalog.items.find((item) => item.id === selectedUnitId) || catalog.items[0] || null;
+
+  const exportSelectedUnitIds = sourceMode === "zabbix_group"
     ? previewUnitIds
-    : usesTemplate && templateManualUnitIds.length
-      ? templateManualUnitIds
+    : sourceMode === "template"
+      ? selectedTemplate?.sourceType === "zabbix_group"
+        ? previewUnitIds
+        : templateManualUnitIds
       : selectedUnitId
         ? [selectedUnitId]
         : [];
+
+  const exportUnits = exportSelectedUnitIds
+    .map((unitId) => catalog.items.find((item) => item.id === unitId))
+    .filter((item, index, array): item is ReportUnitCatalog["items"][number] => Boolean(item) && array.findIndex((candidate) => candidate?.id === item.id) === index);
+
   const unresolvedCount = groupPreview
     ? groupPreview.counts.ambiguousHosts + groupPreview.counts.unmatchedHosts
     : 0;
-  const templateSourceType =
-    groupPreview && selectedGroupSource && effectiveGroupIds.length ? "zabbix_group" : "manual";
-  const templateIntegrationId =
-    templateSourceType === "zabbix_group"
-      ? selectedGroupSource?.id || selectedTemplate?.integration?.id || ""
-      : "";
-  const templateUnitIds = templateSourceType === "zabbix_group" ? previewUnitIds : exportSelectedUnitIds;
+
   const defaultFormat = selectedTemplate?.outputFormat?.toLowerCase() === "docx" ? "docx" : "pdf";
   const defaultIncludeCharts = selectedTemplate?.includeCharts ?? true;
   const defaultTitle = selectedTemplate?.title || "Relatório de Consumo";
@@ -774,24 +320,25 @@ export default async function MonitoringReportsPage({
   const defaultContractLabel = selectedTemplate?.contractLabel || "";
   const defaultBandwidth = selectedTemplate?.contractedBandwidth || "";
   const defaultAddressLine = selectedTemplate?.addressLine || "";
-  const selectedTemplateId = selectedTemplate?.id || "";
+
   const currentBuilderQuery: BuilderQuery = {
     source: sourceMode,
-    templateId: selectedTemplateId || undefined,
+    templateId: selectedTemplate?.id || undefined,
     unitId: selectedUnitId || undefined,
     from,
     to,
     groupIntegrationId: selectedGroupSource?.id || undefined,
     groupIds: effectiveGroupIds,
   };
-  const returnTo = buildBuilderHref(currentBuilderQuery);
+
   const resetHref = "/relatorios/monitoramento";
   const clearGroupsHref = buildBuilderHref({
     source: sourceMode,
-    templateId: selectedTemplateId || undefined,
+    templateId: selectedTemplate?.id || undefined,
     unitId: selectedUnitId || undefined,
     from,
     to,
+    groupIntegrationId: selectedGroupSource?.id || undefined,
   });
   const quickTodayHref = buildBuilderHref({
     ...currentBuilderQuery,
@@ -813,46 +360,34 @@ export default async function MonitoringReportsPage({
     from: monthRange(-1).from,
     to: monthRange(-1).to,
   });
+
   const activeOriginLabel = sourceMode === "template"
     ? selectedTemplate
       ? `Template ${selectedTemplate.code}`
       : "Template"
     : sourceMode === "zabbix_group"
       ? "Grupos do Zabbix"
-      : "Unidade em foco";
-  const activeOriginMeta = usesTemplate
-    ? selectedTemplate?.name || "Selecione um template"
-    : effectiveGroupIds.length
-      ? `${effectiveGroupIds.length} grupo(s) em ${selectedGroupSource?.code || "integração"}`
+      : "Unidade";
+  const activeOriginMeta = sourceMode === "template"
+    ? selectedTemplate?.name || "Selecione um template para carregar o lote."
+    : sourceMode === "zabbix_group"
+      ? effectiveGroupIds.length
+        ? `${effectiveGroupIds.length} grupo(s) em ${selectedGroupSource?.code || "integração"}`
+        : "Selecione integração e grupos para montar o lote."
       : selectedUnit
         ? `${selectedUnit.code} - ${selectedUnit.name}`
-        : "Sem origem definida";
-  const { report, error } =
-    selectedUnitId && selectedUnit ? await readReport(selectedUnitId, from, to) : { report: null, error: "" };
+        : "Sem unidade selecionada";
 
   return (
     <AppShell
       title="Relatórios"
-      subtitle="Filtre, revise o lote e baixe o arquivo final em PDF ou DOCX."
+      subtitle="Filtro, lote e exportação no mesmo fluxo operacional."
     >
       <div className="report-workbench space-y-5">
-
-        {templateStatus ? (
-          <Surface className={`p-4 text-sm ${templateStatus === "saved" ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-50" : "border-rose-500/20 bg-rose-500/10 text-rose-100"}`}>
-            {templateStatus === "saved" ? "Template salvo com sucesso." : `Falha ao salvar template: ${templateMessage || "erro desconhecido"}`}
-          </Surface>
-        ) : null}
-
-        {automationStatus ? (
-          <Surface className={`p-4 text-sm ${automationStatus === "saved" ? "border-sky-500/20 bg-sky-500/10 text-sky-50" : "border-rose-500/20 bg-rose-500/10 text-rose-100"}`}>
-            {automationStatus === "saved" ? "Automação criada com sucesso." : `Falha ao criar automação: ${automationMessage || "erro desconhecido"}`}
-          </Surface>
-        ) : null}
-
-        <Surface className="report-toolbar p-5 sm:p-6">
+        <Surface className="p-5 sm:p-6">
           <form action="/relatorios/monitoramento" method="GET" className="space-y-4">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Origem do lote</span>
+              <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Origem</span>
               {([
                 ["unit", "Unidade"],
                 ["template", "Template"],
@@ -874,6 +409,7 @@ export default async function MonitoringReportsPage({
                   </label>
                 );
               })}
+
               <div className="ml-auto flex flex-wrap gap-2">
                 <Link
                   href={resetHref}
@@ -895,11 +431,11 @@ export default async function MonitoringReportsPage({
                 name="unitId"
                 units={catalog.items}
                 initialSelectedId={selectedUnitId}
-                label={sourceMode === "unit" ? "Unidade no relatório" : "Unidade para prévia"}
+                label={sourceMode === "unit" ? "Unidade" : "Unidade para conferência"}
                 helpText={
                   sourceMode === "unit"
-                    ? "Essa unidade entra direto no lote quando a origem for manual."
-                    : "Quando o lote vier de template ou grupos, usamos essa unidade para abrir a prévia."
+                    ? "Quando a origem for manual, essa unidade já entra no lote do relatório."
+                    : "Quando a origem vier de template ou grupos, esse campo fica como referência rápida para conferência."
                 }
               />
 
@@ -914,27 +450,22 @@ export default async function MonitoringReportsPage({
               </label>
 
               <div className="flex items-end gap-2">
-                <button type="submit">Aplicar filtros</button>
+                <button type="submit">Aplicar</button>
               </div>
             </div>
 
             {sourceMode === "template" ? (
-              <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_auto]">
-                <label className="grid gap-2 text-sm font-semibold text-slate-200">
-                  Template
-                  <select name="templateId" defaultValue={selectedTemplateId}>
-                    <option value="">Selecione um template</option>
-                    {templates.map((template) => (
-                      <option key={template.id} value={template.id}>
-                        {template.code} - {template.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <div className="flex items-end">
-                  <button type="submit">Carregar template</button>
-                </div>
-              </div>
+              <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                Template
+                <select name="templateId" defaultValue={selectedTemplate?.id || ""}>
+                  <option value="">Selecione um template</option>
+                  {templates.map((template) => (
+                    <option key={template.id} value={template.id}>
+                      {template.code} - {template.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
             ) : null}
 
             {sourceMode === "zabbix_group" ? (
@@ -964,12 +495,6 @@ export default async function MonitoringReportsPage({
               </div>
             ) : null}
 
-            {sourceMode === "template" && selectedTemplate?.sourceType === "zabbix_group" ? (
-              <div className="rounded-[16px] border border-sky-500/20 bg-sky-500/10 px-4 py-3 text-sm text-sky-50">
-                Esse template resolve unidades por grupos do Zabbix. Se quiser editar os grupos manualmente, troque a origem para <strong>Grupo Zabbix</strong>.
-              </div>
-            ) : null}
-
             <div className="flex flex-wrap items-center gap-2">
               <Link className="rounded-[12px] border border-white/10 bg-white/[0.04] px-4 py-2 text-center text-sm font-semibold text-sky-100 transition hover:bg-white/[0.08]" href={quickTodayHref}>
                 Hoje
@@ -994,7 +519,7 @@ export default async function MonitoringReportsPage({
             </div>
 
             <div className="rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-4">
-              <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Filtros ativos</div>
+              <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Filtro ativo</div>
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <span className="rounded-full border border-white/10 bg-black/15 px-3 py-1 text-xs font-semibold text-slate-100">
                   {activeOriginLabel}
@@ -1003,7 +528,7 @@ export default async function MonitoringReportsPage({
                   {formatDate(from)} até {formatDate(to)}
                 </span>
                 <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-50">
-                  {exportSelectedUnitIds.length} unidade(s)
+                  {exportUnits.length} unidade(s)
                 </span>
                 {unresolvedCount ? (
                   <span className="rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-50">
@@ -1016,152 +541,91 @@ export default async function MonitoringReportsPage({
           </form>
         </Surface>
 
-        <form id="builder-export-form" action="/relatorios/monitoramento/export" method="POST" target="_blank" className="grid gap-5 xl:grid-cols-[minmax(0,1.55fr)_380px]">
+        <form
+          id="builder-export-form"
+          action="/relatorios/monitoramento/export"
+          method="POST"
+          target="_blank"
+          className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]"
+        >
           <input type="hidden" name="from" value={from} />
           <input type="hidden" name="to" value={to} />
 
-          <div className="space-y-5">
-            <Surface className="p-5 sm:p-6">
-              <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                <div>
-                  <h2 className="text-lg font-semibold text-slate-50">Unidades do relatório</h2>
-                  <p className="mt-1 text-sm text-slate-400">
-                    Monte o lote final aqui. Se o lote vier do Zabbix, revise os vínculos antes de exportar.
-                  </p>
-                </div>
+          <Surface className="p-5 sm:p-6">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-50">Lote do relatório</h2>
+                <p className="mt-1 text-sm text-slate-400">
+                  Revise as unidades que realmente vão sair no arquivo final.
+                </p>
               </div>
+            </div>
 
-              {groupPreviewError ? (
-                <div className="mt-4 rounded-[16px] border border-rose-500/25 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
-                  Não foi possível revisar os grupos agora: {groupPreviewError}
-                </div>
-              ) : null}
+            {groupPreviewError ? (
+              <div className="mt-4 rounded-[16px] border border-rose-500/25 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
+                Não foi possível revisar os grupos agora: {groupPreviewError}
+              </div>
+            ) : null}
 
-              {usesGroupResolution && !effectiveGroupIds.length ? (
-                <div className="mt-4 rounded-[16px] border border-white/10 bg-black/10 px-4 py-3 text-sm text-slate-300">
-                  Selecione uma integração e um ou mais host groups para o NOVA resolver as unidades automaticamente.
-                </div>
-              ) : null}
+            {sourceMode === "zabbix_group" && !effectiveGroupIds.length ? (
+              <div className="mt-4 rounded-[16px] border border-white/10 bg-black/10 px-4 py-3 text-sm text-slate-300">
+                Escolha a integração e os host groups acima para o NOVA montar o lote automaticamente.
+              </div>
+            ) : null}
 
-              {groupPreview ? (
-                <div className="mt-4 space-y-4">
-                  <div className="rounded-[16px] border border-white/10 bg-white/[0.03] px-4 py-4">
-                    <div className="text-sm font-semibold text-slate-100">
-                      {groupPreview.counts.matchedUnits} unidade(s) reconhecida(s) a partir de {groupPreview.counts.hosts} host(s)
-                    </div>
-                    <div className="mt-1 text-xs text-slate-400">
-                      {groupPreview.groups.map((group) => group.name).join(" · ")}
-                    </div>
-                  </div>
-
-                  <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
-                    <div className="max-h-72 overflow-y-auto rounded-[16px] border border-white/10 bg-black/10">
-                      {groupPreview.matchedUnits.length ? (
-                        groupPreview.matchedUnits.map((item) => (
-                          <div key={item.unit.id} className="grid gap-2 border-b border-white/5 px-4 py-3 text-sm text-slate-200 md:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
-                            <div>
-                              <div className="font-semibold text-slate-100">{item.unit.code} - {item.unit.name}</div>
-                              <div className="mt-1 text-xs text-slate-400">
-                                {item.unit.partner.code} · {[item.unit.city, item.unit.state].filter(Boolean).join("/") || "sem cidade/UF"}
-                              </div>
-                            </div>
-                            <div className="text-xs text-slate-300">
-                              <div>{item.primaryHost.hostName || item.primaryHost.host || item.primaryHost.hostId}</div>
-                              <div className="mt-1">
-                                Confiança {item.confidence}% · {item.matchedBy.join(" · ") || "heurística"}
-                              </div>
-                            </div>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="px-4 py-4 text-sm text-slate-400">
-                          Nenhuma unidade foi reconhecida com segurança para os grupos selecionados.
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="space-y-3">
-                      <div className="rounded-[16px] border border-white/10 bg-black/10 px-4 py-3 text-sm text-slate-300">
-                        O lote reconhecido pelo Zabbix já entra carregado no seletor abaixo. Você ainda pode incluir ou remover unidades manualmente.
+            <div className="mt-4 rounded-[18px] border border-white/10 bg-white/[0.03] p-4">
+              <div className="text-sm font-semibold text-slate-100">Unidades carregadas</div>
+              <div className="mt-3 space-y-3">
+                {exportUnits.length ? (
+                  exportUnits.map((unit) => (
+                    <div key={unit.id} className="rounded-[14px] border border-white/8 bg-black/10 px-4 py-3 text-sm text-slate-200">
+                      <div className="font-semibold text-slate-100">{unit.code} - {unit.name}</div>
+                      <div className="mt-1 text-xs text-slate-400">
+                        {unit.partner.code} · {[unit.city, unit.state].filter(Boolean).join("/") || "sem cidade/UF"}
                       </div>
-                      {groupPreview.unresolvedHosts.length ? (
-                        <div className="rounded-[16px] border border-amber-500/20 bg-amber-500/10 px-4 py-3">
-                          <div className="text-sm font-semibold text-amber-50">Hosts pendentes</div>
-                          <div className="mt-2 space-y-2 text-xs text-amber-50/90">
-                            {groupPreview.unresolvedHosts.slice(0, 8).map((item) => (
-                              <div key={item.host.hostId}>
-                                {item.host.hostName || item.host.host || item.host.hostId}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="rounded-[16px] border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-50">
-                          Nenhuma pendência encontrada nesse lote.
-                        </div>
-                      )}
                     </div>
+                  ))
+                ) : (
+                  <div className="rounded-[14px] border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-50">
+                    Nenhuma unidade pronta no lote. Ajuste os filtros acima para continuar.
                   </div>
-                </div>
-              ) : null}
-
-              <div className="mt-4">
-                <ReportUnitBatchSelector
-                  name="unitIds"
-                  units={catalog.items}
-                  initialSelectedIds={exportSelectedUnitIds}
-                  title="Lote final"
-                  description="Revise as unidades que realmente devem sair no arquivo. Você pode adicionar ou remover manualmente."
-                />
+                )}
               </div>
-            </Surface>
+            </div>
 
+            {groupPreview?.unresolvedHosts.length ? (
+              <div className="mt-4 rounded-[18px] border border-amber-500/20 bg-amber-500/10 p-4">
+                <div className="text-sm font-semibold text-amber-50">Hosts pendentes de vínculo</div>
+                <div className="mt-2 space-y-2 text-xs text-amber-50/90">
+                  {groupPreview.unresolvedHosts.slice(0, 10).map((item) => (
+                    <div key={item.host.hostId}>{item.host.hostName || item.host.host || item.host.hostId}</div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            <div className="mt-4">
+              <ReportUnitBatchSelector
+                name="unitIds"
+                units={catalog.items}
+                initialSelectedIds={exportSelectedUnitIds}
+                title="Editar lote"
+                description="Adicione ou remova unidades manualmente antes do download."
+              />
+            </div>
+          </Surface>
+
+          <div className="xl:sticky xl:top-24 self-start">
             <Surface className="p-5 sm:p-6">
-              <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                <div>
-                  <h2 className="text-lg font-semibold text-slate-50">Prévia</h2>
-                  <p className="mt-1 text-sm text-slate-400">
-                    Use a prévia para conferir o visual do relatório antes do download final.
-                  </p>
-                </div>
-                {report ? <ReportPrintButton /> : null}
-              </div>
-
-              {error ? (
-                <div className="mt-4 rounded-[16px] border border-rose-500/25 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
-                  Não foi possível gerar o preview agora: {error}
-                </div>
-              ) : null}
-
-              <details className="mt-4" open={Boolean(report)}>
-                <summary className="cursor-pointer list-none text-sm font-semibold text-slate-100">
-                  {report ? "Ocultar prévia" : "Abrir prévia quando houver unidade válida"}
-                </summary>
-                <div className="mt-4">
-                  {report ? (
-                    <ReportSheet report={report} />
-                  ) : (
-                    <EmptyState
-                      title="Escolha uma unidade monitorada"
-                      description="Assim que houver uma unidade em foco com host Zabbix confiável, o NOVA consegue montar a prévia no formato de entrega."
-                    />
-                  )}
-                </div>
-              </details>
-            </Surface>
-          </div>
-
-          <div className="space-y-5 xl:sticky xl:top-24 self-start">
-            <Surface id="builder-output" className="p-5 sm:p-6">
               <div>
                 <h2 className="text-lg font-semibold text-slate-50">Exportar</h2>
                 <p className="mt-1 text-sm text-slate-400">
-                  Defina o formato de saída e os dados comerciais do arquivo.
+                  Escolha o formato do arquivo e ajuste os dados comerciais.
                 </p>
               </div>
 
               <div className="mt-4 rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-4">
-                <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Resumo do lote</div>
+                <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Resumo</div>
                 <dl className="mt-3 grid gap-2 text-sm text-slate-300">
                   <div className="flex items-start justify-between gap-3">
                     <dt className="text-slate-500">Origem</dt>
@@ -1173,14 +637,8 @@ export default async function MonitoringReportsPage({
                   </div>
                   <div className="flex items-start justify-between gap-3">
                     <dt className="text-slate-500">Unidades</dt>
-                    <dd className="text-right font-medium text-slate-100">{exportSelectedUnitIds.length}</dd>
+                    <dd className="text-right font-medium text-slate-100">{exportUnits.length}</dd>
                   </div>
-                  {effectiveGroupIds.length ? (
-                    <div className="flex items-start justify-between gap-3">
-                      <dt className="text-slate-500">Grupos</dt>
-                      <dd className="text-right font-medium text-slate-100">{effectiveGroupIds.length}</dd>
-                    </div>
-                  ) : null}
                 </dl>
               </div>
 
@@ -1228,146 +686,6 @@ export default async function MonitoringReportsPage({
             </Surface>
           </div>
         </form>
-
-        <Surface className="p-5 sm:p-6">
-          <div>
-            <h2 className="text-lg font-semibold text-slate-50">Salvar ou agendar esta configuração</h2>
-            <p className="mt-1 text-sm text-slate-400">
-              Essas ações ficam fora do fluxo principal de geração para não poluir a operação do dia a dia.
-            </p>
-          </div>
-
-          <div className="mt-5 grid gap-4 xl:grid-cols-2">
-            <form action="/relatorios/monitoramento/templates" method="POST" className="rounded-[16px] border border-white/10 bg-black/10 p-4">
-              <input type="hidden" name="returnTo" value={returnTo} />
-              <input type="hidden" name="sourceType" value={templateSourceType} />
-              <input type="hidden" name="integrationId" value={templateIntegrationId} />
-              {templateUnitIds.map((unitId) => (
-                <input key={`template-unit-${unitId}`} type="hidden" name="unitIds" value={unitId} />
-              ))}
-              {effectiveGroupIds.map((groupId) => (
-                <input key={`template-group-${groupId}`} type="hidden" name="groupIds" value={groupId} />
-              ))}
-              <input type="hidden" name="title" value={defaultTitle} />
-              <input type="hidden" name="interestedParty" value={defaultInterestedParty} />
-              <input type="hidden" name="contractLabel" value={defaultContractLabel} />
-              <input type="hidden" name="contractedBandwidth" value={defaultBandwidth} />
-              <input type="hidden" name="addressLine" value={defaultAddressLine} />
-
-              <div className="text-sm font-semibold text-slate-100">Salvar como template</div>
-              <div className="mt-1 text-xs text-slate-400">
-                Salve essa combinação de origem, período e saída para reutilizar depois.
-              </div>
-
-              <div className="mt-4 grid gap-4">
-                <label className="grid gap-2 text-sm font-semibold text-slate-200">
-                  Código
-                  <input name="code" placeholder="Ex.: REL-UNITINS-GRUPO" />
-                </label>
-
-                <label className="grid gap-2 text-sm font-semibold text-slate-200">
-                  Nome
-                  <input name="name" placeholder="Ex.: Relatório mensal UNITINS" />
-                </label>
-
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <label className="grid gap-2 text-sm font-semibold text-slate-200">
-                    Período padrão
-                    <select name="periodPreset" defaultValue={selectedTemplate?.periodPreset || "last_7_days"}>
-                      <option value="last_7_days">Últimos 7 dias</option>
-                      <option value="current_month">Mês atual</option>
-                      <option value="previous_month">Mês anterior</option>
-                    </select>
-                  </label>
-
-                  <label className="grid gap-2 text-sm font-semibold text-slate-200">
-                    Formato padrão
-                    <select name="outputFormat" defaultValue={defaultFormat}>
-                      <option value="pdf">PDF</option>
-                      <option value="docx">DOCX</option>
-                    </select>
-                  </label>
-                </div>
-
-                <label className="flex items-center gap-3 rounded-[16px] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-slate-100">
-                  <input type="checkbox" name="includeCharts" defaultChecked={defaultIncludeCharts} className="h-4 w-4" />
-                  Incluir gráficos por padrão
-                </label>
-
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="text-xs text-slate-400">
-                    {templateSourceType === "zabbix_group"
-                      ? "O template continua ligado aos grupos do Zabbix."
-                      : `O template vai salvar ${templateUnitIds.length} unidade(s).`}
-                  </div>
-                  <button type="submit">Salvar template</button>
-                </div>
-              </div>
-            </form>
-
-            <form action="/relatorios/monitoramento/automacoes" method="POST" className="rounded-[16px] border border-white/10 bg-black/10 p-4">
-              <input type="hidden" name="returnTo" value={returnTo} />
-
-              <div className="text-sm font-semibold text-slate-100">Agendar exportação</div>
-              <div className="mt-1 text-xs text-slate-400">
-                Use um template salvo para deixar o arquivo recorrente rodando sozinho.
-              </div>
-
-              <div className="mt-4 grid gap-4">
-                <label className="grid gap-2 text-sm font-semibold text-slate-200">
-                  Template
-                  <select name="templateId" defaultValue={selectedTemplate?.id || templates[0]?.id || ""}>
-                    {templates.length ? (
-                      templates.map((template) => (
-                        <option key={template.id} value={template.id}>
-                          {template.code} - {template.name}
-                        </option>
-                      ))
-                    ) : (
-                      <option value="">Salve um template antes</option>
-                    )}
-                  </select>
-                </label>
-
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <label className="grid gap-2 text-sm font-semibold text-slate-200">
-                    Código da automação
-                    <input name="code" placeholder="Ex.: AUTO-REL-UNITINS" />
-                  </label>
-
-                  <label className="grid gap-2 text-sm font-semibold text-slate-200">
-                    Nome da automação
-                    <input name="name" placeholder="Ex.: Relatório recorrente UNITINS" />
-                  </label>
-                </div>
-
-                <label className="grid gap-2 text-sm font-semibold text-slate-200">
-                  Cadência
-                  <select name="cadence" defaultValue="hourly">
-                    <option value="every_5_minutes">A cada 5 minutos</option>
-                    <option value="hourly">Por hora</option>
-                    <option value="every_minute">A cada minuto</option>
-                  </select>
-                </label>
-
-                <label className="flex items-center gap-3 rounded-[16px] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-slate-100">
-                  <input type="checkbox" name="enabled" defaultChecked className="h-4 w-4" />
-                  Ativar automação imediatamente
-                </label>
-
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <Link
-                    href="/operacao/automacoes"
-                    className="inline-flex h-11 items-center justify-center rounded-[14px] border border-white/10 bg-white/[0.04] px-4 text-sm font-semibold text-slate-100 transition hover:bg-white/[0.08]"
-                  >
-                    Abrir automações
-                  </Link>
-                  <button type="submit" disabled={!templates.length}>Criar automação</button>
-                </div>
-              </div>
-            </form>
-          </div>
-        </Surface>
       </div>
     </AppShell>
   );
