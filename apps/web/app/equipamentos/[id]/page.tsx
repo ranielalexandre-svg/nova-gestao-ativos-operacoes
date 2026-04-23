@@ -446,6 +446,14 @@ export default async function EquipamentoDetailPage({
             >
               Abrir unidade
             </Link>
+            {isAdmin ? (
+              <Link
+                href="#editar-cadastro"
+                className="rounded-full border border-white/10 bg-black/20 px-4 py-2.5 text-sm text-slate-200 transition hover:bg-white/[0.06] hover:text-white"
+              >
+                Editar cadastro
+              </Link>
+            ) : null}
           </>
         }
       />
@@ -479,7 +487,7 @@ export default async function EquipamentoDetailPage({
       />
 
       {isAdmin ? (
-        <Surface className="p-5 sm:p-6">
+        <Surface id="editar-cadastro" className="p-5 sm:p-6">
           <SectionIntro
             eyebrow="Cadastro"
             title="Editar equipamento"
