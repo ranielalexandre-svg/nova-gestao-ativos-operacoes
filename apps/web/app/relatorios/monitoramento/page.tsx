@@ -3,12 +3,10 @@ import { redirect } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import {
   DenseTable,
-  SectionIntro,
   Surface,
   TableCell,
   TableHead,
   TableShell,
-  TonePill,
 } from "@/components/ops-ui";
 import { getActionErrorMessage } from "@/lib/action-state";
 import {
@@ -304,9 +302,7 @@ export default async function MonitoringReportsPage({
     groupIds: effectiveGroupIds,
   };
 
-  const selectedGroupNames = groupPreview?.groups.map((group) => group.name) || [];
   const resetHref = "/relatorios/monitoramento";
-  const monitorHref = "/monitoramento";
   const clearGroupsHref = buildFilterHref({
     templateId: selectedTemplate?.id || undefined,
     unitId: requestedUnitId || undefined,
@@ -345,66 +341,29 @@ export default async function MonitoringReportsPage({
   return (
     <AppShell
       title="Relatórios"
-      subtitle="Fluxo de relatório inspirado no PRTG: executar, configurar, revisar o lote e processar o arquivo final."
+      subtitle="Execute o relatório, revise o lote e gere o arquivo final."
     >
       <div className="space-y-5">
-        <Surface className="p-5 sm:p-6">
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-            <div>
-              <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-                Fluxo do relatório
-              </div>
-              <h2 className="mt-1 text-[19px] font-semibold tracking-tight text-slate-50">
-                Operação orientada por execução
-              </h2>
-              <p className="mt-2 max-w-4xl text-sm leading-6 text-slate-400">
-                Primeiro definimos o período e o escopo monitorado. Depois conferimos as unidades incluídas e, por fim,
-                processamos o arquivo final.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              <Link
-                href={resetHref}
-                className="inline-flex h-10 items-center justify-center rounded-[12px] border border-white/10 bg-white/[0.04] px-4 text-sm font-semibold text-slate-100 transition hover:bg-white/[0.08]"
-              >
-                Novo relatório
-              </Link>
-              <Link
-                href={monitorHref}
-                className="inline-flex h-10 items-center justify-center rounded-[12px] border border-white/10 bg-white/[0.04] px-4 text-sm font-semibold text-slate-100 transition hover:bg-white/[0.08]"
-              >
-                Monitoramento
-              </Link>
-            </div>
-          </div>
-
-          <div className="mt-4 flex flex-wrap gap-2 text-xs">
-            {[
-              ["#executar-agora", "Executar agora"],
-              ["#configuracoes", "Configurações"],
-              ["#unidades-incluidas", "Unidades incluídas"],
-              ["#processamento", "Processamento"],
-            ].map(([href, label]) => (
-              <a
-                key={href}
-                href={href}
-                className="inline-flex h-9 items-center rounded-full border border-white/10 bg-white/[0.04] px-4 font-semibold text-slate-200 transition hover:bg-white/[0.08]"
-              >
-                {label}
-              </a>
-            ))}
-          </div>
-        </Surface>
-
         <form action="/relatorios/monitoramento" method="GET" className="space-y-5">
           <Surface id="executar-agora" className="p-5 sm:p-6 scroll-mt-24">
-            <SectionIntro
-              eyebrow="Etapa 1"
-              title="Executar agora"
-              description="Defina o período do relatório e rode a montagem do lote. Esse passo não exporta arquivo; ele só prepara o que entra no relatório."
-              actions={<button type="submit">Executar relatório</button>}
-            />
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Etapa 1</div>
+                <h2 className="mt-1 text-lg font-semibold tracking-tight text-slate-50">Executar agora</h2>
+                <p className="mt-1 text-sm text-slate-400">
+                  Defina o período e atualize o lote do relatório.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Link
+                  href={resetHref}
+                  className="inline-flex h-10 items-center justify-center rounded-[12px] border border-white/10 bg-white/[0.04] px-4 text-sm font-semibold text-slate-100 transition hover:bg-white/[0.08]"
+                >
+                  Resetar filtros
+                </Link>
+                <button type="submit">Executar relatório</button>
+              </div>
+            </div>
 
             <div className="mt-5 grid gap-5 xl:grid-cols-[220px_220px_minmax(0,1fr)]">
               <label className="grid gap-2 text-sm font-semibold text-slate-200">
@@ -440,11 +399,13 @@ export default async function MonitoringReportsPage({
           </Surface>
 
           <Surface id="configuracoes" className="p-5 sm:p-6 scroll-mt-24">
-            <SectionIntro
-              eyebrow="Etapa 2"
-              title="Configurações do relatório"
-              description="Escolha o modelo salvo, uma unidade fixa se necessário, e o agrupamento de origem no Zabbix. Tudo aqui compõe o mesmo lote final."
-            />
+            <div>
+              <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Etapa 2</div>
+              <h2 className="mt-1 text-lg font-semibold tracking-tight text-slate-50">Configurações</h2>
+              <p className="mt-1 text-sm text-slate-400">
+                Modelo salvo, unidade fixa e grupos do Zabbix entram no mesmo escopo do relatório.
+              </p>
+            </div>
 
             <div className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,260px)_minmax(0,320px)_minmax(0,220px)]">
               <label className="grid gap-2 text-sm font-semibold text-slate-200">
@@ -491,7 +452,7 @@ export default async function MonitoringReportsPage({
                     Host groups
                   </div>
                   <div className="mt-1 text-sm text-slate-400">
-                    Use os grupos do Zabbix para montar o lote automaticamente, como o PRTG faz ao incluir sensores por agrupamento.
+                    Marque os grupos que devem alimentar o lote automaticamente.
                   </div>
                 </div>
                 {effectiveGroupIds.length ? (
@@ -542,13 +503,6 @@ export default async function MonitoringReportsPage({
                 </div>
               )}
             </div>
-
-            <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-slate-300">
-              {selectedTemplate ? <TonePill tone="info">Template {selectedTemplate.code}</TonePill> : null}
-              {selectedUnit ? <TonePill tone="neutral">Unidade fixa {selectedUnit.code}</TonePill> : null}
-              {selectedGroupSource ? <TonePill tone="neutral">Integração {selectedGroupSource.code}</TonePill> : null}
-              {selectedGroupNames.length ? <TonePill tone="success">{selectedGroupNames.length} grupo(s) marcado(s)</TonePill> : null}
-            </div>
           </Surface>
         </form>
 
@@ -557,11 +511,13 @@ export default async function MonitoringReportsPage({
           <input type="hidden" name="to" value={to} />
 
           <Surface id="unidades-incluidas" className="p-5 sm:p-6 scroll-mt-24">
-            <SectionIntro
-              eyebrow="Etapa 3"
-              title="Unidades incluídas"
-              description="Esse é o lote que entrou no relatório após a execução. Aqui você só revisa e desmarca o que não deve sair no arquivo final."
-            />
+            <div>
+              <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Etapa 3</div>
+              <h2 className="mt-1 text-lg font-semibold tracking-tight text-slate-50">Unidades incluídas</h2>
+              <p className="mt-1 text-sm text-slate-400">
+                Revise o lote e desmarque o que não deve sair no arquivo.
+              </p>
+            </div>
 
             {groupPreviewError ? (
               <div className="mt-4 rounded-[16px] border border-rose-500/25 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
@@ -569,12 +525,12 @@ export default async function MonitoringReportsPage({
               </div>
             ) : null}
 
-            <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-slate-300">
-              <TonePill tone="success">{resultUnits.length} unidade(s) no lote</TonePill>
-              {groupPreview ? <TonePill tone="neutral">{groupPreview.counts.hosts} host(s) analisado(s)</TonePill> : null}
-              {groupPreview ? <TonePill tone="neutral">{groupPreview.counts.matchedUnits} vínculo(s) resolvido(s)</TonePill> : null}
-              {unresolvedCount ? <TonePill tone="attention">{unresolvedCount} pendência(s)</TonePill> : null}
-              <span className="text-slate-500">Período: {formatDate(from)} até {formatDate(to)}</span>
+            <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-400">
+              <span>{resultUnits.length} unidade(s) no lote</span>
+              {groupPreview ? <span>{groupPreview.counts.hosts} host(s) analisado(s)</span> : null}
+              {groupPreview ? <span>{groupPreview.counts.matchedUnits} vínculo(s) resolvido(s)</span> : null}
+              {unresolvedCount ? <span>{unresolvedCount} pendência(s)</span> : null}
+              <span>{formatDate(from)} até {formatDate(to)}</span>
             </div>
 
             {!resultUnits.length ? (
@@ -663,12 +619,18 @@ export default async function MonitoringReportsPage({
           </Surface>
 
           <Surface id="processamento" className="p-5 sm:p-6 scroll-mt-24">
-            <SectionIntro
-              eyebrow="Etapa 4"
-              title="Processamento do relatório"
-              description="Defina o formato final do arquivo, os dados de capa e então gere o download do lote atual."
-              actions={<button type="submit" disabled={!resultUnits.length}>Baixar arquivo</button>}
-            />
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Etapa 4</div>
+                <h2 className="mt-1 text-lg font-semibold tracking-tight text-slate-50">Processamento</h2>
+                <p className="mt-1 text-sm text-slate-400">
+                  Ajuste o formato final e gere o download do lote atual.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button type="submit" disabled={!resultUnits.length}>Baixar arquivo</button>
+              </div>
+            </div>
 
             <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
               <div className="grid gap-4">
