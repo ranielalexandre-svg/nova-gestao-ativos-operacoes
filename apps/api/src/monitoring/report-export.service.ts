@@ -1504,11 +1504,25 @@ export class MonitoringReportExportService {
       new Paragraph({
         text: options.title || 'Relatório de Consumo',
         heading: HeadingLevel.TITLE,
-        spacing: { after: 120 },
+        spacing: { after: 80 },
       }),
       new Paragraph({
-        text: this.monthLabel(new Date()),
-        spacing: { after: 80 },
+        text: 'Relatório consolidado com base nas coletas do Zabbix, estruturado para emissão corporativa.',
+        spacing: { after: 160 },
+      }),
+      this.docxSummaryTable(docx, [
+        ['Unidades', String(reports.length)],
+        ['Formato', options.format.toUpperCase()],
+        ['Gráficos', options.includeCharts ? 'Incluídos' : 'Resumo geral'],
+        [
+          'Parceiro base',
+          reports.length === 1 ? reports[0]?.partner.name || '-' : 'Lote misto',
+        ],
+      ]),
+      new Paragraph({
+        text: 'Dados da exportação',
+        heading: HeadingLevel.HEADING_2,
+        spacing: { before: 140, after: 70 },
       }),
       this.docxInfoTable(docx, [
         [
@@ -1525,8 +1539,6 @@ export class MonitoringReportExportService {
         ['Contrato', options.contractLabel || '-'],
         ['Endereço', options.addressLine || '-'],
         ['Banda contratada', options.contractedBandwidth || '-'],
-        ['Unidades selecionadas', String(reports.length)],
-        ['Formato', options.format.toUpperCase()],
       ]),
       new Paragraph({ text: ' ' }),
       new Paragraph({
@@ -1550,11 +1562,41 @@ export class MonitoringReportExportService {
         }),
       );
       children.push(
+        new Paragraph({
+          text: 'Visão consolidada da unidade monitorada com informações operacionais, vínculo de host e dados comerciais de referência.',
+          spacing: { after: 80 },
+        }),
+      );
+      children.push(
+        new Paragraph({
+          text: 'Contexto operacional',
+          heading: HeadingLevel.HEADING_2,
+          spacing: { before: 80, after: 60 },
+        }),
+      );
+      children.push(
         this.docxInfoTable(docx, [
           [
             'Período do relatório',
             `${this.formatDate(report.period.from)} - ${this.formatDate(report.period.to)}`,
           ],
+          ['Horas de relatório', '24 / 7'],
+          [
+            'Host Zabbix',
+            report.host?.hostName || report.host?.host || 'Não localizado',
+          ],
+          ['Integração', report.integration?.name || '-'],
+        ]),
+      );
+      children.push(
+        new Paragraph({
+          text: 'Cadastro e contrato',
+          heading: HeadingLevel.HEADING_2,
+          spacing: { before: 80, after: 60 },
+        }),
+      );
+      children.push(
+        this.docxInfoTable(docx, [
           ['Parceiro', `${report.partner.code} - ${report.partner.name}`],
           ['Unidade', `${report.unit.code} - ${report.unit.name}`],
           [
@@ -1562,11 +1604,6 @@ export class MonitoringReportExportService {
             [report.unit.city, report.unit.state].filter(Boolean).join('/') ||
               '-',
           ],
-          [
-            'Host Zabbix',
-            report.host?.hostName || report.host?.host || 'Não localizado',
-          ],
-          ['Integração', report.integration?.name || '-'],
           ['Contrato', options.contractLabel || '-'],
           ['Endereço', options.addressLine || '-'],
           ['Banda contratada', options.contractedBandwidth || '-'],
@@ -1590,8 +1627,21 @@ export class MonitoringReportExportService {
         children.push(
           new Paragraph({
             text: block.title,
+            heading: HeadingLevel.HEADING_1,
+            spacing: { before: 120, after: 40 },
+          }),
+        );
+        children.push(
+          new Paragraph({
+            text: `Unidade ${report.unit.name} • Sensor ${block.sensorType}`,
+            spacing: { after: 70 },
+          }),
+        );
+        children.push(
+          new Paragraph({
+            text: 'Contexto do sensor',
             heading: HeadingLevel.HEADING_2,
-            spacing: { before: 120, after: 60 },
+            spacing: { before: 40, after: 50 },
           }),
         );
         children.push(
@@ -1601,19 +1651,14 @@ export class MonitoringReportExportService {
             ['Descrição', block.description],
           ]),
         );
-
-        block.series.forEach((series) => {
-          children.push(
-            new Paragraph({
-              children: [
-                new TextRun({ text: `${series.label}: `, bold: true }),
-                new TextRun(
-                  `ultimo ${this.formatValue(series.stats.last, series.unit)} | min ${this.formatValue(series.stats.min, series.unit)} | media ${this.formatValue(series.stats.avg, series.unit)} | max ${this.formatValue(series.stats.max, series.unit)}`,
-                ),
-              ],
-            }),
-          );
-        });
+        children.push(
+          new Paragraph({
+            text: 'Indicadores',
+            heading: HeadingLevel.HEADING_2,
+            spacing: { before: 80, after: 50 },
+          }),
+        );
+        children.push(this.docxSeriesStatsTable(docx, block.series));
 
         if (block.consumption) {
           children.push(
@@ -1758,6 +1803,165 @@ export class MonitoringReportExportService {
             ],
           }),
       ),
+    });
+  }
+
+  private docxSummaryTable(docx: any, rows: Array<[string, string]>) {
+    const {
+      Table,
+      TableCell,
+      TableRow,
+      WidthType,
+      BorderStyle,
+      Paragraph,
+      TextRun,
+    } = docx;
+
+    return new Table({
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      borders: {
+        top: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
+        bottom: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
+        left: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
+        right: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
+        insideHorizontal: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
+        insideVertical: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
+      },
+      rows: [
+        new TableRow({
+          children: rows.map(
+            ([label, value]) =>
+              new TableCell({
+                width: {
+                  size: Math.floor(100 / rows.length),
+                  type: WidthType.PERCENTAGE,
+                },
+                borders: {
+                  top: { style: BorderStyle.SINGLE, color: 'D6DCE3', size: 1 },
+                  bottom: {
+                    style: BorderStyle.SINGLE,
+                    color: 'D6DCE3',
+                    size: 1,
+                  },
+                  left: { style: BorderStyle.SINGLE, color: 'D6DCE3', size: 1 },
+                  right: {
+                    style: BorderStyle.SINGLE,
+                    color: 'D6DCE3',
+                    size: 1,
+                  },
+                },
+                children: [
+                  new Paragraph({
+                    children: [
+                      new TextRun({ text: label, bold: true, color: '687583' }),
+                    ],
+                    spacing: { after: 60 },
+                  }),
+                  new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: value,
+                        bold: true,
+                        color: '203242',
+                        size: 24,
+                      }),
+                    ],
+                  }),
+                ],
+              }),
+          ),
+        }),
+      ],
+    });
+  }
+
+  private docxSeriesStatsTable(
+    docx: any,
+    seriesList: MonitoringReportSeries[],
+  ) {
+    const {
+      Table,
+      TableCell,
+      TableRow,
+      WidthType,
+      BorderStyle,
+      Paragraph,
+      TextRun,
+    } = docx;
+
+    return new Table({
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      borders: {
+        top: { style: BorderStyle.SINGLE, color: 'D6DCE3', size: 1 },
+        bottom: { style: BorderStyle.SINGLE, color: 'D6DCE3', size: 1 },
+        left: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
+        right: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
+        insideHorizontal: {
+          style: BorderStyle.SINGLE,
+          color: 'E6EBF1',
+          size: 1,
+        },
+        insideVertical: { style: BorderStyle.SINGLE, color: 'E6EBF1', size: 1 },
+      },
+      rows: [
+        new TableRow({
+          children: ['Indicador', 'Último', 'Mínimo', 'Média', 'Máximo'].map(
+            (label) =>
+              new TableCell({
+                children: [
+                  new Paragraph({
+                    children: [
+                      new TextRun({ text: label, bold: true, color: '3B4956' }),
+                    ],
+                  }),
+                ],
+              }),
+          ),
+        }),
+        ...seriesList.map(
+          (series) =>
+            new TableRow({
+              children: [
+                new TableCell({
+                  width: { size: 30, type: WidthType.PERCENTAGE },
+                  children: [new Paragraph(series.label)],
+                }),
+                new TableCell({
+                  width: { size: 17, type: WidthType.PERCENTAGE },
+                  children: [
+                    new Paragraph(
+                      this.formatValue(series.stats.last, series.unit),
+                    ),
+                  ],
+                }),
+                new TableCell({
+                  width: { size: 17, type: WidthType.PERCENTAGE },
+                  children: [
+                    new Paragraph(
+                      this.formatValue(series.stats.min, series.unit),
+                    ),
+                  ],
+                }),
+                new TableCell({
+                  width: { size: 18, type: WidthType.PERCENTAGE },
+                  children: [
+                    new Paragraph(
+                      this.formatValue(series.stats.avg, series.unit),
+                    ),
+                  ],
+                }),
+                new TableCell({
+                  width: { size: 18, type: WidthType.PERCENTAGE },
+                  children: [
+                    new Paragraph(
+                      this.formatValue(series.stats.max, series.unit),
+                    ),
+                  ],
+                }),
+              ],
+            }),
+        ),
+      ],
     });
   }
 
