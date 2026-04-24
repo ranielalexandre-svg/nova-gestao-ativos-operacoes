@@ -426,7 +426,7 @@ export default async function MonitoringReportsPage({
               </div>
             </div>
 
-            <div className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_180px_180px_auto]">
+            <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.2fr)_180px_180px_auto]">
               <ReportFocusUnitField
                 name="unitId"
                 units={catalog.items}
@@ -449,7 +449,7 @@ export default async function MonitoringReportsPage({
                 <input name="to" type="date" defaultValue={to} />
               </label>
 
-              <div className="flex items-end gap-2">
+              <div className="flex items-end gap-2 self-start">
                 <button type="submit">Aplicar</button>
               </div>
             </div>
@@ -518,25 +518,23 @@ export default async function MonitoringReportsPage({
               ) : null}
             </div>
 
-            <div className="rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-4">
-              <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Filtro ativo</div>
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                <span className="rounded-full border border-white/10 bg-black/15 px-3 py-1 text-xs font-semibold text-slate-100">
-                  {activeOriginLabel}
+            <div className="flex flex-wrap items-center gap-2 text-sm text-slate-300">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Ativo</span>
+              <span className="rounded-full border border-white/10 bg-black/15 px-3 py-1 text-xs font-semibold text-slate-100">
+                {activeOriginLabel}
+              </span>
+              <span className="rounded-full border border-white/10 bg-black/15 px-3 py-1 text-xs font-semibold text-slate-100">
+                {formatDate(from)} até {formatDate(to)}
+              </span>
+              <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-50">
+                {exportUnits.length} unidade(s)
+              </span>
+              {unresolvedCount ? (
+                <span className="rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-50">
+                  {unresolvedCount} pendência(s)
                 </span>
-                <span className="rounded-full border border-white/10 bg-black/15 px-3 py-1 text-xs font-semibold text-slate-100">
-                  {formatDate(from)} até {formatDate(to)}
-                </span>
-                <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-50">
-                  {exportUnits.length} unidade(s)
-                </span>
-                {unresolvedCount ? (
-                  <span className="rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-50">
-                    {unresolvedCount} pendência(s)
-                  </span>
-                ) : null}
-              </div>
-              <div className="mt-2 text-sm text-slate-400">{activeOriginMeta}</div>
+              ) : null}
+              <span className="text-xs text-slate-400">{activeOriginMeta}</span>
             </div>
           </form>
         </Surface>
@@ -573,24 +571,10 @@ export default async function MonitoringReportsPage({
               </div>
             ) : null}
 
-            <div className="mt-4 rounded-[18px] border border-white/10 bg-white/[0.03] p-4">
-              <div className="text-sm font-semibold text-slate-100">Unidades carregadas</div>
-              <div className="mt-3 space-y-3">
-                {exportUnits.length ? (
-                  exportUnits.map((unit) => (
-                    <div key={unit.id} className="rounded-[14px] border border-white/8 bg-black/10 px-4 py-3 text-sm text-slate-200">
-                      <div className="font-semibold text-slate-100">{unit.code} - {unit.name}</div>
-                      <div className="mt-1 text-xs text-slate-400">
-                        {unit.partner.code} · {[unit.city, unit.state].filter(Boolean).join("/") || "sem cidade/UF"}
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="rounded-[14px] border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-50">
-                    Nenhuma unidade pronta no lote. Ajuste os filtros acima para continuar.
-                  </div>
-                )}
-              </div>
+            <div className="mt-4 rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-slate-300">
+              {exportUnits.length
+                ? `${exportUnits.length} unidade(s) carregada(s) no lote. Ajuste abaixo apenas se precisar incluir ou remover itens.`
+                : "Nenhuma unidade pronta no lote. Ajuste os filtros acima para continuar."}
             </div>
 
             {groupPreview?.unresolvedHosts.length ? (
