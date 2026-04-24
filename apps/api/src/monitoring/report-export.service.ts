@@ -6,36 +6,28 @@ import { tmpdir } from 'os';
 import { join } from 'path';
 import { promisify } from 'util';
 import { requireRuntimeModule } from '../common/runtime-node-modules';
+import { NOVA_FOOTER_LINES, TRANSPARENT_PNG } from './report-export.constants';
+import { MonitoringReportPresentationService } from './report-presentation.service';
 import {
   MonitoringPrtgStyleReport,
   MonitoringReportBlock,
   MonitoringReportExportArtifact,
   MonitoringReportExportOptions,
-  MonitoringReportPoint,
   MonitoringReportSeries,
 } from './report.types';
 
-const A4_WIDTH = 595.28;
-const A4_HEIGHT = 841.89;
-const PAGE_MARGIN = 42;
-const HEADER_BAND_HEIGHT = 18;
-const CONTENT_TOP = 86;
-const CONTENT_BOTTOM = 68;
-const CONTENT_WIDTH = A4_WIDTH - PAGE_MARGIN * 2;
-const INFO_GAP = 10;
-const TRANSPARENT_PNG = Buffer.from(
-  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4////fwAJ+wP9KobjigAAAABJRU5ErkJggg==',
-  'base64',
-);
-const NOVA_FOOTER_LINES = [
-  'Q. 106 Norte, Alameda 2, Lote 04, Sala 1001, 10o Andar, Edificio Palmas Business',
-  'CEP 77.006-054 - Palmas - Tocantins',
-  'sac@novatelecom.com.br | 0800 494 0103 | www.novatelecom.com.br',
-];
 const execFile = promisify(execFileCallback);
 
 @Injectable()
 export class MonitoringReportExportService {
+  constructor(
+    private readonly presentation: MonitoringReportPresentationService,
+  ) {}
+
+  /**
+   * Exporta um ou mais relatórios no formato solicitado, preservando
+   * o contrato atual de artefato retornado para a camada de aplicação.
+   */
   async exportReports(
     reports: MonitoringPrtgStyleReport[],
     options: MonitoringReportExportOptions,
@@ -62,7 +54,7 @@ export class MonitoringReportExportService {
 
     return {
       buffer: bytes,
-      fileName: this.buildFileName(reports, options.format),
+      fileName: this.presentation.buildFileName(reports, options.format),
       mimeType: 'application/pdf',
     };
   }
@@ -71,7 +63,7 @@ export class MonitoringReportExportService {
     reports: MonitoringPrtgStyleReport[],
     options: MonitoringReportExportOptions,
   ) {
-    const title = this.escapeXml(options.title || 'Relatório de Consumo');
+    const title = this.presentation.escapeXml(options.title || 'Relatório de Consumo');
     const cover = this.buildPdfCoverHtml(reports, options);
     const reportPages = reports
       .flatMap((report) => {
@@ -87,7 +79,7 @@ export class MonitoringReportExportService {
               title,
               `
                 <section class="section-card">
-                  <h2 class="section-title">${this.escapeXml(
+                  <h2 class="section-title">${this.presentation.escapeXml(
                     `${report.partner.name}: ${report.unit.name}`,
                   )}</h2>
                   ${this.buildWarningsHtml(report.warnings)}
@@ -486,11 +478,11 @@ export class MonitoringReportExportService {
         'Interessado',
         options.interestedParty || reports[0]?.partner.name || '-',
       ],
-      ['Data de emissão', this.formatDate(new Date().toISOString())],
+      ['Data de emissão', this.presentation.formatDate(new Date().toISOString())],
       [
         'Período',
         period
-          ? `${this.formatDate(period.from)} a ${this.formatDate(period.to)}`
+          ? `${this.presentation.formatDate(period.from)} a ${this.presentation.formatDate(period.to)}`
           : '-',
       ],
       ['Contrato', options.contractLabel || '-'],
@@ -513,7 +505,7 @@ export class MonitoringReportExportService {
       .map(
         (report, index) => `
           <div class="unit-item unit-item--compact">
-            <strong>${index + 1}.</strong> ${this.escapeXml(
+            <strong>${index + 1}.</strong> ${this.presentation.escapeXml(
               `${report.unit.code} - ${report.unit.name}`,
             )}
           </div>
@@ -527,11 +519,11 @@ export class MonitoringReportExportService {
         : '';
 
     return this.wrapPdfSheetHtml(
-      this.escapeXml(options.title || 'Relatório de Consumo'),
+      this.presentation.escapeXml(options.title || 'Relatório de Consumo'),
       `
         <section class="cover-hero">
           <div class="cover-kicker">Monitoramento corporativo</div>
-          <h2 class="cover-heading">${this.escapeXml(options.title || 'Relatório de Consumo')}</h2>
+          <h2 class="cover-heading">${this.presentation.escapeXml(options.title || 'Relatório de Consumo')}</h2>
           <div class="cover-subtitle">
             Relatório consolidado gerado pelo NOVA Telecom com base nas coletas do Zabbix,
             estruturado para emissão corporativa com contexto operacional e comercial.
@@ -542,8 +534,8 @@ export class MonitoringReportExportService {
             .map(
               ([label, value]) => `
                 <article class="meta-card">
-                  <div class="meta-card-label">${this.escapeXml(label)}</div>
-                  <div class="meta-card-value">${this.escapeXml(String(value))}</div>
+                  <div class="meta-card-label">${this.presentation.escapeXml(label)}</div>
+                  <div class="meta-card-value">${this.presentation.escapeXml(String(value))}</div>
                 </article>
               `,
             )
@@ -574,7 +566,7 @@ export class MonitoringReportExportService {
     const operationalRows = [
       [
         'Período do relatório',
-        `${this.formatDate(report.period.from)} - ${this.formatDate(report.period.to)}`,
+        `${this.presentation.formatDate(report.period.from)} - ${this.presentation.formatDate(report.period.to)}`,
       ],
       ['Horas de relatório', '24 / 7'],
       [
@@ -597,10 +589,10 @@ export class MonitoringReportExportService {
     ] as const;
 
     return this.wrapPdfSheetHtml(
-      this.escapeXml(options.title || 'Relatório de Consumo'),
+      this.presentation.escapeXml(options.title || 'Relatório de Consumo'),
       `
         <section class="page-title-block">
-          <h2 class="page-title">${this.escapeXml(`${report.partner.name}: ${report.unit.name}`)}</h2>
+          <h2 class="page-title">${this.presentation.escapeXml(`${report.partner.name}: ${report.unit.name}`)}</h2>
           <div class="page-subtitle">
             Visão consolidada da unidade monitorada com informações operacionais,
             vínculo de host e dados comerciais de referência.
@@ -637,14 +629,14 @@ export class MonitoringReportExportService {
         (series) => `
           <article class="stat-card">
             <div class="stat-card-head">
-              <span class="stat-color" style="background:${this.escapeXml(series.color)}"></span>
-              <div class="stat-title">${this.escapeXml(series.label)}</div>
+              <span class="stat-color" style="background:${this.presentation.escapeXml(series.color)}"></span>
+              <div class="stat-title">${this.presentation.escapeXml(series.label)}</div>
             </div>
             <div class="stat-values">
-              <div><span>Último</span><strong>${this.escapeXml(this.formatValue(series.stats.last, series.unit))}</strong></div>
-              <div><span>Mínimo</span><strong>${this.escapeXml(this.formatValue(series.stats.min, series.unit))}</strong></div>
-              <div><span>Média</span><strong>${this.escapeXml(this.formatValue(series.stats.avg, series.unit))}</strong></div>
-              <div><span>Máximo</span><strong>${this.escapeXml(this.formatValue(series.stats.max, series.unit))}</strong></div>
+              <div><span>Último</span><strong>${this.presentation.escapeXml(this.presentation.formatValue(series.stats.last, series.unit))}</strong></div>
+              <div><span>Mínimo</span><strong>${this.presentation.escapeXml(this.presentation.formatValue(series.stats.min, series.unit))}</strong></div>
+              <div><span>Média</span><strong>${this.presentation.escapeXml(this.presentation.formatValue(series.stats.avg, series.unit))}</strong></div>
+              <div><span>Máximo</span><strong>${this.presentation.escapeXml(this.presentation.formatValue(series.stats.max, series.unit))}</strong></div>
             </div>
           </article>
         `,
@@ -656,14 +648,14 @@ export class MonitoringReportExportService {
         <div class="consumption-banner">
           <div class="metric-line">
             <strong>Consumo:</strong>
-            Recebido ${this.escapeXml(this.formatBytes(block.consumption.receivedBytes))}
-            | Enviado ${this.escapeXml(this.formatBytes(block.consumption.sentBytes))}
-            | Total ${this.escapeXml(this.formatBytes(block.consumption.totalBytes))}
-            | Pico down ${this.escapeXml(
-              this.formatValue(block.consumption.peakReceiveBps, 'bps'),
+            Recebido ${this.presentation.escapeXml(this.presentation.formatBytes(block.consumption.receivedBytes))}
+            | Enviado ${this.presentation.escapeXml(this.presentation.formatBytes(block.consumption.sentBytes))}
+            | Total ${this.presentation.escapeXml(this.presentation.formatBytes(block.consumption.totalBytes))}
+            | Pico down ${this.presentation.escapeXml(
+              this.presentation.formatValue(block.consumption.peakReceiveBps, 'bps'),
             )}
-            | Pico up ${this.escapeXml(
-              this.formatValue(block.consumption.peakSendBps, 'bps'),
+            | Pico up ${this.presentation.escapeXml(
+              this.presentation.formatValue(block.consumption.peakSendBps, 'bps'),
             )}
           </div>
         </div>
@@ -671,12 +663,12 @@ export class MonitoringReportExportService {
       : '';
 
     return this.wrapPdfSheetHtml(
-      this.escapeXml(options.title || 'Relatório de Consumo'),
+      this.presentation.escapeXml(options.title || 'Relatório de Consumo'),
       `
         <section class="page-title-block">
-          <h2 class="page-title">${this.escapeXml(block.title)}</h2>
+          <h2 class="page-title">${this.presentation.escapeXml(block.title)}</h2>
           <div class="page-subtitle">
-            Unidade ${this.escapeXml(report.unit.name)} • Sensor ${this.escapeXml(block.sensorType)}
+            Unidade ${this.presentation.escapeXml(report.unit.name)} • Sensor ${this.presentation.escapeXml(block.sensorType)}
           </div>
         </section>
         <section class="layout-grid layout-grid--double">
@@ -698,7 +690,7 @@ export class MonitoringReportExportService {
               <section class="section-card">
                 <h2 class="section-title">Gráfico consolidado</h2>
                 <div class="chart-wrap">
-                  ${this.chartSvg(block)}
+                  ${this.presentation.chartSvg(block)}
                 </div>
               </section>
             `
@@ -719,14 +711,14 @@ export class MonitoringReportExportService {
         <header class="sheet-header">
           <div class="brand">NOVA TELECOM</div>
           <h1 class="sheet-title">${title}</h1>
-          <div class="sheet-month">${this.escapeXml(this.monthLabel(new Date()))}</div>
+          <div class="sheet-month">${this.presentation.escapeXml(this.presentation.monthLabel(new Date()))}</div>
         </header>
         <main class="sheet-body">
           ${body}
         </main>
         <footer class="sheet-footer">
           ${NOVA_FOOTER_LINES.map(
-            (line) => `<p class="footer-line">${this.escapeXml(line)}</p>`,
+            (line) => `<p class="footer-line">${this.presentation.escapeXml(line)}</p>`,
           ).join('')}
         </footer>
       </section>
@@ -741,8 +733,8 @@ export class MonitoringReportExportService {
             .map(
               ([label, value]) => `
                 <tr>
-                  <th>${this.escapeXml(label)}</th>
-                  <td>${this.escapeXml(String(value || '-'))}</td>
+                  <th>${this.presentation.escapeXml(label)}</th>
+                  <td>${this.presentation.escapeXml(String(value || '-'))}</td>
                 </tr>
               `,
             )
@@ -760,7 +752,7 @@ export class MonitoringReportExportService {
           ${warnings
             .map(
               (warning) =>
-                `<div class="warning-item">• ${this.escapeXml(warning)}</div>`,
+                `<div class="warning-item">• ${this.presentation.escapeXml(warning)}</div>`,
             )
             .join('')}
         </div>
@@ -845,658 +837,6 @@ export class MonitoringReportExportService {
     return stdout.trim();
   }
 
-  private drawPdfHeader(
-    page: any,
-    boldFont: any,
-    regularFont: any,
-    rgb: any,
-    title: string,
-  ) {
-    page.drawRectangle({
-      x: 0,
-      y: A4_HEIGHT - HEADER_BAND_HEIGHT,
-      width: A4_WIDTH,
-      height: HEADER_BAND_HEIGHT,
-      color: rgb(0.34, 0.34, 0.34),
-    });
-    page.drawText('NOVA TELECOM', {
-      x: PAGE_MARGIN,
-      y: A4_HEIGHT - 46,
-      size: 9,
-      font: regularFont,
-      color: rgb(0.11, 0.2, 0.34),
-    });
-    const titleLines = this.wrapPdfText(title, boldFont, 18, CONTENT_WIDTH);
-    titleLines.slice(0, 2).forEach((line, index) => {
-      page.drawText(line, {
-        x: PAGE_MARGIN,
-        y: A4_HEIGHT - 66 - index * 18,
-        size: 18,
-        font: boldFont,
-        color: rgb(0.12, 0.5, 0.82),
-      });
-    });
-    page.drawText(this.monthLabel(new Date()), {
-      x: PAGE_MARGIN,
-      y: A4_HEIGHT - 82 - Math.max(0, titleLines.length - 1) * 18,
-      size: 10,
-      font: regularFont,
-      color: rgb(0.28, 0.33, 0.38),
-    });
-
-    return CONTENT_TOP - Math.max(0, titleLines.length - 1) * 18;
-  }
-
-  private drawPdfFooter(page: any, regularFont: any, rgb: any) {
-    const footerY = 28;
-    page.drawLine({
-      start: { x: PAGE_MARGIN, y: footerY + 24 },
-      end: { x: A4_WIDTH - PAGE_MARGIN, y: footerY + 24 },
-      thickness: 0.8,
-      color: rgb(0.86, 0.89, 0.93),
-    });
-
-    NOVA_FOOTER_LINES.forEach((line, index) => {
-      page.drawText(line, {
-        x: PAGE_MARGIN,
-        y: footerY + 12 - index * 10,
-        size: 8.2,
-        font: regularFont,
-        color: rgb(0.38, 0.42, 0.47),
-      });
-    });
-  }
-
-  private drawPdfCover(
-    page: any,
-    cursorY: number,
-    reports: MonitoringPrtgStyleReport[],
-    options: MonitoringReportExportOptions,
-    regularFont: any,
-    boldFont: any,
-    rgb: any,
-  ) {
-    const period = reports[0]?.period;
-    const rows = [
-      [
-        'Interessado',
-        options.interestedParty || reports[0]?.partner.name || '-',
-      ],
-      ['Data de emissão', this.formatDate(new Date().toISOString())],
-      [
-        'Período',
-        period
-          ? `${this.formatDate(period.from)} a ${this.formatDate(period.to)}`
-          : '-',
-      ],
-      ['Contrato', options.contractLabel || '-'],
-      ['Endereço', options.addressLine || '-'],
-      ['Banda contratada', options.contractedBandwidth || '-'],
-      ['Unidades selecionadas', `${reports.length}`],
-      ['Formato', options.format.toUpperCase()],
-    ] as const;
-
-    page.drawText('Resumo da exportação', {
-      x: PAGE_MARGIN,
-      y: cursorY - 4,
-      size: 13,
-      font: boldFont,
-      color: rgb(0.18, 0.22, 0.26),
-    });
-    cursorY -= 24;
-    cursorY = this.drawPdfInfoRows(
-      page,
-      cursorY,
-      rows,
-      regularFont,
-      boldFont,
-      rgb,
-      {
-        labelWidth: 112,
-        fontSize: 10,
-        lineHeight: 13,
-        separator: false,
-      },
-    );
-
-    page.drawText('Unidades incluídas', {
-      x: PAGE_MARGIN,
-      y: cursorY - 10,
-      size: 12,
-      font: boldFont,
-      color: rgb(0.18, 0.22, 0.26),
-    });
-    cursorY -= 30;
-
-    reports.slice(0, 18).forEach((report, index) => {
-      const lines = this.wrapPdfText(
-        `${index + 1}. ${report.unit.code} - ${report.unit.name}`,
-        regularFont,
-        10,
-        CONTENT_WIDTH,
-      );
-      lines.forEach((line, lineIndex) => {
-        page.drawText(line, {
-          x: PAGE_MARGIN,
-          y: cursorY - lineIndex * 12,
-          size: 10,
-          font: regularFont,
-          color: rgb(0.16, 0.19, 0.23),
-        });
-      });
-      cursorY -= lines.length * 12 + 4;
-    });
-
-    if (reports.length > 18) {
-      page.drawText(`+ ${reports.length - 18} unidade(s) adicional(is)`, {
-        x: PAGE_MARGIN,
-        y: cursorY,
-        size: 10,
-        font: regularFont,
-        color: rgb(0.38, 0.42, 0.47),
-      });
-      cursorY -= 18;
-    }
-
-    return cursorY;
-  }
-
-  private drawPdfUnitSummary(
-    page: any,
-    cursorY: number,
-    report: MonitoringPrtgStyleReport,
-    options: MonitoringReportExportOptions,
-    regularFont: any,
-    boldFont: any,
-    rgb: any,
-  ) {
-    page.drawText(`${report.partner.name}: ${report.unit.name}`, {
-      x: PAGE_MARGIN,
-      y: cursorY,
-      size: 15,
-      font: boldFont,
-      color: rgb(0.12, 0.5, 0.82),
-    });
-    cursorY -= 22;
-
-    const rows = [
-      [
-        'Período do relatório',
-        `${this.formatDate(report.period.from)} - ${this.formatDate(report.period.to)}`,
-      ],
-      ['Horas de relatório', '24 / 7'],
-      ['Parceiro', `${report.partner.code} - ${report.partner.name}`],
-      ['Unidade', `${report.unit.code} - ${report.unit.name}`],
-      [
-        'Cidade/UF',
-        [report.unit.city, report.unit.state].filter(Boolean).join('/') || '-',
-      ],
-      [
-        'Host Zabbix',
-        report.host?.hostName || report.host?.host || 'Não localizado',
-      ],
-      ['Integração', report.integration?.name || '-'],
-      ['Contrato', options.contractLabel || '-'],
-      ['Endereço', options.addressLine || '-'],
-      ['Banda contratada', options.contractedBandwidth || '-'],
-    ] as const;
-    cursorY = this.drawPdfInfoRows(
-      page,
-      cursorY,
-      rows,
-      regularFont,
-      boldFont,
-      rgb,
-      {
-        labelWidth: 132,
-        fontSize: 9.3,
-        lineHeight: 12,
-        separator: true,
-      },
-    );
-
-    if (report.warnings.length) {
-      cursorY = this.drawPdfWarnings(
-        page,
-        cursorY - 6,
-        report.warnings,
-        regularFont,
-        boldFont,
-        rgb,
-      );
-    }
-
-    return cursorY - 4;
-  }
-
-  private drawPdfWarnings(
-    page: any,
-    cursorY: number,
-    warnings: string[],
-    regularFont: any,
-    boldFont: any,
-    rgb: any,
-  ) {
-    const warningLines = warnings.flatMap((warning) =>
-      this.wrapPdfText(`• ${warning}`, regularFont, 8.8, CONTENT_WIDTH - 24),
-    );
-    const boxHeight = 30 + warningLines.length * 11;
-    page.drawRectangle({
-      x: PAGE_MARGIN,
-      y: cursorY - boxHeight + 6,
-      width: A4_WIDTH - PAGE_MARGIN * 2,
-      height: boxHeight,
-      color: rgb(0.98, 0.94, 0.95),
-      borderColor: rgb(0.86, 0.45, 0.49),
-      borderWidth: 1,
-    });
-    page.drawText('Observações', {
-      x: PAGE_MARGIN + 12,
-      y: cursorY - 12,
-      size: 10,
-      font: boldFont,
-      color: rgb(0.62, 0.19, 0.23),
-    });
-
-    warningLines.forEach((line, index) => {
-      page.drawText(line, {
-        x: PAGE_MARGIN + 12,
-        y: cursorY - 28 - index * 11,
-        size: 8.8,
-        font: regularFont,
-        color: rgb(0.41, 0.18, 0.2),
-      });
-    });
-
-    return cursorY - boxHeight - 10;
-  }
-
-  private drawPdfBlock(
-    page: any,
-    cursorY: number,
-    block: MonitoringReportBlock,
-    includeCharts: boolean,
-    regularFont: any,
-    boldFont: any,
-    rgb: any,
-  ) {
-    const titleLines = this.wrapPdfText(
-      block.title,
-      boldFont,
-      11,
-      CONTENT_WIDTH - 20,
-    );
-    const headerHeight = Math.max(18, 10 + titleLines.length * 12);
-    page.drawRectangle({
-      x: PAGE_MARGIN,
-      y: cursorY - headerHeight + 2,
-      width: CONTENT_WIDTH,
-      height: headerHeight,
-      color: rgb(0.95, 0.97, 0.99),
-      borderColor: rgb(0.86, 0.89, 0.93),
-      borderWidth: 0.8,
-    });
-    titleLines.forEach((line, index) => {
-      page.drawText(line, {
-        x: PAGE_MARGIN + 10,
-        y: cursorY - 11 - index * 12,
-        size: 11,
-        font: boldFont,
-        color: rgb(0.16, 0.19, 0.23),
-      });
-    });
-    cursorY -= headerHeight + 12;
-
-    const metadata = [
-      ['Tipo de sensor', block.sensorType],
-      ['Origem', block.probePath],
-      ['Descrição', block.description],
-    ] as const;
-    cursorY = this.drawPdfInfoRows(
-      page,
-      cursorY,
-      metadata,
-      regularFont,
-      boldFont,
-      rgb,
-      {
-        labelWidth: 88,
-        fontSize: 8.7,
-        lineHeight: 11,
-        separator: true,
-      },
-    );
-
-    for (const series of block.series) {
-      const summary = `${series.label}: último ${this.formatValue(series.stats.last, series.unit)} | min ${this.formatValue(series.stats.min, series.unit)} | média ${this.formatValue(series.stats.avg, series.unit)} | máx ${this.formatValue(series.stats.max, series.unit)}`;
-      const lines = this.wrapPdfText(summary, regularFont, 8.2, CONTENT_WIDTH);
-      lines.forEach((line, index) => {
-        page.drawText(line, {
-          x: PAGE_MARGIN,
-          y: cursorY - index * 10,
-          size: 8.2,
-          font: regularFont,
-          color: this.pdfColor(rgb, series.color),
-        });
-      });
-      cursorY -= lines.length * 10 + 4;
-    }
-    cursorY -= 4;
-
-    if (block.consumption) {
-      const consumptionLine = `Recebido ${this.formatBytes(block.consumption.receivedBytes)} | Enviado ${this.formatBytes(block.consumption.sentBytes)} | Total ${this.formatBytes(block.consumption.totalBytes)} | Pico down ${this.formatValue(block.consumption.peakReceiveBps, 'bps')} | Pico up ${this.formatValue(block.consumption.peakSendBps, 'bps')}`;
-      const lines = this.wrapPdfText(
-        consumptionLine,
-        regularFont,
-        8.2,
-        CONTENT_WIDTH,
-      );
-      lines.forEach((line, index) => {
-        page.drawText(line, {
-          x: PAGE_MARGIN,
-          y: cursorY - index * 10,
-          size: 8.2,
-          font: regularFont,
-          color: rgb(0.12, 0.22, 0.36),
-        });
-      });
-      cursorY -= lines.length * 10 + 8;
-    }
-
-    if (includeCharts) {
-      const chartBounds = {
-        x: PAGE_MARGIN,
-        y: cursorY - 150,
-        width: A4_WIDTH - PAGE_MARGIN * 2,
-        height: 142,
-      };
-      this.drawPdfChart(page, chartBounds, block, regularFont, boldFont, rgb);
-      cursorY -= 168;
-    }
-
-    return cursorY - 10;
-  }
-
-  private drawPdfInfoRows(
-    page: any,
-    cursorY: number,
-    rows: ReadonlyArray<readonly [string, string]>,
-    regularFont: any,
-    boldFont: any,
-    rgb: any,
-    options: {
-      labelWidth: number;
-      fontSize: number;
-      lineHeight: number;
-      separator: boolean;
-    },
-  ) {
-    const labelX = PAGE_MARGIN;
-    const valueX = PAGE_MARGIN + options.labelWidth + INFO_GAP;
-    const valueWidth = CONTENT_WIDTH - options.labelWidth - INFO_GAP;
-
-    rows.forEach(([label, value], index) => {
-      const valueLines = this.wrapPdfText(
-        String(value || '-'),
-        regularFont,
-        options.fontSize,
-        valueWidth,
-      );
-      page.drawText(`${label}:`, {
-        x: labelX,
-        y: cursorY,
-        size: options.fontSize,
-        font: boldFont,
-        color: rgb(0.36, 0.39, 0.43),
-      });
-
-      valueLines.forEach((line, lineIndex) => {
-        page.drawText(line, {
-          x: valueX,
-          y: cursorY - lineIndex * options.lineHeight,
-          size: options.fontSize,
-          font: regularFont,
-          color: rgb(0.14, 0.17, 0.2),
-        });
-      });
-
-      const rowHeight = Math.max(1, valueLines.length) * options.lineHeight + 4;
-      cursorY -= rowHeight;
-
-      if (options.separator && index < rows.length - 1) {
-        page.drawLine({
-          start: { x: PAGE_MARGIN, y: cursorY + 2 },
-          end: { x: A4_WIDTH - PAGE_MARGIN, y: cursorY + 2 },
-          thickness: 0.55,
-          color: rgb(0.9, 0.92, 0.95),
-        });
-        cursorY -= 4;
-      }
-    });
-
-    return cursorY;
-  }
-
-  private estimatePdfBlockHeight(
-    block: MonitoringReportBlock,
-    includeCharts: boolean,
-    regularFont: any,
-    boldFont: any,
-  ) {
-    let height = 22;
-    const titleLines = this.wrapPdfText(
-      block.title,
-      boldFont,
-      11,
-      CONTENT_WIDTH - 20,
-    );
-    height += Math.max(18, 10 + titleLines.length * 12) + 12;
-
-    height += this.estimatePdfInfoRowsHeight(
-      [
-        ['Tipo de sensor', block.sensorType],
-        ['Origem', block.probePath],
-        ['Descrição', block.description],
-      ],
-      regularFont,
-      8.7,
-      CONTENT_WIDTH - 88 - INFO_GAP,
-      11,
-      true,
-    );
-
-    block.series.forEach((series) => {
-      const summary = `${series.label}: último ${this.formatValue(series.stats.last, series.unit)} | min ${this.formatValue(series.stats.min, series.unit)} | média ${this.formatValue(series.stats.avg, series.unit)} | máx ${this.formatValue(series.stats.max, series.unit)}`;
-      const lines = this.wrapPdfText(summary, regularFont, 8.2, CONTENT_WIDTH);
-      height += lines.length * 10 + 4;
-    });
-    height += 4;
-
-    if (block.consumption) {
-      const consumptionLine = `Recebido ${this.formatBytes(block.consumption.receivedBytes)} | Enviado ${this.formatBytes(block.consumption.sentBytes)} | Total ${this.formatBytes(block.consumption.totalBytes)} | Pico down ${this.formatValue(block.consumption.peakReceiveBps, 'bps')} | Pico up ${this.formatValue(block.consumption.peakSendBps, 'bps')}`;
-      const lines = this.wrapPdfText(
-        consumptionLine,
-        regularFont,
-        8.2,
-        CONTENT_WIDTH,
-      );
-      height += lines.length * 10 + 8;
-    }
-
-    if (includeCharts) {
-      height += 168;
-    }
-
-    return height + 10;
-  }
-
-  private estimatePdfInfoRowsHeight(
-    rows: ReadonlyArray<readonly [string, string]>,
-    regularFont: any,
-    fontSize: number,
-    valueWidth: number,
-    lineHeight: number,
-    separator: boolean,
-  ) {
-    return rows.reduce((total, [, value], index) => {
-      const lines = this.wrapPdfText(
-        String(value || '-'),
-        regularFont,
-        fontSize,
-        valueWidth,
-      );
-      const rowHeight = Math.max(1, lines.length) * lineHeight + 4;
-      return total + rowHeight + (separator && index < rows.length - 1 ? 4 : 0);
-    }, 0);
-  }
-
-  private drawPdfChart(
-    page: any,
-    bounds: { x: number; y: number; width: number; height: number },
-    block: MonitoringReportBlock,
-    regularFont: any,
-    boldFont: any,
-    rgb: any,
-  ) {
-    const model = this.chartModel(block);
-    const leftGutter = 52;
-    const rightGutter = model.secondaryAxis ? 56 : 24;
-    const plotX = bounds.x + leftGutter;
-    const plotY = bounds.y + 28;
-    const plotWidth = bounds.width - leftGutter - rightGutter;
-    const plotHeight = bounds.height - 48;
-
-    page.drawRectangle({
-      x: bounds.x,
-      y: bounds.y,
-      width: bounds.width,
-      height: bounds.height,
-      color: rgb(1, 1, 1),
-      borderColor: rgb(0.84, 0.87, 0.91),
-      borderWidth: 0.9,
-    });
-    page.drawText(block.title, {
-      x: bounds.x + 12,
-      y: bounds.y + bounds.height - 16,
-      size: 10,
-      font: boldFont,
-      color: rgb(0.16, 0.19, 0.23),
-    });
-
-    for (let index = 0; index <= 5; index += 1) {
-      const lineY = plotY + (index / 5) * plotHeight;
-      page.drawLine({
-        start: { x: plotX, y: lineY },
-        end: { x: plotX + plotWidth, y: lineY },
-        thickness: 0.5,
-        color: rgb(0.86, 0.89, 0.93),
-      });
-
-      const primaryValue =
-        model.primaryAxis.max -
-        (index / 5) * (model.primaryAxis.max - model.primaryAxis.min);
-      page.drawText(this.formatValue(primaryValue, model.primaryAxis.unit), {
-        x: bounds.x + 4,
-        y: lineY - 3,
-        size: 7,
-        font: regularFont,
-        color: rgb(0.34, 0.37, 0.42),
-      });
-
-      if (model.secondaryAxis) {
-        const secondaryValue =
-          model.secondaryAxis.max -
-          (index / 5) *
-            (model.secondaryAxis.max - model.secondaryAxis.min);
-        page.drawText(
-          this.formatValue(secondaryValue, model.secondaryAxis.unit),
-          {
-            x: plotX + plotWidth + 6,
-            y: lineY - 3,
-            size: 7,
-            font: regularFont,
-            color: rgb(0.34, 0.37, 0.42),
-          },
-        );
-      }
-    }
-
-    for (let index = 0; index <= 7; index += 1) {
-      const lineX = plotX + (index / 7) * plotWidth;
-      page.drawLine({
-        start: { x: lineX, y: plotY },
-        end: { x: lineX, y: plotY + plotHeight },
-        thickness: 0.5,
-        color: rgb(0.9, 0.92, 0.95),
-      });
-    }
-
-    page.drawLine({
-      start: { x: plotX, y: plotY },
-      end: { x: plotX, y: plotY + plotHeight },
-      thickness: 0.9,
-      color: rgb(0.5, 0.54, 0.59),
-    });
-    page.drawLine({
-      start: { x: plotX, y: plotY },
-      end: { x: plotX + plotWidth, y: plotY },
-      thickness: 0.9,
-      color: rgb(0.5, 0.54, 0.59),
-    });
-
-    for (const series of model.series) {
-      for (let index = 1; index < series.points.length; index += 1) {
-        const previous = series.points[index - 1];
-        const current = series.points[index];
-        page.drawLine({
-          start: {
-            x: plotX + previous.ratioX * plotWidth,
-            y: plotY + (1 - previous.ratioY) * plotHeight,
-          },
-          end: {
-            x: plotX + current.ratioX * plotWidth,
-            y: plotY + (1 - current.ratioY) * plotHeight,
-          },
-          thickness: series.unit === 'd' ? 1.7 : 1.05,
-          color: this.pdfColor(rgb, series.color),
-        });
-      }
-    }
-
-    model.labels.forEach((label, index) => {
-      page.drawText(label, {
-        x:
-          plotX +
-          (index / Math.max(model.labels.length - 1, 1)) * plotWidth -
-          6,
-        y: bounds.y + 6,
-        size: 6.5,
-        font: regularFont,
-        color: rgb(0.34, 0.37, 0.42),
-        rotate: { type: 'degrees', angle: 65 },
-      });
-    });
-
-    let legendX = bounds.x + 12;
-    const legendY = bounds.y + bounds.height - 30;
-    model.series.forEach((series) => {
-      page.drawRectangle({
-        x: legendX,
-        y: legendY,
-        width: 8,
-        height: 8,
-        color: this.pdfColor(rgb, series.color),
-      });
-      page.drawText(series.label, {
-        x: legendX + 12,
-        y: legendY + 1,
-        size: 7.4,
-        font: regularFont,
-        color: rgb(0.16, 0.19, 0.23),
-      });
-      legendX += 88;
-    });
-  }
 
   private async buildDocx(
     reports: MonitoringPrtgStyleReport[],
@@ -1550,11 +890,11 @@ export class MonitoringReportExportService {
           'Interessado',
           options.interestedParty || reports[0]?.partner.name || '-',
         ],
-        ['Data de emissão', this.formatDate(new Date().toISOString())],
+        ['Data de emissão', this.presentation.formatDate(new Date().toISOString())],
         [
           'Período',
           reports[0]
-            ? `${this.formatDate(reports[0].period.from)} a ${this.formatDate(reports[0].period.to)}`
+            ? `${this.presentation.formatDate(reports[0].period.from)} a ${this.presentation.formatDate(reports[0].period.to)}`
             : '-',
         ],
         ['Contrato', options.contractLabel || '-'],
@@ -1599,7 +939,7 @@ export class MonitoringReportExportService {
         this.docxInfoTable(docx, [
           [
             'Período do relatório',
-            `${this.formatDate(report.period.from)} - ${this.formatDate(report.period.to)}`,
+            `${this.presentation.formatDate(report.period.from)} - ${this.presentation.formatDate(report.period.to)}`,
           ],
           ['Horas de relatório', '24 / 7'],
           [
@@ -1687,7 +1027,7 @@ export class MonitoringReportExportService {
               children: [
                 new TextRun({ text: 'Consumo: ', bold: true }),
                 new TextRun(
-                  `Recebido ${this.formatBytes(block.consumption.receivedBytes)} | Enviado ${this.formatBytes(block.consumption.sentBytes)} | Total ${this.formatBytes(block.consumption.totalBytes)} | Pico down ${this.formatValue(block.consumption.peakReceiveBps, 'bps')} | Pico up ${this.formatValue(block.consumption.peakSendBps, 'bps')}`,
+                  `Recebido ${this.presentation.formatBytes(block.consumption.receivedBytes)} | Enviado ${this.presentation.formatBytes(block.consumption.sentBytes)} | Total ${this.presentation.formatBytes(block.consumption.totalBytes)} | Pico down ${this.presentation.formatValue(block.consumption.peakReceiveBps, 'bps')} | Pico up ${this.presentation.formatValue(block.consumption.peakSendBps, 'bps')}`,
                 ),
               ],
               spacing: { after: 60 },
@@ -1696,7 +1036,7 @@ export class MonitoringReportExportService {
         }
 
         if (options.includeCharts) {
-          const svg = this.chartSvg(block);
+          const svg = this.presentation.chartSvg(block);
           children.push(
             new Paragraph({
               children: [
@@ -1772,7 +1112,7 @@ export class MonitoringReportExportService {
     const buffer = await Packer.toBuffer(doc);
     return {
       buffer,
-      fileName: this.buildFileName(reports, options.format),
+      fileName: this.presentation.buildFileName(reports, options.format),
       mimeType:
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     };
@@ -1951,7 +1291,7 @@ export class MonitoringReportExportService {
                   width: { size: 17, type: WidthType.PERCENTAGE },
                   children: [
                     new Paragraph(
-                      this.formatValue(series.stats.last, series.unit),
+                      this.presentation.formatValue(series.stats.last, series.unit),
                     ),
                   ],
                 }),
@@ -1959,7 +1299,7 @@ export class MonitoringReportExportService {
                   width: { size: 17, type: WidthType.PERCENTAGE },
                   children: [
                     new Paragraph(
-                      this.formatValue(series.stats.min, series.unit),
+                      this.presentation.formatValue(series.stats.min, series.unit),
                     ),
                   ],
                 }),
@@ -1967,7 +1307,7 @@ export class MonitoringReportExportService {
                   width: { size: 18, type: WidthType.PERCENTAGE },
                   children: [
                     new Paragraph(
-                      this.formatValue(series.stats.avg, series.unit),
+                      this.presentation.formatValue(series.stats.avg, series.unit),
                     ),
                   ],
                 }),
@@ -1975,7 +1315,7 @@ export class MonitoringReportExportService {
                   width: { size: 18, type: WidthType.PERCENTAGE },
                   children: [
                     new Paragraph(
-                      this.formatValue(series.stats.max, series.unit),
+                      this.presentation.formatValue(series.stats.max, series.unit),
                     ),
                   ],
                 }),
@@ -1986,358 +1326,4 @@ export class MonitoringReportExportService {
     });
   }
 
-  private chartModel(block: MonitoringReportBlock) {
-    const units = Array.from(new Set(block.series.map((series) => series.unit))).sort(
-      (left, right) => this.chartUnitPriority(left) - this.chartUnitPriority(right),
-    );
-    const axes = units.map((unit) => {
-      const values = block.series
-        .filter((series) => series.unit === unit)
-        .flatMap((series) => series.points.map((point) => point.value))
-        .filter(
-          (value): value is number =>
-            typeof value === 'number' && Number.isFinite(value),
-        );
-
-      const min =
-        unit === 'd' && values.length
-          ? Math.max(0, Math.min(...values) * 0.96)
-          : 0;
-      const observedMax = values.length ? Math.max(...values) : 1;
-      const max =
-        unit === '%'
-          ? Math.max(100, observedMax, min + 1)
-          : Math.max(observedMax, min + 1);
-
-      return { unit, min, max };
-    });
-    const axisMap = new Map(axes.map((axis) => [axis.unit, axis] as const));
-
-    const series = block.series.map((entry) => {
-      const axis = axisMap.get(entry.unit) || axes[0] || { unit: entry.unit, min: 0, max: 1 };
-      const points = this.slimPoints(entry.points, 120).map(
-        (point, index, items) => ({
-          value: point.value ?? 0,
-          ratioX: items.length <= 1 ? 0 : index / (items.length - 1),
-          ratioY: Math.min(
-            1,
-            Math.max(
-              0,
-              (Number(point.value || 0) - axis.min) /
-                Math.max(axis.max - axis.min, 1),
-            ),
-          ),
-        }),
-      );
-
-      return {
-        label: entry.label,
-        color: entry.color,
-        unit: entry.unit,
-        axis,
-        points,
-      };
-    });
-
-    const labelsSource = this.slimPoints(block.series[0]?.points || [], 6);
-    const labels = labelsSource.map((point) =>
-      this.formatShortLabel(point.timestamp),
-    );
-
-    return {
-      primaryAxis: axes[0] || { unit: block.series[0]?.unit || 'bps', min: 0, max: 1 },
-      secondaryAxis: axes[1] || null,
-      series,
-      labels: labels.length ? labels : ['-'],
-    };
-  }
-
-  private chartSvg(block: MonitoringReportBlock) {
-    const model = this.chartModel(block);
-    const width = 900;
-    const height = 330;
-    const left = 70;
-    const top = 28;
-    const rightGutter = model.secondaryAxis ? 74 : 38;
-    const plotWidth = width - left - rightGutter;
-    const plotHeight = 190;
-    const bottom = top + plotHeight;
-
-    const linesY = Array.from({ length: 6 })
-      .map((_, index) => {
-        const y = top + (index / 5) * plotHeight;
-        const primaryValue =
-          model.primaryAxis.max -
-          (index / 5) * (model.primaryAxis.max - model.primaryAxis.min);
-        const secondaryValue = model.secondaryAxis
-          ? model.secondaryAxis.max -
-            (index / 5) * (model.secondaryAxis.max - model.secondaryAxis.min)
-          : null;
-
-        return `
-          <g>
-            <line x1="${left}" y1="${y}" x2="${left + plotWidth}" y2="${y}" stroke="#d7dde4" stroke-width="1" />
-            <text x="${left - 8}" y="${y + 4}" text-anchor="end" font-size="11" fill="#42505c">${this.escapeXml(this.formatValue(primaryValue, model.primaryAxis.unit))}</text>
-            ${
-              secondaryValue === null
-                ? ''
-                : `<text x="${left + plotWidth + 8}" y="${y + 4}" text-anchor="start" font-size="11" fill="#42505c">${this.escapeXml(this.formatValue(secondaryValue, model.secondaryAxis.unit))}</text>`
-            }
-          </g>
-        `;
-      })
-      .join('');
-
-    const linesX = Array.from({ length: 8 })
-      .map((_, index) => {
-        const x = left + (index / 7) * plotWidth;
-        return `<line x1="${x}" y1="${top}" x2="${x}" y2="${bottom}" stroke="#e6ebf1" stroke-width="1" />`;
-      })
-      .join('');
-
-    const seriesPaths = model.series
-      .map((series) => {
-        const d = series.points
-          .map((point, index) => {
-            const x = left + point.ratioX * plotWidth;
-            const y = top + (1 - point.ratioY) * plotHeight;
-            return `${index === 0 ? 'M' : 'L'} ${x.toFixed(2)} ${y.toFixed(2)}`;
-          })
-          .join(' ');
-        return `<path d="${d}" fill="none" stroke="${series.color}" stroke-width="${series.unit === 'd' ? 3 : 1.6}" />`;
-      })
-      .join('');
-
-    const labels = model.labels
-      .map((label, index) => {
-        const x =
-          left + (index / Math.max(model.labels.length - 1, 1)) * plotWidth;
-        return `<text x="${x}" y="${bottom + 28}" text-anchor="middle" font-size="10" fill="#4a5561" transform="rotate(65 ${x} ${bottom + 28})">${this.escapeXml(label)}</text>`;
-      })
-      .join('');
-
-    const legend = model.series
-      .map((series, index) => {
-        const x = left + index * 180;
-        return `<g><rect x="${x}" y="${height - 30}" width="10" height="10" fill="${series.color}" /><text x="${x + 16}" y="${height - 21}" font-size="11" fill="#1f2630">${this.escapeXml(series.label)}</text></g>`;
-      })
-      .join('');
-
-    return `
-      <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
-        <rect width="100%" height="100%" fill="#ffffff" />
-        <rect x="0" y="0" width="100%" height="24" fill="#f2f6fb" />
-        <text x="20" y="17" fill="#25303a" font-size="13" font-weight="700">${this.escapeXml(block.title)}</text>
-        <rect x="${left}" y="${top}" width="${plotWidth}" height="${plotHeight}" fill="#fbfcfd" stroke="#d7dde4" stroke-width="1" />
-        ${linesY}
-        ${linesX}
-        ${seriesPaths}
-        ${labels}
-        ${legend}
-      </svg>
-    `.trim();
-  }
-
-  private chartUnitPriority(unit: MonitoringReportSeries['unit']) {
-    if (unit === 'ms') return 0;
-    if (unit === 'bps') return 1;
-    if (unit === 'd') return 2;
-    if (unit === '%') return 3;
-    return 9;
-  }
-
-  private slimPoints(points: MonitoringReportPoint[], maxPoints: number) {
-    const valid = points.filter(
-      (point) =>
-        typeof point.value === 'number' && Number.isFinite(point.value),
-    );
-    if (valid.length <= maxPoints) {
-      return valid;
-    }
-
-    const step = Math.ceil(valid.length / maxPoints);
-    return valid.filter((_, index) => index % step === 0);
-  }
-
-  private formatValue(
-    value: number | null | undefined,
-    unit: MonitoringReportSeries['unit'] | 'bps',
-  ) {
-    if (value === null || value === undefined || !Number.isFinite(value)) {
-      return '-';
-    }
-
-    if (unit === 'bps') {
-      const abs = Math.abs(value);
-      if (abs >= 1_000_000_000)
-        return `${(value / 1_000_000_000).toLocaleString('pt-BR', { maximumFractionDigits: 2 })} Gbit/s`;
-      if (abs >= 1_000_000)
-        return `${(value / 1_000_000).toLocaleString('pt-BR', { maximumFractionDigits: 2 })} Mbit/s`;
-      if (abs >= 1_000)
-        return `${(value / 1_000).toLocaleString('pt-BR', { maximumFractionDigits: 2 })} Kbit/s`;
-      return `${value.toLocaleString('pt-BR', { maximumFractionDigits: 2 })} bit/s`;
-    }
-
-    if (unit === 'ms') {
-      return `${value.toLocaleString('pt-BR', { maximumFractionDigits: 2 })} ms`;
-    }
-
-    if (unit === '%') {
-      return `${value.toLocaleString('pt-BR', { maximumFractionDigits: 2 })} %`;
-    }
-
-    if (unit === 'd') {
-      const days = Math.floor(value);
-      const hours = Math.round((value - days) * 24);
-      return `${days}d ${hours}h`;
-    }
-
-    return `${value.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}`;
-  }
-
-  private formatBytes(value: number | null | undefined) {
-    if (value === null || value === undefined || !Number.isFinite(value)) {
-      return '-';
-    }
-
-    const abs = Math.abs(value);
-    if (abs >= 1024 ** 4)
-      return `${(value / 1024 ** 4).toLocaleString('pt-BR', { maximumFractionDigits: 2 })} TB`;
-    if (abs >= 1024 ** 3)
-      return `${(value / 1024 ** 3).toLocaleString('pt-BR', { maximumFractionDigits: 2 })} GB`;
-    if (abs >= 1024 ** 2)
-      return `${(value / 1024 ** 2).toLocaleString('pt-BR', { maximumFractionDigits: 2 })} MB`;
-    if (abs >= 1024)
-      return `${(value / 1024).toLocaleString('pt-BR', { maximumFractionDigits: 2 })} KB`;
-    return `${value.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} B`;
-  }
-
-  private formatDate(value: string) {
-    return new Intl.DateTimeFormat('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      timeZone: 'America/Araguaina',
-    }).format(new Date(value));
-  }
-
-  private formatShortLabel(value: string) {
-    return new Intl.DateTimeFormat('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      timeZone: 'America/Araguaina',
-    }).format(new Date(value));
-  }
-
-  private monthLabel(value: Date) {
-    return new Intl.DateTimeFormat('pt-BR', {
-      month: 'long',
-      year: 'numeric',
-      timeZone: 'America/Araguaina',
-    }).format(value);
-  }
-
-  private buildFileName(
-    reports: MonitoringPrtgStyleReport[],
-    format: 'pdf' | 'docx',
-  ) {
-    const stamp = new Intl.DateTimeFormat('sv-SE', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      timeZone: 'America/Araguaina',
-    })
-      .format(new Date())
-      .replaceAll('-', '');
-    const scope =
-      reports.length === 1
-        ? reports[0].unit.code.toLowerCase()
-        : `${reports.length}-unidades`;
-    return `nova-relatorio-consumo-${scope}-${stamp}.${format}`;
-  }
-
-  private pdfColor(rgb: (...args: number[]) => unknown, hex: string) {
-    const clean = String(hex || '#23416b').replace('#', '');
-    const normalized =
-      clean.length === 3
-        ? clean
-            .split('')
-            .map((item) => item + item)
-            .join('')
-        : clean.padEnd(6, '0').slice(0, 6);
-    const red = parseInt(normalized.slice(0, 2), 16) / 255;
-    const green = parseInt(normalized.slice(2, 4), 16) / 255;
-    const blue = parseInt(normalized.slice(4, 6), 16) / 255;
-    return rgb(red, green, blue);
-  }
-
-  private escapeXml(value: string) {
-    return String(value || '')
-      .replaceAll('&', '&amp;')
-      .replaceAll('<', '&lt;')
-      .replaceAll('>', '&gt;')
-      .replaceAll('"', '&quot;')
-      .replaceAll("'", '&#39;');
-  }
-
-  private wrapPdfText(
-    value: string,
-    font: any,
-    fontSize: number,
-    maxWidth: number,
-  ) {
-    const text =
-      String(value || '-')
-        .replace(/\s+/g, ' ')
-        .trim() || '-';
-    if (!maxWidth || font.widthOfTextAtSize(text, fontSize) <= maxWidth) {
-      return [text];
-    }
-
-    const words = text.split(' ');
-    const lines: string[] = [];
-    let current = '';
-
-    for (const word of words) {
-      const next = current ? `${current} ${word}` : word;
-      if (font.widthOfTextAtSize(next, fontSize) <= maxWidth) {
-        current = next;
-        continue;
-      }
-
-      if (current) {
-        lines.push(current);
-        current = '';
-      }
-
-      if (font.widthOfTextAtSize(word, fontSize) <= maxWidth) {
-        current = word;
-        continue;
-      }
-
-      let fragment = '';
-      for (const char of word) {
-        const candidate = `${fragment}${char}`;
-        if (font.widthOfTextAtSize(candidate, fontSize) <= maxWidth) {
-          fragment = candidate;
-          continue;
-        }
-        if (fragment) {
-          lines.push(fragment);
-        }
-        fragment = char;
-      }
-      current = fragment;
-    }
-
-    if (current) {
-      lines.push(current);
-    }
-
-    return lines.length ? lines : ['-'];
-  }
 }
