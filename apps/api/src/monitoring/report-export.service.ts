@@ -157,6 +157,10 @@ export class MonitoringReportExportService {
               margin-bottom: 6mm;
             }
 
+            .sheet--cover .sheet-header {
+              margin-bottom: 9mm;
+            }
+
             .brand {
               font-size: 9px;
               color: #1b3357;
@@ -172,6 +176,10 @@ export class MonitoringReportExportService {
               font-weight: 700;
             }
 
+            .sheet--report .sheet-title {
+              font-size: 17px;
+            }
+
             .sheet-month {
               margin-top: 1.5mm;
               font-size: 11px;
@@ -181,6 +189,93 @@ export class MonitoringReportExportService {
 
             .sheet-body {
               flex: 1;
+            }
+
+            .cover-hero {
+              background: linear-gradient(135deg, #f5f9ff 0%, #eef5fb 100%);
+              border: 1px solid #d6e2ee;
+              border-radius: 8px;
+              padding: 7mm;
+              margin-bottom: 5mm;
+            }
+
+            .cover-kicker {
+              font-size: 10px;
+              letter-spacing: 0.08em;
+              text-transform: uppercase;
+              color: #5c6b78;
+              margin-bottom: 2.5mm;
+            }
+
+            .cover-heading {
+              margin: 0 0 2mm;
+              font-size: 24px;
+              line-height: 1.1;
+              color: #184f87;
+            }
+
+            .cover-subtitle {
+              font-size: 11px;
+              line-height: 1.5;
+              color: #43515d;
+              max-width: 145mm;
+            }
+
+            .cover-meta-grid {
+              display: grid;
+              grid-template-columns: repeat(4, 1fr);
+              gap: 3mm;
+              margin-bottom: 5mm;
+            }
+
+            .meta-card {
+              border: 1px solid #d8e0e8;
+              border-radius: 6px;
+              padding: 3mm;
+              background: #fff;
+            }
+
+            .meta-card-label {
+              font-size: 9px;
+              letter-spacing: 0.06em;
+              text-transform: uppercase;
+              color: #637180;
+              margin-bottom: 1.2mm;
+            }
+
+            .meta-card-value {
+              font-size: 12px;
+              line-height: 1.35;
+              color: #1b2733;
+              font-weight: 600;
+              word-break: break-word;
+            }
+
+            .layout-grid {
+              display: grid;
+              gap: 5mm;
+            }
+
+            .layout-grid--double {
+              grid-template-columns: 1.1fr 0.9fr;
+            }
+
+            .page-title-block {
+              margin-bottom: 4mm;
+            }
+
+            .page-title {
+              margin: 0;
+              font-size: 19px;
+              line-height: 1.15;
+              color: #183b63;
+            }
+
+            .page-subtitle {
+              margin-top: 1.5mm;
+              font-size: 11px;
+              line-height: 1.45;
+              color: #55626f;
             }
 
             .section-card {
@@ -226,6 +321,59 @@ export class MonitoringReportExportService {
               word-break: break-word;
             }
 
+            .stats-grid {
+              display: grid;
+              grid-template-columns: repeat(2, 1fr);
+              gap: 3mm;
+              padding: 4mm;
+            }
+
+            .stat-card {
+              border: 1px solid #dee6ee;
+              border-radius: 6px;
+              background: #fafcff;
+              padding: 3mm;
+            }
+
+            .stat-card-head {
+              display: flex;
+              align-items: center;
+              gap: 2mm;
+              margin-bottom: 2.2mm;
+            }
+
+            .stat-color {
+              width: 10px;
+              height: 10px;
+              border-radius: 999px;
+              flex: 0 0 auto;
+            }
+
+            .stat-title {
+              font-size: 11px;
+              font-weight: 700;
+              color: #21303d;
+            }
+
+            .stat-values {
+              display: grid;
+              grid-template-columns: repeat(2, 1fr);
+              gap: 2mm 4mm;
+              font-size: 10px;
+            }
+
+            .stat-values span {
+              display: block;
+              color: #62707c;
+              margin-bottom: 0.5mm;
+            }
+
+            .stat-values strong {
+              display: block;
+              color: #1a2630;
+              font-size: 11px;
+            }
+
             .summary-list,
             .warning-list,
             .unit-list {
@@ -251,6 +399,14 @@ export class MonitoringReportExportService {
               line-height: 1.45;
               color: #1e395c;
               word-break: break-word;
+            }
+
+            .consumption-banner {
+              margin: 0 4mm 4mm;
+              padding: 3mm 3.5mm;
+              border-radius: 6px;
+              border: 1px solid #d7e1ee;
+              background: linear-gradient(135deg, #eef6ff 0%, #f7fbff 100%);
             }
 
             .metric-line strong {
@@ -280,6 +436,16 @@ export class MonitoringReportExportService {
 
             .chart-wrap {
               padding: 4mm;
+            }
+
+            .unit-list--compact {
+              gap: 2mm;
+            }
+
+            .unit-item--compact {
+              display: flex;
+              gap: 2mm;
+              align-items: baseline;
             }
 
             .chart-wrap svg {
@@ -330,15 +496,23 @@ export class MonitoringReportExportService {
       ['Contrato', options.contractLabel || '-'],
       ['Endereço', options.addressLine || '-'],
       ['Banda contratada', options.contractedBandwidth || '-'],
-      ['Unidades selecionadas', `${reports.length}`],
+    ] as const;
+
+    const coverStats = [
+      ['Unidades', `${reports.length}`],
       ['Formato', options.format.toUpperCase()],
+      ['Gráficos', options.includeCharts ? 'Incluídos' : 'Resumo geral'],
+      [
+        'Parceiro base',
+        reports.length === 1 ? reports[0]?.partner.name || '-' : 'Lote misto',
+      ],
     ] as const;
 
     const units = reports
       .slice(0, 24)
       .map(
         (report, index) => `
-          <div class="unit-item">
+          <div class="unit-item unit-item--compact">
             <strong>${index + 1}.</strong> ${this.escapeXml(
               `${report.unit.code} - ${report.unit.name}`,
             )}
@@ -355,18 +529,41 @@ export class MonitoringReportExportService {
     return this.wrapPdfSheetHtml(
       this.escapeXml(options.title || 'Relatório de Consumo'),
       `
-        <section class="section-card">
-          <h2 class="section-title">Resumo da exportação</h2>
-          ${this.buildInfoTableHtml(rows)}
-        </section>
-        <section class="section-card">
-          <h2 class="section-title">Unidades incluídas</h2>
-          <div class="unit-list">
-            ${units}
-            ${extra}
+        <section class="cover-hero">
+          <div class="cover-kicker">Monitoramento corporativo</div>
+          <h2 class="cover-heading">${this.escapeXml(options.title || 'Relatório de Consumo')}</h2>
+          <div class="cover-subtitle">
+            Relatório consolidado gerado pelo NOVA Telecom com base nas coletas do Zabbix,
+            estruturado para emissão corporativa com contexto operacional e comercial.
           </div>
         </section>
+        <section class="cover-meta-grid">
+          ${coverStats
+            .map(
+              ([label, value]) => `
+                <article class="meta-card">
+                  <div class="meta-card-label">${this.escapeXml(label)}</div>
+                  <div class="meta-card-value">${this.escapeXml(String(value))}</div>
+                </article>
+              `,
+            )
+            .join('')}
+        </section>
+        <section class="layout-grid layout-grid--double">
+          <section class="section-card">
+            <h2 class="section-title">Dados da exportação</h2>
+            ${this.buildInfoTableHtml(rows)}
+          </section>
+          <section class="section-card">
+            <h2 class="section-title">Unidades incluídas</h2>
+            <div class="unit-list unit-list--compact">
+              ${units}
+              ${extra}
+            </div>
+          </section>
+        </section>
       `,
+      'cover',
     );
   }
 
@@ -374,23 +571,26 @@ export class MonitoringReportExportService {
     report: MonitoringPrtgStyleReport,
     options: MonitoringReportExportOptions,
   ) {
-    const rows = [
+    const operationalRows = [
       [
         'Período do relatório',
         `${this.formatDate(report.period.from)} - ${this.formatDate(report.period.to)}`,
       ],
       ['Horas de relatório', '24 / 7'],
+      [
+        'Host Zabbix',
+        report.host?.hostName || report.host?.host || 'Não localizado',
+      ],
+      ['Integração', report.integration?.name || '-'],
+    ] as const;
+
+    const registryRows = [
       ['Parceiro', `${report.partner.code} - ${report.partner.name}`],
       ['Unidade', `${report.unit.code} - ${report.unit.name}`],
       [
         'Cidade/UF',
         [report.unit.city, report.unit.state].filter(Boolean).join('/') || '-',
       ],
-      [
-        'Host Zabbix',
-        report.host?.hostName || report.host?.host || 'Não localizado',
-      ],
-      ['Integração', report.integration?.name || '-'],
       ['Contrato', options.contractLabel || '-'],
       ['Endereço', options.addressLine || '-'],
       ['Banda contratada', options.contractedBandwidth || '-'],
@@ -399,11 +599,22 @@ export class MonitoringReportExportService {
     return this.wrapPdfSheetHtml(
       this.escapeXml(options.title || 'Relatório de Consumo'),
       `
-        <section class="section-card">
-          <h2 class="section-title">${this.escapeXml(
-            `${report.partner.name}: ${report.unit.name}`,
-          )}</h2>
-          ${this.buildInfoTableHtml(rows)}
+        <section class="page-title-block">
+          <h2 class="page-title">${this.escapeXml(`${report.partner.name}: ${report.unit.name}`)}</h2>
+          <div class="page-subtitle">
+            Visão consolidada da unidade monitorada com informações operacionais,
+            vínculo de host e dados comerciais de referência.
+          </div>
+        </section>
+        <section class="layout-grid layout-grid--double">
+          <section class="section-card">
+            <h2 class="section-title">Contexto operacional</h2>
+            ${this.buildInfoTableHtml(operationalRows)}
+          </section>
+          <section class="section-card">
+            <h2 class="section-title">Cadastro e contrato</h2>
+            ${this.buildInfoTableHtml(registryRows)}
+          </section>
         </section>
         ${report.warnings.length ? this.buildWarningsHtml(report.warnings) : ''}
       `,
@@ -421,33 +632,40 @@ export class MonitoringReportExportService {
       ['Descrição', block.description],
     ] as const;
 
-    const seriesLines = block.series
+    const seriesCards = block.series
       .map(
         (series) => `
-          <div class="metric-line" style="color:${this.escapeXml(series.color)}">
-            <strong>${this.escapeXml(series.label)}:</strong>
-            último ${this.escapeXml(this.formatValue(series.stats.last, series.unit))}
-            | min ${this.escapeXml(this.formatValue(series.stats.min, series.unit))}
-            | média ${this.escapeXml(this.formatValue(series.stats.avg, series.unit))}
-            | máx ${this.escapeXml(this.formatValue(series.stats.max, series.unit))}
-          </div>
+          <article class="stat-card">
+            <div class="stat-card-head">
+              <span class="stat-color" style="background:${this.escapeXml(series.color)}"></span>
+              <div class="stat-title">${this.escapeXml(series.label)}</div>
+            </div>
+            <div class="stat-values">
+              <div><span>Último</span><strong>${this.escapeXml(this.formatValue(series.stats.last, series.unit))}</strong></div>
+              <div><span>Mínimo</span><strong>${this.escapeXml(this.formatValue(series.stats.min, series.unit))}</strong></div>
+              <div><span>Média</span><strong>${this.escapeXml(this.formatValue(series.stats.avg, series.unit))}</strong></div>
+              <div><span>Máximo</span><strong>${this.escapeXml(this.formatValue(series.stats.max, series.unit))}</strong></div>
+            </div>
+          </article>
         `,
       )
       .join('');
 
     const consumption = block.consumption
       ? `
-        <div class="metric-line">
-          <strong>Consumo:</strong>
-          Recebido ${this.escapeXml(this.formatBytes(block.consumption.receivedBytes))}
-          | Enviado ${this.escapeXml(this.formatBytes(block.consumption.sentBytes))}
-          | Total ${this.escapeXml(this.formatBytes(block.consumption.totalBytes))}
-          | Pico down ${this.escapeXml(
-            this.formatValue(block.consumption.peakReceiveBps, 'bps'),
-          )}
-          | Pico up ${this.escapeXml(
-            this.formatValue(block.consumption.peakSendBps, 'bps'),
-          )}
+        <div class="consumption-banner">
+          <div class="metric-line">
+            <strong>Consumo:</strong>
+            Recebido ${this.escapeXml(this.formatBytes(block.consumption.receivedBytes))}
+            | Enviado ${this.escapeXml(this.formatBytes(block.consumption.sentBytes))}
+            | Total ${this.escapeXml(this.formatBytes(block.consumption.totalBytes))}
+            | Pico down ${this.escapeXml(
+              this.formatValue(block.consumption.peakReceiveBps, 'bps'),
+            )}
+            | Pico up ${this.escapeXml(
+              this.formatValue(block.consumption.peakSendBps, 'bps'),
+            )}
+          </div>
         </div>
       `
       : '';
@@ -455,21 +673,30 @@ export class MonitoringReportExportService {
     return this.wrapPdfSheetHtml(
       this.escapeXml(options.title || 'Relatório de Consumo'),
       `
-        <section class="section-card">
-          <h2 class="section-title">${this.escapeXml(block.title)}</h2>
-          ${this.buildInfoTableHtml(metadata)}
-          <div class="summary-list">
-            ${seriesLines}
-            ${consumption}
+        <section class="page-title-block">
+          <h2 class="page-title">${this.escapeXml(block.title)}</h2>
+          <div class="page-subtitle">
+            Unidade ${this.escapeXml(report.unit.name)} • Sensor ${this.escapeXml(block.sensorType)}
           </div>
+        </section>
+        <section class="layout-grid layout-grid--double">
+          <section class="section-card">
+            <h2 class="section-title">Contexto do sensor</h2>
+            ${this.buildInfoTableHtml(metadata)}
+          </section>
+          <section class="section-card">
+            <h2 class="section-title">Indicadores</h2>
+            <div class="stats-grid">
+              ${seriesCards}
+            </div>
+            ${consumption}
+          </section>
         </section>
         ${
           options.includeCharts
             ? `
               <section class="section-card">
-                <h2 class="section-title">${this.escapeXml(
-                  `${report.unit.name}: gráfico`,
-                )}</h2>
+                <h2 class="section-title">Gráfico consolidado</h2>
                 <div class="chart-wrap">
                   ${this.chartSvg(block)}
                 </div>
@@ -481,9 +708,13 @@ export class MonitoringReportExportService {
     );
   }
 
-  private wrapPdfSheetHtml(title: string, body: string) {
+  private wrapPdfSheetHtml(
+    title: string,
+    body: string,
+    variant: 'cover' | 'report' = 'report',
+  ) {
     return `
-      <section class="sheet">
+      <section class="sheet sheet--${variant}">
         <div class="sheet-header-band"></div>
         <header class="sheet-header">
           <div class="brand">NOVA TELECOM</div>
