@@ -76,7 +76,11 @@ export class MonitoringReportExportService {
       this.drawPdfFooter(page, regularFont, rgb);
     }
 
-    const bytes = await pdf.save();
+    const bytes = await pdf.save({
+      // Older desktop readers can reject PDF object streams as "corrupted".
+      // Saving with classic cross-reference tables broadens compatibility.
+      useObjectStreams: false,
+    });
     return {
       buffer: Buffer.from(bytes),
       fileName: this.buildFileName(reports, options.format),
