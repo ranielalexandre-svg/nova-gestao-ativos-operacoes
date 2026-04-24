@@ -59,7 +59,8 @@ export function parseCsv(input: string): CsvRow[] {
 
 export function toCsv(rows: Array<Record<string, unknown>>, headers: string[]) {
   const escape = (value: unknown) => {
-    const text = value === null || value === undefined ? '' : String(value);
+    const raw = value === null || value === undefined ? '' : String(value);
+    const text = /^[=+\-@]/.test(raw) ? `'${raw}` : raw;
     if (/[",\n\r]/.test(text)) return `"${text.replace(/"/g, '""')}"`;
     return text;
   };

@@ -15,6 +15,16 @@ export type WebSession = {
   user: WebSessionUser | null;
 };
 
+export class BackendHttpError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+  ) {
+    super(message);
+    this.name = "BackendHttpError";
+  }
+}
+
 export function normalizeRole(role: string) {
   return String(role || "").trim().toLowerCase();
 }
@@ -117,7 +127,10 @@ export async function callBackendLogin(email: string, password: string) {
   const payload = await response.json().catch(() => ({} as Record<string, unknown>));
 
   if (!response.ok) {
-    throw new Error(String((payload as Record<string, unknown>)?.message || "Falha no login"));
+    throw new BackendHttpError(
+      String((payload as Record<string, unknown>)?.message || "Falha no login"),
+      response.status,
+    );
   }
 
   const accessToken = String((payload as Record<string, unknown>)?.accessToken || "");

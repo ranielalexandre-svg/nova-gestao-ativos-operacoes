@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import {
   callBackendLogin,
   callBackendLogout,
+  BackendHttpError,
   fetchBackendSessionFromToken,
   WEB_ACCESS_COOKIE,
 } from "@/lib/web-session";
@@ -166,6 +167,7 @@ export async function POST(request: Request) {
     return response;
   } catch (error) {
     const message = error instanceof Error ? error.message : "Falha ao criar sessão web";
+    const status = error instanceof BackendHttpError ? error.status : 500;
 
     if (!jsonRequest) {
       return NextResponse.redirect(loginErrorUrl(request, message, next), 303);
@@ -176,7 +178,7 @@ export async function POST(request: Request) {
         authenticated: false,
         message,
       },
-      { status: 500 },
+      { status },
     );
   }
 }

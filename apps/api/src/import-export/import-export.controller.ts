@@ -12,6 +12,7 @@ import type { Response } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
+import { CsvPayloadDto } from './dto/csv-payload.dto';
 import { ImportExportService } from './import-export.service';
 
 @Controller()
@@ -27,9 +28,9 @@ export class ImportExportController {
   @Post('import/preview/:resource')
   preview(
     @Param('resource') resource: string,
-    @Body() body: Record<string, unknown>,
+    @Body() body: CsvPayloadDto,
   ) {
-    return this.importExportService.preview(resource, String(body.csv || ''));
+    return this.importExportService.preview(resource, body.csv);
   }
 
   @UseGuards(RolesGuard)
@@ -37,9 +38,9 @@ export class ImportExportController {
   @Post('import/execute/:resource')
   execute(
     @Param('resource') resource: string,
-    @Body() body: Record<string, unknown>,
+    @Body() body: CsvPayloadDto,
   ) {
-    return this.importExportService.execute(resource, String(body.csv || ''));
+    return this.importExportService.execute(resource, body.csv);
   }
 
   @Get('export/:resource')

@@ -7,6 +7,7 @@ import {
 import type { Integration, Prisma } from "../generated/prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { decryptSecret, encryptSecret } from "../common/secrets";
+import { readCsvEnv } from "../common/env";
 import { CreateIntegrationDto } from "./dto/create-integration.dto";
 import { ListIntegrationsQueryDto } from "./dto/list-integrations-query.dto";
 import { UpdateIntegrationDto } from "./dto/update-integration.dto";
@@ -204,6 +205,12 @@ type UnitZabbixSyncResult = {
 
 @Injectable()
 export class IntegrationsService {
+  private readonly allowedTargetHosts = readCsvEnv("INTEGRATION_ALLOWED_HOSTS").map((item) =>
+    item.toLowerCase(),
+  );
+
+  private readonly requestTimeoutMs = this.resolveRequestTimeoutMs();
+
   constructor(private readonly prisma: PrismaService) {}
 
   private safeSelect() {
@@ -448,37 +455,87 @@ export class IntegrationsService {
     return base;
   }
 
+  private resolveRequestTimeoutMs() {
+    const parsed = Number(process.env.INTEGRATION_REQUEST_TIMEOUT_MS || 10000);
+    if (!Number.isFinite(parsed)) return 10000;
+    return Math.max(1000, Math.min(parsed, 60000));
+  }
+
+  private assertTargetUrlAllowed(targetUrl: string) {
+    let url: URL;
+
+    try {
+      url = new URL(targetUrl);
+    } catch {
+      throw new Error("URL de integração inválida.");
+    }
+
+    if (!["http:", "https:"].includes(url.protocol)) {
+      throw new Error("Protocolo de integração inválido.");
+    }
+
+    if (!this.allowedTargetHosts.length) {
+      return;
+    }
+
+    const host = url.hostname.toLowerCase();
+    const allowed = this.allowedTargetHosts.some((entry) => {
+      if (entry.startsWith("*.")) return host.endsWith(entry.slice(1));
+      if (entry.startsWith(".")) return host.endsWith(entry);
+      return host === entry;
+    });
+
+    if (!allowed) {
+      throw new Error("Host de integração não permitido por INTEGRATION_ALLOWED_HOSTS.");
+    }
+  }
+
   private async zabbixRpc<T>(
     targetUrl: string,
     method: string,
     params: unknown,
     bearerToken?: string,
   ): Promise<T> {
-    const response = await fetch(targetUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json-rpc",
-        ...(bearerToken ? { Authorization: `Bearer ${bearerToken}` } : {}),
-      },
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        method,
-        params,
-        id: 1,
-      }),
-    });
+    this.assertTargetUrlAllowed(targetUrl);
 
-    const payload = await response.json().catch(() => null);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), this.requestTimeoutMs);
 
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status} ao chamar ${method}`);
+    try {
+      const response = await fetch(targetUrl, {
+        method: "POST",
+        signal: controller.signal,
+        headers: {
+          "Content-Type": "application/json-rpc",
+          ...(bearerToken ? { Authorization: `Bearer ${bearerToken}` } : {}),
+        },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          method,
+          params,
+          id: 1,
+        }),
+      });
+
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status} ao chamar ${method}`);
+      }
+
+      if (payload?.error) {
+        throw new Error(String(payload.error?.data || payload.error?.message || `Erro em ${method}`));
+      }
+
+      return payload?.result as T;
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") {
+        throw new Error(`Timeout de ${this.requestTimeoutMs}ms ao chamar ${method}`);
+      }
+      throw error;
+    } finally {
+      clearTimeout(timeout);
     }
-
-    if (payload?.error) {
-      throw new Error(String(payload.error?.data || payload.error?.message || `Erro em ${method}`));
-    }
-
-    return payload?.result as T;
   }
 
   private async getZabbixBearerToken(integration: Integration, targetUrl: string) {
@@ -1157,42 +1214,58 @@ export class IntegrationsService {
     selected: Array<{ item: ZabbixTelemetryItem; profile: ReportItemProfile }>,
     period: { from: Date; to: Date },
   ) {
-    const byHistoryType = new Map<number, string[]>();
+    const pointsByItem = new Map<string, ZabbixHistoryPoint[]>();
 
-    for (const entry of selected) {
-      const type = this.reportHistoryType(entry.item);
-      if (type === null) continue;
+    const requests = selected
+      .map((entry) => {
+        const history = this.reportHistoryType(entry.item);
+        if (history === null) return null;
 
-      byHistoryType.set(type, [...(byHistoryType.get(type) || []), entry.item.itemid]);
-    }
+        return {
+          itemid: entry.item.itemid,
+          history,
+        };
+      })
+      .filter(
+        (entry): entry is { itemid: string; history: number } => Boolean(entry),
+      );
 
     const results = await Promise.all(
-      Array.from(byHistoryType.entries()).map(([history, itemids]) =>
-        this.zabbixRpc<ZabbixHistoryPoint[]>(
+      requests.map(async ({ itemid, history }) => ({
+        itemid,
+        points: await this.zabbixRpc<ZabbixHistoryPoint[]>(
           targetUrl,
           "history.get",
           {
             output: ["itemid", "clock", "value"],
             history,
-            itemids,
+            itemids: [itemid],
             time_from: Math.floor(period.from.getTime() / 1000),
             time_till: Math.floor(period.to.getTime() / 1000),
             sortfield: "clock",
             sortorder: "ASC",
-            limit: Math.min(30000, Math.max(6000, itemids.length * 6000)),
+            limit: this.reportHistoryLimit(period),
           },
           bearerToken,
         ),
-      ),
+      })),
     );
 
-    const pointsByItem = new Map<string, ZabbixHistoryPoint[]>();
-
-    for (const point of results.flat()) {
-      pointsByItem.set(point.itemid, [...(pointsByItem.get(point.itemid) || []), point]);
+    for (const result of results) {
+      pointsByItem.set(result.itemid, result.points);
     }
 
     return pointsByItem;
+  }
+
+  private reportHistoryLimit(period: { from: Date; to: Date }) {
+    const seconds = Math.max(
+      0,
+      Math.floor((period.to.getTime() - period.from.getTime()) / 1000),
+    );
+    const estimatedSamples = Math.ceil(seconds / 30) + 120;
+
+    return Math.max(6000, Math.min(100000, estimatedSamples));
   }
 
   private latestItem(
@@ -2269,6 +2342,8 @@ export class IntegrationsService {
           await this.safeZabbixLogout(targetUrl, logoutToken);
         }
       }
+
+      this.assertTargetUrlAllowed(targetUrl);
 
       const response = await fetch(targetUrl, {
         method: "GET",
