@@ -1,4 +1,10 @@
+import { execFile as execFileCallback } from 'child_process';
+import { existsSync } from 'fs';
+import { mkdtemp, readFile, rm, writeFile } from 'fs/promises';
 import { Injectable } from '@nestjs/common';
+import { tmpdir } from 'os';
+import { join } from 'path';
+import { promisify } from 'util';
 import { requireRuntimeModule } from '../common/runtime-node-modules';
 import {
   MonitoringPrtgStyleReport,
@@ -26,6 +32,7 @@ const NOVA_FOOTER_LINES = [
   'CEP 77.006-054 - Palmas - Tocantins',
   'sac@novatelecom.com.br | 0800 494 0103 | www.novatelecom.com.br',
 ];
+const execFile = promisify(execFileCallback);
 
 @Injectable()
 export class MonitoringReportExportService {
@@ -44,104 +51,567 @@ export class MonitoringReportExportService {
     reports: MonitoringPrtgStyleReport[],
     options: MonitoringReportExportOptions,
   ): Promise<MonitoringReportExportArtifact> {
-    const { PDFDocument, StandardFonts, rgb } =
-      requireRuntimeModule<any>('pdf-lib');
-    const pdf = await PDFDocument.create();
-    const regularFont = await pdf.embedFont(StandardFonts.Helvetica);
-    const boldFont = await pdf.embedFont(StandardFonts.HelveticaBold);
+    const html = this.buildPdfHtml(reports, options);
+    let bytes: Buffer;
 
-    let page = pdf.addPage([A4_WIDTH, A4_HEIGHT]);
-    let cursorY = this.drawPdfHeader(
-      page,
-      boldFont,
-      regularFont,
-      rgb,
-      options.title || 'Relatório de Consumo',
-    );
-    cursorY = this.drawPdfCover(
-      page,
-      cursorY,
-      reports,
-      options,
-      regularFont,
-      boldFont,
-      rgb,
-    );
-    this.drawPdfFooter(page, regularFont, rgb);
-
-    for (const report of reports) {
-      page = pdf.addPage([A4_WIDTH, A4_HEIGHT]);
-      cursorY = this.drawPdfHeader(
-        page,
-        boldFont,
-        regularFont,
-        rgb,
-        options.title || 'Relatório de Consumo',
-      );
-      cursorY = this.drawPdfUnitSummary(
-        page,
-        cursorY,
-        report,
-        options,
-        regularFont,
-        boldFont,
-        rgb,
-      );
-
-      for (const block of report.blocks) {
-        const estimatedHeight = this.estimatePdfBlockHeight(
-          block,
-          options.includeCharts,
-          regularFont,
-          boldFont,
-        );
-        if (cursorY - estimatedHeight < CONTENT_BOTTOM) {
-          this.drawPdfFooter(page, regularFont, rgb);
-          page = pdf.addPage([A4_WIDTH, A4_HEIGHT]);
-          cursorY = this.drawPdfHeader(
-            page,
-            boldFont,
-            regularFont,
-            rgb,
-            options.title || 'Relatório de Consumo',
-          );
-        }
-
-        cursorY = this.drawPdfBlock(
-          page,
-          cursorY,
-          block,
-          options.includeCharts,
-          regularFont,
-          boldFont,
-          rgb,
-        );
-      }
-
-      if (!report.blocks.length && report.warnings.length) {
-        cursorY = this.drawPdfWarnings(
-          page,
-          cursorY,
-          report.warnings,
-          regularFont,
-          boldFont,
-          rgb,
-        );
-      }
-
-      this.drawPdfFooter(page, regularFont, rgb);
+    try {
+      bytes = await this.renderPdfWithChromeCli(html);
+    } catch (chromeError) {
+      bytes = await this.renderPdfWithPlaywright(html, chromeError);
     }
 
-    const bytes = await pdf.save({
-      // Older desktop readers can reject PDF object streams as "corrupted".
-      // Saving with classic cross-reference tables broadens compatibility.
-      useObjectStreams: false,
-    });
     return {
-      buffer: Buffer.from(bytes),
+      buffer: bytes,
       fileName: this.buildFileName(reports, options.format),
       mimeType: 'application/pdf',
     };
+  }
+
+  private buildPdfHtml(
+    reports: MonitoringPrtgStyleReport[],
+    options: MonitoringReportExportOptions,
+  ) {
+    const title = this.escapeXml(options.title || 'Relatório de Consumo');
+    const cover = this.buildPdfCoverHtml(reports, options);
+    const reportPages = reports
+      .flatMap((report) => {
+        const pages = [this.buildPdfUnitSummaryHtml(report, options)];
+
+        if (report.blocks.length) {
+          report.blocks.forEach((block) => {
+            pages.push(this.buildPdfBlockHtml(report, block, options));
+          });
+        } else if (report.warnings.length) {
+          pages.push(
+            this.wrapPdfSheetHtml(
+              title,
+              `
+                <section class="section-card">
+                  <h2 class="section-title">${this.escapeXml(
+                    `${report.partner.name}: ${report.unit.name}`,
+                  )}</h2>
+                  ${this.buildWarningsHtml(report.warnings)}
+                </section>
+              `,
+            ),
+          );
+        }
+
+        return pages;
+      })
+      .join('');
+
+    return `
+      <!DOCTYPE html>
+      <html lang="pt-BR">
+        <head>
+          <meta charset="utf-8" />
+          <title>${title}</title>
+          <style>
+            @page {
+              size: A4;
+              margin: 0;
+            }
+
+            * {
+              box-sizing: border-box;
+            }
+
+            html, body {
+              margin: 0;
+              padding: 0;
+              background: #eef2f7;
+              font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+              color: #1f2933;
+            }
+
+            body {
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+            }
+
+            .sheet {
+              width: 210mm;
+              min-height: 297mm;
+              padding: 12mm 14mm 16mm;
+              margin: 0 auto;
+              background: #ffffff;
+              display: flex;
+              flex-direction: column;
+              page-break-after: always;
+              break-after: page;
+            }
+
+            .sheet:last-child {
+              page-break-after: auto;
+              break-after: auto;
+            }
+
+            .sheet-header-band {
+              height: 6mm;
+              background: #575757;
+              margin: -12mm -14mm 6mm;
+            }
+
+            .sheet-header {
+              margin-bottom: 6mm;
+            }
+
+            .brand {
+              font-size: 9px;
+              color: #1b3357;
+              letter-spacing: 0.08em;
+              margin-bottom: 2mm;
+            }
+
+            .sheet-title {
+              margin: 0;
+              font-size: 20px;
+              line-height: 1.15;
+              color: #177bb9;
+              font-weight: 700;
+            }
+
+            .sheet-month {
+              margin-top: 1.5mm;
+              font-size: 11px;
+              color: #4a5661;
+              text-transform: capitalize;
+            }
+
+            .sheet-body {
+              flex: 1;
+            }
+
+            .section-card {
+              border: 1px solid #d8e0e8;
+              background: #fff;
+              border-radius: 4px;
+              overflow: hidden;
+              margin-bottom: 5mm;
+            }
+
+            .section-title {
+              margin: 0;
+              padding: 3mm 4mm;
+              font-size: 14px;
+              line-height: 1.25;
+              color: #1f2933;
+              background: #f4f7fb;
+              border-bottom: 1px solid #d8e0e8;
+            }
+
+            .info-table {
+              width: 100%;
+              border-collapse: collapse;
+              font-size: 11px;
+            }
+
+            .info-table th,
+            .info-table td {
+              padding: 2.1mm 3mm;
+              border-bottom: 1px solid #e8edf2;
+              vertical-align: top;
+              text-align: left;
+            }
+
+            .info-table th {
+              width: 33%;
+              color: #4b5763;
+              font-weight: 700;
+            }
+
+            .info-table td {
+              color: #18222c;
+              word-break: break-word;
+            }
+
+            .summary-list,
+            .warning-list,
+            .unit-list {
+              margin: 0;
+              padding: 4mm;
+              display: grid;
+              gap: 2.5mm;
+            }
+
+            .unit-item {
+              padding-bottom: 2.5mm;
+              border-bottom: 1px solid #edf2f6;
+              font-size: 11px;
+            }
+
+            .unit-item:last-child {
+              border-bottom: 0;
+              padding-bottom: 0;
+            }
+
+            .metric-line {
+              font-size: 11px;
+              line-height: 1.45;
+              color: #1e395c;
+              word-break: break-word;
+            }
+
+            .metric-line strong {
+              color: inherit;
+            }
+
+            .warning-box {
+              margin: 4mm;
+              padding: 3mm 3.5mm;
+              background: #fff2f3;
+              border: 1px solid #dc8a93;
+              border-radius: 4px;
+            }
+
+            .warning-title {
+              font-size: 11px;
+              font-weight: 700;
+              color: #9b3340;
+              margin-bottom: 2mm;
+            }
+
+            .warning-item {
+              font-size: 10px;
+              line-height: 1.45;
+              color: #6e2430;
+            }
+
+            .chart-wrap {
+              padding: 4mm;
+            }
+
+            .chart-wrap svg {
+              width: 100%;
+              height: auto;
+              display: block;
+            }
+
+            .sheet-footer {
+              margin-top: 6mm;
+              padding-top: 3mm;
+              border-top: 1px solid #d8e0e8;
+              font-size: 8.5px;
+              line-height: 1.45;
+              color: #5f6873;
+            }
+
+            .footer-line {
+              margin: 0;
+            }
+          </style>
+        </head>
+        <body>
+          ${cover}
+          ${reportPages}
+        </body>
+      </html>
+    `.trim();
+  }
+
+  private buildPdfCoverHtml(
+    reports: MonitoringPrtgStyleReport[],
+    options: MonitoringReportExportOptions,
+  ) {
+    const period = reports[0]?.period;
+    const rows = [
+      [
+        'Interessado',
+        options.interestedParty || reports[0]?.partner.name || '-',
+      ],
+      ['Data de emissão', this.formatDate(new Date().toISOString())],
+      [
+        'Período',
+        period
+          ? `${this.formatDate(period.from)} a ${this.formatDate(period.to)}`
+          : '-',
+      ],
+      ['Contrato', options.contractLabel || '-'],
+      ['Endereço', options.addressLine || '-'],
+      ['Banda contratada', options.contractedBandwidth || '-'],
+      ['Unidades selecionadas', `${reports.length}`],
+      ['Formato', options.format.toUpperCase()],
+    ] as const;
+
+    const units = reports
+      .slice(0, 24)
+      .map(
+        (report, index) => `
+          <div class="unit-item">
+            <strong>${index + 1}.</strong> ${this.escapeXml(
+              `${report.unit.code} - ${report.unit.name}`,
+            )}
+          </div>
+        `,
+      )
+      .join('');
+
+    const extra =
+      reports.length > 24
+        ? `<div class="unit-item">+ ${reports.length - 24} unidade(s) adicional(is)</div>`
+        : '';
+
+    return this.wrapPdfSheetHtml(
+      this.escapeXml(options.title || 'Relatório de Consumo'),
+      `
+        <section class="section-card">
+          <h2 class="section-title">Resumo da exportação</h2>
+          ${this.buildInfoTableHtml(rows)}
+        </section>
+        <section class="section-card">
+          <h2 class="section-title">Unidades incluídas</h2>
+          <div class="unit-list">
+            ${units}
+            ${extra}
+          </div>
+        </section>
+      `,
+    );
+  }
+
+  private buildPdfUnitSummaryHtml(
+    report: MonitoringPrtgStyleReport,
+    options: MonitoringReportExportOptions,
+  ) {
+    const rows = [
+      [
+        'Período do relatório',
+        `${this.formatDate(report.period.from)} - ${this.formatDate(report.period.to)}`,
+      ],
+      ['Horas de relatório', '24 / 7'],
+      ['Parceiro', `${report.partner.code} - ${report.partner.name}`],
+      ['Unidade', `${report.unit.code} - ${report.unit.name}`],
+      [
+        'Cidade/UF',
+        [report.unit.city, report.unit.state].filter(Boolean).join('/') || '-',
+      ],
+      [
+        'Host Zabbix',
+        report.host?.hostName || report.host?.host || 'Não localizado',
+      ],
+      ['Integração', report.integration?.name || '-'],
+      ['Contrato', options.contractLabel || '-'],
+      ['Endereço', options.addressLine || '-'],
+      ['Banda contratada', options.contractedBandwidth || '-'],
+    ] as const;
+
+    return this.wrapPdfSheetHtml(
+      this.escapeXml(options.title || 'Relatório de Consumo'),
+      `
+        <section class="section-card">
+          <h2 class="section-title">${this.escapeXml(
+            `${report.partner.name}: ${report.unit.name}`,
+          )}</h2>
+          ${this.buildInfoTableHtml(rows)}
+        </section>
+        ${report.warnings.length ? this.buildWarningsHtml(report.warnings) : ''}
+      `,
+    );
+  }
+
+  private buildPdfBlockHtml(
+    report: MonitoringPrtgStyleReport,
+    block: MonitoringReportBlock,
+    options: MonitoringReportExportOptions,
+  ) {
+    const metadata = [
+      ['Tipo de sensor', block.sensorType],
+      ['Origem', block.probePath],
+      ['Descrição', block.description],
+    ] as const;
+
+    const seriesLines = block.series
+      .map(
+        (series) => `
+          <div class="metric-line" style="color:${this.escapeXml(series.color)}">
+            <strong>${this.escapeXml(series.label)}:</strong>
+            último ${this.escapeXml(this.formatValue(series.stats.last, series.unit))}
+            | min ${this.escapeXml(this.formatValue(series.stats.min, series.unit))}
+            | média ${this.escapeXml(this.formatValue(series.stats.avg, series.unit))}
+            | máx ${this.escapeXml(this.formatValue(series.stats.max, series.unit))}
+          </div>
+        `,
+      )
+      .join('');
+
+    const consumption = block.consumption
+      ? `
+        <div class="metric-line">
+          <strong>Consumo:</strong>
+          Recebido ${this.escapeXml(this.formatBytes(block.consumption.receivedBytes))}
+          | Enviado ${this.escapeXml(this.formatBytes(block.consumption.sentBytes))}
+          | Total ${this.escapeXml(this.formatBytes(block.consumption.totalBytes))}
+          | Pico down ${this.escapeXml(
+            this.formatValue(block.consumption.peakReceiveBps, 'bps'),
+          )}
+          | Pico up ${this.escapeXml(
+            this.formatValue(block.consumption.peakSendBps, 'bps'),
+          )}
+        </div>
+      `
+      : '';
+
+    return this.wrapPdfSheetHtml(
+      this.escapeXml(options.title || 'Relatório de Consumo'),
+      `
+        <section class="section-card">
+          <h2 class="section-title">${this.escapeXml(block.title)}</h2>
+          ${this.buildInfoTableHtml(metadata)}
+          <div class="summary-list">
+            ${seriesLines}
+            ${consumption}
+          </div>
+        </section>
+        ${
+          options.includeCharts
+            ? `
+              <section class="section-card">
+                <h2 class="section-title">${this.escapeXml(
+                  `${report.unit.name}: gráfico`,
+                )}</h2>
+                <div class="chart-wrap">
+                  ${this.chartSvg(block)}
+                </div>
+              </section>
+            `
+            : ''
+        }
+      `,
+    );
+  }
+
+  private wrapPdfSheetHtml(title: string, body: string) {
+    return `
+      <section class="sheet">
+        <div class="sheet-header-band"></div>
+        <header class="sheet-header">
+          <div class="brand">NOVA TELECOM</div>
+          <h1 class="sheet-title">${title}</h1>
+          <div class="sheet-month">${this.escapeXml(this.monthLabel(new Date()))}</div>
+        </header>
+        <main class="sheet-body">
+          ${body}
+        </main>
+        <footer class="sheet-footer">
+          ${NOVA_FOOTER_LINES.map(
+            (line) => `<p class="footer-line">${this.escapeXml(line)}</p>`,
+          ).join('')}
+        </footer>
+      </section>
+    `;
+  }
+
+  private buildInfoTableHtml(rows: ReadonlyArray<readonly [string, string]>) {
+    return `
+      <table class="info-table">
+        <tbody>
+          ${rows
+            .map(
+              ([label, value]) => `
+                <tr>
+                  <th>${this.escapeXml(label)}</th>
+                  <td>${this.escapeXml(String(value || '-'))}</td>
+                </tr>
+              `,
+            )
+            .join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  private buildWarningsHtml(warnings: string[]) {
+    return `
+      <section class="warning-box">
+        <div class="warning-title">Observações</div>
+        <div class="warning-list">
+          ${warnings
+            .map(
+              (warning) =>
+                `<div class="warning-item">• ${this.escapeXml(warning)}</div>`,
+            )
+            .join('')}
+        </div>
+      </section>
+    `;
+  }
+
+  private async renderPdfWithChromeCli(html: string) {
+    const executable = this.findChromeCliExecutable();
+    if (!executable) {
+      throw new Error('Chrome CLI indisponível para exportação PDF');
+    }
+
+    const tempDir = await mkdtemp(join(tmpdir(), 'nova-report-'));
+    const htmlPath = join(tempDir, 'report.html');
+    const pdfPath = join(tempDir, 'report.pdf');
+
+    try {
+      await writeFile(htmlPath, html, 'utf8');
+      const windowsHtmlPath = await this.toWindowsPath(htmlPath);
+      const windowsPdfPath = await this.toWindowsPath(pdfPath);
+      const fileUrl = `file:///${windowsHtmlPath.replace(/\\/g, '/')}`;
+
+      await execFile(executable, [
+        '--headless=new',
+        '--disable-gpu',
+        '--no-pdf-header-footer',
+        `--print-to-pdf=${windowsPdfPath}`,
+        fileUrl,
+      ]);
+
+      return await readFile(pdfPath);
+    } finally {
+      await rm(tempDir, { recursive: true, force: true });
+    }
+  }
+
+  private async renderPdfWithPlaywright(html: string, previousError?: unknown) {
+    const { chromium } = requireRuntimeModule<any>('playwright');
+    const browser = await chromium.launch({ headless: true });
+
+    try {
+      const page = await browser.newPage();
+      await page.setContent(html, { waitUntil: 'load' });
+      const bytes = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        preferCSSPageSize: true,
+        margin: {
+          top: '0',
+          right: '0',
+          bottom: '0',
+          left: '0',
+        },
+      });
+      return Buffer.from(bytes);
+    } catch (error) {
+      if (previousError instanceof Error) {
+        throw new Error(
+          `Falha ao exportar PDF via Chrome e Playwright. Chrome: ${previousError.message}. Playwright: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
+      throw error;
+    } finally {
+      await browser.close();
+    }
+  }
+
+  private findChromeCliExecutable() {
+    const candidates = [
+      '/mnt/c/Program Files/Google/Chrome/Application/chrome.exe',
+      '/mnt/c/Program Files (x86)/Google/Chrome/Application/chrome.exe',
+      '/mnt/c/Program Files/Microsoft/Edge/Application/msedge.exe',
+      '/mnt/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
+    ];
+
+    return candidates.find((candidate) => existsSync(candidate)) || null;
+  }
+
+  private async toWindowsPath(path: string) {
+    const { stdout } = await execFile('wslpath', ['-w', path]);
+    return stdout.trim();
   }
 
   private drawPdfHeader(
