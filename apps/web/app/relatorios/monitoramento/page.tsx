@@ -1,7 +1,15 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
-import { Surface } from "@/components/ops-ui";
+import {
+  DenseTable,
+  SectionIntro,
+  Surface,
+  TableCell,
+  TableHead,
+  TableShell,
+  TonePill,
+} from "@/components/ops-ui";
 import { getActionErrorMessage } from "@/lib/action-state";
 import {
   readStringParam,
@@ -296,7 +304,9 @@ export default async function MonitoringReportsPage({
     groupIds: effectiveGroupIds,
   };
 
+  const selectedGroupNames = groupPreview?.groups.map((group) => group.name) || [];
   const resetHref = "/relatorios/monitoramento";
+  const monitorHref = "/monitoramento";
   const clearGroupsHref = buildFilterHref({
     templateId: selectedTemplate?.id || undefined,
     unitId: requestedUnitId || undefined,
@@ -335,16 +345,112 @@ export default async function MonitoringReportsPage({
   return (
     <AppShell
       title="Relatórios"
-      subtitle="Aplique os filtros, confira o lote e exporte o arquivo final."
+      subtitle="Fluxo de relatório inspirado no PRTG: executar, configurar, revisar o lote e processar o arquivo final."
     >
       <div className="space-y-5">
         <Surface className="p-5 sm:p-6">
-          <form action="/relatorios/monitoramento" method="GET" className="space-y-4">
-            <div className="grid gap-4 xl:grid-cols-[minmax(0,220px)_minmax(0,260px)_minmax(0,220px)_180px_180px_auto] xl:items-end">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+            <div>
+              <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                Fluxo do relatório
+              </div>
+              <h2 className="mt-1 text-[19px] font-semibold tracking-tight text-slate-50">
+                Operação orientada por execução
+              </h2>
+              <p className="mt-2 max-w-4xl text-sm leading-6 text-slate-400">
+                Primeiro definimos o período e o escopo monitorado. Depois conferimos as unidades incluídas e, por fim,
+                processamos o arquivo final.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href={resetHref}
+                className="inline-flex h-10 items-center justify-center rounded-[12px] border border-white/10 bg-white/[0.04] px-4 text-sm font-semibold text-slate-100 transition hover:bg-white/[0.08]"
+              >
+                Novo relatório
+              </Link>
+              <Link
+                href={monitorHref}
+                className="inline-flex h-10 items-center justify-center rounded-[12px] border border-white/10 bg-white/[0.04] px-4 text-sm font-semibold text-slate-100 transition hover:bg-white/[0.08]"
+              >
+                Monitoramento
+              </Link>
+            </div>
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-2 text-xs">
+            {[
+              ["#executar-agora", "Executar agora"],
+              ["#configuracoes", "Configurações"],
+              ["#unidades-incluidas", "Unidades incluídas"],
+              ["#processamento", "Processamento"],
+            ].map(([href, label]) => (
+              <a
+                key={href}
+                href={href}
+                className="inline-flex h-9 items-center rounded-full border border-white/10 bg-white/[0.04] px-4 font-semibold text-slate-200 transition hover:bg-white/[0.08]"
+              >
+                {label}
+              </a>
+            ))}
+          </div>
+        </Surface>
+
+        <form action="/relatorios/monitoramento" method="GET" className="space-y-5">
+          <Surface id="executar-agora" className="p-5 sm:p-6 scroll-mt-24">
+            <SectionIntro
+              eyebrow="Etapa 1"
+              title="Executar agora"
+              description="Defina o período do relatório e rode a montagem do lote. Esse passo não exporta arquivo; ele só prepara o que entra no relatório."
+              actions={<button type="submit">Executar relatório</button>}
+            />
+
+            <div className="mt-5 grid gap-5 xl:grid-cols-[220px_220px_minmax(0,1fr)]">
               <label className="grid gap-2 text-sm font-semibold text-slate-200">
-                Template
+                Data de início
+                <input name="from" type="date" defaultValue={from} />
+              </label>
+
+              <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                Data de encerramento
+                <input name="to" type="date" defaultValue={to} />
+              </label>
+
+              <div className="rounded-[16px] border border-white/10 bg-black/10 p-4">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                  Intervalos rápidos
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Link className="rounded-[12px] border border-white/10 bg-white/[0.04] px-4 py-2 text-center text-sm font-semibold text-sky-100 transition hover:bg-white/[0.08]" href={quickTodayHref}>
+                    Hoje
+                  </Link>
+                  <Link className="rounded-[12px] border border-white/10 bg-white/[0.04] px-4 py-2 text-center text-sm font-semibold text-sky-100 transition hover:bg-white/[0.08]" href={quickWeekHref}>
+                    7 dias
+                  </Link>
+                  <Link className="rounded-[12px] border border-white/10 bg-white/[0.04] px-4 py-2 text-center text-sm font-semibold text-sky-100 transition hover:bg-white/[0.08]" href={quickMonthHref}>
+                    Este mês
+                  </Link>
+                  <Link className="rounded-[12px] border border-white/10 bg-white/[0.04] px-4 py-2 text-center text-sm font-semibold text-sky-100 transition hover:bg-white/[0.08]" href={quickPrevMonthHref}>
+                    Mês passado
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </Surface>
+
+          <Surface id="configuracoes" className="p-5 sm:p-6 scroll-mt-24">
+            <SectionIntro
+              eyebrow="Etapa 2"
+              title="Configurações do relatório"
+              description="Escolha o modelo salvo, uma unidade fixa se necessário, e o agrupamento de origem no Zabbix. Tudo aqui compõe o mesmo lote final."
+            />
+
+            <div className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,260px)_minmax(0,320px)_minmax(0,220px)]">
+              <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                Modelo do relatório
                 <select name="templateId" defaultValue={selectedTemplate?.id || ""}>
-                  <option value="">Sem template</option>
+                  <option value="">Sem template salvo</option>
                   {templates.map((template) => (
                     <option key={template.id} value={template.id}>
                       {template.code} - {template.name}
@@ -354,9 +460,9 @@ export default async function MonitoringReportsPage({
               </label>
 
               <label className="grid gap-2 text-sm font-semibold text-slate-200">
-                Unidade
+                Unidade avulsa
                 <select name="unitId" defaultValue={requestedUnitId}>
-                  <option value="">Sem unidade fixa</option>
+                  <option value="">Nenhuma unidade fixa</option>
                   {catalog.items.map((unit) => (
                     <option key={unit.id} value={unit.id}>
                       {unit.code} - {unit.name}
@@ -368,7 +474,7 @@ export default async function MonitoringReportsPage({
               <label className="grid gap-2 text-sm font-semibold text-slate-200">
                 Integração Zabbix
                 <select name="groupIntegrationId" defaultValue={selectedGroupSource?.id || ""}>
-                  <option value="">Sem grupo Zabbix</option>
+                  <option value="">Nenhuma integração selecionada</option>
                   {reportSources.map((source) => (
                     <option key={source.id} value={source.id}>
                       {source.code} - {source.name}
@@ -376,127 +482,86 @@ export default async function MonitoringReportsPage({
                   ))}
                 </select>
               </label>
-
-              <label className="grid gap-2 text-sm font-semibold text-slate-200">
-                Início
-                <input name="from" type="date" defaultValue={from} />
-              </label>
-
-              <label className="grid gap-2 text-sm font-semibold text-slate-200">
-                Fim
-                <input name="to" type="date" defaultValue={to} />
-              </label>
-
-              <div className="flex flex-wrap items-center justify-end gap-2 xl:pb-[1px]">
-                <Link
-                  href={resetHref}
-                  className="inline-flex h-10 items-center justify-center rounded-[12px] border border-white/10 bg-white/[0.04] px-4 text-sm font-semibold text-slate-100 transition hover:bg-white/[0.08]"
-                >
-                  Resetar
-                </Link>
-                <button type="submit">Aplicar filtros</button>
-              </div>
             </div>
 
-            <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
-              <label className="grid gap-2 text-sm font-semibold text-slate-200">
-                Host groups
-                <select
-                  name="groupIds"
-                  multiple
-                  size={Math.min(Math.max(groupCatalog?.items.length || 4, 4), 8)}
-                  defaultValue={effectiveGroupIds}
-                  disabled={!groupCatalog?.items.length}
-                >
-                  {(groupCatalog?.items || []).map((group) => (
-                    <option key={group.id} value={group.id}>
-                      {group.name} · {group.hostCount} host(s)
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <div className="flex flex-wrap gap-2 xl:justify-end">
-                <Link
-                  className="rounded-[12px] border border-white/10 bg-white/[0.04] px-4 py-2 text-center text-sm font-semibold text-sky-100 transition hover:bg-white/[0.08]"
-                  href={quickTodayHref}
-                >
-                  Hoje
-                </Link>
-                <Link
-                  className="rounded-[12px] border border-white/10 bg-white/[0.04] px-4 py-2 text-center text-sm font-semibold text-sky-100 transition hover:bg-white/[0.08]"
-                  href={quickWeekHref}
-                >
-                  7 dias
-                </Link>
-                <Link
-                  className="rounded-[12px] border border-white/10 bg-white/[0.04] px-4 py-2 text-center text-sm font-semibold text-sky-100 transition hover:bg-white/[0.08]"
-                  href={quickMonthHref}
-                >
-                  Este mês
-                </Link>
-                <Link
-                  className="rounded-[12px] border border-white/10 bg-white/[0.04] px-4 py-2 text-center text-sm font-semibold text-sky-100 transition hover:bg-white/[0.08]"
-                  href={quickPrevMonthHref}
-                >
-                  Mês passado
-                </Link>
+            <div className="mt-5 rounded-[16px] border border-white/10 bg-black/10 p-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                    Host groups
+                  </div>
+                  <div className="mt-1 text-sm text-slate-400">
+                    Use os grupos do Zabbix para montar o lote automaticamente, como o PRTG faz ao incluir sensores por agrupamento.
+                  </div>
+                </div>
                 {effectiveGroupIds.length ? (
                   <Link
                     href={clearGroupsHref}
-                    className="rounded-[12px] border border-white/10 bg-white/[0.04] px-4 py-2 text-center text-sm font-semibold text-slate-100 transition hover:bg-white/[0.08]"
+                    className="inline-flex h-9 items-center rounded-[12px] border border-white/10 bg-white/[0.04] px-4 text-sm font-semibold text-slate-100 transition hover:bg-white/[0.08]"
                   >
                     Limpar grupos
                   </Link>
                 ) : null}
               </div>
-            </div>
 
-            <div className="flex flex-wrap items-center gap-2 text-xs text-slate-300">
-              {selectedTemplate ? (
-                <span className="rounded-full border border-white/10 bg-black/15 px-3 py-1 font-semibold text-slate-100">
-                  Template: {selectedTemplate.code}
-                </span>
-              ) : null}
-              {requestedUnitId && selectedUnit ? (
-                <span className="rounded-full border border-white/10 bg-black/15 px-3 py-1 font-semibold text-slate-100">
-                  Unidade fixa: {selectedUnit.code}
-                </span>
-              ) : null}
               {selectedGroupSource ? (
-                <span className="rounded-full border border-white/10 bg-black/15 px-3 py-1 font-semibold text-slate-100">
-                  Integração: {selectedGroupSource.code}
-                </span>
-              ) : null}
-              {effectiveGroupIds.length ? (
-                <span className="rounded-full border border-white/10 bg-black/15 px-3 py-1 font-semibold text-slate-100">
-                  {effectiveGroupIds.length} grupo(s)
-                </span>
-              ) : null}
-              <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 font-semibold text-emerald-50">
-                {resultUnits.length} unidade(s) no lote
-              </span>
-              {unresolvedCount ? (
-                <span className="rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 font-semibold text-amber-50">
-                  {unresolvedCount} pendência(s)
-                </span>
-              ) : null}
-              <span className="text-slate-400">{formatDate(from)} até {formatDate(to)}</span>
+                groupCatalog?.items.length ? (
+                  <div className="mt-4 overflow-hidden rounded-[14px] border border-white/10 bg-[#0c1118]">
+                    <div className="max-h-72 overflow-auto divide-y divide-white/5">
+                      {groupCatalog.items.map((group) => {
+                        const checked = effectiveGroupIds.includes(group.id);
+                        return (
+                          <label
+                            key={group.id}
+                            className="flex cursor-pointer items-start gap-3 px-4 py-3 text-sm text-slate-200 transition hover:bg-white/[0.03]"
+                          >
+                            <input
+                              type="checkbox"
+                              name="groupIds"
+                              value={group.id}
+                              defaultChecked={checked}
+                              className="mt-0.5 h-4 w-4"
+                            />
+                            <span className="min-w-0 flex-1">
+                              <span className="block truncate font-medium text-slate-100">{group.name}</span>
+                              <span className="mt-1 block text-xs text-slate-500">{group.hostCount} host(s)</span>
+                            </span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mt-4 rounded-[14px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-slate-400">
+                    Essa integração ainda não retornou grupos para seleção.
+                  </div>
+                )
+              ) : (
+                <div className="mt-4 rounded-[14px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-slate-400">
+                  Escolha uma integração do Zabbix para habilitar a seleção de grupos.
+                </div>
+              )}
             </div>
-          </form>
-        </Surface>
 
-        <form action="/relatorios/monitoramento/export" method="POST" target="_blank" className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
+            <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-slate-300">
+              {selectedTemplate ? <TonePill tone="info">Template {selectedTemplate.code}</TonePill> : null}
+              {selectedUnit ? <TonePill tone="neutral">Unidade fixa {selectedUnit.code}</TonePill> : null}
+              {selectedGroupSource ? <TonePill tone="neutral">Integração {selectedGroupSource.code}</TonePill> : null}
+              {selectedGroupNames.length ? <TonePill tone="success">{selectedGroupNames.length} grupo(s) marcado(s)</TonePill> : null}
+            </div>
+          </Surface>
+        </form>
+
+        <form action="/relatorios/monitoramento/export" method="POST" target="_blank" className="space-y-5">
           <input type="hidden" name="from" value={from} />
           <input type="hidden" name="to" value={to} />
 
-          <Surface className="p-5 sm:p-6">
-            <div>
-              <h2 className="text-lg font-semibold text-slate-50">Lote do relatório</h2>
-              <p className="mt-1 text-sm text-slate-400">
-                O lote é montado a partir dos filtros acima. Desmarque as unidades que não devem sair no arquivo.
-              </p>
-            </div>
+          <Surface id="unidades-incluidas" className="p-5 sm:p-6 scroll-mt-24">
+            <SectionIntro
+              eyebrow="Etapa 3"
+              title="Unidades incluídas"
+              description="Esse é o lote que entrou no relatório após a execução. Aqui você só revisa e desmarca o que não deve sair no arquivo final."
+            />
 
             {groupPreviewError ? (
               <div className="mt-4 rounded-[16px] border border-rose-500/25 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
@@ -504,99 +569,156 @@ export default async function MonitoringReportsPage({
               </div>
             ) : null}
 
-            <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-slate-400">
-              <span>{resultUnits.length} unidade(s) resolvida(s)</span>
-              {groupPreview ? <span>{groupPreview.counts.hosts} host(s) analisado(s)</span> : null}
-              {groupPreview ? <span>{groupPreview.counts.matchedUnits} vínculo(s) encontrados</span> : null}
+            <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-slate-300">
+              <TonePill tone="success">{resultUnits.length} unidade(s) no lote</TonePill>
+              {groupPreview ? <TonePill tone="neutral">{groupPreview.counts.hosts} host(s) analisado(s)</TonePill> : null}
+              {groupPreview ? <TonePill tone="neutral">{groupPreview.counts.matchedUnits} vínculo(s) resolvido(s)</TonePill> : null}
+              {unresolvedCount ? <TonePill tone="attention">{unresolvedCount} pendência(s)</TonePill> : null}
+              <span className="text-slate-500">Período: {formatDate(from)} até {formatDate(to)}</span>
             </div>
 
             {!resultUnits.length ? (
               <div className="mt-4 rounded-[16px] border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-50">
-                Nenhuma unidade entrou no lote com os filtros atuais.
+                Nenhuma unidade entrou no lote com a configuração atual. Revise o período, a unidade fixa ou os grupos do Zabbix e execute novamente.
               </div>
             ) : (
-              <div className="mt-4 overflow-hidden rounded-[16px] border border-white/10 bg-black/10">
-                <div className="overflow-x-auto">
-                  <table className="min-w-full table-fixed">
-                    <thead>
-                      <tr className="border-b border-white/10 text-left text-[11px] uppercase tracking-[0.16em] text-slate-500">
-                        <th className="w-16 px-4 py-3 font-semibold">Sair</th>
-                        <th className="px-4 py-3 font-semibold">Unidade</th>
-                        <th className="w-56 px-4 py-3 font-semibold">Parceiro / local</th>
-                        <th className="w-64 px-4 py-3 font-semibold">Origem / host</th>
-                        <th className="w-28 px-4 py-3 font-semibold">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/5 text-sm text-slate-200">
-                      {resultUnits.map((unit) => {
-                        const matched = groupPreview?.matchedUnits.find((item) => item.unit.id === unit.id) || null;
-                        const fromTemplate = templateManualUnitIds.includes(unit.id);
-                        const fromManual = requestedUnitId === unit.id;
-                        const sourceText = matched
-                          ? matched.primaryHost.hostName || matched.primaryHost.host || matched.primaryHost.hostId
-                          : fromManual
-                            ? "Unidade selecionada"
-                            : fromTemplate
-                              ? `Template ${selectedTemplate?.code || ""}`
-                              : "Filtro aplicado";
-                        const statusText = matched ? `${matched.confidence}%` : "pronto";
+              <TableShell className="mt-4">
+                <DenseTable>
+                  <TableHead>
+                    <tr>
+                      <th className="w-16 px-4 py-3 font-semibold">Sair</th>
+                      <th className="px-4 py-3 font-semibold">Unidade</th>
+                      <th className="w-56 px-4 py-3 font-semibold">Parceiro / local</th>
+                      <th className="w-64 px-4 py-3 font-semibold">Origem / host</th>
+                      <th className="w-32 px-4 py-3 font-semibold">Status</th>
+                    </tr>
+                  </TableHead>
+                  <tbody className="divide-y divide-white/[0.06] text-sm text-slate-200">
+                    {resultUnits.map((unit) => {
+                      const matched = groupPreview?.matchedUnits.find((item) => item.unit.id === unit.id) || null;
+                      const fromTemplate = templateManualUnitIds.includes(unit.id);
+                      const fromManual = requestedUnitId === unit.id;
+                      const sourceText = matched
+                        ? matched.primaryHost.hostName || matched.primaryHost.host || matched.primaryHost.hostId
+                        : fromManual
+                          ? "Unidade selecionada manualmente"
+                          : fromTemplate
+                            ? `Template ${selectedTemplate?.code || ""}`
+                            : "Filtro aplicado";
+                      const statusText = matched
+                        ? `Confiança ${matched.confidence}%`
+                        : fromManual
+                          ? "Seleção direta"
+                          : fromTemplate
+                            ? "Template"
+                            : "Incluída";
 
-                        return (
-                          <tr key={unit.id} className="hover:bg-white/[0.03]">
-                            <td className="px-4 py-3 align-top">
-                              <input type="checkbox" name="unitIds" value={unit.id} defaultChecked className="mt-0.5 h-4 w-4" />
-                            </td>
-                            <td className="px-4 py-3 align-top">
-                              <div className="font-medium text-slate-100">{unit.code} - {unit.name}</div>
-                            </td>
-                            <td className="px-4 py-3 align-top text-xs text-slate-400">{formatUnitMeta(unit) || "-"}</td>
-                            <td className="px-4 py-3 align-top text-xs text-slate-400">{sourceText}</td>
-                            <td className="px-4 py-3 align-top text-xs text-slate-400">{statusText}</td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+                      return (
+                        <tr key={unit.id} className="hover:bg-white/[0.03]">
+                          <TableCell>
+                            <input type="checkbox" name="unitIds" value={unit.id} defaultChecked className="mt-0.5 h-4 w-4" />
+                          </TableCell>
+                          <TableCell>
+                            <div className="font-medium text-slate-100">{unit.code} - {unit.name}</div>
+                          </TableCell>
+                          <TableCell className="text-xs text-slate-400">{formatUnitMeta(unit) || "-"}</TableCell>
+                          <TableCell className="text-xs text-slate-400">{sourceText}</TableCell>
+                          <TableCell className="text-xs text-slate-400">{statusText}</TableCell>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </DenseTable>
+              </TableShell>
             )}
 
             {groupPreview?.unresolvedHosts.length ? (
-              <div className="mt-4 rounded-[16px] border border-amber-500/20 bg-amber-500/10 px-4 py-3">
+              <div className="mt-5 rounded-[16px] border border-amber-500/20 bg-amber-500/10 px-4 py-4">
                 <div className="text-sm font-semibold text-amber-50">Hosts pendentes de vínculo</div>
-                <div className="mt-2 overflow-hidden rounded-[12px] border border-amber-400/10 bg-black/10">
-                  <table className="min-w-full table-fixed text-xs text-amber-50/90">
-                    <thead>
-                      <tr className="border-b border-amber-300/10 text-left uppercase tracking-[0.16em] text-amber-100/70">
+                <div className="mt-2 text-sm text-amber-100/85">
+                  Esses hosts vieram dos grupos selecionados, mas ainda não conseguiram virar unidade no NOVA.
+                </div>
+                <TableShell className="mt-4 border-amber-400/10 bg-black/10">
+                  <DenseTable>
+                    <TableHead>
+                      <tr>
                         <th className="px-3 py-2 font-semibold">Host</th>
-                        <th className="w-28 px-3 py-2 font-semibold">Tipo</th>
+                        <th className="w-32 px-3 py-2 font-semibold">Tipo</th>
                       </tr>
-                    </thead>
-                    <tbody className="divide-y divide-amber-300/10">
+                    </TableHead>
+                    <tbody className="divide-y divide-amber-300/10 text-xs text-amber-50/90">
                       {groupPreview.unresolvedHosts.slice(0, 12).map((item) => (
                         <tr key={item.host.hostId}>
-                          <td className="px-3 py-2">{item.host.hostName || item.host.host || item.host.hostId}</td>
-                          <td className="px-3 py-2 capitalize">{item.status === "ambiguous" ? "Ambíguo" : "Sem vínculo"}</td>
+                          <TableCell className="px-3 py-2">{item.host.hostName || item.host.host || item.host.hostId}</TableCell>
+                          <TableCell className="px-3 py-2 capitalize">
+                            {item.status === "ambiguous" ? "Ambíguo" : "Sem vínculo"}
+                          </TableCell>
                         </tr>
                       ))}
                     </tbody>
-                  </table>
-                </div>
+                  </DenseTable>
+                </TableShell>
               </div>
             ) : null}
           </Surface>
 
-          <div className="self-start xl:sticky xl:top-24">
-            <Surface className="p-5 sm:p-6">
-              <div>
-                <h2 className="text-lg font-semibold text-slate-50">Exportar</h2>
-                <p className="mt-1 text-sm text-slate-400">
-                  Ajuste o arquivo final e baixe o lote atual.
-                </p>
+          <Surface id="processamento" className="p-5 sm:p-6 scroll-mt-24">
+            <SectionIntro
+              eyebrow="Etapa 4"
+              title="Processamento do relatório"
+              description="Defina o formato final do arquivo, os dados de capa e então gere o download do lote atual."
+              actions={<button type="submit" disabled={!resultUnits.length}>Baixar arquivo</button>}
+            />
+
+            <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+              <div className="grid gap-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                    Formato do arquivo
+                    <select name="format" defaultValue={defaultFormat}>
+                      <option value="pdf">PDF</option>
+                      <option value="docx">DOCX</option>
+                    </select>
+                  </label>
+
+                  <label className="flex items-center gap-3 rounded-[16px] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-slate-100 md:self-end">
+                    <input type="checkbox" name="includeCharts" defaultChecked={defaultIncludeCharts} className="h-4 w-4" />
+                    Incluir gráficos
+                  </label>
+                </div>
+
+                <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                  Título do relatório
+                  <input name="title" defaultValue={defaultTitle} />
+                </label>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                    Interessado
+                    <input name="interestedParty" defaultValue={defaultInterestedParty} placeholder="Ex.: Secretaria Municipal de Administração" />
+                  </label>
+
+                  <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                    Contrato
+                    <input name="contractLabel" defaultValue={defaultContractLabel} placeholder="Ex.: Contrato 123/2026" />
+                  </label>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                    Banda contratada
+                    <input name="contractedBandwidth" defaultValue={defaultBandwidth} placeholder="Ex.: 300 Mbit/s" />
+                  </label>
+
+                  <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                    Endereço ou observação comercial
+                    <input name="addressLine" defaultValue={defaultAddressLine} placeholder="Ex.: Rua X, Centro, Gurupi - TO" />
+                  </label>
+                </div>
               </div>
 
-              <div className="mt-4 rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-4">
-                <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Resumo</div>
+              <div className="rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-4">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Resumo do processamento</div>
                 <dl className="mt-3 grid gap-2 text-sm text-slate-300">
                   <div className="flex items-start justify-between gap-3">
                     <dt className="text-slate-500">Período</dt>
@@ -607,55 +729,21 @@ export default async function MonitoringReportsPage({
                     <dd className="text-right font-medium text-slate-100">{resultUnits.length}</dd>
                   </div>
                   <div className="flex items-start justify-between gap-3">
+                    <dt className="text-slate-500">Modelo salvo</dt>
+                    <dd className="text-right font-medium text-slate-100">{selectedTemplate?.code || "Padrão"}</dd>
+                  </div>
+                  <div className="flex items-start justify-between gap-3">
                     <dt className="text-slate-500">Host groups</dt>
-                    <dd className="text-right font-medium text-slate-100">{effectiveGroupIds.length || 0}</dd>
+                    <dd className="text-right font-medium text-slate-100">{effectiveGroupIds.length}</dd>
                   </div>
                 </dl>
+
+                <div className="mt-4 rounded-[14px] border border-white/10 bg-black/10 px-3 py-3 text-sm leading-6 text-slate-400">
+                  O download usa o lote montado acima. Se precisar ajustar quem entra no arquivo, volte para a etapa de unidades incluídas e marque ou desmarque as linhas desejadas.
+                </div>
               </div>
-
-              <div className="mt-4 grid gap-4">
-                <label className="grid gap-2 text-sm font-semibold text-slate-200">
-                  Formato do arquivo
-                  <select name="format" defaultValue={defaultFormat}>
-                    <option value="pdf">PDF</option>
-                    <option value="docx">DOCX</option>
-                  </select>
-                </label>
-
-                <label className="flex items-center gap-3 rounded-[16px] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-slate-100">
-                  <input type="checkbox" name="includeCharts" defaultChecked={defaultIncludeCharts} className="h-4 w-4" />
-                  Incluir gráficos
-                </label>
-
-                <label className="grid gap-2 text-sm font-semibold text-slate-200">
-                  Título do relatório
-                  <input name="title" defaultValue={defaultTitle} />
-                </label>
-
-                <label className="grid gap-2 text-sm font-semibold text-slate-200">
-                  Interessado
-                  <input name="interestedParty" defaultValue={defaultInterestedParty} placeholder="Ex.: Secretaria Municipal de Administração" />
-                </label>
-
-                <label className="grid gap-2 text-sm font-semibold text-slate-200">
-                  Contrato
-                  <input name="contractLabel" defaultValue={defaultContractLabel} placeholder="Ex.: Contrato 123/2026" />
-                </label>
-
-                <label className="grid gap-2 text-sm font-semibold text-slate-200">
-                  Banda contratada
-                  <input name="contractedBandwidth" defaultValue={defaultBandwidth} placeholder="Ex.: 300 Mbit/s" />
-                </label>
-
-                <label className="grid gap-2 text-sm font-semibold text-slate-200">
-                  Endereço ou observação comercial
-                  <input name="addressLine" defaultValue={defaultAddressLine} placeholder="Ex.: Rua X, Centro, Gurupi - TO" />
-                </label>
-
-                <button type="submit" disabled={!resultUnits.length}>Baixar arquivo</button>
-              </div>
-            </Surface>
-          </div>
+            </div>
+          </Surface>
         </form>
       </div>
     </AppShell>
