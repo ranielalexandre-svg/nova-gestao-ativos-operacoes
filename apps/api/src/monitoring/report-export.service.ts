@@ -1359,9 +1359,11 @@ export class MonitoringReportExportService {
     rgb: any,
   ) {
     const model = this.chartModel(block);
-    const plotX = bounds.x + 48;
+    const leftGutter = 52;
+    const rightGutter = model.secondaryAxis ? 56 : 24;
+    const plotX = bounds.x + leftGutter;
     const plotY = bounds.y + 28;
-    const plotWidth = bounds.width - 72;
+    const plotWidth = bounds.width - leftGutter - rightGutter;
     const plotHeight = bounds.height - 48;
 
     page.drawRectangle({
@@ -1390,14 +1392,33 @@ export class MonitoringReportExportService {
         color: rgb(0.86, 0.89, 0.93),
       });
 
-      const value = model.max - (index / 5) * (model.max - model.min);
-      page.drawText(this.formatValue(value, model.unit), {
+      const primaryValue =
+        model.primaryAxis.max -
+        (index / 5) * (model.primaryAxis.max - model.primaryAxis.min);
+      page.drawText(this.formatValue(primaryValue, model.primaryAxis.unit), {
         x: bounds.x + 4,
         y: lineY - 3,
         size: 7,
         font: regularFont,
         color: rgb(0.34, 0.37, 0.42),
       });
+
+      if (model.secondaryAxis) {
+        const secondaryValue =
+          model.secondaryAxis.max -
+          (index / 5) *
+            (model.secondaryAxis.max - model.secondaryAxis.min);
+        page.drawText(
+          this.formatValue(secondaryValue, model.secondaryAxis.unit),
+          {
+            x: plotX + plotWidth + 6,
+            y: lineY - 3,
+            size: 7,
+            font: regularFont,
+            color: rgb(0.34, 0.37, 0.42),
+          },
+        );
+      }
     }
 
     for (let index = 0; index <= 7; index += 1) {
@@ -1966,25 +1987,46 @@ export class MonitoringReportExportService {
   }
 
   private chartModel(block: MonitoringReportBlock) {
-    const unit = block.series[0]?.unit || 'bps';
-    const values = block.series
-      .flatMap((series) => series.points.map((point) => point.value))
-      .filter(
-        (value): value is number =>
-          typeof value === 'number' && Number.isFinite(value),
-      );
-    const min =
-      unit === 'd' && values.length
-        ? Math.max(0, Math.min(...values) * 0.96)
-        : 0;
-    const max = values.length ? Math.max(...values, min + 1) : 1;
+    const units = Array.from(new Set(block.series.map((series) => series.unit))).sort(
+      (left, right) => this.chartUnitPriority(left) - this.chartUnitPriority(right),
+    );
+    const axes = units.map((unit) => {
+      const values = block.series
+        .filter((series) => series.unit === unit)
+        .flatMap((series) => series.points.map((point) => point.value))
+        .filter(
+          (value): value is number =>
+            typeof value === 'number' && Number.isFinite(value),
+        );
+
+      const min =
+        unit === 'd' && values.length
+          ? Math.max(0, Math.min(...values) * 0.96)
+          : 0;
+      const observedMax = values.length ? Math.max(...values) : 1;
+      const max =
+        unit === '%'
+          ? Math.max(100, observedMax, min + 1)
+          : Math.max(observedMax, min + 1);
+
+      return { unit, min, max };
+    });
+    const axisMap = new Map(axes.map((axis) => [axis.unit, axis] as const));
 
     const series = block.series.map((entry) => {
+      const axis = axisMap.get(entry.unit) || axes[0] || { unit: entry.unit, min: 0, max: 1 };
       const points = this.slimPoints(entry.points, 120).map(
         (point, index, items) => ({
           value: point.value ?? 0,
           ratioX: items.length <= 1 ? 0 : index / (items.length - 1),
-          ratioY: (Number(point.value || 0) - min) / Math.max(max - min, 1),
+          ratioY: Math.min(
+            1,
+            Math.max(
+              0,
+              (Number(point.value || 0) - axis.min) /
+                Math.max(axis.max - axis.min, 1),
+            ),
+          ),
         }),
       );
 
@@ -1992,6 +2034,7 @@ export class MonitoringReportExportService {
         label: entry.label,
         color: entry.color,
         unit: entry.unit,
+        axis,
         points,
       };
     });
@@ -2001,24 +2044,47 @@ export class MonitoringReportExportService {
       this.formatShortLabel(point.timestamp),
     );
 
-    return { unit, min, max, series, labels: labels.length ? labels : ['-'] };
+    return {
+      primaryAxis: axes[0] || { unit: block.series[0]?.unit || 'bps', min: 0, max: 1 },
+      secondaryAxis: axes[1] || null,
+      series,
+      labels: labels.length ? labels : ['-'],
+    };
   }
 
   private chartSvg(block: MonitoringReportBlock) {
     const model = this.chartModel(block);
     const width = 900;
     const height = 330;
-    const left = 62;
+    const left = 70;
     const top = 28;
-    const plotWidth = width - 108;
+    const rightGutter = model.secondaryAxis ? 74 : 38;
+    const plotWidth = width - left - rightGutter;
     const plotHeight = 190;
     const bottom = top + plotHeight;
 
     const linesY = Array.from({ length: 6 })
       .map((_, index) => {
         const y = top + (index / 5) * plotHeight;
-        const value = model.max - (index / 5) * (model.max - model.min);
-        return `<g><line x1="${left}" y1="${y}" x2="${left + plotWidth}" y2="${y}" stroke="#d7dde4" stroke-width="1" /><text x="${left - 8}" y="${y + 4}" text-anchor="end" font-size="11" fill="#42505c">${this.escapeXml(this.formatValue(value, model.unit))}</text></g>`;
+        const primaryValue =
+          model.primaryAxis.max -
+          (index / 5) * (model.primaryAxis.max - model.primaryAxis.min);
+        const secondaryValue = model.secondaryAxis
+          ? model.secondaryAxis.max -
+            (index / 5) * (model.secondaryAxis.max - model.secondaryAxis.min)
+          : null;
+
+        return `
+          <g>
+            <line x1="${left}" y1="${y}" x2="${left + plotWidth}" y2="${y}" stroke="#d7dde4" stroke-width="1" />
+            <text x="${left - 8}" y="${y + 4}" text-anchor="end" font-size="11" fill="#42505c">${this.escapeXml(this.formatValue(primaryValue, model.primaryAxis.unit))}</text>
+            ${
+              secondaryValue === null
+                ? ''
+                : `<text x="${left + plotWidth + 8}" y="${y + 4}" text-anchor="start" font-size="11" fill="#42505c">${this.escapeXml(this.formatValue(secondaryValue, model.secondaryAxis.unit))}</text>`
+            }
+          </g>
+        `;
       })
       .join('');
 
@@ -2070,6 +2136,14 @@ export class MonitoringReportExportService {
         ${legend}
       </svg>
     `.trim();
+  }
+
+  private chartUnitPriority(unit: MonitoringReportSeries['unit']) {
+    if (unit === 'ms') return 0;
+    if (unit === 'bps') return 1;
+    if (unit === 'd') return 2;
+    if (unit === '%') return 3;
+    return 9;
   }
 
   private slimPoints(points: MonitoringReportPoint[], maxPoints: number) {
