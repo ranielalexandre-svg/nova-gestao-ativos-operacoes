@@ -302,3 +302,246 @@ export function EmptyState({
 export function FieldLabel({ children }: { children: ReactNode }) {
   return <div className="nova-field-label text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">{children}</div>;
 }
+
+export function PageHeader({
+  eyebrow,
+  title,
+  subtitle,
+  actions,
+}: {
+  eyebrow?: string;
+  title: string;
+  subtitle?: string;
+  actions?: ReactNode;
+}) {
+  return (
+    <header className="nova-page-header flex flex-col gap-4 border-b border-white/[0.08] pb-5 lg:flex-row lg:items-end lg:justify-between">
+      <div className="min-w-0">
+        {eyebrow ? (
+          <div className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-300/80">
+            {eyebrow}
+          </div>
+        ) : null}
+        <h1 className="mt-2 text-[28px] font-black leading-tight tracking-[-0.045em] text-white sm:text-[34px]">
+          {title}
+        </h1>
+        {subtitle ? <p className="mt-2 max-w-4xl text-sm leading-6 text-slate-400">{subtitle}</p> : null}
+      </div>
+      {actions ? <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div> : null}
+    </header>
+  );
+}
+
+export function StatusBadge({
+  children,
+  tone = "neutral",
+  className = "",
+}: {
+  children: ReactNode;
+  tone?: keyof typeof toneMap | string;
+  className?: string;
+}) {
+  return <TonePill tone={tone} className={className}>{children}</TonePill>;
+}
+
+export function StatCard({
+  label,
+  value,
+  detail,
+  tone = "neutral",
+}: {
+  label: string;
+  value: ReactNode;
+  detail?: ReactNode;
+  tone?: keyof typeof toneMap | string;
+}) {
+  return (
+    <div className="nova-stat-card rounded-[14px] border border-white/[0.08] bg-[#121923] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]">
+      <div className="flex items-start justify-between gap-3">
+        <div className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">{label}</div>
+        <span className={cx("mt-1 h-2.5 w-2.5 rounded-full", toneDotMap[tone] || toneDotMap.neutral)} />
+      </div>
+      <div className="mt-3 text-[28px] font-black leading-none tracking-[-0.04em] text-white">{value}</div>
+      {detail ? <div className="mt-2 text-sm leading-5 text-slate-400">{detail}</div> : null}
+    </div>
+  );
+}
+
+export function FilterBar({
+  children,
+  actions,
+  className = "",
+}: {
+  children: ReactNode;
+  actions?: ReactNode;
+  className?: string;
+}) {
+  return (
+    <Surface className={cx("nova-filter-bar p-4", className)}>
+      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">{children}</div>
+        {actions ? <div className="flex flex-wrap items-center justify-end gap-2">{actions}</div> : null}
+      </div>
+    </Surface>
+  );
+}
+
+export function RightPanel({
+  title,
+  description,
+  children,
+  actions,
+}: {
+  title: string;
+  description?: string;
+  children: ReactNode;
+  actions?: ReactNode;
+}) {
+  return (
+    <aside className="nova-right-panel rounded-[14px] border border-white/[0.08] bg-[#121923] p-4 shadow-[0_18px_55px_rgba(0,0,0,0.18),inset_0_1px_0_rgba(255,255,255,0.035)]">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h2 className="text-base font-black tracking-[-0.02em] text-white">{title}</h2>
+          {description ? <p className="mt-1 text-sm leading-6 text-slate-400">{description}</p> : null}
+        </div>
+        {actions ? <div className="shrink-0">{actions}</div> : null}
+      </div>
+      <div className="mt-4 grid gap-3">{children}</div>
+    </aside>
+  );
+}
+
+export function ChartCard({
+  title,
+  subtitle,
+  tone = "info",
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  tone?: keyof typeof toneMap | string;
+  children?: ReactNode;
+}) {
+  const dotClass = toneDotMap[tone] || toneDotMap.info;
+
+  return (
+    <div className="nova-chart-card rounded-[14px] border border-white/[0.08] bg-[#121923] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h3 className="text-sm font-black text-white">{title}</h3>
+          {subtitle ? <p className="mt-1 text-xs leading-5 text-slate-500">{subtitle}</p> : null}
+        </div>
+        <span className={cx("mt-1 h-2.5 w-2.5 rounded-full", dotClass)} />
+      </div>
+      <div className="mt-4 min-h-[180px] rounded-[12px] border border-white/[0.07] bg-[#070b10] p-3">
+        {children || <FakeChart tone={tone} />}
+      </div>
+    </div>
+  );
+}
+
+function FakeChart({ tone = "info" }: { tone?: keyof typeof toneMap | string }) {
+  const stroke =
+    tone === "attention" ? "#fbbf24" : tone === "critical" ? "#fb7185" : tone === "success" ? "#34d399" : "#f97316";
+
+  return (
+    <svg viewBox="0 0 640 170" className="h-full min-h-[160px] w-full" aria-hidden="true">
+      <defs>
+        <linearGradient id={`nova-chart-${stroke.replace("#", "")}`} x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stopColor={stroke} stopOpacity="0.26" />
+          <stop offset="100%" stopColor={stroke} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      {Array.from({ length: 5 }).map((_, index) => (
+        <line key={`h-${index}`} x1="0" x2="640" y1={20 + index * 30} y2={20 + index * 30} stroke="rgba(255,255,255,0.07)" />
+      ))}
+      {Array.from({ length: 9 }).map((_, index) => (
+        <line key={`v-${index}`} x1={index * 80} x2={index * 80} y1="0" y2="160" stroke="rgba(255,255,255,0.045)" />
+      ))}
+      <path d="M0 126 C75 118 95 58 160 72 C240 91 240 132 320 94 C392 60 422 112 480 84 C555 48 585 68 640 38 L640 170 L0 170 Z" fill={`url(#nova-chart-${stroke.replace("#", "")})`} />
+      <path d="M0 126 C75 118 95 58 160 72 C240 91 240 132 320 94 C392 60 422 112 480 84 C555 48 585 68 640 38" fill="none" stroke={stroke} strokeWidth="4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function Stepper({
+  steps,
+  activeIndex = 0,
+}: {
+  steps: Array<{ title: string; description?: string }>;
+  activeIndex?: number;
+}) {
+  return (
+    <div className="nova-stepper grid gap-2 md:grid-cols-3">
+      {steps.map((step, index) => {
+        const active = index === activeIndex;
+        const completed = index < activeIndex;
+        return (
+          <div
+            key={step.title}
+            className={cx(
+              "rounded-[14px] border px-4 py-3",
+              active
+                ? "border-orange-400/35 bg-orange-500/[0.13]"
+                : completed
+                  ? "border-emerald-400/22 bg-emerald-500/[0.08]"
+                  : "border-white/[0.08] bg-[#121923]",
+            )}
+          >
+            <div className="flex items-center gap-2">
+              <span className="grid h-7 w-7 place-items-center rounded-full border border-white/10 bg-black/20 text-xs font-black text-white">
+                {index + 1}
+              </span>
+              <div className="text-sm font-black text-white">{step.title}</div>
+            </div>
+            {step.description ? <div className="mt-2 text-xs leading-5 text-slate-500">{step.description}</div> : null}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+export function ReportPreviewCard({
+  title,
+  format,
+  includeCharts,
+  units,
+}: {
+  title: string;
+  format: string;
+  includeCharts: boolean;
+  units: number;
+}) {
+  return (
+    <div className="nova-report-preview-card rounded-[14px] border border-white/[0.08] bg-[#121923] p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">Prévia</div>
+          <div className="mt-2 text-base font-black text-white">{title}</div>
+        </div>
+        <TonePill tone="attention">{format}</TonePill>
+      </div>
+      <div className="mt-4 aspect-[0.72] rounded-[12px] border border-white/[0.08] bg-[#f8fafc] p-3 text-slate-900 shadow-inner">
+        <div className="h-4 rounded-sm bg-orange-500" />
+        <div className="mt-4 h-3 w-2/3 rounded-sm bg-slate-300" />
+        <div className="mt-2 h-2 w-full rounded-sm bg-slate-200" />
+        <div className="mt-1 h-2 w-5/6 rounded-sm bg-slate-200" />
+        {includeCharts ? (
+          <div className="mt-4 h-20 rounded-sm border border-slate-200 bg-white">
+            <FakeChart tone="attention" />
+          </div>
+        ) : (
+          <div className="mt-4 grid gap-2">
+            <div className="h-5 rounded-sm bg-slate-200" />
+            <div className="h-5 rounded-sm bg-slate-200" />
+          </div>
+        )}
+      </div>
+      <div className="mt-3 flex items-center justify-between text-sm text-slate-400">
+        <span>{units} unidade(s)</span>
+        <span>{includeCharts ? "com gráficos" : "somente indicadores"}</span>
+      </div>
+    </div>
+  );
+}

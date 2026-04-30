@@ -20,7 +20,11 @@ type IconName =
   | "activity"
   | "import"
   | "reconcile"
-  | "integrations";
+  | "integrations"
+  | "map"
+  | "contracts"
+  | "profiles"
+  | "settings";
 
 export type NavItem = {
   href: string;
@@ -49,6 +53,10 @@ const iconPaths: Record<IconName, string[]> = {
   import: ["M12 3v12", "M8 11l4 4 4-4", "M4 21h16"],
   reconcile: ["M7 7h11l-3-3", "M17 17H6l3 3", "M6 7a7 7 0 0 0-1 8", "M18 17a7 7 0 0 0 1-8"],
   integrations: ["M8 12h8", "M9 7H7a5 5 0 0 0 0 10h2", "M15 7h2a5 5 0 0 1 0 10h-2"],
+  map: ["M9 18l-5 2V6l5-2 6 2 5-2v14l-5 2-6-2Z", "M9 4v14", "M15 6v14"],
+  contracts: ["M7 3h8l3 3v15H7a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3Z", "M14 3v4h4", "M8 12h7", "M8 16h5"],
+  profiles: ["M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z", "M4 21c1.1-4 4-6 8-6s6.9 2 8 6", "M17.5 8.5l1 1 2-2"],
+  settings: ["M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z", "M19.4 15a1.7 1.7 0 0 0 .34 1.88l.04.04-1.8 3.12-.06-.02a1.7 1.7 0 0 0-1.92.32l-.02.02a1.7 1.7 0 0 0-.47 1.04H12.4a1.7 1.7 0 0 0-.49-1.05l-.02-.02a1.7 1.7 0 0 0-1.92-.31l-.06.02-1.8-3.12.04-.04A1.7 1.7 0 0 0 8.5 15a1.7 1.7 0 0 0-.34-1.88l-.04-.04 1.8-3.12.06.02a1.7 1.7 0 0 0 1.92-.32l.02-.02a1.7 1.7 0 0 0 .48-1.04h3.2c.07.39.23.75.49 1.04l.02.02a1.7 1.7 0 0 0 1.92.31l.06-.02 1.8 3.12-.04.04A1.7 1.7 0 0 0 19.4 15Z"],
 };
 
 function NavIcon({ name, fallback }: { name?: IconName; fallback: string }) {
@@ -57,7 +65,16 @@ function NavIcon({ name, fallback }: { name?: IconName; fallback: string }) {
   }
 
   return (
-    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      className="h-[16px] w-[16px]"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       {iconPaths[name].map((path) => (
         <path key={path} d={path} />
       ))}
@@ -67,12 +84,15 @@ function NavIcon({ name, fallback }: { name?: IconName; fallback: string }) {
 
 function groupItems(items: NavItem[]) {
   const groups: Array<{ section: string; items: NavItem[] }> = [];
+
   for (const item of items) {
     const section = item.section || "Geral";
     const found = groups.find((group) => group.section === section);
+
     if (found) found.items.push(item);
     else groups.push({ section, items: [item] });
   }
+
   return groups;
 }
 
@@ -80,12 +100,17 @@ export function AppSidebarNav({ items }: { items: NavItem[] }) {
   const pathname = usePathname();
   const groups = groupItems(items);
   const isExact = (href: string) => pathname === href;
-  const isBranch = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+  const isBranch = (href: string) => {
+    if (pathname === href) return true;
+    if (href === "/" || href === "/relatorios") return false;
+    return pathname.startsWith(`${href}/`);
+  };
 
   return (
     <nav aria-label="Navegação principal" className="grid gap-6">
       {groups.map((group) => (
-        <section key={group.section} className="grid gap-1.5" aria-label={group.section}><div className="px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">
+        <section key={group.section} className="grid gap-1.5" aria-label={group.section}>
+          <div className="px-1 pb-2 text-[10px] font-bold uppercase tracking-[0.17em] text-slate-500">
             {group.section}
           </div>
 
@@ -94,48 +119,65 @@ export function AppSidebarNav({ items }: { items: NavItem[] }) {
             const exactActive = isExact(item.href);
 
             return (
-              <div key={item.href} className="grid gap-1"><Link
+              <div key={item.href} className="grid gap-1">
+                <Link
                   href={item.href}
                   aria-current={exactActive ? "page" : undefined}
                   className={[
-                    "group relative flex min-h-11 items-center gap-3 rounded-[16px] border px-3 text-sm font-semibold outline-none transition",
-                    "focus-visible:border-sky-300/70 focus-visible:ring-2 focus-visible:ring-sky-400/30",
+                    "group relative flex min-h-9 items-center gap-2 rounded-xl border px-2 text-[13px] font-medium outline-none transition",
+                    "focus-visible:border-orange-300/70 focus-visible:ring-2 focus-visible:ring-orange-400/30",
                     branchActive
-                      ? "border-sky-400/25 bg-sky-400/[0.13] text-sky-50 shadow-[0_10px_28px_rgba(14,165,233,0.10)]"
-                      : "border-transparent text-slate-300 hover:border-white/10 hover:bg-white/[0.055] hover:text-white",
+                      ? "border-orange-400/25 bg-orange-500/[0.13] text-orange-100 shadow-none"
+                      : "border-transparent text-slate-400 hover:bg-white/[0.045] hover:text-white",
                   ].join(" ")}
-                ><span
+                >
+                  {branchActive ? (
+                    <span className="absolute left-[-13px] top-1.5 h-6 w-[3px] rounded-r-full bg-orange-500 shadow-[0_0_18px_rgba(249,115,22,0.72)]" />
+                  ) : null}
+
+                  <span
                     className={[
-                      "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-[12px] border transition",
+                      "inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border transition",
                       branchActive
-                        ? "border-sky-300/30 bg-sky-300/15 text-sky-100"
-                        : "border-white/10 bg-white/[0.035] text-slate-400 group-hover:text-slate-100",
+                        ? "border-orange-300/35 bg-orange-500/18 text-orange-100"
+                        : "border-transparent bg-transparent text-slate-400 group-hover:text-slate-100",
                     ].join(" ")}
-                  ><NavIcon name={item.icon} fallback={item.short} /></span><span className="min-w-0 flex-1 truncate">{item.label}</span>
+                  >
+                    <NavIcon name={item.icon} fallback={item.short} />
+                  </span>
+
+                  <span className="min-w-0 flex-1 truncate">{item.label}</span>
+
                   {item.children?.length ? (
-                    <span className={branchActive ? "text-sky-200" : "text-slate-600 group-hover:text-slate-400"} aria-hidden="true">
+                    <span className={branchActive ? "text-orange-200" : "text-slate-600 group-hover:text-slate-400"} aria-hidden="true">
                       ›
                     </span>
                   ) : null}
                 </Link>
 
                 {item.children?.length ? (
-                  <div className="ml-7 grid gap-1 border-l border-white/[0.08] py-1 pl-3">
+                  <div className="ml-6 grid gap-1 border-l border-white/[0.08] py-1 pl-2">
                     {item.children.map((child) => {
                       const childActive = isBranch(child.href);
+
                       return (
                         <Link
                           key={child.href}
                           href={child.href}
                           aria-current={childActive ? "page" : undefined}
                           className={[
-                            "group flex min-h-10 items-center gap-2 rounded-[13px] px-3 text-sm font-medium outline-none transition",
-                            "focus-visible:ring-2 focus-visible:ring-sky-400/30",
+                            "group flex min-h-10 items-center gap-2 rounded-xl px-3 text-sm font-medium outline-none transition",
+                            "focus-visible:ring-2 focus-visible:ring-orange-400/30",
                             childActive
-                              ? "bg-sky-400/10 text-sky-50"
+                              ? "bg-orange-400/10 text-orange-50"
                               : "text-slate-400 hover:bg-white/[0.045] hover:text-white",
                           ].join(" ")}
-                        ><span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-[9px] text-slate-500 group-hover:text-slate-200"><NavIcon name={child.icon} fallback={child.short} /></span><span className="truncate">{child.label}</span></Link>
+                        >
+                          <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-lg text-slate-500 group-hover:text-slate-200">
+                            <NavIcon name={child.icon} fallback={child.short} />
+                          </span>
+                          <span className="truncate">{child.label}</span>
+                        </Link>
                       );
                     })}
                   </div>

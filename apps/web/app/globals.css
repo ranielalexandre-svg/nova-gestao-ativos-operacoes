@@ -12,8 +12,8 @@
   --app-text-soft: #c3ccd8;
   --app-muted: #8793a3;
   --app-faint: #596676;
-  --app-brand: #1d4ed8;
-  --app-brand-soft: rgba(59, 130, 246, 0.16);
+  --app-brand: #f97316;
+  --app-brand-soft: rgba(249, 115, 22, 0.16);
   --app-success: #34d399;
   --app-warning: #fbbf24;
   --app-danger: #fb7185;
@@ -53,7 +53,7 @@ textarea {
 }
 
 ::selection {
-  background: rgba(59, 130, 246, 0.25);
+  background: rgba(249, 115, 22, 0.28);
 }
 
 ::-webkit-scrollbar {
@@ -77,7 +77,7 @@ textarea {
 
 .nova-app {
   background:
-    radial-gradient(circle at 38% -12%, rgba(37, 99, 235, 0.11), transparent 32rem),
+    radial-gradient(circle at 38% -12%, rgba(249, 115, 22, 0.12), transparent 32rem),
     linear-gradient(180deg, #090e14 0%, #070b10 55%);
   color: var(--app-text);
 }
@@ -1774,4 +1774,1052 @@ body:has([role="dialog"]) aside,
 body:has([role="dialog"]) header,
 body:has([role="dialog"]) nav {
   isolation: auto;
+}
+
+/* NOVA visual baseline: aplicado por último para reduzir overrides antigos em azul. */
+.nova-command-center {
+  --nova-orange: #f97316;
+  --nova-orange-strong: #ff7a00;
+  --nova-bg: #070b10;
+  --nova-surface: #121923;
+  --nova-surface-soft: #101721;
+  --nova-line: rgba(255, 255, 255, 0.08);
+  background: #070b10 !important;
+}
+
+.nova-command-center .nova-main {
+  background:
+    radial-gradient(circle at 72% 0%, rgba(249, 115, 22, 0.105), transparent 27rem),
+    radial-gradient(circle at 0% 18%, rgba(56, 189, 248, 0.045), transparent 24rem),
+    #070b10 !important;
+}
+
+.nova-command-center .nova-top-strip,
+.nova-command-center .nova-sidebar {
+  background: rgba(7, 11, 16, 0.94) !important;
+  border-color: var(--nova-line) !important;
+}
+
+.nova-command-center .nova-content {
+  max-width: 1420px !important;
+}
+
+.nova-command-center :where(.nova-surface, .nova-stat-card, .nova-chart-card, .nova-right-panel, .nova-report-preview-card, .nova-filter-bar, .nova-table-shell) {
+  border-radius: 14px !important;
+  border-color: var(--nova-line) !important;
+  background: var(--nova-surface) !important;
+  box-shadow:
+    0 18px 55px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.035) !important;
+}
+
+.nova-command-center :where(.nova-table-shell) {
+  background: #090f16 !important;
+}
+
+.nova-command-center :where(.nova-filter-chip[aria-current="page"], a[aria-current="page"]) {
+  border-color: rgba(249, 115, 22, 0.35) !important;
+}
+
+.nova-command-center :where(.nova-submit-button, button[type="submit"], .nova-primary-action) {
+  border-color: rgba(249, 115, 22, 0.38) !important;
+}
+
+.nova-command-center .nova-submit-button:not(.nova-danger),
+.nova-command-center .nova-primary-action {
+  background: linear-gradient(135deg, #ff7a00, #f97316) !important;
+  color: #fff7ed !important;
+}
+
+.nova-command-center .nova-sidebar nav a[aria-current="page"],
+.nova-command-center .nova-sidebar nav a:has(+ div a[aria-current="page"]) {
+  border-color: rgba(249, 115, 22, 0.36) !important;
+  background: rgba(249, 115, 22, 0.13) !important;
+  color: #fed7aa !important;
+}
+
+.nova-command-center main :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+  border-radius: 10px !important;
+  background: #070b10 !important;
+}
+
+.nova-command-center main :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea):focus {
+  border-color: rgba(249, 115, 22, 0.64) !important;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.12) !important;
+}
+
+.nova-command-center main form[method="GET"] > button {
+  border-color: rgba(249, 115, 22, 0.42) !important;
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.28), rgba(249, 115, 22, 0.18)) !important;
+}
+
+.nova-command-center .nova-table :where(th, td) {
+  padding-top: 0.82rem;
+  padding-bottom: 0.82rem;
+}
+
+.nova-command-center .nova-table-actions {
+  min-width: 6.5rem;
+  width: 6.5rem;
+  white-space: nowrap;
+}
+
+/* H11 - NOVA Dark Command Center */
+.nova-command-center {
+  --app-brand: #f97316;
+  --app-brand-soft: rgba(249, 115, 22, 0.16);
+  --app-panel: #101721;
+  --app-panel-2: #121b27;
+  --app-line: rgba(255, 255, 255, 0.085);
+  background:
+    radial-gradient(circle at 82% 3%, rgba(249, 115, 22, 0.15), transparent 28rem),
+    radial-gradient(circle at 32% -8%, rgba(56, 189, 248, 0.11), transparent 30rem),
+    linear-gradient(180deg, #0a1018 0%, #070b10 58%, #05080d 100%);
+}
+
+.nova-command-center .nova-sidebar {
+  box-shadow:
+    18px 0 60px rgba(0, 0, 0, 0.22),
+    inset -1px 0 0 rgba(255, 255, 255, 0.035);
+}
+
+.nova-command-center .nova-main {
+  background:
+    radial-gradient(circle at 78% 0%, rgba(249, 115, 22, 0.08), transparent 28rem),
+    radial-gradient(circle at 2% 22%, rgba(56, 189, 248, 0.055), transparent 24rem),
+    #080d14;
+}
+
+.nova-command-center .nova-top-strip {
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.18);
+}
+
+.nova-command-center .nova-page-heading {
+  min-height: 92px;
+}
+
+.nova-command-center main :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+  background: rgba(5, 9, 14, 0.82) !important;
+  border-color: rgba(255, 255, 255, 0.10) !important;
+}
+
+.nova-command-center main :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea):focus {
+  border-color: rgba(249, 115, 22, 0.62) !important;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.14);
+}
+
+.nova-command-center main form[method="GET"] > button {
+  border-color: rgba(249, 115, 22, 0.35) !important;
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.22), rgba(234, 88, 12, 0.18)) !important;
+  color: #fff7ed !important;
+}
+
+.nova-command-center main form[method="GET"] > button:hover {
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.30), rgba(234, 88, 12, 0.24)) !important;
+}
+
+.nova-command-center .nova-brand {
+  text-shadow: 0 16px 38px rgba(0, 0, 0, 0.32);
+}
+
+/* H11.1 - Refinos do NOVA Dark Command Center */
+.nova-command-center :where(h1, h2, h3, h4, h5, h6) {
+  text-shadow: none !important;
+}
+
+.nova-command-center .nova-page-heading h1 {
+  color: #ffffff !important;
+  letter-spacing: -0.045em;
+  text-shadow: none !important;
+}
+
+.nova-command-center .nova-content {
+  padding-top: 2rem;
+}
+
+.nova-command-center .nova-page-heading {
+  min-height: 82px;
+  margin-bottom: 1.35rem;
+}
+
+.nova-command-center .nova-top-strip {
+  height: 66px;
+}
+
+.nova-command-center .nova-sidebar {
+  background:
+    radial-gradient(circle at 0% 18%, rgba(249, 115, 22, 0.10), transparent 13rem),
+    linear-gradient(180deg, rgba(8, 13, 20, 0.99), rgba(5, 9, 14, 0.99));
+}
+
+.nova-command-center main :where(section, article, aside, details) {
+  box-shadow:
+    0 18px 55px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+.nova-command-center main :where(section, article, aside, details):has(> .nova-table-shell) {
+  box-shadow: none;
+}
+
+.nova-command-center .nova-top-strip button,
+.nova-command-center .nova-page-heading a {
+  box-shadow:
+    0 12px 34px rgba(0, 0, 0, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.045);
+}
+
+.nova-command-center .nova-page-heading a[href="/relatorios/monitoramento"] {
+  background: linear-gradient(135deg, #ff7a00, #f97316) !important;
+  color: white !important;
+}
+
+.nova-command-center .nova-brand span:first-child {
+  filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.28));
+}
+
+@media (min-width: 1024px) {
+  .nova-command-center .nova-content {
+    padding-left: 3rem;
+    padding-right: 3rem;
+  }
+}
+
+/* H11.2 - aproximação literal do mockup */
+.nova-command-center .nova-sidebar {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 28px;
+}
+
+.nova-command-center .nova-brand {
+  transform: translateY(-1px);
+}
+
+.nova-command-center .nova-top-strip {
+  height: 58px !important;
+}
+
+.nova-command-center .nova-content {
+  max-width: 1340px !important;
+  padding-top: 1.55rem !important;
+}
+
+.nova-command-center .nova-page-heading {
+  min-height: 84px !important;
+  margin-bottom: 1rem !important;
+}
+
+.nova-command-center .nova-page-heading h1 {
+  font-size: clamp(1.55rem, 1.8vw, 2rem) !important;
+}
+
+.nova-command-center .nova-page-heading a[href="/dashboard"] {
+  background: rgba(255, 255, 255, 0.055) !important;
+  border-color: rgba(255, 255, 255, 0.10) !important;
+}
+
+.nova-command-center .nova-page-heading a[href="/relatorios/monitoramento"] {
+  min-width: 126px;
+  background: linear-gradient(135deg, #ff7a00, #ff5c00) !important;
+}
+
+.nova-command-center main :where(section, article, aside, details) {
+  border-radius: 18px !important;
+}
+
+.nova-command-center .nova-sidebar nav section a {
+  box-shadow: none !important;
+}
+
+.nova-command-center .nova-sidebar nav section a[aria-current="page"] {
+  color: #fb923c !important;
+}
+
+.nova-command-center .nova-sidebar nav section {
+  gap: 0.45rem;
+}
+
+.nova-command-center .nova-sidebar nav {
+  font-size: 0.84rem;
+}
+
+.nova-command-center .nova-sidebar nav svg {
+  opacity: 0.92;
+}
+
+/* H11.3 - shell mais literal ao mockup */
+.nova-command-center :where(h1, h2, h3, h4, h5, h6),
+.nova-command-center :where(h1, h2, h3, h4, h5, h6) * {
+  text-shadow: none !important;
+  -webkit-text-stroke: 0 transparent !important;
+  filter: none !important;
+}
+
+.nova-command-center .nova-page-heading {
+  min-height: auto !important;
+  margin-bottom: 1.65rem !important;
+}
+
+.nova-command-center .nova-page-heading h1 {
+  text-shadow: none !important;
+  -webkit-text-stroke: 0 transparent !important;
+  filter: none !important;
+  color: #f8fafc !important;
+}
+
+.nova-command-center .nova-sidebar nav a[aria-current="page"] {
+  border-color: rgba(249, 115, 22, 0.32) !important;
+  background: rgba(249, 115, 22, 0.13) !important;
+  color: #fed7aa !important;
+}
+
+.nova-command-center .nova-sidebar nav a[aria-current="page"] span:first-child {
+  border-color: rgba(251, 146, 60, 0.45) !important;
+  background: rgba(249, 115, 22, 0.18) !important;
+  color: #fed7aa !important;
+}
+
+.nova-command-center .nova-sidebar nav a:hover {
+  background: rgba(255, 255, 255, 0.045) !important;
+}
+
+.nova-command-center .nova-top-strip {
+  background:
+    linear-gradient(90deg, rgba(8, 13, 20, 0.96), rgba(8, 13, 20, 0.82)) !important;
+}
+
+.nova-command-center .nova-content {
+  max-width: 1320px !important;
+}
+
+.nova-command-center main :where(section, article, aside, details) {
+  border-color: rgba(255, 255, 255, 0.085) !important;
+}
+
+/* H12 - página /relatorios/monitoramento igual ao mockup */
+.nova-monitoring-report-page {
+  margin-top: -0.35rem;
+}
+
+.nova-monitoring-report-page section,
+.nova-monitoring-report-page article,
+.nova-monitoring-report-page aside,
+.nova-monitoring-report-page details,
+.nova-monitoring-report-page .nova-report-stepper {
+  border-radius: 8px !important;
+}
+
+.nova-monitoring-report-page :where(input:not([type="checkbox"]):not([type="radio"]), select) {
+  min-height: 38px !important;
+  border-radius: 8px !important;
+  background: rgba(5, 9, 14, 0.75) !important;
+}
+
+.nova-monitoring-report-page button,
+.nova-monitoring-report-page a {
+  border-radius: 8px;
+}
+
+.nova-monitoring-report-page table th,
+.nova-monitoring-report-page table td {
+  vertical-align: top;
+}
+
+.nova-monitoring-report-page .nova-report-stepper {
+  box-shadow:
+    0 18px 50px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+@media (min-width: 1280px) {
+  .nova-monitoring-report-page {
+    max-width: 1248px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+/* H12.1 - topo literal da página de relatórios */
+.nova-command-center .nova-content {
+  max-width: none !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+.nova-command-center .nova-monitoring-report-page {
+  max-width: 1248px !important;
+  margin-left: 0 !important;
+  margin-right: auto !important;
+}
+
+.nova-command-center .nova-report-hero {
+  margin-top: 0.15rem;
+  margin-bottom: 0.25rem;
+}
+
+.nova-command-center .nova-report-hero h1 {
+  text-shadow: none !important;
+  filter: none !important;
+}
+
+.nova-command-center .nova-report-stepper {
+  margin-top: 0.2rem;
+}
+
+@media (min-width: 1024px) {
+  .nova-command-center .nova-content {
+    padding-left: 3rem !important;
+    padding-right: 2rem !important;
+  }
+}
+
+/* H12.2 - proporções literais do mockup em /relatorios/monitoramento */
+.nova-command-center .nova-content:has(.nova-monitoring-report-page) {
+  max-width: none !important;
+  padding-left: 1.5rem !important;
+  padding-right: 1.5rem !important;
+}
+
+.nova-command-center .nova-monitoring-report-page {
+  width: min(100%, 1240px) !important;
+  max-width: 1240px !important;
+  margin-left: 0 !important;
+  margin-right: auto !important;
+  gap: 1rem !important;
+}
+
+.nova-command-center .nova-report-hero {
+  min-height: 92px;
+  margin-top: 0.1rem !important;
+  margin-bottom: 0.15rem !important;
+}
+
+.nova-command-center .nova-report-hero h1 {
+  font-size: 1.72rem !important;
+  line-height: 1.1 !important;
+  letter-spacing: -0.035em !important;
+}
+
+.nova-command-center .nova-report-hero p {
+  margin-top: 0.55rem !important;
+}
+
+.nova-command-center .nova-monitoring-report-page .nova-report-stepper {
+  padding: 0.95rem 1rem !important;
+}
+
+.nova-command-center .nova-monitoring-report-page section,
+.nova-command-center .nova-monitoring-report-page article,
+.nova-command-center .nova-monitoring-report-page aside,
+.nova-command-center .nova-monitoring-report-page details,
+.nova-command-center .nova-monitoring-report-page .nova-report-stepper,
+.nova-command-center .nova-monitoring-report-page .nova-table-shell {
+  border-radius: 8px !important;
+}
+
+.nova-command-center .nova-monitoring-report-page h2 {
+  font-size: 0.98rem !important;
+  line-height: 1.25 !important;
+}
+
+.nova-command-center .nova-monitoring-report-page :where(input:not([type="checkbox"]):not([type="radio"]), select) {
+  min-height: 38px !important;
+  border-radius: 8px !important;
+  font-size: 0.86rem !important;
+}
+
+.nova-command-center .nova-monitoring-report-page button,
+.nova-command-center .nova-monitoring-report-page a[class*="inline-flex"] {
+  border-radius: 8px !important;
+}
+
+.nova-command-center .nova-monitoring-report-page > div[class*="xl:grid-cols"] {
+  align-items: start !important;
+}
+
+.nova-command-center .nova-monitoring-report-page aside {
+  gap: 0.8rem !important;
+}
+
+.nova-command-center .nova-monitoring-report-page aside section {
+  padding: 1rem !important;
+}
+
+.nova-command-center .nova-monitoring-report-page table {
+  font-size: 0.74rem !important;
+}
+
+.nova-command-center .nova-monitoring-report-page table th {
+  font-size: 0.62rem !important;
+}
+
+@media (min-width: 1024px) {
+  .nova-command-center .nova-content:has(.nova-monitoring-report-page) {
+    padding-left: 2rem !important;
+    padding-right: 1.5rem !important;
+  }
+}
+
+@media (min-width: 1500px) {
+  .nova-command-center .nova-content:has(.nova-monitoring-report-page) {
+    padding-left: 2.2rem !important;
+  }
+
+  .nova-command-center .nova-monitoring-report-page {
+    width: min(100%, 1280px) !important;
+    max-width: 1280px !important;
+  }
+}
+
+/* H12.3 - largura/proporção literal do mockup */
+.nova-command-center .nova-content:has(.nova-monitoring-report-page) {
+  padding-left: 2rem !important;
+  padding-right: 1.25rem !important;
+}
+
+.nova-command-center .nova-monitoring-report-page {
+  width: min(100%, 1330px) !important;
+  max-width: 1330px !important;
+  margin-left: 0 !important;
+  margin-right: auto !important;
+}
+
+.nova-command-center .nova-monitoring-report-page > div[class*="xl:grid-cols"] {
+  grid-template-columns: minmax(0, 990px) 320px !important;
+  gap: 1.25rem !important;
+}
+
+.nova-command-center .nova-report-hero {
+  min-height: 82px !important;
+  margin-bottom: 0.15rem !important;
+}
+
+.nova-command-center .nova-report-hero h1 {
+  font-size: 1.62rem !important;
+  line-height: 1.08 !important;
+  letter-spacing: -0.035em !important;
+  text-shadow: none !important;
+}
+
+.nova-command-center .nova-report-hero p {
+  font-size: 0.82rem !important;
+  line-height: 1.55 !important;
+}
+
+.nova-command-center .nova-monitoring-report-page .nova-report-stepper {
+  min-height: 72px !important;
+  padding: 0.85rem 1rem !important;
+}
+
+.nova-command-center .nova-monitoring-report-page section {
+  padding: 1rem !important;
+}
+
+.nova-command-center .nova-monitoring-report-page h2 {
+  font-size: 0.94rem !important;
+}
+
+.nova-command-center .nova-monitoring-report-page p,
+.nova-command-center .nova-monitoring-report-page .text-xs {
+  line-height: 1.45 !important;
+}
+
+.nova-command-center .nova-monitoring-report-page .aspect-\[0\.72\] {
+  max-height: 430px !important;
+}
+
+.nova-command-center .nova-monitoring-report-page aside {
+  width: 320px !important;
+}
+
+.nova-command-center .nova-monitoring-report-page aside section {
+  padding: 1rem !important;
+}
+
+@media (min-width: 1536px) {
+  .nova-command-center .nova-monitoring-report-page {
+    width: min(100%, 1370px) !important;
+    max-width: 1370px !important;
+  }
+
+  .nova-command-center .nova-monitoring-report-page > div[class*="xl:grid-cols"] {
+    grid-template-columns: minmax(0, 1025px) 320px !important;
+  }
+}
+
+/* H12.4 - sidebar/cockpit mais próximos do mockup */
+@media (min-width: 1024px) {
+  .nova-command-center .nova-layout {
+    grid-template-columns: 184px minmax(0, 1fr) !important;
+  }
+
+  .nova-command-center .nova-sidebar {
+    width: 184px !important;
+  }
+
+  .nova-command-center .nova-sidebar .nova-brand span:first-child {
+    font-size: 23px !important;
+  }
+
+  .nova-command-center .nova-sidebar .nova-brand span:last-child {
+    font-size: 8px !important;
+    letter-spacing: 0.55em !important;
+  }
+
+  .nova-command-center .nova-sidebar nav {
+    font-size: 13px !important;
+  }
+
+  .nova-command-center .nova-sidebar nav section {
+    gap: 0.38rem !important;
+  }
+
+  .nova-command-center .nova-sidebar nav section > div:first-child {
+    padding-left: 0.25rem !important;
+  }
+
+  .nova-command-center .nova-sidebar nav a {
+    min-height: 36px !important;
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+  }
+
+  .nova-command-center .nova-sidebar nav a span[class*="h-6"] {
+    width: 24px !important;
+    height: 24px !important;
+  }
+
+  .nova-command-center .nova-sidebar nav svg {
+    width: 15px !important;
+    height: 15px !important;
+  }
+
+  .nova-command-center .nova-sidebar > div > div:first-child {
+    padding-left: 1.35rem !important;
+    padding-right: 1.35rem !important;
+  }
+
+  .nova-command-center .nova-content:has(.nova-monitoring-report-page) {
+    padding-left: 1.35rem !important;
+    padding-right: 1.25rem !important;
+  }
+
+  .nova-command-center .nova-monitoring-report-page {
+    width: min(100%, 1390px) !important;
+    max-width: 1390px !important;
+  }
+
+  .nova-command-center .nova-monitoring-report-page > div[class*="xl:grid-cols"] {
+    grid-template-columns: minmax(0, 1040px) 320px !important;
+    gap: 1.25rem !important;
+  }
+}
+
+@media (min-width: 1536px) {
+  .nova-command-center .nova-monitoring-report-page {
+    width: min(100%, 1440px) !important;
+    max-width: 1440px !important;
+  }
+
+  .nova-command-center .nova-monitoring-report-page > div[class*="xl:grid-cols"] {
+    grid-template-columns: minmax(0, 1090px) 320px !important;
+  }
+}
+
+/* H12.5 - ajuste final para ficar igual ao mockup */
+@media (min-width: 1024px) {
+  .nova-command-center .nova-layout {
+    grid-template-columns: 208px minmax(0, 1fr) !important;
+  }
+
+  .nova-command-center .nova-sidebar {
+    width: 208px !important;
+    min-width: 208px !important;
+    max-width: 208px !important;
+    overflow: hidden !important;
+  }
+
+  .nova-command-center .nova-sidebar > div {
+    width: 208px !important;
+    min-width: 0 !important;
+  }
+
+  .nova-command-center .nova-sidebar nav a {
+    min-height: 35px !important;
+    padding-left: 0.45rem !important;
+    padding-right: 0.45rem !important;
+    font-size: 12.5px !important;
+  }
+
+  .nova-command-center .nova-sidebar nav section {
+    gap: 0.32rem !important;
+  }
+
+  .nova-command-center .nova-sidebar nav section > div:first-child {
+    padding-left: 0.15rem !important;
+    padding-bottom: 0.45rem !important;
+  }
+
+  .nova-command-center .nova-sidebar .nova-brand span:first-child {
+    font-size: 22px !important;
+  }
+
+  .nova-command-center .nova-sidebar .nova-brand span:last-child {
+    font-size: 7.5px !important;
+    letter-spacing: 0.52em !important;
+  }
+
+  .nova-command-center .nova-content:has(.nova-monitoring-report-page) {
+    padding-left: 1.25rem !important;
+    padding-right: 1rem !important;
+  }
+
+  .nova-command-center .nova-monitoring-report-page {
+    width: min(100%, 1328px) !important;
+    max-width: 1328px !important;
+    margin-left: 0 !important;
+    margin-right: auto !important;
+  }
+
+  .nova-command-center .nova-monitoring-report-page > div[class*="xl:grid-cols"] {
+    grid-template-columns: minmax(0, 1008px) 300px !important;
+    gap: 1.15rem !important;
+  }
+
+  .nova-command-center .nova-monitoring-report-page aside {
+    width: 300px !important;
+  }
+
+  .nova-command-center .nova-monitoring-report-page aside section {
+    padding: 0.95rem !important;
+  }
+}
+
+@media (min-width: 1536px) {
+  .nova-command-center .nova-monitoring-report-page {
+    width: min(100%, 1360px) !important;
+    max-width: 1360px !important;
+  }
+
+  .nova-command-center .nova-monitoring-report-page > div[class*="xl:grid-cols"] {
+    grid-template-columns: minmax(0, 1042px) 300px !important;
+  }
+}
+
+/* H12.6 - sidebar final, fiel ao mockup e sem corte de texto */
+@media (min-width: 1024px) {
+  .nova-command-center .nova-layout {
+    grid-template-columns: 228px minmax(0, 1fr) !important;
+  }
+
+  .nova-command-center .nova-sidebar {
+    width: 228px !important;
+    min-width: 228px !important;
+    max-width: 228px !important;
+    overflow: hidden !important;
+  }
+
+  .nova-command-center .nova-sidebar > div {
+    width: 228px !important;
+  }
+
+  .nova-command-center .nova-sidebar > div > div:first-child {
+    padding-left: 1.65rem !important;
+    padding-right: 1.65rem !important;
+  }
+
+  .nova-command-center .nova-sidebar .nova-brand span:first-child {
+    font-size: 24px !important;
+  }
+
+  .nova-command-center .nova-sidebar .nova-brand span:last-child {
+    font-size: 8px !important;
+    letter-spacing: 0.58em !important;
+  }
+
+  .nova-command-center .nova-sidebar nav {
+    font-size: 13px !important;
+  }
+
+  .nova-command-center .nova-sidebar nav a {
+    min-height: 38px !important;
+    padding-left: 0.65rem !important;
+    padding-right: 0.65rem !important;
+    font-size: 13px !important;
+  }
+
+  .nova-command-center .nova-sidebar nav a span.min-w-0,
+  .nova-command-center .nova-sidebar nav a span.truncate {
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .nova-command-center .nova-sidebar nav a[aria-current="page"] {
+    border-color: rgba(249, 115, 22, 0.34) !important;
+    background: rgba(249, 115, 22, 0.14) !important;
+    color: #fb923c !important;
+  }
+
+  .nova-command-center .nova-sidebar nav a[aria-current="page"]::after {
+    content: "";
+    position: absolute;
+    left: -13px;
+    top: 7px;
+    width: 3px;
+    height: 24px;
+    border-radius: 0 999px 999px 0;
+    background: #f97316;
+    box-shadow: 0 0 18px rgba(249, 115, 22, 0.75);
+  }
+
+  .nova-command-center .nova-sidebar nav a[aria-current="page"] > span.absolute {
+    display: none !important;
+  }
+
+  .nova-command-center .nova-sidebar .shrink-0.px-3,
+  .nova-command-center .nova-sidebar .shrink-0 {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  .nova-command-center .nova-sidebar .shrink-0 > div {
+    border-radius: 18px !important;
+    padding: 0.9rem !important;
+  }
+
+  .nova-command-center .nova-content:has(.nova-monitoring-report-page) {
+    padding-left: 1.55rem !important;
+    padding-right: 1.25rem !important;
+  }
+
+  .nova-command-center .nova-monitoring-report-page {
+    width: min(100%, 1340px) !important;
+    max-width: 1340px !important;
+  }
+
+  .nova-command-center .nova-monitoring-report-page > div[class*="xl:grid-cols"] {
+    grid-template-columns: minmax(0, 1000px) 310px !important;
+    gap: 1.2rem !important;
+  }
+
+  .nova-command-center .nova-monitoring-report-page aside {
+    width: 310px !important;
+  }
+}
+
+@media (min-width: 1536px) {
+  .nova-command-center .nova-monitoring-report-page {
+    width: min(100%, 1380px) !important;
+    max-width: 1380px !important;
+  }
+
+  .nova-command-center .nova-monitoring-report-page > div[class*="xl:grid-cols"] {
+    grid-template-columns: minmax(0, 1045px) 310px !important;
+  }
+}
+
+/* H12.7 - correção final da sidebar: ícones, textos e ativo */
+@media (min-width: 1024px) {
+  .nova-command-center .nova-layout {
+    grid-template-columns: 236px minmax(0, 1fr) !important;
+  }
+
+  .nova-command-center .nova-sidebar {
+    width: 236px !important;
+    min-width: 236px !important;
+    max-width: 236px !important;
+    overflow: hidden !important;
+  }
+
+  .nova-command-center .nova-sidebar > div {
+    width: 236px !important;
+  }
+
+  .nova-command-center .nova-sidebar > div > div:first-child {
+    padding-left: 1.8rem !important;
+    padding-right: 1.8rem !important;
+    padding-top: 1.35rem !important;
+    padding-bottom: 1.35rem !important;
+  }
+
+  .nova-command-center .nova-sidebar .nova-brand span:first-child {
+    font-size: 25px !important;
+  }
+
+  .nova-command-center .nova-sidebar .nova-brand span:last-child {
+    font-size: 8.5px !important;
+    letter-spacing: 0.58em !important;
+  }
+
+  .nova-command-center .nova-sidebar nav {
+    gap: 1.45rem !important;
+    font-size: 13px !important;
+  }
+
+  .nova-command-center .nova-sidebar nav section {
+    gap: 0.42rem !important;
+  }
+
+  .nova-command-center .nova-sidebar nav section > div:first-child {
+    padding-left: 0.3rem !important;
+    padding-bottom: 0.45rem !important;
+    color: #64748b !important;
+  }
+
+  .nova-command-center .nova-sidebar nav a {
+    position: relative !important;
+    min-height: 39px !important;
+    padding-left: 0.65rem !important;
+    padding-right: 0.7rem !important;
+    gap: 0.62rem !important;
+    font-size: 13px !important;
+    border-radius: 12px !important;
+    color: #cbd5e1 !important;
+  }
+
+  .nova-command-center .nova-sidebar nav a > span:not(.absolute):first-of-type {
+    display: inline-flex !important;
+    width: 27px !important;
+    height: 27px !important;
+    min-width: 27px !important;
+    max-width: 27px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 9px !important;
+    border: 1px solid rgba(255, 255, 255, 0.10) !important;
+    background: rgba(255, 255, 255, 0.035) !important;
+    color: #94a3b8 !important;
+  }
+
+  .nova-command-center .nova-sidebar nav svg {
+    display: block !important;
+    width: 15px !important;
+    height: 15px !important;
+    opacity: 1 !important;
+    color: currentColor !important;
+    stroke: currentColor !important;
+  }
+
+  .nova-command-center .nova-sidebar nav a span.min-w-0,
+  .nova-command-center .nova-sidebar nav a span.truncate {
+    display: block !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .nova-command-center .nova-sidebar nav a[aria-current="page"] {
+    border-color: rgba(249, 115, 22, 0.34) !important;
+    background: rgba(249, 115, 22, 0.15) !important;
+    color: #fb923c !important;
+  }
+
+  .nova-command-center .nova-sidebar nav a[aria-current="page"] > span:not(.absolute):first-of-type {
+    border-color: rgba(251, 146, 60, 0.46) !important;
+    background: rgba(249, 115, 22, 0.18) !important;
+    color: #fed7aa !important;
+  }
+
+  .nova-command-center .nova-sidebar nav a[aria-current="page"] > span.absolute {
+    display: block !important;
+    left: -13px !important;
+    top: 7px !important;
+    width: 3px !important;
+    height: 24px !important;
+    background: #f97316 !important;
+  }
+
+  .nova-command-center .nova-sidebar .shrink-0 {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  .nova-command-center .nova-sidebar .shrink-0 > div {
+    border-radius: 18px !important;
+    padding: 0.95rem !important;
+  }
+
+  .nova-command-center .nova-content:has(.nova-monitoring-report-page) {
+    padding-left: 1.55rem !important;
+    padding-right: 1.25rem !important;
+  }
+
+  .nova-command-center .nova-monitoring-report-page {
+    width: min(100%, 1360px) !important;
+    max-width: 1360px !important;
+  }
+
+  .nova-command-center .nova-monitoring-report-page > div[class*="xl:grid-cols"] {
+    grid-template-columns: minmax(0, 1025px) 310px !important;
+    gap: 1.2rem !important;
+  }
+
+  .nova-command-center .nova-monitoring-report-page aside {
+    width: 310px !important;
+  }
+}
+
+@media (min-width: 1536px) {
+  .nova-command-center .nova-monitoring-report-page {
+    width: min(100%, 1400px) !important;
+    max-width: 1400px !important;
+  }
+
+  .nova-command-center .nova-monitoring-report-page > div[class*="xl:grid-cols"] {
+    grid-template-columns: minmax(0, 1065px) 310px !important;
+  }
+}
+
+/* NOVA final command-center pass */
+.nova-command-center .nova-main {
+  background:
+    radial-gradient(circle at 72% 0%, rgba(249, 115, 22, 0.105), transparent 27rem),
+    radial-gradient(circle at 0% 18%, rgba(56, 189, 248, 0.045), transparent 24rem),
+    #070b10 !important;
+}
+
+.nova-command-center .nova-content:not(:has(.nova-monitoring-report-page)) {
+  max-width: 1420px !important;
+  padding-left: 2rem !important;
+  padding-right: 2rem !important;
+}
+
+.nova-command-center :where(.nova-surface, .nova-stat-card, .nova-chart-card, .nova-right-panel, .nova-report-preview-card, .nova-filter-bar) {
+  border-radius: 14px !important;
+  border-color: rgba(255,255,255,0.08) !important;
+  background: #121923 !important;
+}
+
+.nova-command-center :where(.nova-table-shell) {
+  border-radius: 14px !important;
+  border-color: rgba(255,255,255,0.08) !important;
+  background: #090f16 !important;
+}
+
+.nova-command-center .nova-page-heading h1,
+.nova-command-center .nova-page-header h1 {
+  color: #ffffff !important;
+}
+
+.nova-command-center .nova-sidebar nav a[aria-current="page"],
+.nova-command-center .nova-sidebar nav a:has(+ div a[aria-current="page"]) {
+  border-color: rgba(249,115,22,0.36) !important;
+  background: rgba(249,115,22,0.13) !important;
+  color: #fed7aa !important;
+}
+
+.nova-command-center .nova-submit-button:not(.nova-danger),
+.nova-command-center .nova-primary-action {
+  background: linear-gradient(135deg, #ff7a00, #f97316) !important;
+  border-color: rgba(249,115,22,0.42) !important;
+  color: #fff7ed !important;
+}
+
+.nova-command-center main form[method="GET"] > button {
+  background: linear-gradient(135deg, rgba(249,115,22,0.28), rgba(249,115,22,0.18)) !important;
+  border-color: rgba(249,115,22,0.42) !important;
+  color: #fff7ed !important;
 }

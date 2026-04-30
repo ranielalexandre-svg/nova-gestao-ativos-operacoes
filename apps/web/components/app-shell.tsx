@@ -8,61 +8,147 @@ import { getServerWebSession, normalizeRole } from "@/lib/web-session";
 type NavEntry = NavItem & { adminOnly?: boolean };
 
 const NAV: NavEntry[] = [
-  { href: "/dashboard", label: "Painel", short: "PA", icon: "dashboard", section: "Core" },
-  { href: "/parceiros", label: "Parceiros", short: "PR", icon: "partners", section: "Core" },
-  { href: "/unidades", label: "Unidades", short: "UN", icon: "units", section: "Core" },
+  { href: "/dashboard", label: "Visão geral", short: "VG", icon: "dashboard", section: "Geral" },
+
+  { href: "/monitoramento", label: "Sensores", short: "SN", icon: "monitoring", section: "Monitoramento" },
+  { href: "/mapas", label: "Mapas", short: "MP", icon: "map", section: "Monitoramento" },
+  { href: "/ocorrencias", label: "Alertas", short: "AL", icon: "incidents", section: "Monitoramento" },
+
   {
     href: "/equipamentos",
-    label: "Equipamentos",
-    short: "EQ",
+    label: "Ativos",
+    short: "AT",
     icon: "equipment",
-    section: "Core",
+    section: "Cadastro",
     children: [{ href: "/equipamentos/starlinks", label: "Starlinks", short: "ST", icon: "satellite" }],
   },
-  { href: "/monitoramento", label: "Monitoramento", short: "MO", icon: "monitoring", section: "Core" },
-  { href: "/relatorios", label: "Relatórios", short: "RL", icon: "reports", section: "Core" },
-  { href: "/ocorrencias", label: "Ocorrências", short: "OC", icon: "incidents", section: "Core" },
-  { href: "/operacao/fila", label: "Fila", short: "FL", icon: "queue", section: "Operação" },
+  { href: "/unidades", label: "Unidades", short: "UN", icon: "units", section: "Cadastro" },
+  { href: "/parceiros", label: "Parceiros", short: "PR", icon: "partners", section: "Cadastro" },
+  { href: "/contratos", label: "Contratos", short: "CT", icon: "contracts", section: "Cadastro" },
+
+  { href: "/manutencoes", label: "Chamados", short: "CH", icon: "queue", section: "Operação" },
   { href: "/operacao/excecoes", label: "Exceções", short: "EX", icon: "exceptions", section: "Operação" },
-  { href: "/operacao/automacoes", label: "Automações", short: "AU", icon: "automation", section: "Operação" },
-  { href: "/operacao/sla", label: "SLA", short: "SL", icon: "sla", section: "Operação", adminOnly: true },
-  { href: "/usuarios", label: "Usuários", short: "US", icon: "users", section: "Admin", adminOnly: true },
-  { href: "/operacao/atividade", label: "Atividade", short: "AT", icon: "activity", section: "Admin", adminOnly: true },
-  { href: "/operacao/importacao", label: "Importação", short: "IM", icon: "import", section: "Admin", adminOnly: true },
-  { href: "/reconciliacao-central", label: "Reconciliação", short: "RC", icon: "reconcile", section: "Admin", adminOnly: true },
-  { href: "/integracoes", label: "Integrações", short: "IN", icon: "integrations", section: "Admin", adminOnly: true },
+  { href: "/operacao/automacoes", label: "Automação", short: "AU", icon: "automation", section: "Operação" },
+
+  { href: "/relatorios/monitoramento", label: "Monitoramento", short: "RM", icon: "reports", section: "Relatórios" },
+  { href: "/relatorios", label: "Consumo", short: "RC", icon: "reports", section: "Relatórios" },
+  { href: "/relatorios/disponibilidade", label: "Disponibilidade", short: "DI", icon: "sla", section: "Relatórios", adminOnly: true },
+  { href: "/relatorios/performance", label: "Performance", short: "PF", icon: "activity", section: "Relatórios", adminOnly: true },
+
+  { href: "/operacao/importacao", label: "Importação", short: "IM", icon: "import", section: "Dados", adminOnly: true },
+  { href: "/reconciliacao-central", label: "Reconciliação", short: "RE", icon: "reconcile", section: "Dados", adminOnly: true },
+
+  { href: "/usuarios", label: "Usuários", short: "US", icon: "users", section: "Administração", adminOnly: true },
+  { href: "/perfis", label: "Perfis", short: "PF", icon: "profiles", section: "Administração", adminOnly: true },
+  { href: "/integracoes", label: "Integrações", short: "IN", icon: "integrations", section: "Administração", adminOnly: true },
+  { href: "/configuracoes", label: "Configurações", short: "CF", icon: "settings", section: "Administração", adminOnly: true },
 ];
 
-function BrandMark() {
+function NovaLogo() {
   return (
     <Link
       href="/"
       aria-label="Ir para o início"
-      className="group inline-flex min-w-0 items-center gap-3 rounded-[18px] outline-none focus-visible:ring-2 focus-visible:ring-sky-400/35"
-    ><span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-[16px] border border-white/10 bg-white/[0.045] text-[15px] font-black tracking-tight text-white shadow-[0_18px_45px_rgba(0,0,0,0.25)] transition group-hover:border-sky-300/30 group-hover:bg-sky-400/10">
-        N
-      </span><span className="min-w-0"><span className="block text-[15px] font-black uppercase leading-none tracking-tight text-white">NOVA OPS</span><span className="mt-1.5 block text-[10px] font-bold uppercase leading-4 tracking-[0.2em] text-slate-500">
-          Gestão de ativos
-        </span></span></Link>
+      className="nova-brand group inline-flex min-w-0 items-center gap-3 rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-orange-400/45"
+    >
+      <span className="leading-none">
+        <span className="block text-[25px] font-black tracking-[-0.13em] text-white">
+          NOV<span className="text-orange-500">A</span>
+        </span>
+        <span className="mt-1 block text-[9px] font-semibold uppercase tracking-[0.58em] text-slate-400">
+          TELECOM
+        </span>
+      </span>
+    </Link>
   );
 }
 
-function UserCard({ session, role }: { session: Awaited<ReturnType<typeof getServerWebSession>>; role: string }) {
+function IconButton({ children, label }: { children: ReactNode; label: string }) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.035] text-slate-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white focus-visible:ring-2 focus-visible:ring-orange-400/35"
+    >
+      {children}
+    </button>
+  );
+}
+
+function UserTopCard({
+  session,
+  role,
+}: {
+  session: Awaited<ReturnType<typeof getServerWebSession>>;
+  role: string;
+}) {
   if (!session.authenticated || !session.user) {
     return (
-      <div className="rounded-[20px] border border-white/[0.08] bg-white/[0.035] p-4 text-sm"><div className="text-slate-400">Sessão não autenticada.</div><Link
+      <Link
+        href="/login"
+        className="inline-flex min-h-11 items-center rounded-2xl border border-white/10 bg-white/[0.04] px-4 text-sm font-bold text-slate-100 transition hover:bg-white/[0.08]"
+      >
+        Entrar
+      </Link>
+    );
+  }
+
+  const initial = (session.user.name || session.user.email || "N").trim().slice(0, 1).toUpperCase();
+
+  return (
+    <div className="flex min-w-0 items-center gap-3 border-l border-white/10 pl-4">
+      <div className="hidden min-w-0 text-right md:block">
+        <div className="truncate text-sm font-bold text-slate-50">
+          {role === "admin" ? "Administrador" : session.user.name}
+        </div>
+        <div className="mt-0.5 truncate text-xs text-slate-500">{session.user.email}</div>
+      </div>
+      <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-orange-500 text-base font-black text-white shadow-[0_18px_40px_rgba(249,115,22,0.22)]">
+        {initial}
+      </div>
+    </div>
+  );
+}
+
+function SidebarUserCard({
+  session,
+  role,
+}: {
+  session: Awaited<ReturnType<typeof getServerWebSession>>;
+  role: string;
+}) {
+  if (!session.authenticated || !session.user) {
+    return (
+      <div className="rounded-3xl border border-white/[0.08] bg-white/[0.035] p-4 text-sm">
+        <div className="text-slate-400">Sessão não autenticada.</div>
+        <Link
           href="/login"
-          className="mt-3 inline-flex min-h-10 items-center rounded-[14px] border border-white/10 bg-white/[0.06] px-4 text-sm font-bold text-white transition hover:bg-white/[0.1]"
+          className="mt-3 inline-flex min-h-10 items-center rounded-2xl border border-white/10 bg-white/[0.06] px-4 text-sm font-bold text-white transition hover:bg-white/[0.1]"
         >
           Entrar
-        </Link></div>
+        </Link>
+      </div>
     );
   }
 
   return (
-    <div className="rounded-[20px] border border-white/[0.08] bg-white/[0.04] p-4 text-sm shadow-[0_18px_45px_rgba(0,0,0,0.16)]"><div className="min-w-0"><div className="truncate font-bold text-white">{session.user.name}</div><div className="mt-1 truncate text-xs text-slate-400">{session.user.email}</div><div className="mt-3 flex items-center justify-between gap-3"><span className="inline-flex rounded-full border border-sky-400/25 bg-sky-400/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-sky-100">
-            {role === "admin" ? "Admin" : session.user.role}
-          </span><LogoutButton /></div></div></div>
+    <div className="rounded-3xl border border-white/[0.08] bg-white/[0.04] p-4 text-sm shadow-[0_20px_55px_rgba(0,0,0,0.24)]">
+      <div className="flex items-center gap-3">
+        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-orange-500 text-sm font-black text-white">
+          {(session.user.name || "N").slice(0, 1).toUpperCase()}
+        </div>
+        <div className="min-w-0">
+          <div className="truncate font-bold text-white">{session.user.name}</div>
+          <div className="mt-0.5 truncate text-xs text-slate-500">{session.user.email}</div>
+        </div>
+      </div>
+      <div className="mt-3 flex items-center justify-between gap-3">
+        <span className="inline-flex rounded-full border border-orange-400/25 bg-orange-400/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-orange-100">
+          {role === "admin" ? "Admin" : session.user.role}
+        </span>
+        <LogoutButton />
+      </div>
+    </div>
   );
 }
 
@@ -70,41 +156,118 @@ export async function AppShell({
   title,
   subtitle,
   children,
+  hidePageHeader = false,
 }: {
   title: string;
   subtitle?: string;
   children: ReactNode;
+  hidePageHeader?: boolean;
 }) {
   const session = await getServerWebSession();
   const role = normalizeRole(session.user?.role || "");
   const visibleNav = NAV.filter((item) => !item.adminOnly || role === "admin");
 
   return (
-    <div className="nova-app min-h-dvh bg-[#070b10] text-slate-100"><a href="#conteudo-principal" className="nova-skip-link">Pular para o conteúdo</a><div className="nova-layout grid min-h-dvh lg:grid-cols-[276px_minmax(0,1fr)]"><SidebarCollapseControls items={visibleNav} /><aside className="nova-sidebar hidden border-r border-white/[0.08] bg-[#070b10] lg:sticky lg:top-0 lg:flex lg:h-dvh"><div className="flex h-full min-h-0 w-full flex-col px-4 py-4"><div className="shrink-0 pb-5"><BrandMark /></div><div className="min-h-0 flex-1 overflow-y-auto pr-1 [scrollbar-gutter:stable]"><AppSidebarNav items={visibleNav} /></div><div className="shrink-0 pt-5"><UserCard session={session} role={role} /></div></div></aside><main className="nova-main min-w-0 bg-[#080d13]"><div className="sticky top-0 z-40 border-b border-white/[0.08] bg-[#080d13]/92 px-4 py-3 backdrop-blur-xl lg:hidden"><details className="nova-mobile-menu group"><summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-[18px] border border-white/[0.08] bg-white/[0.04] px-3 py-2 outline-none transition marker:hidden focus-visible:ring-2 focus-visible:ring-sky-400/35"><BrandMark /><span className="inline-flex min-h-10 items-center rounded-[14px] border border-white/10 bg-white/[0.05] px-3 text-sm font-bold text-slate-100">
+    <div className="nova-app nova-command-center min-h-dvh text-slate-100">
+      <a href="#conteudo-principal" className="nova-skip-link">
+        Pular para o conteúdo
+      </a>
+
+      <div className="nova-layout grid min-h-dvh lg:grid-cols-[236px_minmax(0,1fr)]">
+        <SidebarCollapseControls items={visibleNav} />
+
+        <aside className="nova-sidebar hidden border-r border-white/[0.08] bg-[#080d14]/98 lg:sticky lg:top-0 lg:flex lg:h-dvh">
+          <div className="flex h-full min-h-0 w-full flex-col">
+            <div className="border-b border-white/[0.08] px-6 py-5">
+              <NovaLogo />
+            </div>
+
+            <div className="min-h-0 flex-1 overflow-y-auto px-3 py-5 [scrollbar-gutter:stable]">
+              <AppSidebarNav items={visibleNav} />
+            </div>
+
+            <div className="shrink-0 px-3 pb-5 pt-3">
+              <SidebarUserCard session={session} role={role} />
+            </div>
+          </div>
+        </aside>
+
+        <main className="nova-main min-w-0">
+          <div className="sticky top-0 z-50 border-b border-white/[0.08] bg-[#080d14]/88 px-4 py-3 backdrop-blur-2xl lg:hidden">
+            <details className="nova-mobile-menu group">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.04] px-4 py-3 outline-none transition marker:hidden focus-visible:ring-2 focus-visible:ring-orange-400/35">
+                <NovaLogo />
+                <span className="inline-flex min-h-10 items-center rounded-2xl border border-white/10 bg-white/[0.05] px-3 text-sm font-bold text-slate-100">
                   Menu
-                </span></summary><div className="nova-mobile-drawer fixed inset-x-3 top-[76px] z-50 max-h-[calc(100dvh-88px)] overflow-hidden rounded-[24px] border border-white/[0.1] bg-[#070b10] shadow-[0_28px_90px_rgba(0,0,0,0.55)]"><div className="max-h-[calc(100dvh-88px)] overflow-y-auto p-4"><AppSidebarNav items={visibleNav} /><div className="mt-5"><UserCard session={session} role={role} /></div></div></div></details></div><div id="conteudo-principal" className="nova-content mx-auto w-full max-w-[1500px] px-5 py-5 sm:px-7 lg:px-8"><header className="nova-topbar mb-5 grid gap-4 border-b border-white/[0.07] pb-4 xl:grid-cols-[minmax(220px,1fr)_minmax(360px,760px)_auto] xl:items-center"><div className="min-w-0"><div className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">NOVA OPS</div><h1 className="mt-1 text-[22px] font-semibold tracking-tight text-slate-50 sm:text-[26px]">{title}</h1>
-                {subtitle ? <p className="mt-1 max-w-4xl text-sm leading-6 text-slate-400">{subtitle}</p> : null}
-              </div><form action="/unidades" className="nova-global-search hidden min-w-0 rounded-[18px] border border-white/[0.08] bg-[#0d131a] p-1 lg:flex"><input
-                  name="q"
-                  type="search"
-                  aria-label="Busca global"
-                  placeholder="Pesquisar parceiro, local, ativo, IP ou serial"
-                  className="min-w-0 flex-1 rounded-[14px] border-0 bg-transparent px-4 py-2.5 text-sm text-slate-100 outline-none placeholder:text-slate-600"
-                /><button
-                  type="submit"
-                  className="inline-flex min-h-10 min-w-24 items-center justify-center rounded-[14px] border border-white/10 bg-white/[0.04] px-4 text-sm font-bold text-slate-300 transition hover:bg-white/[0.08] hover:text-white focus-visible:ring-2 focus-visible:ring-sky-400/35"
-                  aria-label="Buscar"
-                >
-                  Buscar
-                </button></form><div className="flex min-w-0 items-center gap-2 xl:justify-end">
-                {session.authenticated && session.user ? (
-                  <div className="hidden min-w-0 text-right md:block"><div className="truncate text-sm font-bold text-slate-50">{session.user.name}</div><div className="text-xs text-slate-500">{role === "admin" ? "Administrador" : session.user.role}</div></div>
-                ) : null}
-                <Link
-                  href={role === "admin" ? "/usuarios" : "/dashboard"}
-                  className="inline-flex min-h-10 items-center rounded-[14px] border border-white/10 bg-white/[0.04] px-4 text-sm font-bold text-slate-200 transition hover:bg-white/[0.08] hover:text-white focus-visible:ring-2 focus-visible:ring-sky-400/35"
-                >
-                  Perfil
-                </Link></div></header><div className="min-w-0 space-y-5">{children}</div></div></main></div></div>
+                </span>
+              </summary>
+              <div className="nova-mobile-drawer fixed inset-x-3 top-[84px] z-50 max-h-[calc(100dvh-96px)] overflow-hidden rounded-[28px] border border-white/[0.1] bg-[#070b10] shadow-[0_30px_100px_rgba(0,0,0,0.65)]">
+                <div className="max-h-[calc(100dvh-96px)] overflow-y-auto p-4">
+                  <AppSidebarNav items={visibleNav} />
+                  <div className="mt-5">
+                    <SidebarUserCard session={session} role={role} />
+                  </div>
+                </div>
+              </div>
+            </details>
+          </div>
+
+          <div className="nova-top-strip hidden h-[58px] items-center justify-between border-b border-white/[0.08] bg-[#080d14]/72 px-6 backdrop-blur-2xl lg:flex">
+            <div className="flex items-center gap-4">
+              <button
+                type="button"
+                aria-label="Alternar menu"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-slate-300 transition hover:bg-white/[0.06] hover:text-white"
+              >
+                <span className="text-xl leading-none">☰</span>
+              </button>
+              <div className="h-7 w-px bg-white/10" />
+              <div className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+                Command center operacional
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <IconButton label="Notificações">
+                <span className="relative text-lg leading-none">
+                  ♢
+                  <span className="absolute -right-2 -top-2 grid h-4 w-4 place-items-center rounded-full bg-orange-500 text-[10px] font-black text-white">
+                    3
+                  </span>
+                </span>
+              </IconButton>
+              <IconButton label="Ajuda">?</IconButton>
+              <IconButton label="Tema">☼</IconButton>
+              <UserTopCard session={session} role={role} />
+            </div>
+          </div>
+
+          <div
+            id="conteudo-principal"
+            className="nova-content mx-auto w-full max-w-[1340px] px-6 py-6 sm:px-7 lg:px-8"
+          >
+            {!hidePageHeader ? (
+              <header className="nova-page-heading mb-6">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
+                    <span>Nova</span>
+                    <span>/</span>
+                    <span className="text-slate-300">{title}</span>
+                  </div>
+                  <h1 className="mt-3 text-[26px] font-black tracking-[-0.035em] text-white sm:text-[31px]">
+                    {title}
+                  </h1>
+                  {subtitle ? (
+                    <p className="mt-2 max-w-4xl text-sm leading-6 text-slate-400">{subtitle}</p>
+                  ) : null}
+                </div>
+              </header>
+            ) : null}
+
+            <div className="min-w-0 space-y-5">{children}</div>
+          </div>
+        </main>
+      </div>
+    </div>
   );
 }
