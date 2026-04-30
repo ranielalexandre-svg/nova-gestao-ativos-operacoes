@@ -311,7 +311,7 @@ textarea {
 
 @media (min-width: 1024px) {
   .nova-layout {
-    grid-template-columns: 248px minmax(0, 1fr);
+    grid-template-columns: 276px minmax(0, 1fr);
   }
 
   .nova-sidebar {
@@ -350,3 +350,247 @@ textarea {
     min-width: 680px;
   }
 }
+
+
+/* nova mobile drawer refresh */
+.nova-mobile-menu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.nova-mobile-menu:not([open]) .nova-mobile-drawer {
+  display: none;
+}
+
+.nova-mobile-drawer {
+  background:
+    radial-gradient(circle at 18% 0%, rgba(56, 189, 248, 0.10), transparent 18rem),
+    linear-gradient(180deg, rgba(7, 11, 16, 0.98), rgba(8, 13, 19, 0.98));
+}
+
+/* nova desktop sidebar collapse */
+@media (min-width: 1024px) {
+  :root {
+    --nova-sidebar-width: 276px;
+  }
+
+  .nova-layout {
+    grid-template-columns: var(--nova-sidebar-width) minmax(0, 1fr);
+    transition: grid-template-columns 180ms ease;
+  }
+
+  .nova-sidebar {
+    width: var(--nova-sidebar-width);
+    max-width: var(--nova-sidebar-width);
+    overflow: hidden;
+    transition:
+      width 180ms ease,
+      max-width 180ms ease,
+      opacity 160ms ease,
+      transform 180ms ease,
+      border-color 180ms ease;
+  }
+
+  html[data-nova-sidebar="closed"] .nova-layout {
+    grid-template-columns: 76px minmax(0, 1fr);
+  }
+
+  html[data-nova-sidebar="closed"] .nova-sidebar {
+    width: 0;
+    max-width: 0;
+    opacity: 0;
+    transform: translateX(-18px);
+    pointer-events: none;
+    border-color: transparent;
+  }
+
+  .nova-sidebar-open-floating,
+  .nova-sidebar-close-floating {
+    position: fixed;
+    top: 16px;
+    z-index: 70;
+    min-height: 42px;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    background: rgba(9, 14, 20, 0.88);
+    color: rgb(226 232 240);
+    box-shadow: 0 18px 55px rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(14px);
+    transition:
+      opacity 160ms ease,
+      transform 160ms ease,
+      background 160ms ease,
+      border-color 160ms ease;
+  }
+
+  .nova-sidebar-open-floating:hover,
+  .nova-sidebar-close-floating:hover {
+    border-color: rgba(125, 211, 252, 0.30);
+    background: rgba(14, 165, 233, 0.16);
+    color: white;
+  }
+
+  .nova-sidebar-open-floating:focus-visible,
+  .nova-sidebar-close-floating:focus-visible {
+    outline: none;
+    box-shadow:
+      0 18px 55px rgba(0, 0, 0, 0.35),
+      0 0 0 3px rgba(56, 189, 248, 0.28);
+  }
+
+  .nova-sidebar-open-floating {
+    left: 16px;
+    display: none;
+    border-radius: 16px;
+    padding: 0 0.9rem;
+  }
+
+  .nova-sidebar-close-floating {
+    left: calc(var(--nova-sidebar-width) - 54px);
+    display: inline-flex;
+    width: 42px;
+    justify-content: center;
+    border-radius: 14px;
+  }
+
+  html[data-nova-sidebar="closed"] .nova-sidebar-open-floating {
+    display: inline-flex;
+  }
+
+  html[data-nova-sidebar="closed"] .nova-sidebar-close-floating {
+    opacity: 0;
+    transform: translateX(-18px);
+    pointer-events: none;
+  }
+
+  html[data-nova-sidebar="closed"] .nova-content {
+    max-width: 1580px;
+  }
+}
+
+@media (max-width: 1023px) {
+  .nova-sidebar-open-floating,
+  .nova-sidebar-close-floating {
+    display: none !important;
+  }
+}
+
+/* nova desktop compact sidebar rail */
+@media (min-width: 1024px) {
+  html[data-nova-sidebar="closed"] .nova-layout {
+    grid-template-columns: 76px minmax(0, 1fr);
+  }
+
+  html[data-nova-sidebar="closed"] .nova-sidebar {
+    width: 0;
+    max-width: 0;
+    opacity: 0;
+    transform: translateX(-18px);
+    pointer-events: none;
+    border-color: transparent;
+  }
+
+  html[data-nova-sidebar="closed"] .nova-sidebar-open-floating {
+    display: none !important;
+  }
+
+  .nova-sidebar-rail {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 62;
+    width: 76px;
+    height: 100dvh;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    background:
+      radial-gradient(circle at 20% 0%, rgba(56, 189, 248, 0.14), transparent 14rem),
+      linear-gradient(180deg, rgba(7, 11, 16, 0.985), rgba(8, 13, 19, 0.985));
+    padding: 0.75rem 0.625rem;
+    box-shadow: 18px 0 60px rgba(0, 0, 0, 0.22);
+  }
+
+  .nova-sidebar-rail-open,
+  .nova-sidebar-rail-brand,
+  .nova-sidebar-rail-link {
+    display: inline-flex;
+    min-height: 44px;
+    width: 44px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    color: rgb(203 213 225);
+    text-decoration: none;
+    transition:
+      border-color 160ms ease,
+      background 160ms ease,
+      color 160ms ease,
+      transform 160ms ease,
+      box-shadow 160ms ease;
+  }
+
+  .nova-sidebar-rail-open {
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.055);
+  }
+
+  .nova-sidebar-rail-brand {
+    border-radius: 17px;
+    background: rgba(255, 255, 255, 0.045);
+    color: white;
+    font-size: 0.95rem;
+    font-weight: 950;
+    letter-spacing: -0.03em;
+  }
+
+  .nova-sidebar-rail-list {
+    display: grid;
+    width: 100%;
+    gap: 0.35rem;
+    overflow-y: auto;
+    padding: 0.25rem 0 0.6rem;
+    scrollbar-width: none;
+  }
+
+  .nova-sidebar-rail-list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nova-sidebar-rail-link {
+    margin-inline: auto;
+    border-color: transparent;
+    border-radius: 15px;
+    background: transparent;
+  }
+
+  .nova-sidebar-rail-open:hover,
+  .nova-sidebar-rail-brand:hover,
+  .nova-sidebar-rail-link:hover {
+    border-color: rgba(125, 211, 252, 0.30);
+    background: rgba(255, 255, 255, 0.07);
+    color: white;
+    transform: translateY(-1px);
+  }
+
+  .nova-sidebar-rail-link.is-active {
+    border-color: rgba(125, 211, 252, 0.38);
+    background: rgba(14, 165, 233, 0.16);
+    color: rgb(240 249 255);
+    box-shadow: 0 12px 28px rgba(14, 165, 233, 0.12);
+  }
+
+  .nova-sidebar-rail-open:focus-visible,
+  .nova-sidebar-rail-brand:focus-visible,
+  .nova-sidebar-rail-link:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.28);
+  }
+}
+
+@media (max-width: 1023px) {
+  .nova-sidebar-rail {
+    display: none !important;
+  }
+}
+

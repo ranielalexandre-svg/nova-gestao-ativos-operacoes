@@ -16,20 +16,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR">
-      <head>
+    <html lang="pt-BR" suppressHydrationWarning><head>
         {/* eslint-disable-next-line @next/next/no-css-tags */}
         <link
           id="nova-critical-css"
           rel="stylesheet"
-          href="/nova-critical.css?v=20260417-visual-fix"
+          href="/nova-critical.css?v=20260426-sidebar-rail"
           media="all"
-        />
-      </head>
-      <body>
-        <AssetReloadGuard />
+        /></head><body><AssetReloadGuard />
         {children}
-      </body>
-    </html>
+      </body></html>
   );
 }
