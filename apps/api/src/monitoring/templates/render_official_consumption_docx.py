@@ -654,7 +654,65 @@ def remove_only_hyphen_runs(xml):
         xml = re.sub(rf"(<{tag}\b[^>]*>)\s*-+\s*(</{tag}>)", rf"\1\2", xml)
     return xml
 
+
+def set_paragraph_spacing_before(pxml, before_twips):
+    """
+    Define espaçamento antes de um parágrafo XML do Word.
+    Usado para descer o bloco textual da capa sem mexer nas artes.
+    """
+    spacing = f'<w:spacing w:before="{before_twips}" />'
+
+    if "<w:pPr>" in pxml:
+        if "<w:spacing" in pxml:
+            return re.sub(r"<w:spacing\b[^>]*/>", spacing, pxml, count=1)
+        return pxml.replace("<w:pPr>", "<w:pPr>" + spacing, 1)
+
+    return pxml.replace(">", f"><w:pPr>{spacing}</w:pPr>", 1)
+
+
+def adjust_cover_text_vertical_alignment(xml, before_twips=760):
+    """
+    Ajusta só o bloco de identificação da capa.
+
+    O template oficial tem dois conjuntos de textos de capa no document.xml.
+    Aplicamos o ajuste nos parágrafos com INTERESSADO antes do início do bloco
+    de unidades, preservando logo, ondas, cabeçalho, rodapé e miolo técnico.
+    """
+    unit_markers = [
+        "48341",
+        "SEC. DE INFRAESTRUTURA SEDE",
+        "Contrato:",
+        "Endereço:",
+        "Banda Contratada:",
+    ]
+
+    unit_start = len(xml)
+    for marker in unit_markers:
+        pos = xml.find(marker)
+        if pos != -1:
+            unit_start = min(unit_start, pos)
+
+    prefix = xml[:unit_start]
+    suffix = xml[unit_start:]
+
+    def patch_paragraph(match):
+        pxml = match.group(0)
+        text = paragraph_text(pxml)
+
+        if "INTERESSADO" in text:
+            return set_paragraph_spacing_before(pxml, before_twips)
+
+        return pxml
+
+    prefix = re.sub(r"<w:p\b[\s\S]*?</w:p>", patch_paragraph, prefix)
+
+    return prefix + suffix
+
+
+
 def replace_template_text(xml, payload):
+    xml = adjust_cover_text_vertical_alignment(xml)
+
     month = clean(payload.get("monthSlashLabel"))
     place_date = clean(payload.get("placeDate"))
     interested = clean(payload.get("interestedParty"))
