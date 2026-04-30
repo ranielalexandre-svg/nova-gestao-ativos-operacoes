@@ -926,10 +926,6 @@ def render_chart_png(block):
         return save_figure(fig)
 
     if kind == "traffic":
-        fig, ax = plt.subplots(figsize=(9.65, 4.05), dpi=230)
-        fig.patch.set_facecolor("white")
-        style_axis(ax)
-
         download, upload, total = traffic_series(block)
         capacity_bps = infer_capacity_bps(block)
 
@@ -937,51 +933,75 @@ def render_chart_png(block):
         upload_pts_raw = numeric_points(upload) if upload else []
         download_pts, upload_pts = bucket_traffic_points(download_pts_raw, upload_pts_raw)
 
-        plotted = []
+        has_download = bool(download_pts)
+        has_upload = bool(upload_pts)
+        capacity_mbps = capacity_bps / 1_000_000 if capacity_bps else None
 
-        values_for_ylim = []
+        if has_download and has_upload:
+            fig, axes = plt.subplots(
+                2,
+                1,
+                figsize=(9.65, 4.55),
+                dpi=230,
+                sharex=True,
+                gridspec_kw={"height_ratios": [1, 1], "hspace": 0.12},
+            )
+            down_ax = axes[0]
+            up_ax = axes[1]
+        else:
+            fig, down_ax = plt.subplots(figsize=(9.65, 4.05), dpi=230)
+            up_ax = None
 
-        if download_pts:
+        fig.patch.set_facecolor("white")
+
+        def add_capacity(axis, with_label=True):
+            if capacity_mbps:
+                axis.axhline(
+                    capacity_mbps,
+                    color="#ef4444",
+                    linestyle=(0, (5, 4)),
+                    linewidth=0.82,
+                    alpha=0.55,
+                    label=f"Capacidade ({br_number(capacity_mbps, 0)} Mbps)" if with_label else None,
+                )
+
+        def set_ylim_for(axis, values):
+            candidates = list(values)
+            if capacity_mbps:
+                candidates.append(capacity_mbps)
+            top = max(candidates) if candidates else 1
+            axis.set_ylim(bottom=0, top=max(1, top * 1.12))
+
+        plotted = False
+
+        style_axis(down_ax, show_x=up_ax is None)
+
+        if has_download:
             x_down = [item[0] for item in download_pts]
             y_down = [item[1] / 1_000_000 for item in download_pts]
-            values_for_ylim.extend(y_down)
 
-            ax.plot(
+            down_ax.plot(
                 x_down,
                 y_down,
                 color="#1d4ed8",
-                linewidth=1.28,
+                linewidth=1.30,
                 label="Tráfego recebido",
                 solid_capstyle="round",
             )
-            ax.fill_between(x_down, y_down, color="#1d4ed8", alpha=0.055)
-            plotted.append("Tráfego recebido")
+            down_ax.fill_between(x_down, y_down, color="#1d4ed8", alpha=0.050)
+            add_capacity(down_ax, with_label=True)
+            set_ylim_for(down_ax, y_down)
+            down_ax.set_ylabel("Mbps", fontsize=7.8, color="#374151")
+            down_ax.legend(loc="upper left", fontsize=6.8, frameon=False, ncol=2)
+            plotted = True
 
-        if upload_pts:
-            x_up = [item[0] for item in upload_pts]
-            y_up = [item[1] / 1_000_000 for item in upload_pts]
-            values_for_ylim.extend(y_up)
-
-            ax.plot(
-                x_up,
-                y_up,
-                color="#65a30d",
-                linewidth=1.16,
-                linestyle=(0, (4, 2)),
-                label="Tráfego enviado",
-                solid_capstyle="round",
-            )
-            ax.fill_between(x_up, y_up, color="#65a30d", alpha=0.040)
-            plotted.append("Tráfego enviado")
-
-        if not plotted and total:
+        elif total:
             pts = numeric_points(total)
             if pts:
                 x_total = [item[0] for item in pts]
                 y_total = [item[1] / 1_000_000 for item in pts]
-                values_for_ylim.extend(y_total)
 
-                ax.plot(
+                down_ax.plot(
                     x_total,
                     y_total,
                     color="#1d4ed8",
@@ -989,47 +1009,52 @@ def render_chart_png(block):
                     label="Tráfego total",
                     solid_capstyle="round",
                 )
-                plotted.append("Tráfego total")
+                add_capacity(down_ax, with_label=True)
+                set_ylim_for(down_ax, y_total)
+                down_ax.set_ylabel("Mbps", fontsize=7.8, color="#374151")
+                down_ax.legend(loc="upper left", fontsize=6.8, frameon=False, ncol=2)
+                plotted = True
 
-        if capacity_bps:
-            capacity_mbps = capacity_bps / 1_000_000
-            values_for_ylim.append(capacity_mbps)
-            ax.axhline(
-                capacity_mbps,
-                color="#ef4444",
-                linestyle=(0, (5, 4)),
-                linewidth=0.82,
-                alpha=0.58,
-                label=f"Capacidade ({br_number(capacity_mbps, 0)} Mbps)",
+        if has_upload:
+            target_ax = up_ax or down_ax
+
+            if up_ax is not None:
+                style_axis(up_ax, show_x=True)
+
+            x_up = [item[0] for item in upload_pts]
+            y_up = [item[1] / 1_000_000 for item in upload_pts]
+
+            target_ax.plot(
+                x_up,
+                y_up,
+                color="#65a30d",
+                linewidth=1.24,
+                linestyle=(0, (4, 2)),
+                label="Tráfego enviado",
+                solid_capstyle="round",
             )
-            plotted.append("Capacidade")
+            target_ax.fill_between(x_up, y_up, color="#65a30d", alpha=0.045)
+            add_capacity(target_ax, with_label=True)
+            set_ylim_for(target_ax, y_up)
+            target_ax.set_ylabel("Mbps", fontsize=7.8, color="#374151")
+            target_ax.legend(loc="upper left", fontsize=6.8, frameon=False, ncol=2)
+            plotted = True
 
-        if values_for_ylim:
-            top = max(values_for_ylim)
-            ax.set_ylim(bottom=0, top=max(1, top * 1.12))
-
-        ax.set_ylabel("Mbps", fontsize=7.8, color="#374151")
-        ax.set_title(chart_label(block), fontsize=8.6, color="#111827", pad=6)
-
-        apply_date_axis(ax)
-        fig.autofmt_xdate(rotation=22, ha="right")
-
-        if plotted:
-            ax.legend(
-                loc="upper center",
-                bbox_to_anchor=(0.5, -0.18),
-                ncol=min(3, len(plotted)),
-                fontsize=6.8,
-                frameon=False,
-                handlelength=2.8,
-                columnspacing=1.4,
-            )
+        if up_ax is not None:
+            apply_date_axis(up_ax)
+            fig.autofmt_xdate(rotation=22, ha="right")
         else:
-            ax.text(
+            apply_date_axis(down_ax)
+            fig.autofmt_xdate(rotation=22, ha="right")
+
+        down_ax.set_title(chart_label(block), fontsize=8.6, color="#111827", pad=6)
+
+        if not plotted:
+            down_ax.text(
                 0.5,
                 0.5,
                 "Sem dados para o gráfico",
-                transform=ax.transAxes,
+                transform=down_ax.transAxes,
                 ha="center",
                 va="center",
                 fontsize=9,
@@ -1037,6 +1062,7 @@ def render_chart_png(block):
             )
 
         return save_figure(fig)
+
 
     fig, ax = plt.subplots(figsize=(9.65, 4.05), dpi=230)
     fig.patch.set_facecolor("white")
@@ -1481,6 +1507,115 @@ def patch_header_footer_edge_bleed(docx_path, expand_emu=760000):
 
 
 
+
+def metadata_from_sources(unit, report, payload):
+    """
+    Consolida metadados da unidade vindos do cadastro, do payload ou de
+    metadados específicos preenchidos na tela de exportação.
+    """
+    report_meta = report.get("metadata") or report.get("unitMetadata") or {}
+    unit_meta = unit.get("metadata") or unit.get("reportMetadata") or {}
+
+    def pick(*values):
+        for value in values:
+            cleaned = clean(value, "")
+            if cleaned:
+                return cleaned
+        return ""
+
+    return {
+        "code": pick(unit.get("code"), unit.get("unitCode"), report_meta.get("code"), unit_meta.get("code")),
+        "name": pick(unit.get("name"), unit.get("label"), report_meta.get("name"), unit_meta.get("name"), "Unidade"),
+        "contract": pick(
+            report_meta.get("contractLabel"),
+            unit_meta.get("contractLabel"),
+            unit.get("reportContractLabel"),
+            payload.get("contractLabel"),
+        ),
+        "address": pick(
+            report_meta.get("addressLine"),
+            unit_meta.get("addressLine"),
+            unit.get("reportAddressLine"),
+            payload.get("addressLine"),
+        ),
+        "bandwidth": pick(
+            report_meta.get("contractedBandwidth"),
+            unit_meta.get("contractedBandwidth"),
+            unit.get("reportContractedBandwidth"),
+            payload.get("contractedBandwidth"),
+        ),
+        "notes": pick(
+            report_meta.get("notes"),
+            unit_meta.get("notes"),
+            unit.get("reportNotes"),
+        ),
+    }
+
+
+def add_unit_identification(doc, unit, report, payload):
+    """
+    Bloco de identificação da unidade/cliente antes dos sensores.
+    Mantém visual simples, semelhante ao relatório oficial antigo.
+    """
+    meta = metadata_from_sources(unit, report, payload)
+
+    code = meta["code"]
+    name = meta["name"]
+    title = f"{code} – {name}" if code else name
+
+    top = doc.add_paragraph()
+    top.paragraph_format.space_before = Pt(0)
+    top.paragraph_format.space_after = Pt(8)
+    top.paragraph_format.line_spacing = Pt(1)
+    top.add_run(" ").font.size = Pt(1)
+
+    p_title = doc.add_paragraph()
+    p_title.paragraph_format.space_before = Pt(0)
+    p_title.paragraph_format.space_after = Pt(4)
+    p_title.paragraph_format.line_spacing = Pt(14)
+
+    r_title = p_title.add_run(title.upper())
+    r_title.bold = True
+    r_title.italic = True
+    r_title.font.size = Pt(12.4)
+    r_title.font.color.rgb = RGBColor(0, 0, 0)
+
+    def add_meta_line(label, value, required=True):
+        value = clean(value, "")
+
+        if not value:
+            if not required:
+                return
+            value = "________________________________________"
+
+        paragraph = doc.add_paragraph()
+        paragraph.paragraph_format.space_before = Pt(0)
+        paragraph.paragraph_format.space_after = Pt(0)
+        paragraph.paragraph_format.line_spacing = Pt(13.2)
+
+        label_run = paragraph.add_run(f"{label}: ")
+        label_run.bold = True
+        label_run.italic = True
+        label_run.font.size = Pt(10.6)
+        label_run.font.color.rgb = RGBColor(0, 0, 0)
+
+        value_run = paragraph.add_run(value)
+        value_run.italic = True
+        value_run.font.size = Pt(10.6)
+        value_run.font.color.rgb = RGBColor(0, 0, 0)
+
+    add_meta_line("Contrato", meta["contract"])
+    add_meta_line("Endereço", meta["address"])
+    add_meta_line("Banda Contratada", meta["bandwidth"])
+    add_meta_line("Observação", meta["notes"], required=False)
+
+    bottom = doc.add_paragraph()
+    bottom.paragraph_format.space_before = Pt(0)
+    bottom.paragraph_format.space_after = Pt(9)
+    bottom.paragraph_format.line_spacing = Pt(1)
+    bottom.add_run(" ").font.size = Pt(1)
+
+
 def build_docx(base_docx, payload, output_path):
     doc = Document(base_docx)
 
@@ -1496,12 +1631,16 @@ def build_docx(base_docx, payload, output_path):
         for report in payload.get("reports", []):
             unit = report.get("unit") or {}
             unit_name = clean(unit.get("name") or unit.get("label"), "Unidade")
+            report_blocks = order_blocks(report.get("blocks", []))
 
-            for block in order_blocks(report.get("blocks", [])):
+            for block_index, block in enumerate(report_blocks):
                 if not first_block:
                     doc.add_page_break()
 
                 first_block = False
+
+                if block_index == 0:
+                    add_unit_identification(doc, unit, report, payload)
 
                 add_heading(doc, f"{unit_name}: {chart_label(block)}", 1)
 
