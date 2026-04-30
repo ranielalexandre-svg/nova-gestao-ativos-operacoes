@@ -456,8 +456,8 @@ export class IntegrationsService {
   }
 
   private resolveRequestTimeoutMs() {
-    const parsed = Number(process.env.INTEGRATION_REQUEST_TIMEOUT_MS || 10000);
-    if (!Number.isFinite(parsed)) return 10000;
+    const parsed = Number(process.env.INTEGRATION_REQUEST_TIMEOUT_MS || 30000);
+    if (!Number.isFinite(parsed)) return 30000;
     return Math.max(1000, Math.min(parsed, 60000));
   }
 
@@ -507,6 +507,7 @@ export class IntegrationsService {
         signal: controller.signal,
         headers: {
           "Content-Type": "application/json-rpc",
+          "Connection": "close",
           ...(bearerToken ? { Authorization: `Bearer ${bearerToken}` } : {}),
         },
         body: JSON.stringify({
@@ -901,6 +902,9 @@ export class IntegrationsService {
   }
 
   private parseNumber(value: unknown) {
+    if (value === null || value === undefined) return null;
+    if (typeof value === "string" && !value.trim()) return null;
+
     const parsed = Number(String(value ?? "").replace(",", "."));
     return Number.isFinite(parsed) ? parsed : null;
   }
@@ -1224,35 +1228,94 @@ export class IntegrationsService {
         return {
           itemid: entry.item.itemid,
           history,
+          kind: entry.profile.kind,
         };
       })
       .filter(
-        (entry): entry is { itemid: string; history: number } => Boolean(entry),
+        (entry): entry is { itemid: string; history: number; kind: ReportSeriesKind } => Boolean(entry),
       );
 
-    const results = await Promise.all(
-      requests.map(async ({ itemid, history }) => ({
-        itemid,
-        points: await this.zabbixRpc<ZabbixHistoryPoint[]>(
-          targetUrl,
-          "history.get",
-          {
-            output: ["itemid", "clock", "value"],
-            history,
-            itemids: [itemid],
-            time_from: Math.floor(period.from.getTime() / 1000),
-            time_till: Math.floor(period.to.getTime() / 1000),
-            sortfield: "clock",
-            sortorder: "ASC",
-            limit: this.reportHistoryLimit(period),
-          },
-          bearerToken,
-        ),
-      })),
-    );
+    const readItemHistory = async (
+      itemid: string,
+      history: number,
+      limit: number,
+    ) =>
+      this.zabbixRpc<ZabbixHistoryPoint[]>(
+        targetUrl,
+        "history.get",
+        {
+          output: ["itemid", "clock", "value"],
+          history,
+          itemids: [itemid],
+          time_from: Math.floor(period.from.getTime() / 1000),
+          time_till: Math.floor(period.to.getTime() / 1000),
+          sortfield: "clock",
+          sortorder: "ASC",
+          limit,
+        },
+        bearerToken,
+      );
 
-    for (const result of results) {
-      pointsByItem.set(result.itemid, result.points);
+    const readItemTrends = async (itemid: string) => {
+      const trends = await this.zabbixRpc<Array<{ itemid: string; clock: string; value_min?: string; value_avg?: string; value_max?: string }>>(
+        targetUrl,
+        "trend.get",
+        {
+          output: ["itemid", "clock", "value_min", "value_avg", "value_max"],
+          itemids: [itemid],
+          time_from: Math.floor(period.from.getTime() / 1000),
+          time_till: Math.floor(period.to.getTime() / 1000),
+          sortfield: "clock",
+          sortorder: "ASC",
+          limit: this.reportTrendLimit(period),
+        },
+        bearerToken,
+      );
+
+      return trends
+        .map((point) => ({
+          itemid: point.itemid,
+          clock: point.clock,
+          value: point.value_avg ?? point.value_max ?? point.value_min ?? "",
+        }))
+        .filter((point) => point.value.trim().length > 0);
+    };
+
+    const normalLimit = this.reportHistoryLimit(period);
+    const retryLimit = Math.max(1200, Math.min(6000, Math.floor(normalLimit / 3)));
+
+    for (const { itemid, history, kind } of requests) {
+      const isTraffic = kind === "trafficIn" || kind === "trafficOut";
+
+      try {
+        const points = await readItemHistory(itemid, history, normalLimit);
+
+        if (isTraffic && points.length < 2) {
+          pointsByItem.set(itemid, await readItemTrends(itemid));
+        } else {
+          pointsByItem.set(itemid, points);
+        }
+      } catch {
+        try {
+          const points = await readItemHistory(itemid, history, retryLimit);
+
+          if (isTraffic && points.length < 2) {
+            pointsByItem.set(itemid, await readItemTrends(itemid));
+          } else {
+            pointsByItem.set(itemid, points);
+          }
+        } catch {
+          if (isTraffic) {
+            try {
+              pointsByItem.set(itemid, await readItemTrends(itemid));
+            } catch {
+              pointsByItem.set(itemid, []);
+            }
+          } else {
+            pointsByItem.set(itemid, []);
+          }
+        }
+      }
     }
 
     return pointsByItem;
@@ -1265,7 +1328,16 @@ export class IntegrationsService {
     );
     const estimatedSamples = Math.ceil(seconds / 30) + 120;
 
-    return Math.max(6000, Math.min(100000, estimatedSamples));
+    return Math.max(6000, Math.min(24000, estimatedSamples));
+  }
+
+  private reportTrendLimit(period: { from: Date; to: Date }) {
+    const hours = Math.max(
+      1,
+      Math.ceil((period.to.getTime() - period.from.getTime()) / 3600000),
+    );
+
+    return Math.max(720, Math.min(10000, hours + 240));
   }
 
   private latestItem(
@@ -1383,21 +1455,42 @@ export class IntegrationsService {
       );
     });
 
-    const temperature = this.latestItem(items, (item) => {
-      const key = item.key_.toLowerCase();
-      const name = this.normalizeSearchText(item.name);
-      const units = (item.units || "").toLowerCase();
-      return (
-        key.includes("temp") ||
-        key.includes("sensor.temperature") ||
-        name.includes("temperatura") ||
-        name.includes("temperature") ||
-        name.includes("temp ") ||
-        units === "c" ||
-        units === "°c" ||
-        units.includes("celsius")
+    const temperatureCandidates = items
+      .filter((item) => item.status === "0")
+      .filter((item) => item.lastvalue !== undefined && item.lastvalue !== null)
+      .filter((item) => {
+        const key = item.key_.toLowerCase();
+        const name = this.normalizeSearchText(item.name);
+        const units = (item.units || "").toLowerCase();
+        const isStatusLike =
+          key.includes("status") ||
+          key.includes("alarm") ||
+          key.includes("walk") ||
+          name.includes("status") ||
+          name.includes("alarm");
+
+        if (isStatusLike) return false;
+
+        return (
+          key.includes("hw.sensor.value") ||
+          key.includes("temperature.value") ||
+          key.includes("temp.value") ||
+          key.includes("temp") ||
+          key.includes("sensor.temperature") ||
+          name.includes("temperatura") ||
+          name.includes("temperature") ||
+          name.includes("temp ") ||
+          units === "c" ||
+          units === "°c" ||
+          units.includes("celsius")
+        );
+      })
+      .sort(
+        (a, b) =>
+          (this.parseNumber(b.lastvalue) ?? -Infinity) -
+          (this.parseNumber(a.lastvalue) ?? -Infinity),
       );
-    });
+    const temperature = temperatureCandidates[0];
 
     const lossValue = this.parseNumber(loss?.lastvalue);
     const latencyValue = this.parseNumber(latency?.lastvalue);
@@ -1601,8 +1694,12 @@ export class IntegrationsService {
         if (!bearerToken) continue;
 
         try {
-          const [items, problemLists] = await Promise.all([
-            this.zabbixRpc<ZabbixTelemetryItem[]>(
+          const items: ZabbixTelemetryItem[] = [];
+          const itemHostChunkSize = 8;
+
+          for (let index = 0; index < hostIds.length; index += itemHostChunkSize) {
+            const hostChunk = hostIds.slice(index, index + itemHostChunkSize);
+            const chunkItems = await this.zabbixRpc<ZabbixTelemetryItem[]>(
               targetUrl,
               "item.get",
               {
@@ -1619,34 +1716,43 @@ export class IntegrationsService {
                   "state",
                   "error",
                 ],
-                hostids: hostIds,
+                hostids: hostChunk,
                 filter: { status: "0" },
                 sortfield: "name",
               },
               bearerToken,
-            ),
-            Promise.all(
-              hostIds.map(async (hostId) => ({
-                hostId,
-                problems: await this.zabbixRpc<ZabbixHostProblem[]>(
-                  targetUrl,
-                  "problem.get",
-                  {
-                    output: ["eventid", "name", "severity", "acknowledged", "clock", "objectid"],
-                    hostids: [hostId],
-                    sortfield: ["eventid"],
-                    sortorder: "DESC",
-                    limit: 20,
-                  },
-                  bearerToken,
-                ),
-              })),
-            ),
-          ]);
+            );
+
+            items.push(...chunkItems);
+          }
 
           for (const item of items) {
             itemsByHost.set(item.hostid, [...(itemsByHost.get(item.hostid) || []), item]);
           }
+
+          const problemLists = await Promise.all(
+            hostIds.map(async (hostId) => {
+              try {
+                return {
+                  hostId,
+                  problems: await this.zabbixRpc<ZabbixHostProblem[]>(
+                    targetUrl,
+                    "problem.get",
+                    {
+                      output: ["eventid", "name", "severity", "acknowledged", "clock", "objectid"],
+                      hostids: [hostId],
+                      sortfield: ["eventid"],
+                      sortorder: "DESC",
+                      limit: 20,
+                    },
+                    bearerToken,
+                  ),
+                };
+              } catch {
+                return { hostId, problems: [] };
+              }
+            }),
+          );
 
           for (const entry of problemLists) {
             problemsByHost.set(entry.hostId, entry.problems);

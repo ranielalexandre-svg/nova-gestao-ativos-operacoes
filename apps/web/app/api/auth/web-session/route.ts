@@ -5,6 +5,7 @@ import {
   BackendHttpError,
   fetchBackendSessionFromToken,
   WEB_ACCESS_COOKIE,
+  type WebSession,
 } from "@/lib/web-session";
 
 export const dynamic = "force-dynamic";
@@ -71,6 +72,24 @@ function loginErrorUrl(request: Request, message: string, next: string) {
   return url;
 }
 
+function authErrorMessage(error: unknown) {
+  if (error instanceof BackendHttpError) {
+    return error.message;
+  }
+
+  const message = error instanceof Error ? error.message : "";
+
+  if (
+    message.toLowerCase().includes("fetch failed") ||
+    message.toLowerCase().includes("network") ||
+    message.toLowerCase().includes("econnrefused")
+  ) {
+    return "API indisponível. Aguarde alguns segundos e tente novamente.";
+  }
+
+  return message || "Falha ao criar sessão web";
+}
+
 export async function GET(request: Request) {
   try {
     const token = readAccessTokenFromCookieHeader(request);
@@ -117,6 +136,7 @@ export async function POST(request: Request) {
     next = String(body.next || next || "/dashboard");
 
     let accessToken = String(body.accessToken || "");
+    let sessionFromLogin: WebSession | null = null;
 
     if (!accessToken) {
       const email = String(body.email || "").trim();
@@ -138,9 +158,10 @@ export async function POST(request: Request) {
 
       const login = await callBackendLogin(email, password);
       accessToken = login.accessToken;
+      sessionFromLogin = login.user ? { authenticated: true, user: login.user } : null;
     }
 
-    const session = await fetchBackendSessionFromToken(accessToken);
+    const session = sessionFromLogin || await fetchBackendSessionFromToken(accessToken);
 
     if (!session.authenticated || !session.user) {
       const denied = jsonRequest
@@ -166,7 +187,7 @@ export async function POST(request: Request) {
     );
     return response;
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Falha ao criar sessão web";
+    const message = authErrorMessage(error);
     const status = error instanceof BackendHttpError ? error.status : 500;
 
     if (!jsonRequest) {
