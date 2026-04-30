@@ -276,7 +276,7 @@ def set_section_layout(doc):
     O cabeçalho/rodapé real permanece vindo do documento oficial base.
     """
     section = doc.sections[-1]
-    section.top_margin = Inches(1.60)
+    section.top_margin = Inches(1.96)
     section.bottom_margin = Inches(0.95)
     section.left_margin = Inches(0.72)
     section.right_margin = Inches(0.82)
