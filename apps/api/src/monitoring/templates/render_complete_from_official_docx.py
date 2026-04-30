@@ -1412,6 +1412,75 @@ def add_small(doc, text):
     return paragraph
 
 
+
+def patch_header_footer_edge_bleed(docx_path, expand_emu=760000):
+    """
+    Ajuste final pós-save no DOCX.
+
+    O fio branco da direita vem das artes ancoradas do header/footer técnico
+    terminando alguns milímetros antes da borda. O python-docx nem sempre
+    preserva/expõe todos os nós internos dessas artes agrupadas, então aqui
+    abrimos o DOCX como zip e ampliamos diretamente os cx grandes nos XMLs
+    de header/footer.
+
+    760000 EMU ~= 0,83 cm. É intencionalmente maior que o fio visível para
+    garantir sangria lateral, sem deslocar o conteúdo.
+    """
+    import os
+    import re
+    import shutil
+    import tempfile
+    import zipfile
+    from pathlib import Path
+
+    source = Path(docx_path)
+    tmp_dir = Path(tempfile.mkdtemp(prefix="nova-docx-hf-"))
+    work = tmp_dir / "work"
+    work.mkdir(parents=True, exist_ok=True)
+
+    try:
+        with zipfile.ZipFile(source, "r") as zin:
+            zin.extractall(work)
+
+        word_dir = work / "word"
+        xml_files = list(word_dir.glob("header*.xml")) + list(word_dir.glob("footer*.xml"))
+
+        # Não alteramos header/footer muito pequenos; esses tendem a ser vazios
+        # ou de capa. Só mexemos nos XMLs que carregam artes grandes.
+        for xml_file in xml_files:
+            xml = xml_file.read_text(encoding="utf-8", errors="ignore")
+
+            if "wp:anchor" not in xml:
+                continue
+
+            def repl(match):
+                name = match.group(1)
+                value = int(match.group(2))
+
+                # Expande apenas desenhos grandes. Textos/caixas pequenas ficam intactos.
+                if value >= 4500000:
+                    return f'{name}="{value + expand_emu}"'
+
+                return match.group(0)
+
+            patched = re.sub(r'(cx)="(\d+)"', repl, xml)
+
+            if patched != xml:
+                xml_file.write_text(patched, encoding="utf-8")
+
+        tmp_docx = tmp_dir / source.name
+
+        with zipfile.ZipFile(tmp_docx, "w", zipfile.ZIP_DEFLATED) as zout:
+            for file in work.rglob("*"):
+                if file.is_file():
+                    zout.write(file, file.relative_to(work).as_posix())
+
+        shutil.move(str(tmp_docx), str(source))
+    finally:
+        shutil.rmtree(tmp_dir, ignore_errors=True)
+
+
+
 def build_docx(base_docx, payload, output_path):
     doc = Document(base_docx)
 
@@ -1454,6 +1523,7 @@ def build_docx(base_docx, payload, output_path):
                 add_table(doc, rows, len(rows[0]))
 
         doc.save(output_path)
+    patch_header_footer_edge_bleed(output_path)
 
 
 def main():
