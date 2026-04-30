@@ -795,6 +795,7 @@ def bucket_traffic_points(download_pts, upload_pts, max_buckets=26):
     return down_bucketed, up_bucketed
 
 
+
 def render_chart_png(block):
     import matplotlib
     matplotlib.use("Agg")
@@ -803,58 +804,247 @@ def render_chart_png(block):
 
     kind = block_kind(block)
 
-    fig, ax = plt.subplots(figsize=(9.65, 4.05), dpi=230)
-    fig.patch.set_facecolor("white")
-    ax.set_facecolor("#ffffff")
-    ax.grid(True, color="#e7edf3", linewidth=0.50)
-    ax.tick_params(axis="both", labelsize=6.4, colors="#4b5563")
-    ax.spines["top"].set_visible(False)
-    ax.spines["right"].set_visible(False)
-    ax.spines["left"].set_color("#c7d0da")
-    ax.spines["bottom"].set_color("#c7d0da")
+    def style_axis(axis, show_x=True):
+        axis.set_facecolor("#ffffff")
+        axis.grid(True, color="#e8eef5", linewidth=0.48)
+        axis.tick_params(axis="both", labelsize=6.6, colors="#4b5563")
+        axis.spines["top"].set_visible(False)
+        axis.spines["right"].set_visible(False)
+        axis.spines["left"].set_color("#c7d0da")
+        axis.spines["bottom"].set_color("#c7d0da")
+        if not show_x:
+            axis.tick_params(axis="x", labelbottom=False)
 
-    plotted = []
+    def apply_date_axis(axis):
+        axis.xaxis.set_major_locator(mdates.AutoDateLocator(minticks=4, maxticks=6))
+        axis.xaxis.set_major_formatter(mdates.DateFormatter("%d/%m %H:%M"))
+
+    def save_figure(fig):
+        buffer = io.BytesIO()
+        fig.savefig(buffer, format="png", bbox_inches="tight", pad_inches=0.10)
+        plt.close(fig)
+        return buffer.getvalue()
 
     if kind == "ping":
         ping = first_series_by_unit(block, "ms")
         loss = packet_loss_series(block)
 
-        pts = numeric_points(ping)
-        if pts:
-            ax.plot(
-                [x for x, _ in pts],
-                [y for _, y in pts],
-                color="#1d4ed8",
-                linewidth=1.10,
-                label="Tempo de ping",
+        ping_pts = numeric_points(ping)
+        loss_pts = numeric_points(loss) if loss else []
+
+        has_loss = bool(loss_pts)
+
+        if has_loss:
+            fig, axes = plt.subplots(
+                2,
+                1,
+                figsize=(9.65, 4.35),
+                dpi=230,
+                sharex=True,
+                gridspec_kw={"height_ratios": [3.25, 1.05], "hspace": 0.08},
             )
-            plotted.append("Tempo de ping")
+            ax = axes[0]
+            loss_ax = axes[1]
+        else:
+            fig, ax = plt.subplots(figsize=(9.65, 3.70), dpi=230)
+            loss_ax = None
 
-        ax.set_ylabel("ms", fontsize=7.5)
+        fig.patch.set_facecolor("white")
+        style_axis(ax, show_x=not has_loss)
 
-        if loss:
-            pts = numeric_points(loss)
-            if pts:
-                ax2 = ax.twinx()
-                ax2.fill_between(
-                    [x for x, _ in pts],
-                    [y for _, y in pts],
-                    step="mid",
+        plotted = False
+
+        if ping_pts:
+            x = [item[0] for item in ping_pts]
+            y = [item[1] for item in ping_pts]
+
+            ax.plot(
+                x,
+                y,
+                color="#1d4ed8",
+                linewidth=1.22,
+                label="Tempo de ping",
+                solid_capstyle="round",
+            )
+            ax.fill_between(x, y, color="#1d4ed8", alpha=0.045)
+            ax.set_ylim(bottom=0, top=max(5, max(y) * 1.18 if y else 5))
+            ax.legend(loc="upper left", fontsize=6.8, frameon=False)
+            plotted = True
+
+        ax.set_ylabel("ms", fontsize=7.8, color="#374151")
+        ax.set_title(chart_label(block), fontsize=8.6, color="#111827", pad=6)
+
+        if loss_ax is not None:
+            style_axis(loss_ax, show_x=True)
+
+            x_loss = [item[0] for item in loss_pts]
+            y_loss = [item[1] for item in loss_pts]
+
+            loss_ax.plot(
+                x_loss,
+                y_loss,
+                color="#f97316",
+                linewidth=0.72,
+                alpha=0.55,
+                label="Perda de pacote",
+                drawstyle="steps-mid",
+            )
+
+            spikes = [(x, y) for x, y in loss_pts if y and y > 0]
+            if spikes:
+                loss_ax.vlines(
+                    [x for x, _ in spikes],
+                    0,
+                    [y for _, y in spikes],
                     color="#f97316",
-                    alpha=0.15,
-                    label="Perda de pacote",
+                    linewidth=0.85,
+                    alpha=0.58,
                 )
-                ax2.set_ylim(0, 100)
-                ax2.set_ylabel("%", fontsize=7.5)
-                ax2.tick_params(axis="y", labelsize=6.4, colors="#4b5563")
-                ax2.spines["top"].set_visible(False)
-                ax2.spines["right"].set_color("#c7d0da")
 
-                lines = ax.get_lines() + list(ax2.collections)
-                labels = [item.get_label() for item in lines]
-                ax.legend(lines, labels, loc="upper center", bbox_to_anchor=(0.5, -0.18), ncol=2, fontsize=6.5, frameon=False)
+            loss_ax.set_ylim(-2, 102)
+            loss_ax.set_ylabel("%", fontsize=7.8, color="#374151")
+            loss_ax.legend(loc="upper left", fontsize=6.8, frameon=False)
+            apply_date_axis(loss_ax)
+            fig.autofmt_xdate(rotation=22, ha="right")
+            plotted = True
+        else:
+            apply_date_axis(ax)
+            fig.autofmt_xdate(rotation=22, ha="right")
 
-    elif kind == "uptime":
+        if not plotted:
+            ax.text(
+                0.5,
+                0.5,
+                "Sem dados para o gráfico",
+                transform=ax.transAxes,
+                ha="center",
+                va="center",
+                fontsize=9,
+                color="#6b7280",
+            )
+
+        return save_figure(fig)
+
+    if kind == "traffic":
+        fig, ax = plt.subplots(figsize=(9.65, 4.05), dpi=230)
+        fig.patch.set_facecolor("white")
+        style_axis(ax)
+
+        download, upload, total = traffic_series(block)
+        capacity_bps = infer_capacity_bps(block)
+
+        download_pts_raw = numeric_points(download) if download else []
+        upload_pts_raw = numeric_points(upload) if upload else []
+        download_pts, upload_pts = bucket_traffic_points(download_pts_raw, upload_pts_raw)
+
+        plotted = []
+
+        values_for_ylim = []
+
+        if download_pts:
+            x_down = [item[0] for item in download_pts]
+            y_down = [item[1] / 1_000_000 for item in download_pts]
+            values_for_ylim.extend(y_down)
+
+            ax.plot(
+                x_down,
+                y_down,
+                color="#1d4ed8",
+                linewidth=1.28,
+                label="Tráfego recebido",
+                solid_capstyle="round",
+            )
+            ax.fill_between(x_down, y_down, color="#1d4ed8", alpha=0.055)
+            plotted.append("Tráfego recebido")
+
+        if upload_pts:
+            x_up = [item[0] for item in upload_pts]
+            y_up = [item[1] / 1_000_000 for item in upload_pts]
+            values_for_ylim.extend(y_up)
+
+            ax.plot(
+                x_up,
+                y_up,
+                color="#65a30d",
+                linewidth=1.16,
+                linestyle=(0, (4, 2)),
+                label="Tráfego enviado",
+                solid_capstyle="round",
+            )
+            ax.fill_between(x_up, y_up, color="#65a30d", alpha=0.040)
+            plotted.append("Tráfego enviado")
+
+        if not plotted and total:
+            pts = numeric_points(total)
+            if pts:
+                x_total = [item[0] for item in pts]
+                y_total = [item[1] / 1_000_000 for item in pts]
+                values_for_ylim.extend(y_total)
+
+                ax.plot(
+                    x_total,
+                    y_total,
+                    color="#1d4ed8",
+                    linewidth=1.18,
+                    label="Tráfego total",
+                    solid_capstyle="round",
+                )
+                plotted.append("Tráfego total")
+
+        if capacity_bps:
+            capacity_mbps = capacity_bps / 1_000_000
+            values_for_ylim.append(capacity_mbps)
+            ax.axhline(
+                capacity_mbps,
+                color="#ef4444",
+                linestyle=(0, (5, 4)),
+                linewidth=0.82,
+                alpha=0.58,
+                label=f"Capacidade ({br_number(capacity_mbps, 0)} Mbps)",
+            )
+            plotted.append("Capacidade")
+
+        if values_for_ylim:
+            top = max(values_for_ylim)
+            ax.set_ylim(bottom=0, top=max(1, top * 1.12))
+
+        ax.set_ylabel("Mbps", fontsize=7.8, color="#374151")
+        ax.set_title(chart_label(block), fontsize=8.6, color="#111827", pad=6)
+
+        apply_date_axis(ax)
+        fig.autofmt_xdate(rotation=22, ha="right")
+
+        if plotted:
+            ax.legend(
+                loc="upper center",
+                bbox_to_anchor=(0.5, -0.18),
+                ncol=min(3, len(plotted)),
+                fontsize=6.8,
+                frameon=False,
+                handlelength=2.8,
+                columnspacing=1.4,
+            )
+        else:
+            ax.text(
+                0.5,
+                0.5,
+                "Sem dados para o gráfico",
+                transform=ax.transAxes,
+                ha="center",
+                va="center",
+                fontsize=9,
+                color="#6b7280",
+            )
+
+        return save_figure(fig)
+
+    fig, ax = plt.subplots(figsize=(9.65, 4.05), dpi=230)
+    fig.patch.set_facecolor("white")
+    style_axis(ax)
+
+    plotted = []
+
+    if kind == "uptime":
         uptime = first_series_by_unit(block, "d")
         pts = numeric_points(uptime)
 
@@ -863,83 +1053,13 @@ def render_chart_png(block):
                 [x for x, _ in pts],
                 [y for _, y in pts],
                 color="#1d4ed8",
-                linewidth=1.10,
+                linewidth=1.16,
                 label="Tempo de atividade do sistema",
             )
             ax.fill_between([x for x, _ in pts], [y for _, y in pts], alpha=0.08, color="#1d4ed8")
             plotted.append("Tempo de atividade do sistema")
 
-        ax.set_ylabel("dias", fontsize=7.5)
-
-    elif kind == "traffic":
-        download, upload, total = traffic_series(block)
-        capacity_bps = infer_capacity_bps(block)
-
-        download_pts_raw = numeric_points(download) if download else []
-        upload_pts_raw = numeric_points(upload) if upload else []
-        download_pts, upload_pts = bucket_traffic_points(download_pts_raw, upload_pts_raw)
-
-        # H6: barras empilhadas para link traffic.
-        if download_pts:
-            x = [item[0] for item in download_pts]
-            down = [item[1] / 1_000_000 for item in download_pts]
-
-            if len(x) > 1:
-                span_days = max((x[-1] - x[0]).total_seconds() / 86400, 1)
-                width = min(0.32, max(0.09, span_days / max(len(x), 1) * 1.35))
-            else:
-                width = 0.04
-
-            ax.bar(
-                x,
-                down,
-                width=width,
-                color="#1d4ed8",
-                alpha=0.96,
-                label="Tráfego recebido",
-                align="center",
-            )
-            plotted.append("Tráfego recebido")
-
-            if upload_pts:
-                upload_map = {dt: value / 1_000_000 for dt, value in upload_pts}
-                up = [upload_map.get(dt, 0) for dt in x]
-                ax.bar(
-                    x,
-                    up,
-                    width=width,
-                    bottom=down,
-                    color="#65a30d",
-                    alpha=0.82,
-                    label="Tráfego enviado",
-                    align="center",
-                )
-                plotted.append("Tráfego enviado")
-
-        elif total:
-            pts = numeric_points(total)
-            if pts:
-                ax.plot(
-                    [x for x, _ in pts],
-                    [y / 1_000_000 for _, y in pts],
-                    color="#1d4ed8",
-                    linewidth=1.05,
-                    label="Tráfego total",
-                )
-                plotted.append("Tráfego total")
-
-        if capacity_bps:
-            ax.axhline(
-                capacity_bps / 1_000_000,
-                color="#ef4444",
-                linestyle=(0, (3, 3)),
-                linewidth=0.55,
-                alpha=0.38,
-                label=f"Capacidade ({br_number(capacity_bps / 1_000_000, 0)} Mbps)",
-            )
-            plotted.append("Capacidade")
-
-        ax.set_ylabel("Mbps", fontsize=7.5)
+        ax.set_ylabel("dias", fontsize=7.8, color="#374151")
 
     else:
         colors = ["#1d4ed8", "#65a30d", "#7c3aed", "#f97316"]
@@ -955,32 +1075,41 @@ def render_chart_png(block):
 
             if unit == "bps":
                 values = [value / 1_000_000 for value in values]
-                ax.set_ylabel("Mbps", fontsize=7.5)
+                ax.set_ylabel("Mbps", fontsize=7.8, color="#374151")
             else:
-                ax.set_ylabel(unit or "valor", fontsize=7.5)
+                ax.set_ylabel(unit or "valor", fontsize=7.8, color="#374151")
 
             label = clean(series.get("label") or series.get("name"), "Série")
-            ax.plot([x for x, _ in pts], values, color=colors[idx % len(colors)], linewidth=1.05, label=label)
+            ax.plot([x for x, _ in pts], values, color=colors[idx % len(colors)], linewidth=1.10, label=label)
             plotted.append(label)
             idx += 1
 
-    if kind != "ping" and plotted:
-        ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.18), ncol=min(3, len(plotted)), fontsize=6.5, frameon=False)
+    if plotted:
+        ax.legend(
+            loc="upper center",
+            bbox_to_anchor=(0.5, -0.18),
+            ncol=min(3, len(plotted)),
+            fontsize=6.8,
+            frameon=False,
+        )
 
-    ax.set_title(chart_label(block), fontsize=8.2, color="#111827", pad=6)
-    ax.xaxis.set_major_locator(mdates.AutoDateLocator(minticks=4, maxticks=6))
-    ax.xaxis.set_major_formatter(mdates.DateFormatter("%d/%m %H:%M"))
-    fig.autofmt_xdate(rotation=25, ha="right")
+    ax.set_title(chart_label(block), fontsize=8.6, color="#111827", pad=6)
+    apply_date_axis(ax)
+    fig.autofmt_xdate(rotation=22, ha="right")
 
     if not plotted:
-        ax.text(0.5, 0.5, "Sem dados para o gráfico", transform=ax.transAxes, ha="center", va="center", fontsize=9, color="#6b7280")
+        ax.text(
+            0.5,
+            0.5,
+            "Sem dados para o gráfico",
+            transform=ax.transAxes,
+            ha="center",
+            va="center",
+            fontsize=9,
+            color="#6b7280",
+        )
 
-    buffer = io.BytesIO()
-    fig.savefig(buffer, format="png", bbox_inches="tight", pad_inches=0.12)
-    plt.close(fig)
-
-    return buffer.getvalue()
-
+    return save_figure(fig)
 
 def clear_cell(cell):
     cell.text = ""
