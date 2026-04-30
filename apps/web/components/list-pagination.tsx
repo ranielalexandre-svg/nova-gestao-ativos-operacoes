@@ -13,15 +13,11 @@ export function ListPagination({
   if (meta.totalPages <= 1) return null;
 
   return (
-    <div className="flex flex-col gap-3 rounded-[16px] border border-white/[0.08] bg-[#0f141b] px-4 py-3 text-sm text-slate-400 sm:flex-row sm:items-center sm:justify-between">
-      <div>
+    <div className="flex flex-col gap-3 rounded-[16px] border border-white/[0.08] bg-[#0f141b] px-4 py-3 text-sm text-slate-400 sm:flex-row sm:items-center sm:justify-between"><div>
         Página <span className="font-semibold text-slate-100">{meta.page}</span> de{" "}
         <span className="font-semibold text-slate-100">{meta.totalPages}</span> ·{" "}
         <span className="font-semibold text-slate-100">{meta.total}</span> registros
-      </div>
-
-      <div className="flex items-center gap-2">
-        <Link
+      </div><div className="flex items-center gap-2"><Link
           href={withParams(pathname, searchParams, {
             page: meta.page > 1 ? meta.page - 1 : 1,
           })}
@@ -33,9 +29,7 @@ export function ListPagination({
           }`}
         >
           Anterior
-        </Link>
-
-        <Link
+        </Link><Link
           href={withParams(pathname, searchParams, {
             page: meta.page < meta.totalPages ? meta.page + 1 : meta.totalPages,
           })}
@@ -47,8 +41,6 @@ export function ListPagination({
           }`}
         >
           Próxima
-        </Link>
-      </div>
-    </div>
+        </Link></div></div>
   );
 }

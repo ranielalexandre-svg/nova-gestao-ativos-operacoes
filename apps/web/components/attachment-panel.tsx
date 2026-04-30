@@ -1,10 +1,10 @@
-import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { ActionForm } from "@/components/action-form";
 import {
   EmptyState,
   SectionIntro,
   Surface,
+  TableActionLink,
   TonePill,
 } from "@/components/ops-ui";
 import {
@@ -127,8 +127,7 @@ export async function AttachmentPanel({
   }
 
   return (
-    <Surface className="p-5 sm:p-6">
-      <SectionIntro
+    <Surface className="p-5 sm:p-6"><SectionIntro
         eyebrow="Documentos"
         title={`Anexos de ${entityLabel}`}
         description="Arquivos de apoio ficam ligados ao registro para a troca não depender de pastas soltas do legado."
@@ -142,27 +141,17 @@ export async function AttachmentPanel({
         </div>
       ) : null}
 
-      <div className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="space-y-3">
+      <div className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]"><div className="space-y-3">
           {attachments.length ? (
             attachments.map((item) => (
               <div
                 key={item.id}
-                className="flex flex-col gap-3 rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4 md:flex-row md:items-center md:justify-between"
-              >
-                <div className="min-w-0">
-                  <div className="truncate text-sm font-semibold text-slate-50">{item.name}</div>
-                  <div className="mt-1 text-xs text-slate-500">
+                className="nova-attachment-card flex flex-col gap-3 rounded-[18px] border border-white/[0.08] bg-[#0a0f15] p-4 transition hover:border-white/14 hover:bg-white/[0.035] md:flex-row md:items-center md:justify-between"
+              ><div className="min-w-0"><div className="truncate text-sm font-semibold text-slate-50">{item.name}</div><div className="mt-1 text-xs text-slate-500">
                     {formatFileSize(item.size)} · {item.mimeType || "tipo não informado"} · {formatDateTime(item.uploadedAt || item.createdAt)}
-                  </div>
-                </div>
-                <div className="flex shrink-0 flex-wrap gap-2">
-                  <Link
-                    href={`/attachments/${item.id}/download`}
-                    className="rounded-full border border-white/10 bg-black/20 px-3 py-1.5 text-xs text-slate-200 transition hover:bg-white/[0.06] hover:text-white"
-                  >
+                  </div></div><div className="flex shrink-0 flex-wrap gap-2"><TableActionLink href={`/attachments/${item.id}/download`}>
                     Baixar
-                  </Link>
+                  </TableActionLink>
                   {canEdit ? (
                     <ActionForm
                       action={deleteAttachmentAction}
@@ -171,15 +160,9 @@ export async function AttachmentPanel({
                       variant="secondary"
                       className="m-0"
                       submitClassName="mt-0"
-                    >
-                      <input type="hidden" name="entityPath" value={entityPath} />
-                      <input type="hidden" name="entityId" value={entityId} />
-                      <input type="hidden" name="attachmentId" value={item.id} />
-                      <input type="hidden" name="returnPath" value={returnPath} />
-                    </ActionForm>
+                    ><input type="hidden" name="entityPath" value={entityPath} /><input type="hidden" name="entityId" value={entityId} /><input type="hidden" name="attachmentId" value={item.id} /><input type="hidden" name="returnPath" value={returnPath} /></ActionForm>
                   ) : null}
-                </div>
-              </div>
+                </div></div>
             ))
           ) : (
             <EmptyState
@@ -190,33 +173,23 @@ export async function AttachmentPanel({
         </div>
 
         {canEdit ? (
-          <div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4">
-            <div className="text-sm font-semibold text-slate-50">Enviar arquivo</div>
-            <div className="mt-2 text-sm leading-6 text-slate-400">
+          <div className="nova-form-panel rounded-[18px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="text-sm font-semibold text-slate-50">Enviar arquivo</div><div className="mt-2 text-sm leading-6 text-slate-400">
               Limite atual: 20 MB por arquivo. Use nomes descritivos para facilitar auditoria e rollback.
-            </div>
-            <ActionForm
+            </div><ActionForm
               action={uploadAttachmentAction}
               submitLabel="Enviar anexo"
               pendingLabel="Enviando..."
               className="mt-4"
-            >
-              <input type="hidden" name="entityPath" value={entityPath} />
-              <input type="hidden" name="entityId" value={entityId} />
-              <input type="hidden" name="returnPath" value={returnPath} />
-              <input
+            ><input type="hidden" name="entityPath" value={entityPath} /><input type="hidden" name="entityId" value={entityId} /><input type="hidden" name="returnPath" value={returnPath} /><input
                 type="file"
                 name="file"
-                className="w-full rounded-[12px] border border-white/10 bg-[#111318] px-3 py-2.5 text-sm text-slate-200 file:mr-3 file:rounded-full file:border-0 file:bg-white file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-black"
-              />
-            </ActionForm>
-          </div>
+                className="w-full rounded-[14px] border border-white/10 bg-[#111318] px-3 py-2.5 text-sm text-slate-200 file:mr-3 file:rounded-full file:border-0 file:bg-white file:px-3 file:py-1.5 file:text-xs file:font-black file:text-black"
+              /></ActionForm></div>
         ) : (
           <div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4 text-sm leading-6 text-slate-400">
             Seu perfil pode consultar documentos, mas o envio e remoção ficam restritos a administradores e editores.
           </div>
         )}
-      </div>
-    </Surface>
+      </div></Surface>
   );
 }

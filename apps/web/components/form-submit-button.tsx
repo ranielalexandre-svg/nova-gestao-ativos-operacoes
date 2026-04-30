@@ -10,19 +10,26 @@ export function FormSubmitButton({
 }: {
   idleLabel: string;
   pendingLabel: string;
-  variant?: "primary" | "secondary";
+  variant?: "primary" | "secondary" | "danger";
   className?: string;
 }) {
   const { pending } = useFormStatus();
 
   const base =
     variant === "primary"
-      ? "rounded-[14px] border border-blue-400/30 bg-[#17213a] px-4 py-3 text-sm font-semibold text-slate-50 shadow-[0_12px_26px_rgba(0,0,0,0.22)] transition hover:bg-[#1b2946] disabled:opacity-60"
-      : "rounded-[14px] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-slate-100 transition hover:bg-white/[0.08] disabled:opacity-60";
+      ? "nova-form-submit rounded-[16px] border border-sky-400/35 bg-[linear-gradient(135deg,rgba(14,165,233,0.22),rgba(37,99,235,0.20))] px-4 py-3 text-sm font-black text-slate-50 shadow-[0_14px_32px_rgba(14,165,233,0.12)] transition hover:border-sky-300/45 hover:bg-[#1b2946] disabled:opacity-60"
+      : variant === "danger"
+        ? "nova-form-submit rounded-[16px] border border-rose-400/35 bg-rose-500/14 px-4 py-3 text-sm font-black text-rose-50 shadow-[0_14px_32px_rgba(244,63,94,0.10)] transition hover:bg-rose-500/22 disabled:opacity-60"
+        : "nova-form-submit rounded-[16px] border border-white/10 bg-white/[0.045] px-4 py-3 text-sm font-black text-slate-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)] transition hover:border-white/16 hover:bg-white/[0.08] disabled:opacity-60";
 
   return (
-    <button type="submit" disabled={pending} className={`${base} ${className}`.trim()}>
-      {pending ? pendingLabel : idleLabel}
-    </button>
+    <button
+      type="submit"
+      disabled={pending}
+      aria-busy={pending}
+      className={`nova-submit-button ${base} ${className}`.trim()}
+    ><span className="inline-flex items-center justify-center gap-2">
+        {pending ? <span className="nova-submit-spinner" aria-hidden="true" /> : null}
+        <span>{pending ? pendingLabel : idleLabel}</span></span></button>
   );
 }

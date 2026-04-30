@@ -17,15 +17,13 @@ export function RegistryHero({
   actions?: ReactNode;
 }) {
   return (
-    <Surface className="p-5 sm:p-6">
-      <SectionIntro
+    <Surface className="nova-registry-hero p-5 sm:p-6 lg:p-7"><SectionIntro
         eyebrow={eyebrow}
         title={title}
         description={description}
         actions={actions}
         compact
-      />
-    </Surface>
+      /></Surface>
   );
 }
 
@@ -44,23 +42,16 @@ export function RegistrySummaryStrip({
   noteCopy: string;
 }) {
   return (
-    <Surface className="p-4 sm:p-5">
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px] xl:items-start">
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <Surface className="nova-registry-summary p-4 sm:p-5"><div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_380px] xl:items-stretch"><div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {items.map((item) => (
             <div
               key={item.label}
-              className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] px-4 py-3"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+              className="nova-summary-card rounded-[18px] border border-white/[0.09] bg-[linear-gradient(180deg,rgba(15,23,32,0.95),rgba(8,13,19,0.95))] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]"
+            ><div className="flex items-start justify-between gap-3"><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
                   {item.label}
-                </div>
-                <TonePill tone={item.tone || "neutral"}>
+                </div><TonePill tone={item.tone || "neutral"}>
                   {item.tone === "neutral" || !item.tone ? "base" : item.tone}
-                </TonePill>
-              </div>
-              <div className="mt-2 text-[24px] font-semibold tracking-tight text-slate-50">
+                </TonePill></div><div className="mt-2 text-[26px] font-black tracking-[-0.04em] text-slate-50">
                 {item.value}
               </div>
               {item.meta ? (
@@ -68,14 +59,7 @@ export function RegistrySummaryStrip({
               ) : null}
             </div>
           ))}
-        </div>
-
-        <div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] px-4 py-4">
-          <div className="text-sm font-semibold text-slate-50">{noteTitle}</div>
-          <div className="mt-2 text-sm leading-6 text-slate-400">{noteCopy}</div>
-        </div>
-      </div>
-    </Surface>
+        </div><div className="rounded-[18px] border border-sky-400/[0.14] bg-[radial-gradient(circle_at_0%_0%,rgba(14,165,233,0.12),transparent_16rem),rgba(8,13,19,0.95)] px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]"><div className="text-sm font-semibold text-slate-50">{noteTitle}</div><div className="mt-2 text-sm leading-6 text-slate-400">{noteCopy}</div></div></div></Surface>
   );
 }
 
@@ -95,10 +79,7 @@ export function RegistryDetailHero({
   actions?: ReactNode;
 }) {
   return (
-    <Surface className="p-5 sm:p-6">
-      <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
-        <div className="min-w-0">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+    <Surface className="nova-detail-hero p-5 sm:p-6 lg:p-7"><div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between"><div className="min-w-0"><div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
             {eyebrow}
           </div>
           {badges ? <div className="mt-3 flex flex-wrap gap-2">{badges}</div> : null}
@@ -110,12 +91,10 @@ export function RegistryDetailHero({
               {meta}
             </div>
           ) : null}
-          <div className="mt-2 max-w-4xl text-sm leading-6 text-slate-400">{description}</div>
-        </div>
+          <div className="mt-2 max-w-4xl text-sm leading-6 text-slate-400">{description}</div></div>
 
         {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}
-      </div>
-    </Surface>
+      </div></Surface>
   );
 }
 
@@ -136,17 +115,12 @@ export function RegistryMetricGrid({
       {items.map((item) => (
         <div
           key={item.label}
-          className="rounded-[16px] border border-white/[0.08] bg-[#0f141b] p-4"
-        >
-          <div className="flex items-start justify-between gap-3">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+          className="nova-registry-metric rounded-[20px] border border-white/[0.09] bg-[linear-gradient(180deg,rgba(17,24,34,0.94),rgba(10,15,22,0.94))] p-4 shadow-[0_14px_34px_rgba(0,0,0,0.16)]"
+        ><div className="flex items-start justify-between gap-3"><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
               {item.label}
-            </div>
-            <TonePill tone={item.tone || "neutral"}>
+            </div><TonePill tone={item.tone || "neutral"}>
               {item.tone === "neutral" || !item.tone ? "base" : item.tone}
-            </TonePill>
-          </div>
-          <div className="mt-3 text-[26px] font-semibold tracking-tight text-slate-50">
+            </TonePill></div><div className="mt-3 text-[26px] font-semibold tracking-tight text-slate-50">
             {item.value}
           </div>
           {item.detail ? (
@@ -176,22 +150,19 @@ export function RegistryInfoGrid({
         <div
           key={item.label}
           className={cx(
-            "rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4",
+            "nova-info-card rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4",
             item.span === "full" && "md:col-span-2",
           )}
-        >
-          <div className="text-[10px] uppercase tracking-[0.14em] text-slate-500">
+        ><div className="text-[10px] uppercase tracking-[0.14em] text-slate-500">
             {item.label}
-          </div>
-          <div
+          </div><div
             className={cx(
               "mt-2 text-sm font-medium text-slate-100",
               item.breakWords && "break-all",
             )}
           >
             {item.value}
-          </div>
-        </div>
+          </div></div>
       ))}
     </div>
   );

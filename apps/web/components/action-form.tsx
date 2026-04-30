@@ -19,7 +19,7 @@ type ActionFormProps = {
   submitClassName?: string;
   submitLabel: string;
   pendingLabel: string;
-  variant?: "primary" | "secondary";
+  variant?: "primary" | "secondary" | "danger";
   hideSubmit?: boolean;
 };
 
@@ -44,12 +44,12 @@ export function ActionForm({
         : "";
 
   return (
-    <form action={formAction} className={className}>
+    <form action={formAction} className={`nova-action-form ${className}`.trim()}>
       {state.status !== "idle" ? (
         <div
           role={state.status === "error" ? "alert" : "status"}
           aria-live={state.status === "error" ? "assertive" : "polite"}
-          className={`mb-4 rounded-[14px] border px-4 py-3 text-sm ${tone} ${noticeClassName}`.trim()}
+          className={`mb-4 rounded-[16px] border px-4 py-3 text-sm font-medium shadow-[inset_0_1px_0_rgba(255,255,255,0.035)] ${tone} ${noticeClassName}`.trim()}
         >
           {state.message}
         </div>
@@ -58,14 +58,12 @@ export function ActionForm({
       {children}
 
       {!hideSubmit ? (
-        <div className={`mt-4 flex items-center justify-end ${submitClassName}`.trim()}>
-          <FormSubmitButton
+        <div className={`nova-form-actions mt-4 flex flex-col items-stretch justify-end gap-2 sm:flex-row sm:items-center ${submitClassName}`.trim()}><FormSubmitButton
             idleLabel={submitLabel}
             pendingLabel={pendingLabel}
             variant={variant}
             className="min-w-[148px]"
-          />
-        </div>
+          /></div>
       ) : null}
     </form>
   );
