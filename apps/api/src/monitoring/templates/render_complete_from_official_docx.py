@@ -819,6 +819,19 @@ def render_chart_png(block):
         axis.xaxis.set_major_locator(mdates.AutoDateLocator(minticks=4, maxticks=6))
         axis.xaxis.set_major_formatter(mdates.DateFormatter("%d/%m %H:%M"))
 
+
+    def legend_above(axis, columns=1):
+        axis.legend(
+            loc="lower left",
+            bbox_to_anchor=(0.0, 1.015),
+            ncol=columns,
+            fontsize=6.8,
+            frameon=False,
+            borderaxespad=0,
+            handlelength=2.6,
+            columnspacing=1.35,
+        )
+
     def save_figure(fig):
         buffer = io.BytesIO()
         fig.savefig(buffer, format="png", bbox_inches="tight", pad_inches=0.10)
@@ -838,15 +851,15 @@ def render_chart_png(block):
             fig, axes = plt.subplots(
                 2,
                 1,
-                figsize=(9.65, 4.35),
+                figsize=(9.65, 4.85),
                 dpi=230,
                 sharex=True,
-                gridspec_kw={"height_ratios": [3.25, 1.05], "hspace": 0.08},
+                gridspec_kw={"height_ratios": [2.50, 1.50], "hspace": 0.24},
             )
             ax = axes[0]
             loss_ax = axes[1]
         else:
-            fig, ax = plt.subplots(figsize=(9.65, 3.70), dpi=230)
+            fig, ax = plt.subplots(figsize=(9.65, 3.95), dpi=230)
             loss_ax = None
 
         fig.patch.set_facecolor("white")
@@ -868,7 +881,7 @@ def render_chart_png(block):
             )
             ax.fill_between(x, y, color="#1d4ed8", alpha=0.045)
             ax.set_ylim(bottom=0, top=max(5, max(y) * 1.18 if y else 5))
-            ax.legend(loc="upper left", fontsize=6.8, frameon=False)
+            legend_above(ax, columns=1)
             plotted = True
 
         ax.set_ylabel("ms", fontsize=7.8, color="#374151")
@@ -903,7 +916,7 @@ def render_chart_png(block):
 
             loss_ax.set_ylim(-2, 102)
             loss_ax.set_ylabel("%", fontsize=7.8, color="#374151")
-            loss_ax.legend(loc="upper left", fontsize=6.8, frameon=False)
+            legend_above(loss_ax, columns=1)
             apply_date_axis(loss_ax)
             fig.autofmt_xdate(rotation=22, ha="right")
             plotted = True
@@ -944,7 +957,7 @@ def render_chart_png(block):
                 figsize=(9.65, 4.55),
                 dpi=230,
                 sharex=True,
-                gridspec_kw={"height_ratios": [1, 1], "hspace": 0.12},
+                gridspec_kw={"height_ratios": [1, 1], "hspace": 0.24},
             )
             down_ax = axes[0]
             up_ax = axes[1]
@@ -992,7 +1005,7 @@ def render_chart_png(block):
             add_capacity(down_ax, with_label=True)
             set_ylim_for(down_ax, y_down)
             down_ax.set_ylabel("Mbps", fontsize=7.8, color="#374151")
-            down_ax.legend(loc="upper left", fontsize=6.8, frameon=False, ncol=2)
+            legend_above(down_ax, columns=2)
             plotted = True
 
         elif total:
@@ -1012,7 +1025,7 @@ def render_chart_png(block):
                 add_capacity(down_ax, with_label=True)
                 set_ylim_for(down_ax, y_total)
                 down_ax.set_ylabel("Mbps", fontsize=7.8, color="#374151")
-                down_ax.legend(loc="upper left", fontsize=6.8, frameon=False, ncol=2)
+                legend_above(down_ax, columns=2)
                 plotted = True
 
         if has_upload:
@@ -1029,7 +1042,6 @@ def render_chart_png(block):
                 y_up,
                 color="#65a30d",
                 linewidth=1.24,
-                linestyle=(0, (4, 2)),
                 label="Tráfego enviado",
                 solid_capstyle="round",
             )
@@ -1037,7 +1049,7 @@ def render_chart_png(block):
             add_capacity(target_ax, with_label=True)
             set_ylim_for(target_ax, y_up)
             target_ax.set_ylabel("Mbps", fontsize=7.8, color="#374151")
-            target_ax.legend(loc="upper left", fontsize=6.8, frameon=False, ncol=2)
+            legend_above(target_ax, columns=2)
             plotted = True
 
         if up_ax is not None:
@@ -1631,9 +1643,19 @@ def build_docx(base_docx, payload, output_path):
         for report in payload.get("reports", []):
             unit = report.get("unit") or {}
             unit_name = clean(unit.get("name") or unit.get("label"), "Unidade")
+            unit_meta = metadata_from_sources(unit, report, payload)
             report_blocks = order_blocks(report.get("blocks", []))
 
             for block_index, block in enumerate(report_blocks):
+                block = dict(block or {})
+
+                if unit_meta.get("bandwidth"):
+                    # Usado por infer_capacity_bps() para desenhar a linha correta de capacidade.
+                    block.setdefault("contractedBandwidth", unit_meta["bandwidth"])
+                    block.setdefault("contractedBandwidthLabel", unit_meta["bandwidth"])
+                    block.setdefault("bandwidth", unit_meta["bandwidth"])
+                    block.setdefault("bandwidthLabel", unit_meta["bandwidth"])
+                    block.setdefault("capacityLabel", unit_meta["bandwidth"])
                 if not first_block:
                     doc.add_page_break()
 
