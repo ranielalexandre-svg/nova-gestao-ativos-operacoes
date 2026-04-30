@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { apiFetch } from "@/lib/server-api";
+import { apiJson } from "@/lib/server-api";
 
 function parseUnitIds(formData: FormData) {
   return formData
@@ -37,6 +37,17 @@ function parseUnitMetadataJson(formData: FormData) {
   return Object.keys(metadata).length ? JSON.stringify(metadata) : undefined;
 }
 
+function redirectBack(request: Request, formData: FormData, params: Record<string, string>) {
+  const returnTo = parseOptional(formData, "returnTo") || "/relatorios/monitoramento";
+  const url = new URL(returnTo, request.url);
+
+  for (const [key, value] of Object.entries(params)) {
+    url.searchParams.set(key, value);
+  }
+
+  return NextResponse.redirect(url, 303);
+}
+
 export async function POST(request: Request) {
   const formData = await request.formData();
   console.log("[web-monitoring-export] route=%s format=%s reportStyle=%s includeCharts=%s",
@@ -48,7 +59,10 @@ export async function POST(request: Request) {
   const unitIds = parseUnitIds(formData);
 
   if (!unitIds.length) {
-    return NextResponse.json({ message: "Selecione ao menos uma unidade para exportar." }, { status: 400 });
+    return redirectBack(request, formData, {
+      exportStatus: "error",
+      exportMessage: "Selecione ao menos uma unidade para exportar.",
+    });
   }
 
   const payload = {
@@ -68,21 +82,20 @@ export async function POST(request: Request) {
     issueDateLabel: parseOptional(formData, "issueDateLabel"),
   };
 
-  const response = await apiFetch("/monitoring/reports/export", {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
+  try {
+    const run = await apiJson<{ id: string }>("/monitoring/reports/export-jobs", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
 
-  const buffer = await response.arrayBuffer();
-  const contentDisposition = response.headers.get("content-disposition") || `attachment; filename=\"nova-relatorio-consumo.${payload.format}\"`;
-  const contentType = response.headers.get("content-type") || "application/octet-stream";
-
-  return new Response(buffer, {
-    status: 200,
-    headers: {
-      "Content-Type": contentType,
-      "Content-Disposition": contentDisposition,
-      "Cache-Control": "no-store",
-    },
-  });
+    return redirectBack(request, formData, {
+      exportStatus: "queued",
+      exportRunId: run.id,
+    });
+  } catch (error) {
+    return redirectBack(request, formData, {
+      exportStatus: "error",
+      exportMessage: error instanceof Error ? error.message : "Falha ao iniciar exportação.",
+    });
+  }
 }

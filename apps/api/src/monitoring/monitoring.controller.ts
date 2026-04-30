@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query, Res, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Query, Res, UseGuards } from "@nestjs/common";
 import type { Response } from "express";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { MonitoringService } from "./monitoring.service";
@@ -25,8 +25,8 @@ export class MonitoringController {
   }
 
   @Get("unit-hosts")
-  getUnitHostTelemetry() {
-    return this.monitoringService.getUnitHostTelemetry();
+  getUnitHostTelemetry(@Query("mode") mode?: string) {
+    return this.monitoringService.getUnitHostTelemetry({ fast: mode === "fast" });
   }
 
   @Get("reports/units")
@@ -80,5 +80,15 @@ export class MonitoringController {
     response.setHeader("Content-Disposition", `attachment; filename="${artifact.fileName}"`);
     response.setHeader("Cache-Control", "no-store");
     response.send(artifact.buffer);
+  }
+
+  @Post("reports/export-jobs")
+  enqueuePrtgStyleReportExport(@Body() body: ExportMonitoringReportDto) {
+    return this.monitoringService.enqueuePrtgStyleReportExport(body);
+  }
+
+  @Get("reports/export-jobs/:id")
+  getPrtgStyleReportExportJob(@Param("id") id: string) {
+    return this.monitoringService.getReportExportRun(id);
   }
 }

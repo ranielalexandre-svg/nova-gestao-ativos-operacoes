@@ -1,5 +1,5 @@
 import { Transform } from "class-transformer";
-import { ArrayMaxSize, ArrayNotEmpty, IsArray, IsBoolean, IsEnum, IsOptional, IsString } from "class-validator";
+import {ArrayMaxSize, ArrayNotEmpty, IsArray, IsBoolean, IsEnum, IsOptional, IsString, IsIn} from 'class-validator';
 
 export class ExportMonitoringReportDto {
   @Transform(({ value }) => {
@@ -37,6 +37,10 @@ export class ExportMonitoringReportDto {
   includeCharts = true;
 
   @IsOptional()
+  @IsIn(["official", "technical", "complete"])
+  reportStyle?: "official" | "technical" | "complete";
+
+  @IsOptional()
   @IsString()
   title?: string;
 
@@ -55,4 +59,16 @@ export class ExportMonitoringReportDto {
   @IsOptional()
   @IsString()
   contractedBandwidth?: string;
+
+  @IsOptional()
+  @IsString()
+  unitMetadataJson?: string;
+
+  @IsOptional()
+  @IsString()
+  competenceLabel?: string;
+
+  @IsOptional()
+  @IsString()
+  issueDateLabel?: string;
 }

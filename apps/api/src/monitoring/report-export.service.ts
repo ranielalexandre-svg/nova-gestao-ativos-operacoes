@@ -1,6 +1,6 @@
 import { execFile as execFileCallback } from 'child_process';
 import { existsSync } from 'fs';
-import { mkdtemp, readFile, rm, writeFile } from 'fs/promises';
+import { appendFile, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'fs/promises';
 import { Injectable } from '@nestjs/common';
 import { tmpdir } from 'os';
 import { join } from 'path';
@@ -8,6 +8,7 @@ import { promisify } from 'util';
 import { requireRuntimeModule } from '../common/runtime-node-modules';
 import { NOVA_FOOTER_LINES, TRANSPARENT_PNG } from './report-export.constants';
 import { MonitoringReportPresentationService } from './report-presentation.service';
+
 import {
   MonitoringPrtgStyleReport,
   MonitoringReportBlock,
@@ -24,7 +25,7 @@ export class MonitoringReportExportService {
     private readonly presentation: MonitoringReportPresentationService,
   ) {}
 
-  /**
+/**
    * Exporta um ou mais relatórios no formato solicitado, preservando
    * o contrato atual de artefato retornado para a camada de aplicação.
    */
@@ -32,6 +33,19 @@ export class MonitoringReportExportService {
     reports: MonitoringPrtgStyleReport[],
     options: MonitoringReportExportOptions,
   ): Promise<MonitoringReportExportArtifact> {
+    await this.appendMonitoringExportDebugLog(`exportReports format=${options.format} reportStyle=${options.reportStyle || 'complete'} includeCharts=${options.includeCharts} reports=${reports.length}`);
+    if ((options.reportStyle || 'complete') === 'complete') {
+      if (options.format === 'docx') {
+        return this.buildCompleteEditableDocx(reports, options);
+      }
+
+      return this.buildCompletePdf(reports, options);
+    }
+
+    if (options.reportStyle === 'technical' && options.format === 'pdf') {
+      return this.buildTechnicalPdf(reports, options);
+    }
+
     if (options.format === 'docx') {
       return this.buildDocx(reports, options);
     }
@@ -39,11 +53,278 @@ export class MonitoringReportExportService {
     return this.buildPdf(reports, options);
   }
 
-  private async buildPdf(
+  private async appendMonitoringExportDebugLog(message: string) {
+    const candidates = [
+      join(process.cwd(), '.tmp'),
+      join(process.cwd(), '../../.tmp'),
+      join(process.cwd(), '../.tmp'),
+    ];
+
+    for (const dir of candidates) {
+      try {
+        await mkdir(dir, { recursive: true });
+        await appendFile(
+          join(dir, 'monitoring-export-debug.log'),
+          `[${new Date().toISOString()}] cwd=${process.cwd()} ${message}\n`,
+        );
+        return;
+      } catch {
+        // try next
+      }
+    }
+  }
+
+  private async buildCompleteEditableDocx(
     reports: MonitoringPrtgStyleReport[],
     options: MonitoringReportExportOptions,
   ): Promise<MonitoringReportExportArtifact> {
-    const html = this.buildPdfHtml(reports, options);
+    const payload = this.buildCompleteEditableDocxPayload(reports, options);
+    const official = await this.buildDocx(reports, {
+      ...options,
+      reportStyle: 'official',
+      format: 'docx',
+    });
+
+    const dir = await mkdtemp(join(tmpdir(), 'nova-report-complete-docx-'));
+
+    try {
+      const basePath = join(dir, 'base-official.docx');
+      const payloadPath = join(dir, 'payload.json');
+      const outputPath = join(dir, 'complete.docx');
+      const scriptPath = this.resolveMonitoringTemplatePath('render_complete_from_official_docx.py');
+
+      await writeFile(basePath, official.buffer);
+      await writeFile(payloadPath, JSON.stringify(payload));
+
+      await this.appendMonitoringExportDebugLog(
+        `complete-docx render start script=${scriptPath} base=${basePath} payload=${payloadPath} output=${outputPath}`,
+      );
+
+      try {
+        await execFile('python3', [scriptPath, basePath, payloadPath, outputPath]);
+      } catch (renderError) {
+        const error = renderError as { message?: string; stdout?: string; stderr?: string; stack?: string; code?: unknown };
+        await this.appendMonitoringExportDebugLog(
+          [
+            'complete-docx render failed',
+            `code=${String(error.code || '')}`,
+            `message=${error.message || ''}`,
+            `stdout=${error.stdout || ''}`,
+            `stderr=${error.stderr || ''}`,
+            `stack=${error.stack || ''}`,
+          ].join('\n'),
+        );
+        throw renderError;
+      }
+
+      await this.appendMonitoringExportDebugLog(`complete-docx render ok output=${outputPath}`);
+
+      return {
+        buffer: await readFile(outputPath),
+        fileName: this.presentation
+          .buildFileName(reports, 'docx')
+          .replace(/\.docx$/i, '-completo.docx'),
+        mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      };
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  }
+
+  private buildCompleteEditableDocxPayload(
+    reports: MonitoringPrtgStyleReport[],
+    options: MonitoringReportExportOptions,
+  ) {
+    const officialPayload = this.buildOfficialDocxTemplatePayload(reports, {
+      ...options,
+      reportStyle: 'official',
+    });
+
+    return {
+      ...officialPayload,
+      reports: reports.map((report) => ({
+        unit: report.unit,
+        host: report.host,
+        period: report.period,
+        blocks: this.sortTechnicalBlocks(report.blocks).map((block) => ({
+          id: block.id,
+          title: block.title,
+          description: block.description,
+          sensorType: block.sensorType,
+          probePath: block.probePath,
+          unit: block.unit,
+          consumption: block.consumption
+            ? {
+                receivedLabel: this.presentation.formatBytes(block.consumption.receivedBytes),
+                sentLabel: this.presentation.formatBytes(block.consumption.sentBytes),
+                totalLabel: this.presentation.formatBytes(block.consumption.totalBytes),
+                avgReceiveLabel: this.presentation.formatValue(block.consumption.avgReceiveBps, 'bps'),
+                avgSendLabel: this.presentation.formatValue(block.consumption.avgSendBps, 'bps'),
+                avgTotalLabel: this.presentation.formatValue(block.consumption.avgReceiveBps, 'bps'),
+                peakReceiveLabel: this.presentation.formatValue(block.consumption.peakReceiveBps, 'bps'),
+                peakSendLabel: this.presentation.formatValue(block.consumption.peakSendBps, 'bps'),
+              }
+            : null,
+          series: block.series.map((series) => ({
+            name: series.name,
+            label: series.label,
+            kind: series.kind,
+            unit: series.unit,
+            stats: series.stats,
+            points: series.points,
+          })),
+        })),
+      })),
+    };
+  }
+
+  private resolveMonitoringTemplatePath(fileName: string) {
+    const candidates = [
+      join(process.cwd(), 'src/monitoring/templates', fileName),
+      join(process.cwd(), 'apps/api/src/monitoring/templates', fileName),
+      join(__dirname, 'templates', fileName),
+      join(__dirname, '../src/monitoring/templates', fileName),
+    ];
+
+    const found = candidates.find((candidate) => existsSync(candidate));
+
+    if (!found) {
+      throw new Error(`Template não encontrado: ${fileName}`);
+    }
+
+    return found;
+  }
+
+  private async buildCompletePdf(
+    reports: MonitoringPrtgStyleReport[],
+    options: MonitoringReportExportOptions,
+  ): Promise<MonitoringReportExportArtifact> {
+    const docx = await this.buildCompleteEditableDocx(reports, {
+      ...options,
+      reportStyle: 'complete',
+      format: 'docx',
+    });
+
+    const pdfBuffer = await this.convertDocxBufferToPdf(docx.buffer);
+
+    return {
+      buffer: pdfBuffer,
+      fileName: this.presentation
+        .buildFileName(reports, 'pdf')
+        .replace(/\.pdf$/i, '-completo.pdf'),
+      mimeType: 'application/pdf',
+    };
+  }
+
+  private async convertDocxBufferToPdf(buffer: Buffer) {
+    const dir = await mkdtemp(join(tmpdir(), 'nova-report-docx-pdf-'));
+
+    try {
+      const inputPath = join(dir, 'complete.docx');
+      const outputPath = join(dir, 'complete.pdf');
+
+      await writeFile(inputPath, buffer);
+
+      await execFile('libreoffice', [
+        '--headless',
+        '--convert-to',
+        'pdf',
+        '--outdir',
+        dir,
+        inputPath,
+      ]);
+
+      return await readFile(outputPath);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  }
+
+  private async buildCoverOnlyPdf(
+    reports: MonitoringPrtgStyleReport[],
+    options: MonitoringReportExportOptions,
+  ): Promise<MonitoringReportExportArtifact> {
+    const official = await this.buildPdf(reports, {
+      ...options,
+      reportStyle: 'official',
+      format: 'pdf',
+    });
+
+    const coverBuffer = await this.extractFirstPdfPage(official.buffer);
+
+    return {
+      buffer: coverBuffer,
+      fileName: this.presentation.buildFileName(reports, 'pdf'),
+      mimeType: 'application/pdf',
+    };
+  }
+
+  private async extractFirstPdfPage(buffer: Buffer) {
+    const dir = await mkdtemp(join(tmpdir(), 'nova-report-cover-'));
+
+    try {
+      const inputPath = join(dir, 'input.pdf');
+      const outputPattern = join(dir, 'page-%d.pdf');
+      const firstPagePath = join(dir, 'page-1.pdf');
+
+      await writeFile(inputPath, buffer);
+
+      try {
+        await execFile('pdfseparate', ['-f', '1', '-l', '1', inputPath, outputPattern]);
+      } catch (pdfSeparateError) {
+        try {
+          await execFile('qpdf', [inputPath, '--pages', inputPath, '1', '--', firstPagePath]);
+        } catch {
+          throw pdfSeparateError;
+        }
+      }
+
+      return await readFile(firstPagePath);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  }
+
+  private async mergePdfBuffers(buffers: Buffer[]) {
+    const dir = await mkdtemp(join(tmpdir(), 'nova-report-merge-'));
+
+    try {
+      const inputPaths: string[] = [];
+
+      for (const [index, buffer] of buffers.entries()) {
+        const inputPath = join(dir, `input-${index + 1}.pdf`);
+        await writeFile(inputPath, buffer);
+        inputPaths.push(inputPath);
+      }
+
+      const outputPath = join(dir, 'merged.pdf');
+
+      try {
+        await execFile('pdfunite', [...inputPaths, outputPath]);
+      } catch (pdfUniteError) {
+        try {
+          await execFile('qpdf', ['--empty', '--pages', ...inputPaths, '--', outputPath]);
+        } catch {
+          throw pdfUniteError;
+        }
+      }
+
+      return await readFile(outputPath);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  }
+
+  private async buildTechnicalPdf(
+    reports: MonitoringPrtgStyleReport[],
+    options: MonitoringReportExportOptions,
+  ): Promise<MonitoringReportExportArtifact> {
+    const html = this.buildPdfHtml(reports, {
+      ...options,
+      reportStyle: 'technical',
+      format: 'pdf',
+    });
+
     let bytes: Buffer;
 
     try {
@@ -54,9 +335,90 @@ export class MonitoringReportExportService {
 
     return {
       buffer: bytes,
-      fileName: this.presentation.buildFileName(reports, options.format),
+      fileName: this.presentation.buildFileName(reports, 'pdf').replace('.pdf', '-tecnico.pdf'),
       mimeType: 'application/pdf',
     };
+  }
+
+  private async buildPdf(
+    reports: MonitoringPrtgStyleReport[],
+    options: MonitoringReportExportOptions,
+  ): Promise<MonitoringReportExportArtifact> {
+    try {
+      return await this.buildOfficialTemplatePdf(reports, options);
+    } catch {
+      const html = this.buildPdfHtml(reports, options);
+      let bytes: Buffer;
+
+      try {
+        bytes = await this.renderPdfWithChromeCli(html);
+      } catch (chromeError) {
+        bytes = await this.renderPdfWithPlaywright(html, chromeError);
+      }
+
+      return {
+        buffer: bytes,
+        fileName: this.presentation.buildFileName(reports, options.format),
+        mimeType: 'application/pdf',
+      };
+    }
+  }
+
+  private async buildOfficialTemplatePdf(
+    reports: MonitoringPrtgStyleReport[],
+    options: MonitoringReportExportOptions,
+  ): Promise<MonitoringReportExportArtifact> {
+    const tempDir = await mkdtemp(join(tmpdir(), 'nova-official-pdf-'));
+    const docxPath = join(tempDir, 'report.docx');
+    const pdfPath = join(tempDir, 'report.pdf');
+
+    try {
+      const docxArtifact = await this.buildDocx(reports, {
+        ...options,
+        format: 'docx',
+      });
+
+      await writeFile(docxPath, docxArtifact.buffer);
+
+      const executables = [
+        process.env.LIBREOFFICE_PATH,
+        'libreoffice',
+        'soffice',
+      ].filter(Boolean) as string[];
+
+      let lastError: unknown = new Error('LibreOffice/soffice indisponível para conversão PDF');
+
+      for (const executable of executables) {
+        try {
+          await execFile(
+            executable,
+            [
+              '--headless',
+              '--convert-to',
+              'pdf',
+              '--outdir',
+              tempDir,
+              docxPath,
+            ],
+            { timeout: 45000, killSignal: 'SIGKILL' },
+          );
+
+          if (existsSync(pdfPath)) {
+            return {
+              buffer: await readFile(pdfPath),
+              fileName: this.presentation.buildFileName(reports, options.format),
+              mimeType: 'application/pdf',
+            };
+          }
+        } catch (error) {
+          lastError = error;
+        }
+      }
+
+      throw lastError;
+    } finally {
+      await rm(tempDir, { recursive: true, force: true });
+    }
   }
 
   private buildPdfHtml(
@@ -64,13 +426,17 @@ export class MonitoringReportExportService {
     options: MonitoringReportExportOptions,
   ) {
     const title = this.presentation.escapeXml(options.title || 'Relatório de Consumo');
-    const cover = this.buildPdfCoverHtml(reports, options);
+    const cover = options.reportStyle === 'technical' ? '' : this.buildPdfCoverHtml(reports, options);
     const reportPages = reports
       .flatMap((report) => {
-        const pages = [this.buildPdfUnitSummaryHtml(report, options)];
+        const pages = options.reportStyle === 'technical' ? [] : [this.buildPdfUnitSummaryHtml(report, options)];
 
-        if (report.blocks.length) {
-          report.blocks.forEach((block) => {
+        const blocks = options.reportStyle === 'technical'
+          ? this.sortTechnicalBlocks(report.blocks)
+          : report.blocks;
+
+        if (blocks.length) {
+          blocks.forEach((block) => {
             pages.push(this.buildPdfBlockHtml(report, block, options));
           });
         } else if (report.warnings.length) {
@@ -458,6 +824,127 @@ export class MonitoringReportExportService {
             .footer-line {
               margin: 0;
             }
+
+            .technical-page .page-title {
+              font-size: 24px;
+              line-height: 1.12;
+              margin-bottom: 4px;
+            }
+            .technical-page .page-subtitle {
+              display: none;
+            }
+            .technical-page .layout-grid {
+              gap: 12px;
+              margin-bottom: 12px;
+            }
+            .technical-page .section-card {
+              padding: 12px 14px;
+              margin-bottom: 12px;
+            }
+            .technical-page .section-title {
+              font-size: 15px;
+              margin-bottom: 8px;
+            }
+            .technical-page .info-table th,
+            .technical-page .info-table td {
+              padding: 5px 8px;
+              font-size: 11px;
+              line-height: 1.25;
+            }
+            .technical-page .chart-wrap {
+              padding: 8px;
+              min-height: 0;
+            }
+            .technical-page .chart-wrap svg {
+              width: 100% !important;
+              height: 250px !important;
+              max-height: 250px !important;
+            }
+
+            .sheet--technical .sheet-header {
+              padding-bottom: 10px;
+            }
+            .sheet--technical .sheet-body {
+              padding-bottom: 10px;
+            }
+            .sheet--technical .sheet-footer {
+              display: none;
+            }
+            .sheet--technical .technical-page .page-title {
+              font-size: 23px;
+              margin-bottom: 4px;
+            }
+            .sheet--technical .technical-page .layout-grid {
+              gap: 10px;
+              margin-bottom: 10px;
+            }
+            .sheet--technical .technical-page .section-card {
+              padding: 10px 12px;
+              margin-bottom: 10px;
+            }
+            .sheet--technical .technical-page .section-title {
+              font-size: 14px;
+              margin-bottom: 7px;
+            }
+            .sheet--technical .technical-page .info-table th,
+            .sheet--technical .technical-page .info-table td {
+              padding: 4px 7px;
+              font-size: 10.5px;
+              line-height: 1.2;
+            }
+            .sheet--technical .technical-page .chart-wrap {
+              padding: 7px;
+            }
+            .sheet--technical .technical-page .chart-wrap svg {
+              height: 210px !important;
+              max-height: 210px !important;
+            }
+
+            .sheet--technical .prtg-summary-card {
+              margin-bottom: 12px;
+            }
+            .sheet--technical .prtg-summary-card .info-table th {
+              width: 210px;
+              white-space: nowrap;
+            }
+            .sheet--technical .prtg-summary-card .info-table td {
+              width: auto;
+            }
+            .sheet--technical .technical-page .section-card {
+              page-break-inside: avoid;
+            }
+
+            .sheet--technical .technical-page .sheet-body,
+            .sheet--technical .sheet-body {
+              padding-top: 10px;
+              padding-bottom: 6px;
+            }
+            .sheet--technical .technical-page .section-card {
+              padding: 8px 10px;
+              margin-bottom: 8px;
+            }
+            .sheet--technical .technical-page .section-title {
+              font-size: 13px;
+              margin-bottom: 5px;
+            }
+            .sheet--technical .technical-page .info-table {
+              table-layout: fixed;
+            }
+            .sheet--technical .technical-page .info-table th,
+            .sheet--technical .technical-page .info-table td {
+              padding: 3px 6px;
+              font-size: 9.8px;
+              line-height: 1.12;
+              vertical-align: top;
+            }
+            .sheet--technical .prtg-summary-card .info-table th {
+              width: 180px;
+              white-space: normal;
+            }
+            .sheet--technical .technical-page .chart-wrap {
+              padding: 5px;
+              margin-bottom: 0;
+            }
           </style>
         </head>
         <body>
@@ -466,6 +953,43 @@ export class MonitoringReportExportService {
         </body>
       </html>
     `.trim();
+  }
+
+  private sortTechnicalBlocks(blocks: MonitoringReportBlock[]) {
+    const order = new Map([
+      ['ping', 0],
+      ['uptime', 1],
+      ['traffic', 2],
+      ['other', 3],
+    ]);
+
+    return [...blocks].sort((a, b) => {
+      return (order.get(this.blockKind(a)) ?? 3) - (order.get(this.blockKind(b)) ?? 3);
+    });
+  }
+
+  private blockKind(block: MonitoringReportBlock) {
+    const searchable = [
+      block.title,
+      block.description,
+      block.sensorType,
+      block.unit,
+      ...block.series.map((series) => `${series.name} ${series.label} ${series.kind}`),
+    ].join(' ').toLowerCase();
+
+    if (searchable.includes('ping') || searchable.includes('icmp') || searchable.includes('latência') || searchable.includes('latencia')) {
+      return 'ping';
+    }
+
+    if (searchable.includes('uptime') || searchable.includes('tempo de atividade') || searchable.includes('disponibilidade')) {
+      return 'uptime';
+    }
+
+    if (searchable.includes('traffic') || searchable.includes('tráfego') || searchable.includes('trafego') || searchable.includes('interface') || searchable.includes('link') || searchable.includes('consumo')) {
+      return 'traffic';
+    }
+
+    return 'other';
   }
 
   private buildPdfCoverHtml(
@@ -618,6 +1142,10 @@ export class MonitoringReportExportService {
     block: MonitoringReportBlock,
     options: MonitoringReportExportOptions,
   ) {
+    if (options.reportStyle === 'technical') {
+      return this.buildTechnicalPdfBlockHtml(report, block, options);
+    }
+
     const metadata = [
       ['Tipo de sensor', block.sensorType],
       ['Origem', block.probePath],
@@ -700,10 +1228,326 @@ export class MonitoringReportExportService {
     );
   }
 
+  private formatTechnicalPeriodEndpoint(value: string) {
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return value || '-';
+    }
+
+    const two = (input: number) => String(input).padStart(2, '0');
+
+    return `${two(date.getUTCDate())}/${two(date.getUTCMonth() + 1)}/${date.getUTCFullYear()} ${two(date.getUTCHours())}:${two(date.getUTCMinutes())}:${two(date.getUTCSeconds())}`;
+  }
+
+  private technicalDataPeriodLabel(report: MonitoringPrtgStyleReport, block: MonitoringReportBlock) {
+    const timestamps = block.series
+      .flatMap((series) => series.points || [])
+      .map((point) => point.timestamp)
+      .filter(Boolean)
+      .map((value) => new Date(value))
+      .filter((date) => !Number.isNaN(date.getTime()))
+      .sort((a, b) => a.getTime() - b.getTime());
+
+    if (timestamps.length >= 2) {
+      const first = timestamps[0].toISOString();
+      const last = timestamps[timestamps.length - 1].toISOString();
+
+      return `${this.formatTechnicalPeriodEndpoint(first)} - ${this.formatTechnicalPeriodEndpoint(last)}`;
+    }
+
+    return `${this.formatTechnicalPeriodEndpoint(report.period.from)} - ${this.formatTechnicalPeriodEndpoint(report.period.to)}`;
+  }
+
+  private buildTechnicalExtraHeadlineRows(
+    block: MonitoringReportBlock,
+    primarySeries: MonitoringReportSeries | undefined,
+    series: MonitoringReportSeries[],
+  ): ReadonlyArray<readonly [string, string]> {
+    const kind = this.blockKind(block);
+    const rows: Array<readonly [string, string]> = [];
+
+    if (primarySeries && kind !== 'traffic') {
+      rows.push(['Mínimo', this.presentation.formatValue(primarySeries.stats.min, primarySeries.unit)]);
+      rows.push(['Máximo', this.presentation.formatValue(primarySeries.stats.max, primarySeries.unit)]);
+    }
+
+    if (kind === 'ping') {
+      const packetLoss = series.find((item) => {
+        const label = `${item.label} ${item.name} ${item.kind}`.toLowerCase();
+        return item.unit === '%' || label.includes('perda') || label.includes('loss');
+      });
+
+      if (packetLoss) {
+        rows.push(['Perda de pacote média', this.presentation.formatValue(packetLoss.stats.avg, packetLoss.unit)]);
+      }
+    }
+
+    return rows;
+  }
+
+  private technicalPointCount(series: MonitoringReportSeries[]) {
+    return series.reduce((max, item) => {
+      return Math.max(max, item.stats?.points || item.points?.length || 0);
+    }, 0);
+  }
+
+  private technicalPacketLossSeries(series: MonitoringReportSeries[]) {
+    return series.find((item) => {
+      const label = `${item.label} ${item.name} ${item.kind}`.toLowerCase();
+      return item.unit === '%' || label.includes('perda') || label.includes('loss');
+    });
+  }
+
+  private formatTechnicalPercent(value: number) {
+    return `${value.toFixed(3).replace('.', ',')} %`;
+  }
+
+  private formatTechnicalDuration(totalSeconds: number) {
+    const safeSeconds = Math.max(0, Math.round(totalSeconds));
+    const days = Math.floor(safeSeconds / 86400);
+    const hours = Math.floor((safeSeconds % 86400) / 3600);
+    const minutes = Math.floor((safeSeconds % 3600) / 60);
+    const seconds = safeSeconds % 60;
+
+    return `${String(days).padStart(2, '0')}d ${String(hours).padStart(2, '0')}h ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`;
+  }
+
+  private technicalDataDurationSeconds(block: MonitoringReportBlock) {
+    const timestamps = block.series
+      .flatMap((series) => series.points || [])
+      .map((point) => point.timestamp)
+      .filter(Boolean)
+      .map((value) => new Date(value).getTime())
+      .filter((value) => !Number.isNaN(value))
+      .sort((a, b) => a - b);
+
+    if (timestamps.length < 2) {
+      return 0;
+    }
+
+    return Math.max(0, (timestamps[timestamps.length - 1] - timestamps[0]) / 1000);
+  }
+
+  private technicalGoodFailureCounts(series: MonitoringReportSeries[]) {
+    const packetLoss = this.technicalPacketLossSeries(series);
+    const points = (packetLoss?.points || []).filter((point) => point.value !== null && point.value !== undefined);
+
+    if (!points.length) {
+      const total = this.technicalPointCount(series);
+      return { total, good: total, failed: 0 };
+    }
+
+    const failed = points.filter((point) => Number(point.value || 0) > 0).length;
+    const good = Math.max(0, points.length - failed);
+
+    return { total: points.length, good, failed };
+  }
+
+  private technicalAvailabilityStatsLabel(block: MonitoringReportBlock, series: MonitoringReportSeries[]) {
+    const counts = this.technicalGoodFailureCounts(series);
+
+    if (!counts.total) {
+      return '-';
+    }
+
+    const okPercent = (counts.good / counts.total) * 100;
+    const downPercent = (counts.failed / counts.total) * 100;
+    const duration = this.technicalDataDurationSeconds(block);
+    const okDuration = duration ? duration * (counts.good / counts.total) : 0;
+    const downDuration = duration ? duration * (counts.failed / counts.total) : 0;
+
+    return `OK: ${this.formatTechnicalPercent(okPercent)} [${this.formatTechnicalDuration(okDuration)}] Inoperante: ${this.formatTechnicalPercent(downPercent)} [${this.formatTechnicalDuration(downDuration)}]`;
+  }
+
+  private technicalRequestStatsLabel(block: MonitoringReportBlock, series: MonitoringReportSeries[]) {
+    const counts = this.technicalGoodFailureCounts(series);
+
+    if (!counts.total) {
+      return '-';
+    }
+
+    const goodPercent = (counts.good / counts.total) * 100;
+    const failedPercent = (counts.failed / counts.total) * 100;
+
+    return `Bom: ${this.formatTechnicalPercent(goodPercent)} [${counts.good}] Falha: ${this.formatTechnicalPercent(failedPercent)} [${counts.failed}]`;
+  }
+
+  private technicalPdfBlockTitle(report: MonitoringPrtgStyleReport, block: MonitoringReportBlock) {
+    const unitName = report.unit.name || '';
+    const kind = this.blockKind(block);
+    const fallbackTitle = kind === 'traffic'
+      ? 'Link Traffic'
+      : kind === 'ping'
+        ? 'Ping'
+        : kind === 'uptime'
+          ? 'System Uptime'
+          : 'Sensor';
+
+    const rawTitle = (block.title || fallbackTitle).trim();
+    const normalizedUnit = unitName.trim().toLowerCase();
+    const normalizedTitle = rawTitle.toLowerCase();
+
+    if (
+      normalizedUnit &&
+      (
+        normalizedTitle === normalizedUnit ||
+        normalizedTitle.startsWith(`${normalizedUnit}:`) ||
+        normalizedTitle.startsWith(`${normalizedUnit} -`) ||
+        normalizedTitle.startsWith(`${normalizedUnit} –`)
+      )
+    ) {
+      return rawTitle;
+    }
+
+    return unitName ? `${unitName}: ${rawTitle}` : rawTitle;
+  }
+
+  private buildTechnicalPdfBlockHtml(
+    report: MonitoringPrtgStyleReport,
+    block: MonitoringReportBlock,
+    options: MonitoringReportExportOptions,
+  ) {
+    const kind = this.blockKind(block);
+    const series = block.series.slice(0, 6);
+    const periodLabel = `${this.formatTechnicalPeriodEndpoint(report.period.from)} - ${this.formatTechnicalPeriodEndpoint(report.period.to)}`;
+
+    const metadata = [
+      ['Período do relatório', periodLabel],
+      ['Período com dados', this.technicalDataPeriodLabel(report, block)],
+      ['Horas de relatório', '24 / 7'],
+      ['Tipo de sensor', block.sensorType || (kind === 'traffic' ? 'Tráfego' : kind === 'ping' ? 'Ping' : kind === 'uptime' ? 'Tempo de atividade do sistema' : '-')],
+      ['Sonda, grupo, dispositivo', block.probePath || report.host?.hostName || report.host?.host || report.unit.name],
+      ['Estatísticas de tempo de atividade', this.technicalAvailabilityStatsLabel(block, series)],
+      ['Estatísticas de solicitação', this.technicalRequestStatsLabel(block, series)],
+    ] as const;
+
+    const primarySeries = kind === 'ping'
+      ? series.find((item) => item.unit === 'ms') || series[0]
+      : kind === 'uptime'
+        ? series.find((item) => item.unit === 'd') || series[0]
+        : kind === 'traffic'
+          ? series.find((item) => item.unit === 'bps') || series[0]
+          : series[0];
+
+    const mainAverageLabel = kind === 'ping'
+      ? 'Média (Tempo de ping)'
+      : kind === 'uptime'
+        ? 'Média (Tempo de atividade do sistema)'
+        : kind === 'traffic'
+          ? 'Média (Tráfego total)'
+          : 'Média';
+
+    const mainAverage = primarySeries
+      ? this.presentation.formatValue(primarySeries.stats.avg, primarySeries.unit)
+      : '-';
+
+    const headlineRows: readonly (readonly [string, string])[] = [
+      [mainAverageLabel, mainAverage],
+      ...(kind === 'traffic' && block.consumption ? [
+        ['Total (Tráfego total)', this.presentation.formatBytes(block.consumption.totalBytes)] as const,
+        ['Tráfego de entrada', this.presentation.formatBytes(block.consumption.receivedBytes)] as const,
+        ['Tráfego de saída', this.presentation.formatBytes(block.consumption.sentBytes)] as const,
+        ['Pico download', this.presentation.formatValue(block.consumption.peakReceiveBps, 'bps')] as const,
+        ['Pico upload', this.presentation.formatValue(block.consumption.peakSendBps, 'bps')] as const,
+      ] : []),
+    ];
+
+    const technicalRows = [...metadata, ...headlineRows, ...this.buildTechnicalExtraHeadlineRows(block, primarySeries, series)] as ReadonlyArray<readonly [string, string]>;
+    const channelRows = this.buildTechnicalChannelTableHtml(block);
+
+    return this.wrapPdfSheetHtml(
+      this.presentation.escapeXml('Relatório de Tráfego e Disponibilidade'),
+      `
+        <div class="technical-page">
+        <section class="page-title-block">
+          <h2 class="page-title">${this.presentation.escapeXml(this.technicalPdfBlockTitle(report, block))}</h2>
+          <div class="page-subtitle">
+            Estrutura técnica inspirada no relatório PRTG, com metadados, estatísticas, gráfico e canais.
+          </div>
+        </section>
+
+                <section class="section-card prtg-summary-card">
+          <h2 class="section-title">Resumo do sensor</h2>
+          ${this.buildInfoTableHtml(technicalRows)}
+        </section>
+
+        ${
+          options.includeCharts
+            ? `
+              <section class="section-card">
+                <h2 class="section-title">Gráfico do sensor</h2>
+                <div class="chart-wrap">
+                  ${this.presentation.chartSvg(block)}
+                </div>
+              </section>
+            `
+            : ''
+        }
+
+        <section class="section-card">
+          <h2 class="section-title">Canal</h2>
+          ${channelRows}
+        </section>
+        </div>
+      `,
+      'technical',
+    );
+  }
+
+  private buildTechnicalChannelTableHtml(block: MonitoringReportBlock) {
+    const kind = this.blockKind(block);
+
+    if (kind === 'traffic' && block.consumption) {
+      const rows = [
+        ['Tráfego total', '-', this.presentation.formatBytes(block.consumption.totalBytes)],
+        ['Tráfego de entrada', this.presentation.formatValue(block.consumption.avgReceiveBps, 'bps'), this.presentation.formatBytes(block.consumption.receivedBytes)],
+        ['Tráfego de saída', this.presentation.formatValue(block.consumption.avgSendBps, 'bps'), this.presentation.formatBytes(block.consumption.sentBytes)],
+      ];
+
+      return this.buildPlainTableHtml(['Canal', 'Média', 'Total'], rows);
+    }
+
+    const orderedSeries = kind === 'ping'
+      ? [...block.series].sort((a, b) => {
+          const weight = (series: MonitoringReportSeries) => series.unit === 'ms' ? 0 : series.unit === '%' ? 1 : 2;
+          return weight(a) - weight(b);
+        })
+      : block.series;
+
+    const rows = orderedSeries.slice(0, 8).map((series) => [
+      series.label || series.name || 'Canal',
+      this.presentation.formatValue(series.stats.avg, series.unit),
+      this.presentation.formatValue(series.stats.min, series.unit),
+      this.presentation.formatValue(series.stats.max, series.unit),
+    ]);
+
+    return this.buildPlainTableHtml(['Canal', 'Média', 'Mínimo', 'Máximo'], rows);
+  }
+
+  private buildPlainTableHtml(headers: string[], rows: string[][]) {
+    return `
+      <table class="info-table">
+        <thead>
+          <tr>
+            ${headers.map((header) => `<th>${this.presentation.escapeXml(header)}</th>`).join('')}
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map((row) => `
+            <tr>
+              ${row.map((cell) => `<td>${this.presentation.escapeXml(String(cell || '-'))}</td>`).join('')}
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
   private wrapPdfSheetHtml(
     title: string,
     body: string,
-    variant: 'cover' | 'report' = 'report',
+    variant: 'cover' | 'report' | 'technical' = 'report',
   ) {
     return `
       <section class="sheet sheet--${variant}">
@@ -842,280 +1686,287 @@ export class MonitoringReportExportService {
     reports: MonitoringPrtgStyleReport[],
     options: MonitoringReportExportOptions,
   ): Promise<MonitoringReportExportArtifact> {
-    const docx = requireRuntimeModule<any>('docx');
-    const {
-      Document,
-      Packer,
-      Paragraph,
-      TextRun,
-      HeadingLevel,
-      AlignmentType,
-      Table,
-      TableCell,
-      TableRow,
-      WidthType,
-      BorderStyle,
-      Header,
-      Footer,
-      ImageRun,
-      PageBreak,
-    } = docx;
+    const tempDir = await mkdtemp(join(tmpdir(), 'nova-official-docx-'));
+    const payloadPath = join(tempDir, 'payload.json');
+    const outputPath = join(tempDir, 'report.docx');
 
-    const children: any[] = [
-      new Paragraph({
-        text: options.title || 'Relatório de Consumo',
-        heading: HeadingLevel.TITLE,
-        spacing: { after: 80 },
-      }),
-      new Paragraph({
-        text: 'Relatório consolidado com base nas coletas do Zabbix, estruturado para emissão corporativa.',
-        spacing: { after: 160 },
-      }),
-      this.docxSummaryTable(docx, [
-        ['Unidades', String(reports.length)],
-        ['Formato', options.format.toUpperCase()],
-        ['Gráficos', options.includeCharts ? 'Incluídos' : 'Resumo geral'],
+    try {
+      const payload = this.buildOfficialDocxTemplatePayload(reports, options);
+      await writeFile(payloadPath, JSON.stringify(payload), 'utf8');
+
+      await execFile(
+        'python3',
         [
-          'Parceiro base',
-          reports.length === 1 ? reports[0]?.partner.name || '-' : 'Lote misto',
+          this.resolveOfficialDocxRendererPath(),
+          this.resolveOfficialDocxTemplatePath(),
+          payloadPath,
+          outputPath,
         ],
-      ]),
-      new Paragraph({
-        text: 'Dados da exportação',
-        heading: HeadingLevel.HEADING_2,
-        spacing: { before: 140, after: 70 },
-      }),
-      this.docxInfoTable(docx, [
-        [
-          'Interessado',
-          options.interestedParty || reports[0]?.partner.name || '-',
-        ],
-        ['Data de emissão', this.presentation.formatDate(new Date().toISOString())],
-        [
-          'Período',
-          reports[0]
-            ? `${this.presentation.formatDate(reports[0].period.from)} a ${this.presentation.formatDate(reports[0].period.to)}`
-            : '-',
-        ],
-        ['Contrato', options.contractLabel || '-'],
-        ['Endereço', options.addressLine || '-'],
-        ['Banda contratada', options.contractedBandwidth || '-'],
-      ]),
-      new Paragraph({ text: ' ' }),
-      new Paragraph({
-        text: 'Unidades incluídas',
-        heading: HeadingLevel.HEADING_2,
-        spacing: { before: 100, after: 80 },
-      }),
-      ...reports.map(
-        (report) =>
-          new Paragraph({ text: `${report.unit.code} - ${report.unit.name}` }),
-      ),
-      new Paragraph({ children: [new PageBreak()] }),
+        { timeout: 45000, killSignal: 'SIGKILL' },
+      );
+
+      return {
+        buffer: await (async () => {
+          const rawDocx = await readFile(outputPath);
+          return options.includeCharts
+            ? this.normalizeOfficialDocxWithLibreOffice(rawDocx)
+            : rawDocx;
+        })(),
+        fileName: this.presentation.buildFileName(reports, options.format),
+        mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      };
+    } finally {
+      await rm(tempDir, { recursive: true, force: true });
+    }
+  }
+
+  private buildOfficialDocxTemplatePayload(
+    reports: MonitoringPrtgStyleReport[],
+    options: MonitoringReportExportOptions,
+  ) {
+    type UnitReportMetadata = {
+      unitId?: string;
+      contractLabel?: string;
+      addressLine?: string;
+      contractedBandwidth?: string;
+      notes?: string;
+    };
+
+
+    const optionalValue = (value?: string | null) => {
+      const normalized = String(value || '')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      return normalized && normalized !== '-' ? normalized : '';
+    };
+
+    const clean = (value?: string | null) => optionalValue(value) || '-';
+
+    const normalizeMetadataKey = (value?: string | null) =>
+      optionalValue(value)
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toUpperCase()
+        .replace(/[^A-Z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, '');
+
+    const unitMetadata = (() => {
+      try {
+        const parsed = JSON.parse(options.unitMetadataJson || '{}') as Record<string, UnitReportMetadata>;
+        return parsed && typeof parsed === 'object' ? parsed : {};
+      } catch {
+        return {} as Record<string, UnitReportMetadata>;
+      }
+    })();
+
+    const metadataEntries = Object.values(unitMetadata).filter(Boolean);
+
+    const metadataFrom = (
+      source: Record<string, UnitReportMetadata>,
+      report: MonitoringPrtgStyleReport,
+    ) => {
+      const displayKey = `${report.unit.code} - ${report.unit.name}`;
+      const dashKey = `${report.unit.code} – ${report.unit.name}`;
+      const candidates = [
+        report.unit.id,
+        report.unit.code,
+        displayKey,
+        dashKey,
+        normalizeMetadataKey(report.unit.id),
+        normalizeMetadataKey(report.unit.code),
+        normalizeMetadataKey(displayKey),
+        normalizeMetadataKey(dashKey),
+      ].filter(Boolean);
+
+      for (const candidate of candidates) {
+        if (source[candidate]) return source[candidate];
+
+        const normalizedCandidate = normalizeMetadataKey(candidate);
+        if (normalizedCandidate && source[normalizedCandidate]) {
+          return source[normalizedCandidate];
+        }
+      }
+
+      return Object.values(source).find((entry) => {
+        const entryUnitId = normalizeMetadataKey(entry?.unitId);
+        return Boolean(entryUnitId && candidates.some((candidate) => entryUnitId === normalizeMetadataKey(candidate)));
+      });
+    };
+
+    const formMetadataFor = (report: MonitoringPrtgStyleReport) =>
+      metadataFrom(unitMetadata, report) ||
+      (reports.length === 1 && metadataEntries.length === 1 ? metadataEntries[0] : {}) ||
+      {};
+
+
+    const metadataValue = (
+      report: MonitoringPrtgStyleReport,
+      field: 'contract' | 'address' | 'bandwidth',
+    ) => {
+      const formMetadata = formMetadataFor(report);
+      if (field === 'contract') {
+        return clean(formMetadata.contractLabel || report.unit.reportContractLabel || options.contractLabel);
+      }
+
+      if (field === 'bandwidth') {
+        return clean(formMetadata.contractedBandwidth || report.unit.reportContractedBandwidth || options.contractedBandwidth);
+      }
+
+      return clean(
+        formMetadata.addressLine ||
+          report.unit.reportAddressLine ||
+          options.addressLine ||
+          [report.unit.city, report.unit.state].filter(Boolean).join(' - '),
+      );
+    };
+
+    const monthNames = [
+      'Janeiro',
+      'Fevereiro',
+      'Março',
+      'Abril',
+      'Maio',
+      'Junho',
+      'Julho',
+      'Agosto',
+      'Setembro',
+      'Outubro',
+      'Novembro',
+      'Dezembro',
     ];
 
-    for (const report of reports) {
-      children.push(
-        new Paragraph({
-          text: `${report.partner.name}: ${report.unit.name}`,
-          heading: HeadingLevel.HEADING_1,
-          spacing: { before: 140, after: 100 },
-        }),
-      );
-      children.push(
-        new Paragraph({
-          text: 'Visão consolidada da unidade monitorada com informações operacionais, vínculo de host e dados comerciais de referência.',
-          spacing: { after: 80 },
-        }),
-      );
-      children.push(
-        new Paragraph({
-          text: 'Contexto operacional',
-          heading: HeadingLevel.HEADING_2,
-          spacing: { before: 80, after: 60 },
-        }),
-      );
-      children.push(
-        this.docxInfoTable(docx, [
-          [
-            'Período do relatório',
-            `${this.presentation.formatDate(report.period.from)} - ${this.presentation.formatDate(report.period.to)}`,
-          ],
-          ['Horas de relatório', '24 / 7'],
-          [
-            'Host Zabbix',
-            report.host?.hostName || report.host?.host || 'Não localizado',
-          ],
-          ['Integração', report.integration?.name || '-'],
-        ]),
-      );
-      children.push(
-        new Paragraph({
-          text: 'Cadastro e contrato',
-          heading: HeadingLevel.HEADING_2,
-          spacing: { before: 80, after: 60 },
-        }),
-      );
-      children.push(
-        this.docxInfoTable(docx, [
-          ['Parceiro', `${report.partner.code} - ${report.partner.name}`],
-          ['Unidade', `${report.unit.code} - ${report.unit.name}`],
-          [
-            'Cidade/UF',
-            [report.unit.city, report.unit.state].filter(Boolean).join('/') ||
-              '-',
-          ],
-          ['Contrato', options.contractLabel || '-'],
-          ['Endereço', options.addressLine || '-'],
-          ['Banda contratada', options.contractedBandwidth || '-'],
-        ]),
-      );
+    const reportDateSource = new Date(reports[0]?.period.to || new Date().toISOString());
+    const reportDate = new Date(reportDateSource.getTime() - 1000);
+    const automaticMonthSlashLabel = `${monthNames[reportDate.getUTCMonth()]}/${reportDate.getUTCFullYear()}`;
+    const monthSlashLabel = clean(options.competenceLabel || automaticMonthSlashLabel);
+    const issueDate = new Intl.DateTimeFormat('pt-BR', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+      timeZone: 'UTC',
+    }).format(new Date());
+    const interestedParty = clean(options.interestedParty || reports[0]?.partner.name || reports[0]?.unit.name);
 
-      if (report.warnings.length) {
-        children.push(
-          new Paragraph({
-            text: 'Observações',
-            heading: HeadingLevel.HEADING_3,
-            spacing: { before: 80, after: 60 },
-          }),
-        );
-        report.warnings.forEach((warning) => {
-          children.push(new Paragraph({ text: `• ${warning}` }));
-        });
-      }
+    return {
+      monthSlashLabel,
+      interestedParty,
+      placeDate: clean(options.issueDateLabel || `Palmas, ${issueDate}`),
+      options,
+      reports: reports.map((report) => {
+        const formMetadata = formMetadataFor(report);
+          return {
+          unit: report.unit,
+          partner: report.partner,
+          period: report.period,
+          metadata: {
+            contractLabel: metadataValue(report, 'contract'),
+            addressLine: metadataValue(report, 'address'),
+            contractedBandwidth: metadataValue(report, 'bandwidth'),
+            notes: optionalValue(formMetadata.notes || report.unit.reportNotes),
+          },
+          blocks: report.blocks.map((block) => ({
+            title: block.title,
+            description: block.description,
+            sensorType: block.sensorType,
+            consumption: block.consumption
+              ? {
+                  receivedLabel: this.presentation.formatBytes(block.consumption.receivedBytes),
+                  sentLabel: this.presentation.formatBytes(block.consumption.sentBytes),
+                  totalLabel: this.presentation.formatBytes(block.consumption.totalBytes),
+                  peakReceiveLabel: this.presentation.formatValue(block.consumption.peakReceiveBps, 'bps'),
+                  peakSendLabel: this.presentation.formatValue(block.consumption.peakSendBps, 'bps'),
+                }
+              : null,
+            series: options.includeCharts
+              ? block.series.map((series) => ({
+                  name: series.name,
+                  label: series.label,
+                  kind: series.kind,
+                  unit: series.unit,
+                  points: series.points,
+                  stats: series.stats,
+                }))
+              : [],
+          })),
+        };
+      }),
+    };
+  }
 
-      for (const block of report.blocks) {
-        children.push(
-          new Paragraph({
-            text: block.title,
-            heading: HeadingLevel.HEADING_1,
-            spacing: { before: 120, after: 40 },
-          }),
-        );
-        children.push(
-          new Paragraph({
-            text: `Unidade ${report.unit.name} • Sensor ${block.sensorType}`,
-            spacing: { after: 70 },
-          }),
-        );
-        children.push(
-          new Paragraph({
-            text: 'Contexto do sensor',
-            heading: HeadingLevel.HEADING_2,
-            spacing: { before: 40, after: 50 },
-          }),
-        );
-        children.push(
-          this.docxInfoTable(docx, [
-            ['Tipo de sensor', block.sensorType],
-            ['Origem', block.probePath],
-            ['Descrição', block.description],
-          ]),
-        );
-        children.push(
-          new Paragraph({
-            text: 'Indicadores',
-            heading: HeadingLevel.HEADING_2,
-            spacing: { before: 80, after: 50 },
-          }),
-        );
-        children.push(this.docxSeriesStatsTable(docx, block.series));
+  private async normalizeOfficialDocxWithLibreOffice(input: Buffer): Promise<Buffer> {
+    const tempDir = await mkdtemp(join(tmpdir(), 'nova-docx-normalize-'));
+    const outputDir = join(tempDir, 'normalized');
+    const inputPath = join(tempDir, 'report.docx');
+    const normalizedPath = join(outputDir, 'report.docx');
 
-        if (block.consumption) {
-          children.push(
-            new Paragraph({
-              children: [
-                new TextRun({ text: 'Consumo: ', bold: true }),
-                new TextRun(
-                  `Recebido ${this.presentation.formatBytes(block.consumption.receivedBytes)} | Enviado ${this.presentation.formatBytes(block.consumption.sentBytes)} | Total ${this.presentation.formatBytes(block.consumption.totalBytes)} | Pico down ${this.presentation.formatValue(block.consumption.peakReceiveBps, 'bps')} | Pico up ${this.presentation.formatValue(block.consumption.peakSendBps, 'bps')}`,
-                ),
-              ],
-              spacing: { after: 60 },
-            }),
+    try {
+      await mkdir(outputDir, { recursive: true });
+      await writeFile(inputPath, input);
+
+      const executables = [
+        process.env.LIBREOFFICE_PATH,
+        'libreoffice',
+        'soffice',
+      ].filter(Boolean) as string[];
+
+      for (const executable of executables) {
+        try {
+          await execFile(
+            executable,
+            [
+              '--headless',
+              '--convert-to',
+              'docx',
+              '--outdir',
+              outputDir,
+              inputPath,
+            ],
+            { timeout: 45000, killSignal: 'SIGKILL' },
           );
-        }
 
-        if (options.includeCharts) {
-          const svg = this.presentation.chartSvg(block);
-          children.push(
-            new Paragraph({
-              children: [
-                new ImageRun({
-                  type: 'svg',
-                  data: Buffer.from(svg),
-                  fallback: { type: 'png', data: TRANSPARENT_PNG },
-                  transformation: { width: 520, height: 210 },
-                }),
-              ],
-              alignment: AlignmentType.CENTER,
-              spacing: { after: 80 },
-            }),
-          );
+          if (existsSync(normalizedPath)) {
+            return await readFile(normalizedPath);
+          }
+        } catch {
+          // Tenta o próximo executável.
         }
       }
 
-      children.push(new Paragraph({ children: [new PageBreak()] }));
+      return input;
+    } finally {
+      await rm(tempDir, { recursive: true, force: true });
+    }
+  }
+
+  private resolveOfficialDocxTemplatePath() {
+    const candidates = [
+      join(process.cwd(), 'src', 'monitoring', 'templates', 'relatorio-consumo-oficial.docx'),
+      join(process.cwd(), 'dist', 'src', 'monitoring', 'templates', 'relatorio-consumo-oficial.docx'),
+      join(process.cwd(), 'apps', 'api', 'src', 'monitoring', 'templates', 'relatorio-consumo-oficial.docx'),
+    ];
+
+    const found = candidates.find((candidate) => existsSync(candidate));
+    if (!found) {
+      throw new Error('Template oficial de relatório de consumo não encontrado.');
     }
 
-    const doc = new Document({
-      creator: 'NOVA Telecom',
-      title: options.title || 'Relatório de Consumo',
-      description: 'Relatório de monitoramento exportado pelo NOVA',
-      sections: [
-        {
-          headers: {
-            default: new Header({
-              children: [
-                new Paragraph({
-                  alignment: AlignmentType.CENTER,
-                  children: [
-                    new TextRun({
-                      text: options.title || 'Relatório de Consumo',
-                      bold: true,
-                      color: '1E7CB6',
-                      size: 24,
-                    }),
-                  ],
-                }),
-              ],
-            }),
-          },
-          footers: {
-            default: new Footer({
-              children: NOVA_FOOTER_LINES.map(
-                (line) =>
-                  new Paragraph({
-                    alignment: AlignmentType.CENTER,
-                    children: [
-                      new TextRun({ text: line, color: '5F6873', size: 16 }),
-                    ],
-                  }),
-              ),
-            }),
-          },
-          properties: {},
-          children,
-        },
-      ],
-      styles: {
-        paragraphStyles: [
-          {
-            id: 'Normal',
-            name: 'Normal',
-            run: { font: 'Arial', size: 21, color: '28333F' },
-            paragraph: { spacing: { after: 90, line: 276 } },
-          },
-        ],
-      },
-    });
+    return found;
+  }
 
-    const buffer = await Packer.toBuffer(doc);
-    return {
-      buffer,
-      fileName: this.presentation.buildFileName(reports, options.format),
-      mimeType:
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    };
+  private resolveOfficialDocxRendererPath() {
+    const candidates = [
+      join(process.cwd(), 'src', 'monitoring', 'templates', 'render_official_consumption_docx.py'),
+      join(process.cwd(), 'dist', 'src', 'monitoring', 'templates', 'render_official_consumption_docx.py'),
+      join(process.cwd(), 'apps', 'api', 'src', 'monitoring', 'templates', 'render_official_consumption_docx.py'),
+    ];
+
+    const found = candidates.find((candidate) => existsSync(candidate));
+    if (!found) {
+      throw new Error('Renderizador oficial de relatório de consumo não encontrado.');
+    }
+
+    return found;
   }
 
   private docxInfoTable(docx: any, rows: Array<[string, string]>) {

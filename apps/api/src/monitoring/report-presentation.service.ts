@@ -43,7 +43,7 @@ export class MonitoringReportPresentationService {
         return `
           <g>
             <line x1="${left}" y1="${y}" x2="${left + plotWidth}" y2="${y}" stroke="#d7dde4" stroke-width="1" />
-            <text x="${left - 8}" y="${y + 4}" text-anchor="end" font-size="11" fill="#42505c">${this.escapeXml(this.formatValue(primaryValue, model.primaryAxis.unit))}</text>
+            <text x="${left - 8}" y="${y + 4}" text-anchor="end" font-size="10" fill="#42505c">${this.escapeXml(this.formatValue(primaryValue, model.primaryAxis.unit))}</text>
             ${
               secondaryValue === null
                 ? ''
@@ -76,8 +76,13 @@ export class MonitoringReportPresentationService {
 
     const labels = model.labels
       .map((label, index) => {
+        if (index === 0 && model.labels.length > 2) {
+          return '';
+        }
+
         const x = left + (index / Math.max(model.labels.length - 1, 1)) * plotWidth;
-        return `<text x="${x}" y="${bottom + 28}" text-anchor="middle" font-size="10" fill="#4a5561" transform="rotate(65 ${x} ${bottom + 28})">${this.escapeXml(label)}</text>`;
+        const labelX = Math.min(left + plotWidth - 28, Math.max(left + 34, x));
+        return `<text x="${labelX}" y="${bottom + 34}" text-anchor="middle" font-size="10" fill="#4a5561" transform="rotate(60 ${labelX} ${bottom + 34})">${this.escapeXml(label)}</text>`;
       })
       .join('');
 
@@ -183,6 +188,18 @@ export class MonitoringReportPresentationService {
     }).format(new Date(value));
   }
 
+  formatShortLabelUtc(value: string) {
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return value || '-';
+    }
+
+    const two = (input: number) => String(input).padStart(2, '0');
+
+    return `${two(date.getUTCDate())}/${two(date.getUTCMonth() + 1)}, ${two(date.getUTCHours())}:${two(date.getUTCMinutes())}`;
+  }
+
   formatShortLabel(value: string) {
     return new Intl.DateTimeFormat('pt-BR', {
       day: '2-digit',
@@ -194,11 +211,21 @@ export class MonitoringReportPresentationService {
   }
 
   monthLabel(value: Date) {
-    return new Intl.DateTimeFormat('pt-BR', {
+    if (Number.isNaN(value.getTime())) {
+      return '-';
+    }
+
+    const month = new Intl.DateTimeFormat('pt-BR', {
       month: 'long',
-      year: 'numeric',
       timeZone: REPORT_TIMEZONE,
     }).format(value);
+
+    const normalizedMonth = month.charAt(0).toUpperCase() + month.slice(1).toLowerCase();
+
+    return `${normalizedMonth}/${new Intl.DateTimeFormat('en', {
+      year: 'numeric',
+      timeZone: REPORT_TIMEZONE,
+    }).format(value)}`;
   }
 
   /**
@@ -289,7 +316,7 @@ export class MonitoringReportPresentationService {
 
     const labelsSource = this.slimPoints(block.series[0]?.points || [], 6);
     const labels = labelsSource.map((point) =>
-      this.formatShortLabel(point.timestamp),
+      this.formatShortLabelUtc(point.timestamp),
     );
 
     return {

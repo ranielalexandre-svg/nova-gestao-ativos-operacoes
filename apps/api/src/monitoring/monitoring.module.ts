@@ -6,9 +6,10 @@ import { MonitoringReportPresentationService } from "./report-presentation.servi
 import { PrismaModule } from "../prisma/prisma.module";
 import { IntegrationsModule } from "../integrations/integrations.module";
 import { AuthModule } from "../auth/auth.module";
+import { AttachmentsModule } from "../attachments/attachments.module";
 
 @Module({
-  imports: [PrismaModule, IntegrationsModule, AuthModule],
+  imports: [PrismaModule, IntegrationsModule, AuthModule, AttachmentsModule],
   controllers: [MonitoringController],
   providers: [
     MonitoringService,

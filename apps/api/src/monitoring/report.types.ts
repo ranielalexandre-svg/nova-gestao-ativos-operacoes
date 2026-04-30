@@ -59,6 +59,10 @@ export type MonitoringPrtgStyleReport = {
     name: string;
     city: string | null;
     state: string | null;
+    reportContractLabel?: string | null;
+    reportAddressLine?: string | null;
+    reportContractedBandwidth?: string | null;
+    reportNotes?: string | null;
   };
   partner: {
     id: string;
@@ -97,9 +101,13 @@ export type MonitoringReportExportArtifact = {
 export type MonitoringReportExportOptions = {
   format: "pdf" | "docx";
   includeCharts: boolean;
+  reportStyle?: "official" | "technical" | "complete";
   title?: string;
   interestedParty?: string;
   contractLabel?: string;
   addressLine?: string;
   contractedBandwidth?: string;
+  unitMetadataJson?: string;
+  competenceLabel?: string;
+  issueDateLabel?: string;
 };
