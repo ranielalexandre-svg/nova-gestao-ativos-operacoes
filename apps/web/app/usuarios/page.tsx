@@ -4,11 +4,15 @@ import { redirect } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import { ActionForm } from "@/components/action-form";
 import { ListPagination } from "@/components/list-pagination";
+import { OperationalDeletePanel } from "@/components/operational-delete-panel";
 import {
   DenseTable,
   EmptyState,
   SectionIntro,
   Surface,
+  TableActionAnchor,
+  TableActionCell,
+  TableActionHeader,
   TableCell,
   TableHead,
   TableShell,
@@ -100,7 +104,7 @@ export default async function UsuariosPage({
   const params = await resolveSearchParams(searchParams);
   const q = readStringParam(params, "q");
   const role = readStringParam(params, "role", "all");
-  const active = readStringParam(params, "active", "all");
+  const active = readStringParam(params, "active", "true");
   const sortBy = readStringParam(params, "sortBy", "createdAt");
   const sortDir = readStringParam(params, "sortDir", "desc");
   const page = readPositiveIntParam(params, "page", 1);
@@ -162,6 +166,40 @@ export default async function UsuariosPage({
     }
   }
 
+  async function deleteUser(
+    _prevState: ActionFeedbackState,
+    formData: FormData,
+  ): Promise<ActionFeedbackState> {
+    "use server";
+
+    const id = String(formData.get("id") || "");
+
+    try {
+      const actionSession = await getServerWebSession();
+      if (normalizeRole(actionSession.user?.role || "") !== "admin") {
+        return { status: "error", message: "Acesso negado." };
+      }
+
+      if (id === actionSession.user?.id) {
+        return { status: "error", message: "Você não pode excluir o próprio usuário logado." };
+      }
+      if (formData.get("confirmDelete") !== "yes") {
+        return { status: "error", message: "Confirme a exclusão para continuar." };
+      }
+
+      await apiJson(`/users/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ isActive: false }),
+      });
+
+      revalidatePath("/usuarios");
+    } catch (error) {
+      return { status: "error", message: getActionErrorMessage(error) };
+    }
+
+    redirect("/usuarios?active=true");
+  }
+
   const response = await apiJson<PaginatedResponse<UserRow>>(
     `/users${buildApiQuery({
       q,
@@ -175,6 +213,7 @@ export default async function UsuariosPage({
   );
 
   const activeOnPage = response.items.filter((user) => user.isActive).length;
+  const currentUserId = session.user?.id || "";
   const adminOnPage = response.items.filter((user) => user.role === "admin").length;
   const operatorOnPage = response.items.filter((user) => user.role === "operator").length;
   const viewerOnPage = response.items.filter((user) => user.role === "viewer").length;
@@ -182,15 +221,12 @@ export default async function UsuariosPage({
   return (
     <AppShell
       title="Usuários"
-      subtitle="Gestão administrativa de acesso com lista principal e ajustes na mesma mesa."
-    >
-      <RegistryHero
+      subtitle="Gestão administrativa de acesso."
+    ><RegistryHero
         eyebrow="Access Control"
         title="Usuários, papéis e status sem ocupar a operação"
-        description="A tela funciona como uma mesa administrativa: primeiro você localiza quem precisa de ajuste, depois atua no mesmo fluxo para editar acesso ou senha."
-      />
-
-      <RegistrySummaryStrip
+        description="Usuários, acessos e permissões."
+      /><RegistrySummaryStrip
         items={[
           {
             label: "Usuários",
@@ -219,10 +255,7 @@ export default async function UsuariosPage({
         ]}
         noteTitle="Menos formulário aberto"
         noteCopy="A lista é o centro da tela; criação, edição e senha ficam no mesmo contexto para não disputar atenção com a revisão dos usuários."
-      />
-
-      <Surface className="p-5 sm:p-6">
-        <SectionIntro
+      /><Surface className="p-5 sm:p-6"><SectionIntro
           eyebrow="Filtros"
           title="Refine pessoa, papel e estado"
           description="Busca por nome ou e-mail, com role, status e ordenação preservados na URL."
@@ -235,153 +268,65 @@ export default async function UsuariosPage({
             </Link>
           }
           compact
-        />
-
-        <form method="GET" className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-6">
-          <div className="grid gap-2 xl:col-span-2">
-            <FieldLabel htmlFor="users-q" label="Busca" />
-            <input
+        /><form method="GET" className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-6"><div className="grid gap-2 xl:col-span-2"><FieldLabel htmlFor="users-q" label="Busca" /><input
               id="users-q"
               name="q"
               defaultValue={q}
               placeholder="Nome ou e-mail"
               className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
-            />
-          </div>
-
-          <div className="grid gap-2">
-            <FieldLabel htmlFor="users-role" label="Papel" />
-            <select
+            /></div><div className="grid gap-2"><FieldLabel htmlFor="users-role" label="Papel" /><select
               id="users-role"
               name="role"
               defaultValue={role}
               className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            >
-              <option value="all">Todos os papéis</option>
+            ><option value="all">Todos os papéis</option>
               {roleOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
               ))}
-            </select>
-          </div>
-
-          <div className="grid gap-2">
-            <FieldLabel htmlFor="users-active" label="Status" />
-            <select
+            </select></div><div className="grid gap-2"><FieldLabel htmlFor="users-active" label="Status" /><select
               id="users-active"
               name="active"
               defaultValue={active}
               className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            >
-              <option value="all">Todos</option>
-              <option value="true">Ativos</option>
-              <option value="false">Inativos</option>
-            </select>
-          </div>
-
-          <div className="grid gap-2">
-            <FieldLabel htmlFor="users-sort-by" label="Ordenar por" />
-            <select
+            ><option value="all">Todos</option><option value="true">Ativos</option><option value="false">Excluídos</option></select></div><div className="grid gap-2"><FieldLabel htmlFor="users-sort-by" label="Ordenar por" /><select
               id="users-sort-by"
               name="sortBy"
               defaultValue={sortBy}
               className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            >
-              <option value="createdAt">Cadastro</option>
-              <option value="name">Nome</option>
-              <option value="email">E-mail</option>
-              <option value="role">Papel</option>
-            </select>
-          </div>
-
-          <div className="grid gap-2">
-            <FieldLabel htmlFor="users-sort-dir" label="Direção" />
-            <select
+            ><option value="createdAt">Cadastro</option><option value="name">Nome</option><option value="email">E-mail</option><option value="role">Papel</option></select></div><div className="grid gap-2"><FieldLabel htmlFor="users-sort-dir" label="Direção" /><select
               id="users-sort-dir"
               name="sortDir"
               defaultValue={sortDir}
               className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            >
-              <option value="desc">Descendente</option>
-              <option value="asc">Ascendente</option>
-            </select>
-          </div>
-
-          <div className="grid gap-2 md:col-span-2 xl:col-span-2">
-            <FieldLabel htmlFor="users-page-size" label="Página" />
-            <select
+            ><option value="desc">Descendente</option><option value="asc">Ascendente</option></select></div><div className="grid gap-2 md:col-span-2 xl:col-span-2"><FieldLabel htmlFor="users-page-size" label="Página" /><select
               id="users-page-size"
               name="pageSize"
               defaultValue={String(pageSize)}
               className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            >
-              <option value="10">10 por página</option>
-              <option value="20">20 por página</option>
-              <option value="50">50 por página</option>
-            </select>
-          </div>
-
-          <button className="rounded-[14px] bg-white px-4 py-3 text-sm font-semibold text-black transition hover:opacity-95 md:col-span-2 xl:col-span-4">
+            ><option value="10">10 por página</option><option value="20">20 por página</option><option value="50">50 por página</option></select></div><button className="rounded-[14px] bg-white px-4 py-3 text-sm font-semibold text-black transition hover:opacity-95 md:col-span-2 xl:col-span-4">
             Aplicar filtros
-          </button>
-        </form>
-      </Surface>
-
-      <Surface className="p-5 sm:p-6">
-        <SectionIntro
+          </button></form></Surface><Surface className="p-5 sm:p-6"><SectionIntro
           eyebrow="Acessos"
           title="Usuários cadastrados"
           description={`${response.meta.total} usuário(s) encontrados nesta visão.`}
           actions={<TonePill tone="neutral">{response.items.length} linhas</TonePill>}
           compact
-        />
-
-        <div className="mt-5">
+        /><div className="mt-5">
           {response.items.length ? (
-            <TableShell>
-              <DenseTable>
-                <TableHead>
-                  <tr>
-                    <th className="px-4 py-3">Usuário</th>
-                    <th className="px-4 py-3">Papel</th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3">Criado em</th>
-                    <th className="px-4 py-3 text-right">Ajuste</th>
-                  </tr>
-                </TableHead>
-                <tbody>
+            <TableShell><DenseTable><TableHead><tr><th className="px-4 py-3">Usuário</th><th className="px-4 py-3">Papel</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Criado em</th><TableActionHeader>Ajuste</TableActionHeader></tr></TableHead><tbody>
                   {response.items.map((user) => (
                     <tr
                       key={user.id}
                       className="border-b border-white/6 last:border-b-0 hover:bg-white/[0.025]"
-                    >
-                      <TableCell>
-                        <div className="font-medium text-white">{user.name}</div>
-                        <div className="mt-1 text-xs text-slate-500">{user.email}</div>
-                      </TableCell>
-                      <TableCell>
-                        <TonePill tone={roleTone(user.role)}>{roleLabel(user.role)}</TonePill>
-                      </TableCell>
-                      <TableCell>
-                        <TonePill tone={user.isActive ? "success" : "critical"}>
+                    ><TableCell><div className="font-medium text-white">{user.name}</div><div className="mt-1 text-xs text-slate-500">{user.email}</div></TableCell><TableCell><TonePill tone={roleTone(user.role)}>{roleLabel(user.role)}</TonePill></TableCell><TableCell><TonePill tone={user.isActive ? "success" : "critical"}>
                           {user.isActive ? "ativo" : "inativo"}
-                        </TonePill>
-                      </TableCell>
-                      <TableCell className="text-slate-400">{formatDateTime(user.createdAt)}</TableCell>
-                      <TableCell className="text-right">
-                        <a
-                          href={`#user-${user.id}`}
-                          className="rounded-full border border-white/10 bg-black/20 px-3 py-1.5 text-xs text-slate-200 transition hover:bg-white/[0.06] hover:text-white"
-                        >
+                        </TonePill></TableCell><TableCell className="text-slate-400">{formatDateTime(user.createdAt)}</TableCell><TableActionCell><TableActionAnchor href={`#user-${user.id}`}>
                           Ajustar acesso
-                        </a>
-                      </TableCell>
-                    </tr>
+                        </TableActionAnchor></TableActionCell></tr>
                   ))}
-                </tbody>
-              </DenseTable>
-            </TableShell>
+                </tbody></DenseTable></TableShell>
           ) : (
             <EmptyState
               title="Nenhum usuário encontrado"
@@ -396,64 +341,46 @@ export default async function UsuariosPage({
               }
             />
           )}
-        </div>
-      </Surface>
-
-      <ListPagination pathname="/usuarios" searchParams={params} meta={response.meta} />
+        </div></Surface><ListPagination pathname="/usuarios" searchParams={params} meta={response.meta} />
 
       {response.items.length ? (
-        <Surface className="p-5 sm:p-6">
-          <SectionIntro
+        <Surface className="p-5 sm:p-6"><SectionIntro
             eyebrow="Administração"
             title="Editar acesso e senha"
-            description="Ajustes aparecem como blocos reais da tela, mantendo edição e revisão no mesmo fluxo."
+            description="Edição e revisão de acesso."
             compact
-          />
-
-          <div className="mt-5 grid gap-4">
+          /><div className="mt-5 grid gap-4">
             {response.items.map((user) => (
               <article
                 key={user.id}
                 id={`user-${user.id}`}
                 className="rounded-[18px] border border-white/[0.08] bg-[#0a0f15] p-4"
-              >
-                <div className="flex flex-col gap-3 border-b border-white/[0.08] pb-4 md:flex-row md:items-start md:justify-between">
-                  <div>
-                    <div className="text-base font-semibold text-white">{user.name}</div>
-                    <div className="mt-1 text-sm text-slate-400">{user.email}</div>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <TonePill tone={roleTone(user.role)}>{roleLabel(user.role)}</TonePill>
-                    <TonePill tone={user.isActive ? "success" : "critical"}>
+              ><div className="flex flex-col gap-3 border-b border-white/[0.08] pb-4 md:flex-row md:items-start md:justify-between"><div><div className="text-base font-semibold text-white">{user.name}</div><div className="mt-1 text-sm text-slate-400">{user.email}</div></div><div className="flex flex-wrap gap-2"><TonePill tone={roleTone(user.role)}>{roleLabel(user.role)}</TonePill><TonePill tone={user.isActive ? "success" : "critical"}>
                       {user.isActive ? "ativo" : "inativo"}
-                    </TonePill>
-                  </div>
-                </div>
-
-                <div className="mt-4 grid gap-4 xl:grid-cols-2">
-                  <ActionForm
+                    </TonePill><OperationalDeletePanel
+                      action={deleteUser}
+                      entityId={user.id}
+                      entityLabel="usuário"
+                      entityName={`${user.name} - ${user.email}`}
+                      blockedReason={
+                        user.id === currentUserId
+                          ? "Você não pode excluir o próprio usuário logado."
+                          : !user.isActive
+                            ? "Este usuário já está inativo."
+                            : undefined
+                      }
+                    /></div></div><div className="mt-4 grid gap-4 xl:grid-cols-2"><ActionForm
                     action={updateUser}
                     className="grid gap-3 rounded-[16px] border border-white/[0.08] bg-black/20 p-4"
                     submitLabel="Salvar usuário"
                     pendingLabel="Salvando..."
                     variant="secondary"
-                  >
-                    <div className="text-sm font-semibold text-white">Dados de acesso</div>
-                    <input type="hidden" name="id" value={user.id} />
-
-                    <div className="grid gap-2">
-                      <FieldLabel htmlFor={`edit-name-${user.id}`} label="Nome" />
-                      <input
+                  ><div className="text-sm font-semibold text-white">Dados de acesso</div><input type="hidden" name="id" value={user.id} /><div className="grid gap-2"><FieldLabel htmlFor={`edit-name-${user.id}`} label="Nome" /><input
                         id={`edit-name-${user.id}`}
                         name="name"
                         defaultValue={user.name}
                         className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-                      />
-                    </div>
-
-                    <div className="grid gap-2">
-                      <FieldLabel htmlFor={`edit-role-${user.id}`} label="Papel" />
-                      <select
+                      /></div><div className="grid gap-2"><FieldLabel htmlFor={`edit-role-${user.id}`} label="Papel" /><select
                         id={`edit-role-${user.id}`}
                         name="role"
                         defaultValue={user.role}
@@ -464,50 +391,30 @@ export default async function UsuariosPage({
                             {option.label}
                           </option>
                         ))}
-                      </select>
-                    </div>
-
-                    <label className="flex items-center gap-2 text-sm text-slate-300">
-                      <input
+                      </select></div><label className="flex items-center gap-2 text-sm text-slate-300"><input
                         type="checkbox"
                         name="isActive"
                         defaultChecked={user.isActive}
                         className="h-4 w-4 rounded border-white/20 bg-[#111318]"
                       />
                       Usuário ativo
-                    </label>
-                  </ActionForm>
-
-                  <ActionForm
+                    </label></ActionForm><ActionForm
                     action={resetPassword}
                     className="grid gap-3 rounded-[16px] border border-white/[0.08] bg-black/20 p-4"
                     submitLabel="Redefinir senha"
                     pendingLabel="Salvando..."
                     variant="secondary"
-                  >
-                    <div className="text-sm font-semibold text-white">Senha</div>
-                    <input type="hidden" name="id" value={user.id} />
-
-                    <div className="grid gap-2">
-                      <FieldLabel htmlFor={`reset-password-${user.id}`} label="Nova senha" />
-                      <input
+                  ><div className="text-sm font-semibold text-white">Senha</div><input type="hidden" name="id" value={user.id} /><div className="grid gap-2"><FieldLabel htmlFor={`reset-password-${user.id}`} label="Nova senha" /><input
                         id={`reset-password-${user.id}`}
                         name="password"
                         type="password"
                         placeholder="Nova senha"
                         className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
-                      />
-                    </div>
-
-                    <div className="text-xs text-slate-500">
+                      /></div><div className="text-xs text-slate-500">
                       Criado em {formatDateTime(user.createdAt)}
-                    </div>
-                  </ActionForm>
-                </div>
-              </article>
+                    </div></ActionForm></div></article>
             ))}
-          </div>
-        </Surface>
+          </div></Surface>
       ) : null}
     </AppShell>
   );

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import { AttachmentPanel } from "@/components/attachment-panel";
 import { EntityEditModal } from "@/components/entity-edit-modal";
+import { OperationalDeletePanel } from "@/components/operational-delete-panel";
 import {
   RegistryDetailHero,
   RegistryInfoGrid,
@@ -14,6 +15,9 @@ import {
   EmptyState,
   SectionIntro,
   Surface,
+  TableActionCell,
+  TableActionHeader,
+  TableActionLink,
   TableCell,
   TableHead,
   TableShell,
@@ -124,33 +128,22 @@ function partnerStatusTone(isActive: boolean) {
 
 function CreatedNotice({ from }: { from: string }) {
   return (
-    <Surface className="border-emerald-500/18 bg-emerald-500/[0.06] p-4 sm:p-5">
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div>
-          <div className="text-sm font-semibold text-emerald-100">
+    <Surface className="border-emerald-500/18 bg-emerald-500/[0.06] p-4 sm:p-5"><div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between"><div><div className="text-sm font-semibold text-emerald-100">
             Parceiro criado com sucesso
-          </div>
-          <div className="mt-1 text-sm text-slate-300">
+          </div><div className="mt-1 text-sm text-slate-300">
             Origem: {from === "wizard" ? "cadastro guiado" : "cadastro direto"}.
             Revise o vínculo das unidades e a cobertura importada.
-          </div>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Link
+          </div></div><div className="flex flex-wrap gap-2"><Link
             href="/parceiros/nova"
             className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-4 py-2 text-sm font-medium text-emerald-100 transition hover:bg-emerald-400/15"
           >
             Criar outro
-          </Link>
-          <Link
+          </Link><Link
             href="/parceiros"
             className="rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/[0.06]"
           >
             Voltar para lista
-          </Link>
-        </div>
-      </div>
-    </Surface>
+          </Link></div></div></Surface>
   );
 }
 
@@ -159,8 +152,7 @@ function LegacyPartnerBlock({ profile }: { profile: LegacyPartnerProfile | null 
 
   if (!profile.sourceAvailable) {
     return (
-      <Surface className="p-5 sm:p-6">
-        <SectionIntro
+      <Surface className="p-5 sm:p-6"><SectionIntro
           eyebrow="Legado"
           title="Base legada pronta para conectar"
           description={
@@ -168,8 +160,7 @@ function LegacyPartnerBlock({ profile }: { profile: LegacyPartnerProfile | null 
             "Gere o arquivo legado para exibir contatos, cidades atendidas e cobertura histórica deste parceiro."
           }
           compact
-        />
-      </Surface>
+        /></Surface>
     );
   }
 
@@ -177,108 +168,57 @@ function LegacyPartnerBlock({ profile }: { profile: LegacyPartnerProfile | null 
   if (!hasLegacy) return null;
 
   return (
-    <Surface className="p-5 sm:p-6">
-      <SectionIntro
+    <Surface className="p-5 sm:p-6"><SectionIntro
         eyebrow="Legado operacional"
         title="Contatos e cobertura importada"
         description="Contexto lido dos bancos antigos para orientar acionamento sem gravar campos novos no Prisma."
         actions={profile.redactedSecrets ? <TonePill tone="attention">segredos ocultos</TonePill> : null}
         compact
-      />
-
-      <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <div>
+      /><div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]"><div>
           {profile.units.length ? (
-            <TableShell>
-              <DenseTable>
-                <TableHead>
-                  <tr>
-                    <th className="px-4 py-3">Unidade legada</th>
-                    <th className="px-4 py-3">Cidade</th>
-                    <th className="px-4 py-3">Contratos</th>
-                    <th className="px-4 py-3">Contato</th>
-                  </tr>
-                </TableHead>
-                <tbody>
+            <TableShell><DenseTable><TableHead><tr><th className="px-4 py-3">Unidade legada</th><th className="px-4 py-3">Cidade</th><th className="px-4 py-3">Contratos</th><th className="px-4 py-3">Contato</th></tr></TableHead><tbody>
                   {profile.units.slice(0, 12).map((unit) => (
-                    <tr key={unit.key} className="border-b border-white/6 last:border-b-0">
-                      <TableCell>
-                        <div className="font-medium text-slate-100">{unit.code || unit.name}</div>
-                        <div className="mt-1 max-w-[260px] truncate text-xs text-slate-500">
+                    <tr key={unit.key} className="border-b border-white/6 last:border-b-0"><TableCell><div className="font-medium text-slate-100">{unit.code || unit.name}</div><div className="mt-1 max-w-[260px] truncate text-xs text-slate-500">
                           {unit.group || unit.name}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-slate-400">
+                        </div></TableCell><TableCell className="text-slate-400">
                         {[unit.city, unit.state].filter(Boolean).join("/") || "-"}
-                      </TableCell>
-                      <TableCell className="text-slate-400">
+                      </TableCell><TableCell className="text-slate-400">
                         {unit.contracts.slice(0, 2).join(", ") || "-"}
-                      </TableCell>
-                      <TableCell className="text-slate-400">
+                      </TableCell><TableCell className="text-slate-400">
                         {unit.phones.slice(0, 2).join(" · ") || "-"}
-                      </TableCell>
-                    </tr>
+                      </TableCell></tr>
                   ))}
-                </tbody>
-              </DenseTable>
-            </TableShell>
+                </tbody></DenseTable></TableShell>
           ) : (
             <EmptyState
               title="Sem unidade legada vinculada"
-              description="Quando o código/nome bater com os bancos antigos, a cobertura aparece nesta mesa."
+              description="Cobertura por código e nome."
             />
           )}
-        </div>
-
-        <div className="grid gap-3">
-          <div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4">
-            <div className="text-[10px] uppercase tracking-[0.14em] text-slate-500">
+        </div><div className="grid gap-3"><div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="text-[10px] uppercase tracking-[0.14em] text-slate-500">
               Cobertura legada
-            </div>
-            <div className="mt-3 grid grid-cols-2 gap-3">
-              <div>
-                <div className="text-2xl font-semibold text-slate-50">
+            </div><div className="mt-3 grid grid-cols-2 gap-3"><div><div className="text-2xl font-semibold text-slate-50">
                   {profile.partner?.primaryUnitCount ?? profile.units.length}
-                </div>
-                <div className="text-xs text-slate-500">principal</div>
-              </div>
-              <div>
-                <div className="text-2xl font-semibold text-slate-50">
+                </div><div className="text-xs text-slate-500">principal</div></div><div><div className="text-2xl font-semibold text-slate-50">
                   {profile.partner?.backupUnitCount ?? 0}
-                </div>
-                <div className="text-xs text-slate-500">backup</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4">
-            <div className="text-sm font-semibold text-slate-50">Contatos de acionamento</div>
-            <div className="mt-3 grid gap-3">
+                </div><div className="text-xs text-slate-500">backup</div></div></div></div><div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="text-sm font-semibold text-slate-50">Contatos de acionamento</div><div className="mt-3 grid gap-3">
               {profile.contacts.length ? (
                 profile.contacts.slice(0, 6).map((contact) => (
                   <div
                     key={contact.legacyId}
                     className="rounded-[12px] border border-white/[0.08] bg-white/[0.03] p-3"
-                  >
-                    <div className="text-sm font-medium text-slate-100">
+                  ><div className="text-sm font-medium text-slate-100">
                       {contact.name || "Contato"}
-                    </div>
-                    <div className="mt-1 text-xs text-slate-500">
+                    </div><div className="mt-1 text-xs text-slate-500">
                       {[contact.role, contact.city].filter(Boolean).join(" · ") || "Sem cargo/cidade"}
-                    </div>
-                    <div className="mt-1 text-sm text-slate-300">{contact.phone || "-"}</div>
-                  </div>
+                    </div><div className="mt-1 text-sm text-slate-300">{contact.phone || "-"}</div></div>
                 ))
               ) : (
                 <div className="text-sm leading-6 text-slate-500">
                   Nenhum contato legado encontrado para este parceiro.
                 </div>
               )}
-            </div>
-          </div>
-        </div>
-      </div>
-    </Surface>
+            </div></div></div></div></Surface>
   );
 }
 
@@ -338,104 +278,102 @@ export default async function ParceiroDetailPage({
     }
   }
 
+  async function deletePartner(
+    _prevState: ActionFeedbackState,
+    formData: FormData,
+  ): Promise<ActionFeedbackState> {
+    "use server";
+
+    const id = String(formData.get("id") || "");
+
+    try {
+      const actionSession = await getServerWebSession();
+      if (normalizeRole(actionSession.user?.role || "") !== "admin") {
+        return { status: "error", message: "Acesso negado." };
+      }
+      if (formData.get("confirmDelete") !== "yes") {
+        return { status: "error", message: "Confirme a exclusão para continuar." };
+      }
+
+      await apiJson(`/partners/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ isActive: false }),
+      });
+
+      revalidatePath("/parceiros");
+      revalidatePath(`/parceiros/${id}`);
+    } catch (error) {
+      return { status: "error", message: getActionErrorMessage(error) };
+    }
+
+    redirect("/parceiros?active=true");
+  }
+
   const partnerEditSteps = [
     {
       title: "Identificação",
       description: "Código interno e nome comercial do parceiro.",
       body: (
-        <div className="grid gap-4 md:grid-cols-2">
-          <input type="hidden" name="id" value={partner.id} />
-          <div className="grid gap-2">
-            <label
+        <div className="grid gap-4 md:grid-cols-2"><input type="hidden" name="id" value={partner.id} /><div className="grid gap-2"><label
               htmlFor="partner-code"
               className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
             >
               Código
-            </label>
-            <input
+            </label><input
               id="partner-code"
               name="code"
               defaultValue={partner.code}
               className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm uppercase text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
-            />
-          </div>
-          <div className="grid gap-2">
-            <label
+            /></div><div className="grid gap-2"><label
               htmlFor="partner-name"
               className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
             >
               Nome
-            </label>
-            <input
+            </label><input
               id="partner-name"
               name="name"
               defaultValue={partner.name}
               className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
-            />
-          </div>
-        </div>
+            /></div></div>
       ),
     },
     {
-      title: "Operação",
-      description: "Cobertura atual e leitura herdada do legado.",
+      title: "Escopo",
+      description: "Unidades e equipamentos ligados ao parceiro.",
       body: (
-        <div className="grid gap-4">
-          <div className="rounded-[16px] border border-white/[0.08] bg-black/20 p-4">
-            <div className="text-sm font-semibold text-slate-100">Resumo atual</div>
-            <div className="mt-3 grid gap-3 text-sm text-slate-400 md:grid-cols-2">
-              <div>
-                Unidades vinculadas: <span className="text-slate-200">{partner._count.units}</span>
-              </div>
-              <div>
-                Ativos associados: <span className="text-slate-200">{totalEquipments}</span>
-              </div>
-              <div>
+        <div className="grid gap-4"><div className="rounded-[16px] border border-white/[0.08] bg-black/20 p-4"><div className="grid gap-3 text-sm text-slate-400 md:grid-cols-2"><div>
+                Unidades vinculadas: <span className="text-slate-200">{partner._count.units}</span></div><div>
+                Ativos associados: <span className="text-slate-200">{totalEquipments}</span></div><div>
                 Base legada:{" "}
                 <span className="text-slate-200">
                   {legacyProfile?.partner ? "conectada" : "sem associação"}
-                </span>
-              </div>
-              <div>
+                </span></div><div>
                 Contatos legados:{" "}
-                <span className="text-slate-200">{legacyProfile?.contacts.length || 0}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-[16px] border border-amber-400/18 bg-amber-400/[0.08] p-4 text-sm leading-6 text-amber-50">
-            O legado traz contatos, cidades-base e cobertura detalhada. Esses campos ainda não
-            fazem parte do modelo persistido no NOVA, então ficam visíveis na leitura
-            operacional ao lado e entram na próxima etapa de modelagem.
-          </div>
-        </div>
+                <span className="text-slate-200">{legacyProfile?.contacts.length || 0}</span></div></div></div><div className="flex flex-wrap gap-2"><Link
+              href={`/unidades?partnerId=${partner.id}`}
+              className="rounded-[14px] border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm font-semibold text-slate-100 transition hover:bg-white/[0.08]"
+            >
+              Ver unidades
+            </Link><Link
+              href={`/unidades/nova?partnerId=${partner.id}`}
+              className="rounded-[14px] border border-sky-500/28 bg-sky-500/14 px-4 py-2.5 text-sm font-semibold text-sky-50 transition hover:bg-sky-500/18"
+            >
+              Nova unidade
+            </Link></div></div>
       ),
     },
     {
       title: "Fechamento",
       description: "Status do parceiro e revisão final antes de salvar.",
       body: (
-        <div className="grid gap-4">
-          <label className="flex items-start gap-3 rounded-[16px] border border-white/[0.08] bg-black/20 px-4 py-4 text-sm text-slate-300">
-            <input
+        <div className="grid gap-4"><label className="flex items-start gap-3 rounded-[16px] border border-white/[0.08] bg-black/20 px-4 py-4 text-sm text-slate-300"><input
               type="checkbox"
               name="isActive"
               defaultChecked={partner.isActive}
               className="mt-1"
-            />
-            <span>
-              <span className="block font-medium text-slate-100">Parceiro ativo</span>
-              <span className="mt-1 block text-slate-400">
+            /><span><span className="block font-medium text-slate-100">Parceiro ativo</span><span className="mt-1 block text-slate-400">
                 Mantém o parceiro disponível para novas unidades e leitura operacional.
-              </span>
-            </span>
-          </label>
-
-          <div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4 text-sm leading-6 text-slate-400">
-            A edição segue o padrão do legado: revisão curta, poucos campos por etapa e
-            fechamento no final do fluxo.
-          </div>
-        </div>
+              </span></span></label></div>
       ),
     },
   ];
@@ -457,17 +395,14 @@ export default async function ParceiroDetailPage({
           </>
         }
         badges={
-          <>
-            <TonePill tone={partnerStatusTone(partner.isActive)}>
+          <><TonePill tone={partnerStatusTone(partner.isActive)}>
               {partner.isActive ? "ativo" : "inativo"}
-            </TonePill>
-            <TonePill tone="info">{partner.code}</TonePill>
+            </TonePill><TonePill tone="info">{partner.code}</TonePill>
             {legacyProfile?.partner ? <TonePill tone="success">legado</TonePill> : null}
           </>
         }
         actions={
-          <>
-            <Link
+          <><Link
               href="/parceiros"
               className="rounded-full border border-white/10 bg-black/20 px-4 py-2.5 text-sm text-slate-200 transition hover:bg-white/[0.06] hover:text-white"
             >
@@ -486,18 +421,25 @@ export default async function ParceiroDetailPage({
                 triggerLabel="Editar parceiro"
                 title="Editar parceiro"
                 kicker="Cadastro"
-                description="Fluxo inspirado no legado, com revisão em etapas antes de salvar."
+                description="Ajuste identificação, escopo operacional e status do parceiro."
                 submitLabel="Salvar parceiro"
                 pendingLabel="Salvando..."
                 steps={partnerEditSteps}
                 action={updatePartner}
               />
             ) : null}
+            {isAdmin ? (
+              <OperationalDeletePanel
+                action={deletePartner}
+                entityId={partner.id}
+                entityLabel="parceiro"
+                entityName={`${partner.code} - ${partner.name}`}
+                blockedReason={!partner.isActive ? "Este parceiro já está inativo." : undefined}
+              />
+            ) : null}
           </>
         }
-      />
-
-      <RegistryMetricGrid
+      /><RegistryMetricGrid
         items={[
           {
             label: "Unidades",
@@ -524,55 +466,26 @@ export default async function ParceiroDetailPage({
             tone: partner._count.maintenances ? "info" : "neutral",
           },
         ]}
-      />
-
-      <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_390px]">
-        <Surface className="p-5 sm:p-6">
-          <SectionIntro
+      /><section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_390px]"><Surface className="p-5 sm:p-6"><SectionIntro
             eyebrow="Visão operacional"
             title="Unidades vinculadas"
-            description="A mesa principal do parceiro mostra quais unidades dependem desse atendimento e quantos ativos/casos existem em cada uma."
+            description="Unidades, ativos e casos vinculados."
             actions={<TonePill tone="neutral">{partner.units.length} linhas</TonePill>}
             compact
-          />
-
-          <div className="mt-5">
+          /><div className="mt-5">
             {partner.units.length ? (
-              <TableShell>
-                <DenseTable>
-                  <TableHead>
-                    <tr>
-                      <th className="px-4 py-3">Unidade</th>
-                      <th className="px-4 py-3">Cidade</th>
-                      <th className="px-4 py-3">Ativos</th>
-                      <th className="px-4 py-3">Operação</th>
-                      <th className="px-4 py-3 text-right">Ação</th>
-                    </tr>
-                  </TableHead>
-                  <tbody>
+              <TableShell><DenseTable><TableHead><tr><th className="px-4 py-3">Unidade</th><th className="px-4 py-3">Cidade</th><th className="px-4 py-3">Ativos</th><th className="px-4 py-3">Operação</th><TableActionHeader /></tr></TableHead><tbody>
                     {partner.units.map((unit) => (
-                      <tr key={unit.id} className="border-b border-white/6 last:border-b-0 hover:bg-white/[0.025]">
-                        <TableCell>
-                          <Link
+                      <tr key={unit.id} className="border-b border-white/6 last:border-b-0 hover:bg-white/[0.025]"><TableCell><Link
                             href={`/unidades/${unit.id}`}
                             className="font-medium text-white transition hover:text-sky-100"
                           >
                             {unit.code}
-                          </Link>
-                          <div className="mt-1 max-w-[300px] truncate text-xs text-slate-500">
+                          </Link><div className="mt-1 max-w-[300px] truncate text-xs text-slate-500">
                             {unit.name}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-slate-400">
+                          </div></TableCell><TableCell className="text-slate-400">
                           {[unit.city, unit.state].filter(Boolean).join("/") || "-"}
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm font-medium text-slate-100">{unit._count.equipments}</div>
-                          <div className="mt-1 text-xs text-slate-500">equipamento(s)</div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-wrap gap-2">
-                            <TonePill tone={unit.isActive ? "success" : "subtle"}>
+                        </TableCell><TableCell><div className="text-sm font-medium text-slate-100">{unit._count.equipments}</div><div className="mt-1 text-xs text-slate-500">equipamento(s)</div></TableCell><TableCell><div className="flex flex-wrap gap-2"><TonePill tone={unit.isActive ? "success" : "subtle"}>
                               {unit.isActive ? "ativa" : "inativa"}
                             </TonePill>
                             {unit._count.occurrences ? (
@@ -581,21 +494,11 @@ export default async function ParceiroDetailPage({
                             {unit._count.maintenances ? (
                               <TonePill tone="info">{unit._count.maintenances} manut.</TonePill>
                             ) : null}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Link
-                            href={`/unidades/${unit.id}`}
-                            className="rounded-full border border-white/10 bg-black/20 px-3 py-1.5 text-xs text-slate-200 transition hover:bg-white/[0.06] hover:text-white"
-                          >
+                          </div></TableCell><TableActionCell><TableActionLink href={`/unidades/${unit.id}`}>
                             Abrir
-                          </Link>
-                        </TableCell>
-                      </tr>
+                          </TableActionLink></TableActionCell></tr>
                     ))}
-                  </tbody>
-                </DenseTable>
-              </TableShell>
+                  </tbody></DenseTable></TableShell>
             ) : (
               <EmptyState
                 title="Nenhuma unidade vinculada"
@@ -612,19 +515,12 @@ export default async function ParceiroDetailPage({
                 }
               />
             )}
-          </div>
-        </Surface>
-
-        <div className="grid gap-5">
-          <Surface className="p-5 sm:p-6">
-            <SectionIntro
+          </div></Surface><div className="nova-page-stack grid gap-5"><Surface className="p-5 sm:p-6"><SectionIntro
               eyebrow="Auditoria"
               title="Cadastro e atualização"
               description="Rastro básico do registro atual."
               compact
-            />
-            <div className="mt-5">
-              <RegistryInfoGrid
+            /><div className="mt-5"><RegistryInfoGrid
                 items={[
                   {
                     label: "Criado em",
@@ -643,115 +539,56 @@ export default async function ParceiroDetailPage({
                     value: legacyProfile?.partner ? "Conectada" : "Sem base associada",
                   },
                 ]}
-              />
-            </div>
-          </Surface>
-        </div>
-      </section>
-
-      <LegacyPartnerBlock profile={legacyProfile} />
-
-      <AttachmentPanel
+              /></div></Surface></div></section><LegacyPartnerBlock profile={legacyProfile} /><AttachmentPanel
         entityPath="partners"
         entityId={partner.id}
         entityLabel="parceiro"
         returnPath={`/parceiros/${partner.id}`}
         canEdit={canEditAttachments}
-      />
-
-      <section className="grid gap-5 xl:grid-cols-2">
-        <Surface className="p-5 sm:p-6">
-          <SectionIntro
+      /><section className="grid gap-5 xl:grid-cols-2"><Surface className="p-5 sm:p-6"><SectionIntro
             eyebrow="Eventos"
             title="Ocorrências recentes"
             description={`${partner._count.occurrences} ocorrência(s) vinculadas ao parceiro.`}
             compact
-          />
-          <div className="mt-5">
+          /><div className="mt-5">
             {partner.occurrences.length ? (
-              <TableShell>
-                <DenseTable>
-                  <TableHead>
-                    <tr>
-                      <th className="px-4 py-3">Caso</th>
-                      <th className="px-4 py-3">Sev.</th>
-                      <th className="px-4 py-3">Status</th>
-                    </tr>
-                  </TableHead>
-                  <tbody>
+              <TableShell><DenseTable><TableHead><tr><th className="px-4 py-3">Caso</th><th className="px-4 py-3">Sev.</th><th className="px-4 py-3">Status</th></tr></TableHead><tbody>
                     {partner.occurrences.map((item) => (
-                      <tr key={item.id} className="border-b border-white/6 last:border-b-0">
-                        <TableCell>
-                          <Link href={`/ocorrencias/${item.id}`} className="font-medium text-white hover:text-sky-100">
+                      <tr key={item.id} className="border-b border-white/6 last:border-b-0"><TableCell><Link href={`/ocorrencias/${item.id}`} className="font-medium text-white hover:text-sky-100">
                             {item.code}
-                          </Link>
-                          <div className="mt-1 max-w-[280px] truncate text-xs text-slate-500">
+                          </Link><div className="mt-1 max-w-[280px] truncate text-xs text-slate-500">
                             {item.title}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <TonePill tone={item.severity}>{item.severity}</TonePill>
-                        </TableCell>
-                        <TableCell className="text-slate-400">{item.status}</TableCell>
-                      </tr>
+                          </div></TableCell><TableCell><TonePill tone={item.severity}>{item.severity}</TonePill></TableCell><TableCell className="text-slate-400">{item.status}</TableCell></tr>
                     ))}
-                  </tbody>
-                </DenseTable>
-              </TableShell>
+                  </tbody></DenseTable></TableShell>
             ) : (
               <EmptyState
                 title="Nenhuma ocorrência recente"
                 description="Incidentes vinculados a este parceiro aparecem aqui."
               />
             )}
-          </div>
-        </Surface>
-
-        <Surface className="p-5 sm:p-6">
-          <SectionIntro
+          </div></Surface><Surface className="p-5 sm:p-6"><SectionIntro
             eyebrow="Rotina"
             title="Manutenções recentes"
             description={`${partner._count.maintenances} manutenção(ões) vinculadas ao parceiro.`}
             compact
-          />
-          <div className="mt-5">
+          /><div className="mt-5">
             {partner.maintenances.length ? (
-              <TableShell>
-                <DenseTable>
-                  <TableHead>
-                    <tr>
-                      <th className="px-4 py-3">Manutenção</th>
-                      <th className="px-4 py-3">Tipo</th>
-                      <th className="px-4 py-3">Status</th>
-                    </tr>
-                  </TableHead>
-                  <tbody>
+              <TableShell><DenseTable><TableHead><tr><th className="px-4 py-3">Manutenção</th><th className="px-4 py-3">Tipo</th><th className="px-4 py-3">Status</th></tr></TableHead><tbody>
                     {partner.maintenances.map((item) => (
-                      <tr key={item.id} className="border-b border-white/6 last:border-b-0">
-                        <TableCell>
-                          <Link href={`/manutencoes/${item.id}`} className="font-medium text-white hover:text-sky-100">
+                      <tr key={item.id} className="border-b border-white/6 last:border-b-0"><TableCell><Link href={`/manutencoes/${item.id}`} className="font-medium text-white hover:text-sky-100">
                             {item.code}
-                          </Link>
-                          <div className="mt-1 max-w-[280px] truncate text-xs text-slate-500">
+                          </Link><div className="mt-1 max-w-[280px] truncate text-xs text-slate-500">
                             {item.title}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-slate-400">{item.type}</TableCell>
-                        <TableCell className="text-slate-400">{item.status}</TableCell>
-                      </tr>
+                          </div></TableCell><TableCell className="text-slate-400">{item.type}</TableCell><TableCell className="text-slate-400">{item.status}</TableCell></tr>
                     ))}
-                  </tbody>
-                </DenseTable>
-              </TableShell>
+                  </tbody></DenseTable></TableShell>
             ) : (
               <EmptyState
                 title="Nenhuma manutenção recente"
                 description="Ações vinculadas a este parceiro aparecem aqui."
               />
             )}
-          </div>
-        </Surface>
-      </section>
-    </AppShell>
+          </div></Surface></section></AppShell>
   );
 }
