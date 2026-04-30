@@ -9,6 +9,9 @@ import {
   EmptyState,
   SectionIntro,
   Surface,
+  TableActionAnchor,
+  TableActionCell,
+  TableActionHeader,
   TableCell,
   TableHead,
   TableShell,
@@ -145,21 +148,13 @@ function RuleFields({
   defaults?: Partial<RuleRow>;
 }) {
   return (
-    <>
-      <div className="grid gap-2 xl:col-span-2">
-        <FieldLabel htmlFor={`${prefix}-name`} label="Nome" />
-        <input
+    <><div className="grid gap-2 xl:col-span-2"><FieldLabel htmlFor={`${prefix}-name`} label="Nome" /><input
           id={`${prefix}-name`}
           name="name"
           defaultValue={defaults?.name || ""}
           placeholder="Regra operacional"
           className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
-        />
-      </div>
-
-      <div className="grid gap-2 xl:col-span-2">
-        <FieldLabel htmlFor={`${prefix}-detector`} label="Detector" />
-        <select
+        /></div><div className="grid gap-2 xl:col-span-2"><FieldLabel htmlFor={`${prefix}-detector`} label="Detector" /><select
           id={`${prefix}-detector`}
           name="detector"
           defaultValue={defaults?.detector || "maintenance_overdue"}
@@ -170,12 +165,7 @@ function RuleFields({
               {option.label}
             </option>
           ))}
-        </select>
-      </div>
-
-      <div className="grid gap-2">
-        <FieldLabel htmlFor={`${prefix}-severity`} label="Severidade" />
-        <select
+        </select></div><div className="grid gap-2"><FieldLabel htmlFor={`${prefix}-severity`} label="Severidade" /><select
           id={`${prefix}-severity`}
           name="severity"
           defaultValue={defaults?.severity || "high"}
@@ -186,12 +176,7 @@ function RuleFields({
               {option.label}
             </option>
           ))}
-        </select>
-      </div>
-
-      <div className="grid gap-2">
-        <FieldLabel htmlFor={`${prefix}-cadence`} label="Cadência" />
-        <select
+        </select></div><div className="grid gap-2"><FieldLabel htmlFor={`${prefix}-cadence`} label="Cadência" /><select
           id={`${prefix}-cadence`}
           name="cadence"
           defaultValue={defaults?.cadence || "every_5_minutes"}
@@ -202,12 +187,7 @@ function RuleFields({
               {option.label}
             </option>
           ))}
-        </select>
-      </div>
-
-      <div className="grid gap-2">
-        <FieldLabel htmlFor={`${prefix}-threshold`} label="Limite min." />
-        <input
+        </select></div><div className="grid gap-2"><FieldLabel htmlFor={`${prefix}-threshold`} label="Limite min." /><input
           id={`${prefix}-threshold`}
           name="thresholdMinutes"
           type="number"
@@ -215,31 +195,15 @@ function RuleFields({
           defaultValue={defaults?.thresholdMinutes ?? ""}
           placeholder="30"
           className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
-        />
-      </div>
-
-      <div className="grid gap-2 md:col-span-2 xl:col-span-8">
-        <FieldLabel htmlFor={`${prefix}-flags`} label="Efeitos" />
-        <div id={`${prefix}-flags`} className="grid gap-3 rounded-[14px] border border-white/10 bg-black/20 p-4 sm:grid-cols-2 xl:grid-cols-4">
-          <label className="flex items-center gap-2 text-sm text-slate-300">
-            <input type="checkbox" name="enabled" defaultChecked={defaults?.enabled ?? true} className="h-4 w-4 rounded border-white/20 bg-[#111318]" />
+        /></div><div className="grid gap-2 md:col-span-2 xl:col-span-8"><FieldLabel htmlFor={`${prefix}-flags`} label="Efeitos" /><div id={`${prefix}-flags`} className="grid gap-3 rounded-[14px] border border-white/10 bg-black/20 p-4 sm:grid-cols-2 xl:grid-cols-4"><label className="flex items-center gap-2 text-sm text-slate-300"><input type="checkbox" name="enabled" defaultChecked={defaults?.enabled ?? true} className="h-4 w-4 rounded border-white/20 bg-[#111318]" />
             Regra ativa
-          </label>
-          <label className="flex items-center gap-2 text-sm text-slate-300">
-            <input type="checkbox" name="createExceptions" defaultChecked={defaults?.createExceptions ?? true} className="h-4 w-4 rounded border-white/20 bg-[#111318]" />
+          </label><label className="flex items-center gap-2 text-sm text-slate-300"><input type="checkbox" name="createExceptions" defaultChecked={defaults?.createExceptions ?? true} className="h-4 w-4 rounded border-white/20 bg-[#111318]" />
             Criar exceções
-          </label>
-          <label className="flex items-center gap-2 text-sm text-slate-300">
-            <input type="checkbox" name="createActivities" defaultChecked={defaults?.createActivities ?? true} className="h-4 w-4 rounded border-white/20 bg-[#111318]" />
+          </label><label className="flex items-center gap-2 text-sm text-slate-300"><input type="checkbox" name="createActivities" defaultChecked={defaults?.createActivities ?? true} className="h-4 w-4 rounded border-white/20 bg-[#111318]" />
             Criar atividades
-          </label>
-          <label className="flex items-center gap-2 text-sm text-slate-300">
-            <input type="checkbox" name="resolveOnRecovery" defaultChecked={defaults?.resolveOnRecovery ?? true} className="h-4 w-4 rounded border-white/20 bg-[#111318]" />
+          </label><label className="flex items-center gap-2 text-sm text-slate-300"><input type="checkbox" name="resolveOnRecovery" defaultChecked={defaults?.resolveOnRecovery ?? true} className="h-4 w-4 rounded border-white/20 bg-[#111318]" />
             Resolver na recuperação
-          </label>
-        </div>
-      </div>
-    </>
+          </label></div></div></>
   );
 }
 
@@ -323,14 +287,11 @@ export default async function AutomacoesPage({
     <AppShell
       title="Automações"
       subtitle="Regras recorrentes, histórico de execução e geração automática de exceções e atividades."
-    >
-      <RegistryHero
+    ><RegistryHero
         eyebrow="Automation Desk"
-        title="Regras operacionais com histórico separado"
-        description="A mesa principal mostra o que está ativo e quando roda. Criação e edição aparecem no mesmo fluxo para reduzir ruído e manter a leitura previsível."
-      />
-
-      <RegistrySummaryStrip
+        title="Regras operacionais"
+        description="Automações e execuções."
+      /><RegistrySummaryStrip
         items={[
           {
             label: "Regras",
@@ -359,66 +320,59 @@ export default async function AutomacoesPage({
         ]}
         noteTitle="Regra não é painel"
         noteCopy="A automação fica administrativa e auditável. O que impacta o turno aparece na fila, nas exceções e na atividade."
-      />
-
-      <OperationsLinkGrid
+      /><OperationsLinkGrid
         title="Trilho operacional das regras"
-        description="Automações não vivem sozinhas: elas alimentam backlog, atividade, monitoramento e integrações. O atalho útil é o que explica efeito, não o que duplica tela."
+        description="Backlog, atividade, monitoramento e integrações."
         links={[
           {
             href: "/operacao/excecoes",
             title: "Exceções",
-            description: "Veja os casos criados ou influenciados por regra e detector.",
+            description: "Casos por regra e detector.",
             badge: <TonePill tone={creatingExceptions ? "attention" : "neutral"}>{creatingExceptions} geram caso</TonePill>,
           },
           {
             href: "/operacao/atividade",
             title: "Atividade",
-            description: "Runs, notas e ações humanas amarradas à trilha do turno.",
+            description: "Runs, notas e ações.",
             badge: <TonePill tone="info">{hits} hits</TonePill>,
           },
           {
             href: "/monitoramento",
             title: "Monitoramento",
-            description: "Host, sensor e unidade para decidir se a regra faz sentido no contexto real.",
+            description: "Host, sensor e unidade.",
             badge: <TonePill tone="success">host e sensor</TonePill>,
           },
           {
             href: "/integracoes",
             title: "Integrações",
-            description: "Conectores e testes quando a origem do sinal não está saudável.",
+            description: "Conectores e testes.",
             badge: <TonePill tone={failedRuns ? "critical" : "neutral"}>{failedRuns} falha(s)</TonePill>,
           },
         ]}
-      />
-
-      <OperationsGuidanceGrid
-        title="Como revisar regra sem perder o contexto"
-        description="A mesa de automações fica administrativa, mas o ajuste bom nasce da leitura do efeito real sobre o turno."
+      /><OperationsGuidanceGrid
+        title="Revisão da regra"
+        description="Critérios e efeitos."
         items={[
           {
             label: "Detectar",
-            title: "Leia detector, severidade e cadência juntos",
-            description: "A combinação entre detector, janela de execução e limiar define se a regra ajuda ou vira ruído operacional.",
+            title: "Detector, severidade e cadência",
+            description: "Detector, janela e limiar.",
             tone: "info",
           },
           {
             label: "Observar",
-            title: "Use os últimos runs como prova",
-            description: "Antes de mexer, olhe hits, erros e criação de casos para saber se o comportamento real bate com a intenção da regra.",
+            title: "Últimos runs",
+            description: "Hits, erros e criação de casos.",
             tone: "attention",
           },
           {
             label: "Amarrar",
-            title: "A regra precisa conversar com backlog e trilha",
-            description: "Se ela abre exceção ou atividade, a navegação para Exceções e Atividade deve continuar curta e previsível.",
+            title: "Efeitos",
+            description: "Exceções e atividades vinculadas.",
             tone: "success",
           },
         ]}
-      />
-
-      <Surface className="p-5 sm:p-6">
-        <SectionIntro
+      /><Surface className="p-5 sm:p-6"><SectionIntro
           eyebrow="Filtros"
           title="Refine detector e estado"
           description="Busca por código, nome ou detector. A URL guarda o recorte para voltar rapidamente à mesma visão."
@@ -431,178 +385,80 @@ export default async function AutomacoesPage({
             </Link>
           }
           compact
-        />
-
-        <form method="GET" className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-6">
-          <div className="grid gap-2 xl:col-span-2">
-            <FieldLabel htmlFor="automation-q" label="Busca" />
-            <input
+        /><form method="GET" className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-6"><div className="grid gap-2 xl:col-span-2"><FieldLabel htmlFor="automation-q" label="Busca" /><input
               id="automation-q"
               name="q"
               defaultValue={q}
               placeholder="Código, nome ou detector"
               className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
-            />
-          </div>
-
-          <div className="grid gap-2">
-            <FieldLabel htmlFor="automation-detector" label="Detector" />
-            <select
+            /></div><div className="grid gap-2"><FieldLabel htmlFor="automation-detector" label="Detector" /><select
               id="automation-detector"
               name="detector"
               defaultValue={detector}
               className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            >
-              <option value="all">Todos os detectores</option>
+            ><option value="all">Todos os detectores</option>
               {detectorOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
               ))}
-            </select>
-          </div>
-
-          <div className="grid gap-2">
-            <FieldLabel htmlFor="automation-enabled" label="Estado" />
-            <select
+            </select></div><div className="grid gap-2"><FieldLabel htmlFor="automation-enabled" label="Estado" /><select
               id="automation-enabled"
               name="enabled"
               defaultValue={enabled}
               className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            >
-              <option value="all">Todos</option>
-              <option value="true">Ativas</option>
-              <option value="false">Pausadas</option>
-            </select>
-          </div>
-
-          <div className="grid gap-2">
-            <FieldLabel htmlFor="automation-sort-by" label="Ordenar por" />
-            <select
+            ><option value="all">Todos</option><option value="true">Ativas</option><option value="false">Pausadas</option></select></div><div className="grid gap-2"><FieldLabel htmlFor="automation-sort-by" label="Ordenar por" /><select
               id="automation-sort-by"
               name="sortBy"
               defaultValue={sortBy}
               className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            >
-              <option value="createdAt">Cadastro</option>
-              <option value="code">Código</option>
-              <option value="name">Nome</option>
-              <option value="detector">Detector</option>
-              <option value="severity">Severidade</option>
-            </select>
-          </div>
-
-          <div className="grid gap-2">
-            <FieldLabel htmlFor="automation-sort-dir" label="Direção" />
-            <select
+            ><option value="createdAt">Cadastro</option><option value="code">Código</option><option value="name">Nome</option><option value="detector">Detector</option><option value="severity">Severidade</option></select></div><div className="grid gap-2"><FieldLabel htmlFor="automation-sort-dir" label="Direção" /><select
               id="automation-sort-dir"
               name="sortDir"
               defaultValue={sortDir}
               className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            >
-              <option value="desc">Descendente</option>
-              <option value="asc">Ascendente</option>
-            </select>
-          </div>
-
-          <div className="grid gap-2 md:col-span-2 xl:col-span-2">
-            <FieldLabel htmlFor="automation-page-size" label="Página" />
-            <select
+            ><option value="desc">Descendente</option><option value="asc">Ascendente</option></select></div><div className="grid gap-2 md:col-span-2 xl:col-span-2"><FieldLabel htmlFor="automation-page-size" label="Página" /><select
               id="automation-page-size"
               name="pageSize"
               defaultValue={String(pageSize)}
               className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            >
-              <option value="10">10 por página</option>
-              <option value="20">20 por página</option>
-              <option value="50">50 por página</option>
-            </select>
-          </div>
-
-          <button className="rounded-[14px] bg-white px-4 py-3 text-sm font-semibold text-black transition hover:opacity-95 md:col-span-2 xl:col-span-4">
+            ><option value="10">10 por página</option><option value="20">20 por página</option><option value="50">50 por página</option></select></div><button className="rounded-[14px] bg-white px-4 py-3 text-sm font-semibold text-black transition hover:opacity-95 md:col-span-2 xl:col-span-4">
             Aplicar filtros
-          </button>
-        </form>
-      </Surface>
-
-      <Surface className="p-5 sm:p-6">
-        <SectionIntro
+          </button></form></Surface><Surface className="p-5 sm:p-6"><SectionIntro
           eyebrow="Regras"
           title="Automações cadastradas"
           description={`${rulesResponse.meta.total} regra(s) encontradas nesta visão.`}
           actions={<TonePill tone="neutral">{rulesResponse.items.length} linhas</TonePill>}
           compact
-        />
-
-        <div className="mt-5">
+        /><div className="mt-5">
           {rulesResponse.items.length ? (
-            <TableShell>
-              <DenseTable>
-                <TableHead>
-                  <tr>
-                    <th className="px-4 py-3">Regra</th>
-                    <th className="px-4 py-3">Detector</th>
-                    <th className="px-4 py-3">Sev.</th>
-                    <th className="px-4 py-3">Cadência</th>
-                    <th className="px-4 py-3">Efeitos</th>
-                    <th className="px-4 py-3">Próxima</th>
-                    <th className="px-4 py-3 text-right">Ajuste</th>
-                  </tr>
-                </TableHead>
-                <tbody>
+            <TableShell><DenseTable><TableHead><tr><th className="px-4 py-3">Regra</th><th className="px-4 py-3">Detector</th><th className="px-4 py-3">Sev.</th><th className="px-4 py-3">Cadência</th><th className="px-4 py-3">Efeitos</th><th className="px-4 py-3">Próxima</th><TableActionHeader>Ajuste</TableActionHeader></tr></TableHead><tbody>
                   {rulesResponse.items.map((item) => (
                     <tr
                       key={item.id}
                       className="border-b border-white/6 last:border-b-0 hover:bg-white/[0.025]"
-                    >
-                      <TableCell>
-                        <div className="font-medium text-white">{item.code} · {item.name}</div>
-                        <div className="mt-1 text-xs text-slate-500">
+                    ><TableCell><div className="font-medium text-white">{item.code} · {item.name}</div><div className="mt-1 text-xs text-slate-500">
                           {item._count.runs} runs · {item._count.exceptionCases} exceções
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-slate-300">
+                        </div></TableCell><TableCell className="text-slate-300">
                         {optionLabel(detectorOptions, item.detector)}
-                      </TableCell>
-                      <TableCell>
-                        <TonePill tone={severityTone(item.severity)}>
+                      </TableCell><TableCell><TonePill tone={severityTone(item.severity)}>
                           {optionLabel(severityOptions, item.severity)}
-                        </TonePill>
-                      </TableCell>
-                      <TableCell className="text-slate-300">
+                        </TonePill></TableCell><TableCell className="text-slate-300">
                         {optionLabel(cadenceOptions, item.cadence)}
                         <div className="mt-1 text-xs text-slate-500">
                           limite {item.thresholdMinutes ?? "-"} min
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-2">
-                          <TonePill tone={item.enabled ? "success" : "subtle"}>
+                        </div></TableCell><TableCell><div className="flex flex-wrap gap-2"><TonePill tone={item.enabled ? "success" : "subtle"}>
                             {item.enabled ? "ativa" : "pausada"}
                           </TonePill>
                           {item.createExceptions ? <TonePill tone="attention">exceções</TonePill> : null}
                           {item.createActivities ? <TonePill tone="info">atividades</TonePill> : null}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-slate-300">{formatDateTime(item.nextRunAt)}</div>
-                        <div className="mt-1 text-xs text-slate-500">
+                        </div></TableCell><TableCell><div className="text-slate-300">{formatDateTime(item.nextRunAt)}</div><div className="mt-1 text-xs text-slate-500">
                           última {formatDateTime(item.lastRunAt)}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <a
-                          href={`#rule-${item.id}`}
-                          className="rounded-full border border-white/10 bg-black/20 px-3 py-1.5 text-xs text-slate-200 transition hover:bg-white/[0.06] hover:text-white"
-                        >
+                        </div></TableCell><TableActionCell><TableActionAnchor href={`#rule-${item.id}`}>
                           Ajustar regra
-                        </a>
-                      </TableCell>
-                    </tr>
+                        </TableActionAnchor></TableActionCell></tr>
                   ))}
-                </tbody>
-              </DenseTable>
-            </TableShell>
+                </tbody></DenseTable></TableShell>
           ) : (
             <EmptyState
               title="Nenhuma regra encontrada"
@@ -617,49 +473,30 @@ export default async function AutomacoesPage({
               }
             />
           )}
-        </div>
-      </Surface>
-
-      <ListPagination
+        </div></Surface><ListPagination
         pathname="/operacao/automacoes"
         searchParams={params}
         meta={rulesResponse.meta}
       />
 
       {isAdmin && rulesResponse.items.length ? (
-        <Surface className="p-5 sm:p-6">
-          <SectionIntro
+        <Surface className="p-5 sm:p-6"><SectionIntro
             eyebrow="Administração"
             title="Editar regras"
-            description="As regras ficam expostas como blocos reais para manutenção direta, sem atalhos secundários."
             compact
-          />
-
-          <div className="mt-5 grid gap-4">
+          /><div className="mt-5 grid gap-4">
             {rulesResponse.items.map((item) => (
               <article
                 key={item.id}
                 id={`rule-${item.id}`}
                 className="rounded-[18px] border border-white/[0.08] bg-[#0a0f15] p-4"
-              >
-                <div className="flex flex-col gap-3 border-b border-white/[0.08] pb-4 md:flex-row md:items-start md:justify-between">
-                  <div>
-                    <div className="text-base font-semibold text-white">{item.code} · {item.name}</div>
-                    <div className="mt-1 text-sm text-slate-400">
+              ><div className="flex flex-col gap-3 border-b border-white/[0.08] pb-4 md:flex-row md:items-start md:justify-between"><div><div className="text-base font-semibold text-white">{item.code} · {item.name}</div><div className="mt-1 text-sm text-slate-400">
                       {optionLabel(detectorOptions, item.detector)} · {optionLabel(cadenceOptions, item.cadence)}
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <TonePill tone={item.enabled ? "success" : "subtle"}>
+                    </div></div><div className="flex flex-wrap gap-2"><TonePill tone={item.enabled ? "success" : "subtle"}>
                       {item.enabled ? "ativa" : "pausada"}
-                    </TonePill>
-                    <TonePill tone={severityTone(item.severity)}>
+                    </TonePill><TonePill tone={severityTone(item.severity)}>
                       {optionLabel(severityOptions, item.severity)}
-                    </TonePill>
-                  </div>
-                </div>
-
-                <ActionForm
+                    </TonePill></div></div><ActionForm
                   action={updateRule}
                   className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-8"
                   noticeClassName="md:col-span-2 xl:col-span-8"
@@ -667,42 +504,25 @@ export default async function AutomacoesPage({
                   submitLabel="Salvar regra"
                   pendingLabel="Salvando..."
                   variant="secondary"
-                >
-                  <input type="hidden" name="id" value={item.id} />
-                  <RuleFields prefix={`rule-${item.id}`} defaults={item} />
-                </ActionForm>
-              </article>
+                ><input type="hidden" name="id" value={item.id} /><RuleFields prefix={`rule-${item.id}`} defaults={item} /></ActionForm></article>
             ))}
-          </div>
-        </Surface>
+          </div></Surface>
       ) : null}
 
-      <Surface className="p-5 sm:p-6">
-        <SectionIntro
+      <Surface className="p-5 sm:p-6"><SectionIntro
           eyebrow="Execuções"
           title="Últimos runs"
-          description="Histórico curto para confirmar se as regras estão encontrando casos e criando efeito operacional."
+          description="Histórico de execução."
           actions={<TonePill tone={failedRuns ? "critical" : "success"}>{failedRuns ? "falhas" : "ok"}</TonePill>}
           compact
-        />
-
-        <div className="mt-5 grid gap-3">
+        /><div className="mt-5 grid gap-3">
           {runsResponse.items.length ? (
             runsResponse.items.map((run) => (
-              <div key={run.id} className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <div className="font-medium text-white">{run.rule.code} · {run.rule.name}</div>
-                    <div className="mt-1 text-sm text-slate-400">
+              <div key={run.id} className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="flex flex-wrap items-start justify-between gap-3"><div><div className="font-medium text-white">{run.rule.code} · {run.rule.name}</div><div className="mt-1 text-sm text-slate-400">
                       {formatDateTime(run.startedAt)} · hits {run.hitsCount} · criadas {run.createdCount} · atualizadas {run.updatedCount}
-                    </div>
-                  </div>
-                  <TonePill tone={runTone(run.status)}>{run.status}</TonePill>
-                </div>
-                <div className="mt-3 text-sm leading-6 text-slate-300">
+                    </div></div><TonePill tone={runTone(run.status)}>{run.status}</TonePill></div><div className="mt-3 text-sm leading-6 text-slate-300">
                   {run.summary || run.errorMessage || "Sem resumo registrado."}
-                </div>
-              </div>
+                </div></div>
             ))
           ) : (
             <EmptyState
@@ -710,8 +530,6 @@ export default async function AutomacoesPage({
               description="As próximas execuções das regras aparecerão aqui."
             />
           )}
-        </div>
-      </Surface>
-    </AppShell>
+        </div></Surface></AppShell>
   );
 }

@@ -141,112 +141,25 @@ export default async function ExceptionDetailPage({ params }: { params: Promise<
   ]);
 
   return (
-    <AppShell title={`${item.code} · ${item.title}`} subtitle="Detalhe executivo do caso. A primeira dobra decide, o centro executa e a lateral sustenta contexto sem poluir o fluxo.">
-      <Surface className="p-5">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-          <div className="min-w-0">
-            <div className="flex flex-wrap gap-2">
-              <TonePill tone={tone(item.severity)}>{item.severity}</TonePill>
-              <TonePill tone={tone(item.status)}>{item.status}</TonePill>
-              <TonePill tone={tone(item.triageStatus)}>{item.triageStatus}</TonePill>
-              <TonePill tone="neutral">{queueLabel(item.queueKey)}</TonePill>
-            </div>
-            <div className="mt-3 max-w-4xl text-sm leading-6 text-slate-400">{item.description || "Sem descrição adicional."}</div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Link href="/operacao/fila" className="rounded-full bg-white px-4 py-2.5 text-sm font-medium text-black">Fila</Link>
-            <Link href="/operacao/excecoes" className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm text-white">Exceções</Link>
-          </div>
-        </div>
-
-        <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          <InlineStat label="Responsável" value={item.assignee ? item.assignee.name : "Não atribuído"} tone={item.assignee ? "info" : "attention"} />
-          <InlineStat label="Prioridade" value={item.priorityScore} tone={item.priorityScore >= 80 ? "critical" : item.priorityScore >= 50 ? "attention" : "info"} />
-          <InlineStat label="Prazo" value={item.breachedAt ? "Estourado" : "No prazo"} tone={item.breachedAt ? "critical" : "success"} />
-          <InlineStat label="Última atividade" value={formatDate(item.lastActivityAt)} tone="neutral" />
-        </div>
-      </Surface>
-
-      <section className="grid gap-5 xl:grid-cols-[minmax(0,1.7fr)_340px]">
-        <div className="grid gap-5">
-          <Surface className="p-5">
-            <SectionIntro eyebrow="Execução" title="Comentários" description="O centro do caso fica com o que move a decisão para frente: hipótese, encaminhamento e registro operacional." compact />
-            <ActionForm action={addComment} className="mt-4 grid gap-3" submitLabel="Registrar comentário" pendingLabel="Registrando...">
-              <textarea name="body" placeholder="Escreva o próximo passo, hipótese, contexto da análise ou decisão operacional..." className="min-h-28 rounded-[12px] border border-white/10 bg-[#0b0f14] px-4 py-3 text-white outline-none" />
-            </ActionForm>
-            <div className="mt-5 grid gap-3">
+    <AppShell title={`${item.code} · ${item.title}`} subtitle="Detalhe do caso."><Surface className="p-5"><div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between"><div className="min-w-0"><div className="flex flex-wrap gap-2"><TonePill tone={tone(item.severity)}>{item.severity}</TonePill><TonePill tone={tone(item.status)}>{item.status}</TonePill><TonePill tone={tone(item.triageStatus)}>{item.triageStatus}</TonePill><TonePill tone="neutral">{queueLabel(item.queueKey)}</TonePill></div><div className="mt-3 max-w-4xl text-sm leading-6 text-slate-400">{item.description || "Sem descrição adicional."}</div></div><div className="flex flex-wrap gap-2"><Link href="/operacao/fila" className="rounded-full bg-white px-4 py-2.5 text-sm font-medium text-black">Fila</Link><Link href="/operacao/excecoes" className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm text-white">Exceções</Link></div></div><div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4"><InlineStat label="Responsável" value={item.assignee ? item.assignee.name : "Não atribuído"} tone={item.assignee ? "info" : "attention"} /><InlineStat label="Prioridade" value={item.priorityScore} tone={item.priorityScore >= 80 ? "critical" : item.priorityScore >= 50 ? "attention" : "info"} /><InlineStat label="Prazo" value={item.breachedAt ? "Estourado" : "No prazo"} tone={item.breachedAt ? "critical" : "success"} /><InlineStat label="Última atividade" value={formatDate(item.lastActivityAt)} tone="neutral" /></div></Surface><section className="grid gap-5 xl:grid-cols-[minmax(0,1.7fr)_340px]"><div className="grid gap-5"><Surface className="p-5"><SectionIntro eyebrow="Execução" title="Comentários" description="O centro do caso fica com o que move a decisão para frente: hipótese, encaminhamento e registro operacional." compact /><ActionForm action={addComment} className="mt-4 grid gap-3" submitLabel="Registrar comentário" pendingLabel="Registrando..."><textarea name="body" placeholder="Escreva o próximo passo, hipótese, contexto da análise ou decisão operacional..." className="min-h-28 rounded-[12px] border border-white/10 bg-[#0b0f14] px-4 py-3 text-white outline-none" /></ActionForm><div className="mt-5 grid gap-3">
               {item.comments.length ? item.comments.map((comment) => (
-                <article key={comment.id} className="rounded-[14px] border border-white/7 bg-black/20 p-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="text-sm font-medium text-white">{comment.author.name}</div>
-                    <div className="text-xs text-slate-500">{formatDate(comment.createdAt)}</div>
-                  </div>
-                  <div className="mt-2 text-sm leading-6 text-slate-300">{comment.body}</div>
-                </article>
+                <article key={comment.id} className="rounded-[14px] border border-white/7 bg-black/20 p-4"><div className="flex items-center justify-between gap-3"><div className="text-sm font-medium text-white">{comment.author.name}</div><div className="text-xs text-slate-500">{formatDate(comment.createdAt)}</div></div><div className="mt-2 text-sm leading-6 text-slate-300">{comment.body}</div></article>
               )) : <EmptyState title="Sem comentários ainda" description="A discussão operacional deste caso ainda não começou." />}
-            </div>
-          </Surface>
-
-          <Surface className="p-5">
-            <SectionIntro eyebrow="Histórico" title="Atividade recente" description="Rastro do sistema, das automações e dos operadores em leitura mais limpa e sequencial." compact />
-            <div className="mt-4 grid gap-3">
+            </div></Surface><Surface className="p-5"><SectionIntro eyebrow="Histórico" title="Atividade recente" description="Rastro do sistema, das automações e dos operadores em leitura mais limpa e sequencial." compact /><div className="mt-4 grid gap-3">
               {item.activities.length ? item.activities.map((activity) => (
-                <article key={activity.id} className="rounded-[14px] border border-white/7 bg-black/20 p-4">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <TonePill tone="neutral">{activity.kind}</TonePill>
-                    <TonePill tone="subtle">{activity.source}</TonePill>
+                <article key={activity.id} className="rounded-[14px] border border-white/7 bg-black/20 p-4"><div className="flex flex-wrap items-center gap-2"><TonePill tone="neutral">{activity.kind}</TonePill><TonePill tone="subtle">{activity.source}</TonePill>
                     {activity.automation ? <TonePill tone="violet">{activity.automation.code}</TonePill> : null}
-                  </div>
-                  <div className="mt-3 text-sm font-medium text-white">{activity.title}</div>
+                  </div><div className="mt-3 text-sm font-medium text-white">{activity.title}</div>
                   {activity.description ? <div className="mt-2 text-sm leading-6 text-slate-400">{activity.description}</div> : null}
-                  <div className="mt-3 text-xs text-slate-500">{activity.actor ? activity.actor.name : "Sistema"} · {formatDate(activity.createdAt)}</div>
-                </article>
+                  <div className="mt-3 text-xs text-slate-500">{activity.actor ? activity.actor.name : "Sistema"} · {formatDate(activity.createdAt)}</div></article>
               )) : <EmptyState title="Sem atividade registrada" description="Nenhuma atividade recente foi associada a este caso." />}
-            </div>
-          </Surface>
-        </div>
-
-        <div className="grid gap-5">
+            </div></Surface></div><div className="grid gap-5">
           {isAdmin ? (
-            <Surface className="p-5">
-              <SectionIntro eyebrow="Ações" title="Despacho rápido" description="Atribuição e mudança de estado permanecem na lateral, curtas e previsíveis." compact />
-              <ActionForm action={quickAction} className="mt-4 grid gap-3" submitLabel="Aplicar" pendingLabel="Aplicando..." variant="secondary">
-                <select name="action" defaultValue="ack" className="rounded-[12px] border border-white/10 bg-[#0b0f14] px-4 py-3 text-white outline-none">
-                  <option value="ack">Reconhecer</option>
-                  <option value="resolve">Resolver</option>
-                  <option value="reopen">Reabrir</option>
-                  <option value="silence">Silenciar 1h</option>
-                </select>
-                <select name="assigneeUserId" defaultValue={item.assignee?.id || ""} className="rounded-[12px] border border-white/10 bg-[#0b0f14] px-4 py-3 text-white outline-none">
-                  <option value="">Sem responsável</option>
-                  {usersResponse.items.map((user) => <option key={user.id} value={user.id}>{user.name} · {user.email}</option>)}
-                </select>
-              </ActionForm>
-            </Surface>
+            <Surface className="p-5"><SectionIntro eyebrow="Ações" title="Despacho rápido" description="Atribuição e mudança de estado permanecem na lateral, curtas e previsíveis." compact /><ActionForm action={quickAction} className="mt-4 grid gap-3" submitLabel="Aplicar" pendingLabel="Aplicando..." variant="secondary"><select name="action" defaultValue="ack" className="rounded-[12px] border border-white/10 bg-[#0b0f14] px-4 py-3 text-white outline-none"><option value="ack">Reconhecer</option><option value="resolve">Resolver</option><option value="reopen">Reabrir</option><option value="silence">Silenciar 1h</option></select><select name="assigneeUserId" defaultValue={item.assignee?.id || ""} className="rounded-[12px] border border-white/10 bg-[#0b0f14] px-4 py-3 text-white outline-none"><option value="">Sem responsável</option>
+                  {usersResponse.items.map((user) =><option key={user.id} value={user.id}>{user.name} · {user.email}</option>)}
+                </select></ActionForm></Surface>
           ) : null}
 
-          <Surface className="p-5">
-            <SectionIntro eyebrow="Contexto" title="Metadados do caso" description="Origem, política, automação e vínculos ficam compactados na lateral para sustentar decisão sem roubar a primeira dobra." compact />
-            <div className="mt-4 grid gap-3 text-sm text-slate-300">
-              <div className="rounded-[14px] border border-white/7 bg-black/20 p-4"><FieldLabel>Classificação</FieldLabel><div className="mt-2">{item.classification} · impacto {item.impact} · urgência {item.urgency}</div></div>
-              <div className="rounded-[14px] border border-white/7 bg-black/20 p-4"><FieldLabel>Roteamento</FieldLabel><div className="mt-2">{queueLabel(item.queueKey)} · origem {item.source}</div></div>
-              <div className="rounded-[14px] border border-white/7 bg-black/20 p-4"><FieldLabel>Política SLA</FieldLabel><div className="mt-2">{item.slaPolicy ? `${item.slaPolicy.code} · ${item.slaPolicy.firstResponseMinutes}/${item.slaPolicy.resolveMinutes} min` : "—"}</div></div>
-              <div className="rounded-[14px] border border-white/7 bg-black/20 p-4"><FieldLabel>Automação</FieldLabel><div className="mt-2">{item.automation ? `${item.automation.code} · ${item.automation.detector}` : "—"}</div></div>
-              <div className="rounded-[14px] border border-white/7 bg-black/20 p-4">
-                <FieldLabel>Vínculos</FieldLabel>
-                <div className="mt-2 grid gap-1 text-slate-300">
-                  <div>Parceiro: {item.partner ? `${item.partner.code} · ${item.partner.name}` : "—"}</div>
-                  <div>Unidade: {item.unit ? `${item.unit.code} · ${item.unit.name}` : "—"}</div>
-                  <div>Equipamento: {item.equipment ? `${item.equipment.tag} · ${item.equipment.name}` : "—"}</div>
-                  <div>Integração: {item.integration ? `${item.integration.code} · ${item.integration.name}` : "—"}</div>
-                  <div>Ocorrência: {item.occurrence ? `${item.occurrence.code} · ${item.occurrence.title}` : "—"}</div>
-                  <div>Manutenção: {item.maintenance ? `${item.maintenance.code} · ${item.maintenance.title}` : "—"}</div>
-                </div>
-              </div>
-            </div>
-          </Surface>
-        </div>
-      </section>
-    </AppShell>
+          <Surface className="p-5"><SectionIntro eyebrow="Contexto" title="Metadados do caso" description="Origem, política, automação e vínculos." compact /><div className="mt-4 grid gap-3 text-sm text-slate-300"><div className="rounded-[14px] border border-white/7 bg-black/20 p-4"><FieldLabel>Classificação</FieldLabel><div className="mt-2">{item.classification} · impacto {item.impact} · urgência {item.urgency}</div></div><div className="rounded-[14px] border border-white/7 bg-black/20 p-4"><FieldLabel>Roteamento</FieldLabel><div className="mt-2">{queueLabel(item.queueKey)} · origem {item.source}</div></div><div className="rounded-[14px] border border-white/7 bg-black/20 p-4"><FieldLabel>Política SLA</FieldLabel><div className="mt-2">{item.slaPolicy ? `${item.slaPolicy.code} · ${item.slaPolicy.firstResponseMinutes}/${item.slaPolicy.resolveMinutes} min` : "—"}</div></div><div className="rounded-[14px] border border-white/7 bg-black/20 p-4"><FieldLabel>Automação</FieldLabel><div className="mt-2">{item.automation ? `${item.automation.code} · ${item.automation.detector}` : "—"}</div></div><div className="rounded-[14px] border border-white/7 bg-black/20 p-4"><FieldLabel>Vínculos</FieldLabel><div className="mt-2 grid gap-1 text-slate-300"><div>Parceiro: {item.partner ? `${item.partner.code} · ${item.partner.name}` : "—"}</div><div>Unidade: {item.unit ? `${item.unit.code} · ${item.unit.name}` : "—"}</div><div>Equipamento: {item.equipment ? `${item.equipment.tag} · ${item.equipment.name}` : "—"}</div><div>Integração: {item.integration ? `${item.integration.code} · ${item.integration.name}` : "—"}</div><div>Ocorrência: {item.occurrence ? `${item.occurrence.code} · ${item.occurrence.title}` : "—"}</div><div>Manutenção: {item.maintenance ? `${item.maintenance.code} · ${item.maintenance.title}` : "—"}</div></div></div></div></Surface></div></section></AppShell>
   );
 }

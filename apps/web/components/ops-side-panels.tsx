@@ -17,15 +17,12 @@ export function WorkflowStatsPanel({
   }>;
 }) {
   return (
-    <Surface className="p-5 sm:p-6">
-      <SectionIntro
+    <Surface className="p-5 sm:p-6"><SectionIntro
         eyebrow={eyebrow}
         title={title}
         description={description}
         compact
-      />
-
-      <div className="mt-4 grid gap-3">
+      /><div className="mt-4 grid gap-3">
         {stats.map((item) => (
           <InlineStat
             key={item.label}
@@ -34,8 +31,7 @@ export function WorkflowStatsPanel({
             tone={item.tone || "neutral"}
           />
         ))}
-      </div>
-    </Surface>
+      </div></Surface>
   );
 }
 
@@ -56,15 +52,12 @@ export function ConnectedRoutesPanel({
   }>;
 }) {
   return (
-    <Surface className="p-5 sm:p-6">
-      <SectionIntro
+    <Surface className="p-5 sm:p-6"><SectionIntro
         eyebrow={eyebrow}
         title={title}
         description={description}
         compact
-      />
-
-      <div className="mt-4 grid gap-3">
+      /><div className="mt-4 grid gap-3">
         {routes.map((route) => (
           <ActionTile
             key={route.href}
@@ -74,7 +67,6 @@ export function ConnectedRoutesPanel({
             badge={route.badge}
           />
         ))}
-      </div>
-    </Surface>
+      </div></Surface>
   );
 }

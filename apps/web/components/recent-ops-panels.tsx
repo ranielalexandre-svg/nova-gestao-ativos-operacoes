@@ -30,8 +30,7 @@ export function RecentOccurrencesPanel({
   description?: string;
 }) {
   return (
-    <Surface className="p-5 sm:p-6">
-      <SectionIntro
+    <Surface className="p-5 sm:p-6"><SectionIntro
         eyebrow="Ocorrências"
         title={title}
         description={description}
@@ -41,26 +40,16 @@ export function RecentOccurrencesPanel({
           </Link>
         }
         compact
-      />
-
-      <div className="mt-4 grid gap-2">
+      /><div className="mt-4 grid gap-2">
         {commandCenter.recentOccurrences.length ? (
           commandCenter.recentOccurrences.slice(0, 5).map((item) => (
             <Link
               key={item.id}
               href={`/ocorrencias/${item.id}`}
               className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-3 transition hover:border-white/14 hover:bg-[#111820]"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="truncate text-sm font-semibold text-slate-50">
+            ><div className="flex items-start justify-between gap-3"><div className="min-w-0"><div className="truncate text-sm font-semibold text-slate-50">
                     {item.code} · {item.title}
-                  </div>
-                  <div className="mt-1 truncate text-xs text-slate-500">{targetLabel(item)}</div>
-                </div>
-                <TonePill tone={occurrenceTone(item)}>{item.severity}</TonePill>
-              </div>
-            </Link>
+                  </div><div className="mt-1 truncate text-xs text-slate-500">{targetLabel(item)}</div></div><TonePill tone={occurrenceTone(item)}>{item.severity}</TonePill></div></Link>
           ))
         ) : (
           <EmptyState
@@ -68,8 +57,7 @@ export function RecentOccurrencesPanel({
             description="Nenhuma ocorrência foi retornada por este recorte."
           />
         )}
-      </div>
-    </Surface>
+      </div></Surface>
   );
 }
 
@@ -83,8 +71,7 @@ export function RecentMaintenancesPanel({
   description?: string;
 }) {
   return (
-    <Surface className="p-5 sm:p-6">
-      <SectionIntro
+    <Surface className="p-5 sm:p-6"><SectionIntro
         eyebrow="Manutenções"
         title={title}
         description={description}
@@ -94,26 +81,16 @@ export function RecentMaintenancesPanel({
           </Link>
         }
         compact
-      />
-
-      <div className="mt-4 grid gap-2">
+      /><div className="mt-4 grid gap-2">
         {commandCenter.recentMaintenances.length ? (
           commandCenter.recentMaintenances.slice(0, 5).map((item) => (
             <Link
               key={item.id}
               href={`/manutencoes/${item.id}`}
               className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-3 transition hover:border-white/14 hover:bg-[#111820]"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="truncate text-sm font-semibold text-slate-50">
+            ><div className="flex items-start justify-between gap-3"><div className="min-w-0"><div className="truncate text-sm font-semibold text-slate-50">
                     {item.code} · {item.title}
-                  </div>
-                  <div className="mt-1 truncate text-xs text-slate-500">{targetLabel(item)}</div>
-                </div>
-                <TonePill tone={maintenanceTone(item)}>{item.status}</TonePill>
-              </div>
-            </Link>
+                  </div><div className="mt-1 truncate text-xs text-slate-500">{targetLabel(item)}</div></div><TonePill tone={maintenanceTone(item)}>{item.status}</TonePill></div></Link>
           ))
         ) : (
           <EmptyState
@@ -121,7 +98,6 @@ export function RecentMaintenancesPanel({
             description="Nenhuma manutenção foi retornada por este recorte."
           />
         )}
-      </div>
-    </Surface>
+      </div></Surface>
   );
 }

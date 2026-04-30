@@ -208,11 +208,49 @@ export async function safeApiJson<T>(path: string, fallback: T) {
   }
 }
 
-export async function readUnitHostTelemetry() {
+async function withTimeout<T>(request: Promise<T>, ms: number) {
+  let timeout: ReturnType<typeof setTimeout> | null = null;
+
   try {
-    return await apiJson<UnitHostTelemetry>("/monitoring/unit-hosts");
+    return await Promise.race([
+      request,
+      new Promise<never>((_, reject) => {
+        timeout = setTimeout(() => reject(new Error("telemetry_timeout")), ms);
+      }),
+    ]);
+  } finally {
+    if (timeout) clearTimeout(timeout);
+  }
+}
+
+export async function readUnitHostTelemetry(options: { timeoutMs?: number } = {}) {
+  const controller = options.timeoutMs ? new AbortController() : null;
+  const timeout = controller
+    ? setTimeout(() => {
+        controller.abort();
+      }, options.timeoutMs)
+    : null;
+
+  try {
+    const request = apiJson<UnitHostTelemetry>(
+      "/monitoring/unit-hosts",
+      controller ? { signal: controller.signal } : {},
+    );
+
+    return await (options.timeoutMs ? withTimeout(request, options.timeoutMs) : request);
   } catch (error) {
-    return emptyTelemetry(error instanceof Error ? error.message : "Falha ao carregar telemetria.");
+    const aborted =
+      error instanceof Error &&
+      (error.name === "AbortError" || error.message === "telemetry_timeout");
+    return emptyTelemetry(
+      aborted
+        ? "Telemetria ainda carregando. Abra Monitoramento para a leitura completa."
+        : error instanceof Error
+          ? error.message
+          : "Falha ao carregar telemetria.",
+    );
+  } finally {
+    if (timeout) clearTimeout(timeout);
   }
 }
 

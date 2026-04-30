@@ -177,14 +177,11 @@ export default async function ImportacaoPage({
     <AppShell
       title="Importação"
       subtitle="Ponte controlada para migrar dados do legado ou ajustar cargas CSV antes da troca."
-    >
-      <RegistryHero
+    ><RegistryHero
         eyebrow="Cutover Desk"
         title="Importação e exportação com validação"
         description="Use esta central para testar CSV, importar somente quando estiver consistente e exportar bases atuais para conferência."
-      />
-
-      <RegistrySummaryStrip
+      /><RegistrySummaryStrip
         items={RESOURCES.map((resource) => ({
           label: resource.label,
           value: resource.key === selected ? "ativo" : "CSV",
@@ -193,27 +190,18 @@ export default async function ImportacaoPage({
         }))}
         noteTitle="Regra de segurança"
         noteCopy="A validação não altera dados. A importação executa upsert por código/tag e deve ser usada após backup ou conferência do CSV."
-      />
-
-      <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
-        <Surface className="p-5 sm:p-6">
-          <SectionIntro
+      /><section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]"><Surface className="p-5 sm:p-6"><SectionIntro
             eyebrow="CSV"
             title="Validar ou importar"
             description="Cole o conteúdo CSV usando o template do recurso. O botão validar mostra a saúde estrutural; importar grava no banco."
             compact
-          />
-
-          <ActionForm
+          /><ActionForm
             action={importCsvAction}
             submitLabel="Processar"
             pendingLabel="Processando..."
             hideSubmit
             className="mt-5"
-          >
-            <div className="grid gap-4">
-              <div className="grid gap-2 md:grid-cols-[240px_minmax(0,1fr)] md:items-end">
-                <label className="grid gap-2 text-sm font-semibold text-slate-200">
+          ><div className="grid gap-4"><div className="grid gap-2 md:grid-cols-[240px_minmax(0,1fr)] md:items-end"><label className="grid gap-2 text-sm font-semibold text-slate-200">
                   Recurso
                   <select
                     name="resource"
@@ -225,98 +213,62 @@ export default async function ImportacaoPage({
                         {resource.label}
                       </option>
                     ))}
-                  </select>
-                </label>
-                <div className="text-sm leading-6 text-slate-400">
+                  </select></label><div className="text-sm leading-6 text-slate-400">
                   Trocar o recurso aqui não troca o template automaticamente no campo. Use o painel lateral para copiar o template certo.
-                </div>
-              </div>
-
-              <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                </div></div><label className="grid gap-2 text-sm font-semibold text-slate-200">
                 CSV
                 <textarea
                   name="csv"
                   defaultValue={selectedTemplate}
                   rows={12}
                   className="min-h-[260px] rounded-[14px] border border-white/10 bg-[#080d13] px-4 py-3 font-mono text-xs leading-6 text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
-                />
-              </label>
-
-              <div className="flex flex-wrap justify-end gap-2">
-                <button
+                /></label><div className="flex flex-wrap justify-end gap-2"><button
                   type="submit"
                   name="actionType"
                   value="preview"
                   className="rounded-[14px] border border-white/10 bg-white/[0.05] px-4 py-2.5 text-sm font-semibold text-slate-100 transition hover:bg-white/[0.09]"
                 >
                   Validar CSV
-                </button>
-                <button
+                </button><button
                   type="submit"
                   name="actionType"
                   value="execute"
                   className="rounded-[14px] border border-sky-500/28 bg-sky-500/14 px-4 py-2.5 text-sm font-semibold text-sky-50 transition hover:bg-sky-500/18"
                 >
                   Importar agora
-                </button>
-              </div>
-            </div>
-          </ActionForm>
-        </Surface>
-
-        <div className="grid gap-5">
-          <Surface className="p-5 sm:p-6">
-            <SectionIntro
+                </button></div></div></ActionForm></Surface><div className="grid gap-5"><Surface className="p-5 sm:p-6"><SectionIntro
               eyebrow="Templates"
               title="Modelos aceitos"
               description="Copie o cabeçalho e preencha as linhas abaixo dele."
               compact
-            />
-            <div className="mt-4 grid gap-3">
+            /><div className="mt-4 grid gap-3">
               {templates.map((template) => (
                 <details
                   key={template.resource}
                   open={template.resource === selected}
                   className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4"
-                >
-                  <summary className="cursor-pointer text-sm font-semibold text-slate-50">
+                ><summary className="cursor-pointer text-sm font-semibold text-slate-50">
                     {resourceLabel(template.resource)}
-                  </summary>
-                  <pre className="mt-3 overflow-x-auto rounded-[12px] border border-white/10 bg-black/20 p-3 text-xs leading-5 text-slate-300">
+                  </summary><pre className="mt-3 overflow-x-auto rounded-[12px] border border-white/10 bg-black/20 p-3 text-xs leading-5 text-slate-300">
                     {template.csv || "Template indisponível"}
-                  </pre>
-                </details>
+                  </pre></details>
               ))}
-            </div>
-          </Surface>
-
-          <Surface className="p-5 sm:p-6">
-            <SectionIntro
+            </div></Surface><Surface className="p-5 sm:p-6"><SectionIntro
               eyebrow="Exportação"
               title="Baixar bases atuais"
               description="Use estes arquivos para comparar antes e depois da importação."
               compact
-            />
-            <div className="mt-4 grid gap-2">
+            /><div className="mt-4 grid gap-2">
               {RESOURCES.map((resource) => (
                 <Link
                   key={resource.key}
                   href={`/export/${resource.key}`}
                   className="flex items-center justify-between gap-3 rounded-[14px] border border-white/[0.08] bg-[#0a0f15] px-4 py-3 text-sm text-slate-200 transition hover:border-white/14 hover:bg-[#10161d]"
-                >
-                  <span>{resource.label}</span>
-                  <TonePill tone="neutral">CSV</TonePill>
-                </Link>
+                ><span>{resource.label}</span><TonePill tone="neutral">CSV</TonePill></Link>
               ))}
-            </div>
-          </Surface>
-
-          <EmptyState
+            </div></Surface><EmptyState
             title="Nada automático demais"
             description="Se o CSV vier do legado, valide primeiro e importe em lotes pequenos. A pressa é ótima para café, péssima para migração."
-          />
-        </div>
-      </section>
-    </AppShell>
+          /></div></section></AppShell>
   );
 }

@@ -210,28 +210,23 @@ export default async function AtividadePage({
   return (
     <AppShell
       title="Atividade"
-      subtitle="Trilha operacional de operadores, automações, exceções e vínculos de cadastro."
-    >
-      <RegistryHero
+      subtitle="Operadores, automações, exceções e vínculos."
+    ><RegistryHero
         eyebrow="Activity Desk"
-        title="Linha do tempo operacional em leitura direta"
-        description="A trilha serve para explicar decisões, automações e vínculos. O registro manual continua disponível, mas sem ficar escondido atrás de um atalho."
-      />
-
-      <RegistrySummaryStrip
+        title="Linha do tempo operacional"
+        description="Decisões, automações, vínculos e registros manuais."
+      /><RegistrySummaryStrip
         items={[
           { label: "Eventos", value: response.meta.total, meta: "resultado filtrado", tone: "info" },
           { label: "Manuais", value: manualCount, meta: "nesta página", tone: manualCount ? "attention" : "neutral" },
           { label: "Automações", value: automationCount, meta: "nesta página", tone: automationCount ? "violet" : "neutral" },
           { label: "Alta atenção", value: criticalCount, meta: "alta ou crítica", tone: criticalCount ? "critical" : "success" },
         ]}
-        noteTitle="Trilha como auditoria operacional"
-        noteCopy="A tela principal é leitura densa. O registro manual entra como complemento natural da linha do tempo, sem desviar o foco da trilha."
-      />
-
-      <OperationsLinkGrid
-        title="Superfícies vizinhas da trilha"
-        description="Atividade amarra contexto. O resto da operação continua existindo nas mesas próprias de despacho, regra e consulta."
+        noteTitle="Auditoria operacional"
+        noteCopy="Linha do tempo e registro manual."
+      /><OperationsLinkGrid
+        title="Áreas relacionadas"
+        description="Contexto, despacho, regra e consulta."
         links={[
           {
             href: "/operacao/excecoes",
@@ -241,14 +236,14 @@ export default async function AtividadePage({
           },
           {
             href: "/operacao/fila",
-            title: "Fila operacional",
+            title: "Fila",
             description: "Priorização, reconhecimento e ação em lote do turno.",
             badge: <TonePill tone={criticalCount ? "critical" : "success"}>{criticalCount} alta atenção</TonePill>,
           },
           {
             href: "/operacao/automacoes",
             title: "Automações",
-            description: "Regras e runs que explicam boa parte da trilha recente.",
+            description: "Regras e runs recentes.",
             badge: <TonePill tone="violet">{automationCount} auto</TonePill>,
           },
           {
@@ -258,11 +253,9 @@ export default async function AtividadePage({
             badge: <TonePill tone="info">host e unidade</TonePill>,
           },
         ]}
-      />
-
-      <OperationsGuidanceGrid
+      /><OperationsGuidanceGrid
         title="O que registrar aqui"
-        description="A trilha fica forte quando ela documenta decisão, contexto e handoff, não quando tenta substituir as outras mesas."
+        description="Decisão, contexto e handoff."
         items={[
           {
             label: "Registrar",
@@ -272,7 +265,7 @@ export default async function AtividadePage({
           },
           {
             label: "Evitar",
-            title: "Não transforme a trilha em painel",
+            title: "Registro objetivo",
             description: "Indicadores, despacho e política continuam nas telas próprias; aqui entra a narrativa operacional do que realmente aconteceu.",
             tone: "attention",
           },
@@ -283,270 +276,83 @@ export default async function AtividadePage({
             tone: "success",
           },
         ]}
-      />
-
-      <Surface className="p-5 sm:p-6">
-        <SectionIntro
+      /><Surface className="p-5 sm:p-6"><SectionIntro
           eyebrow="Consulta"
           title="Buscar atividade por vínculo real"
           description="Filtre por texto, tipo, origem e severidade sem sair da URL compartilhável."
           actions={<Link href="/operacao/atividade" className="rounded-[12px] border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-semibold text-slate-100">Limpar</Link>}
           compact
-        />
-        <form method="GET" className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-[minmax(0,1.4fr)_repeat(5,minmax(0,180px))]">
-          <div className="md:col-span-2 xl:col-span-1">
-            <FieldLabel>Busca</FieldLabel>
-            <input name="q" defaultValue={q} placeholder="Título, descrição, unidade, parceiro ou vínculo" className={inputClass} />
-          </div>
-          <div>
-            <FieldLabel>Tipo</FieldLabel>
-            <select name="kind" defaultValue={kind} className={selectClass}>
-              <option value="all">Todos</option>
-              <option value="note">Nota</option>
-              <option value="event">Evento</option>
-              <option value="exception">Exceção</option>
-              <option value="automation">Automação</option>
-              <option value="system">Sistema</option>
-            </select>
-          </div>
-          <div>
-            <FieldLabel>Origem</FieldLabel>
-            <select name="source" defaultValue={source} className={selectClass}>
-              <option value="all">Todas</option>
-              <option value="manual">Manual</option>
-              <option value="automation">Automação</option>
-              <option value="exception">Exceção</option>
-            </select>
-          </div>
-          <div>
-            <FieldLabel>Severidade</FieldLabel>
-            <select name="severity" defaultValue={severity} className={selectClass}>
-              <option value="all">Todas</option>
-              <option value="info">Info</option>
-              <option value="low">Baixa</option>
-              <option value="medium">Média</option>
-              <option value="high">Alta</option>
-              <option value="critical">Crítica</option>
-            </select>
-          </div>
-          <div>
-            <FieldLabel>Ordenar por</FieldLabel>
-            <select name="sortBy" defaultValue={sortBy} className={selectClass}>
-              <option value="createdAt">Cadastro</option>
-              <option value="updatedAt">Atualização</option>
-              <option value="severity">Severidade</option>
-              <option value="kind">Tipo</option>
-            </select>
-          </div>
-          <div>
-            <FieldLabel>Direção</FieldLabel>
-            <select name="sortDir" defaultValue={sortDir} className={selectClass}>
-              <option value="desc">Descendente</option>
-              <option value="asc">Ascendente</option>
-            </select>
-          </div>
-          <div>
-            <FieldLabel>Página</FieldLabel>
-            <select name="pageSize" defaultValue={String(pageSize)} className={selectClass}>
-              <option value="10">10 por página</option>
-              <option value="25">25 por página</option>
-              <option value="50">50 por página</option>
-            </select>
-          </div>
-          <button className="rounded-[12px] border border-blue-400/30 bg-[#17213a] px-4 py-2.5 text-sm font-semibold text-white md:col-span-2 xl:col-span-2 xl:self-end">
+        /><form method="GET" className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-[minmax(0,1.4fr)_repeat(5,minmax(0,180px))]"><div className="md:col-span-2 xl:col-span-1"><FieldLabel>Busca</FieldLabel><input name="q" defaultValue={q} placeholder="Título, descrição, unidade, parceiro ou vínculo" className={inputClass} /></div><div><FieldLabel>Tipo</FieldLabel><select name="kind" defaultValue={kind} className={selectClass}><option value="all">Todos</option><option value="note">Nota</option><option value="event">Evento</option><option value="exception">Exceção</option><option value="automation">Automação</option><option value="system">Sistema</option></select></div><div><FieldLabel>Origem</FieldLabel><select name="source" defaultValue={source} className={selectClass}><option value="all">Todas</option><option value="manual">Manual</option><option value="automation">Automação</option><option value="exception">Exceção</option></select></div><div><FieldLabel>Severidade</FieldLabel><select name="severity" defaultValue={severity} className={selectClass}><option value="all">Todas</option><option value="info">Info</option><option value="low">Baixa</option><option value="medium">Média</option><option value="high">Alta</option><option value="critical">Crítica</option></select></div><div><FieldLabel>Ordenar por</FieldLabel><select name="sortBy" defaultValue={sortBy} className={selectClass}><option value="createdAt">Cadastro</option><option value="updatedAt">Atualização</option><option value="severity">Severidade</option><option value="kind">Tipo</option></select></div><div><FieldLabel>Direção</FieldLabel><select name="sortDir" defaultValue={sortDir} className={selectClass}><option value="desc">Descendente</option><option value="asc">Ascendente</option></select></div><div><FieldLabel>Página</FieldLabel><select name="pageSize" defaultValue={String(pageSize)} className={selectClass}><option value="10">10 por página</option><option value="25">25 por página</option><option value="50">50 por página</option></select></div><button className="rounded-[12px] border border-blue-400/30 bg-[#17213a] px-4 py-2.5 text-sm font-semibold text-white md:col-span-2 xl:col-span-2 xl:self-end">
             Aplicar filtros
-          </button>
-        </form>
-      </Surface>
-
-      <Surface className="p-5 sm:p-6">
-        <SectionIntro
+          </button></form></Surface><Surface className="p-5 sm:p-6"><SectionIntro
           eyebrow="Linha do tempo"
           title="Atividades registradas"
           description={`${response.meta.total} evento(s) no recorte atual.`}
           compact
-        />
-        <div className="mt-5">
+        /><div className="mt-5">
           {response.items.length ? (
-            <TableShell>
-              <DenseTable>
-                <TableHead>
-                  <tr>
-                    <th className="px-4 py-3">Atividade</th>
-                    <th className="px-4 py-3">Tipo</th>
-                    <th className="px-4 py-3">Origem</th>
-                    <th className="px-4 py-3">Sev.</th>
-                    <th className="px-4 py-3">Ator</th>
-                    <th className="px-4 py-3">Vínculos</th>
-                    <th className="px-4 py-3">Criada</th>
-                  </tr>
-                </TableHead>
-                <tbody>
+            <TableShell><DenseTable><TableHead><tr><th className="px-4 py-3">Atividade</th><th className="px-4 py-3">Tipo</th><th className="px-4 py-3">Origem</th><th className="px-4 py-3">Sev.</th><th className="px-4 py-3">Ator</th><th className="px-4 py-3">Vínculos</th><th className="px-4 py-3">Criada</th></tr></TableHead><tbody>
                   {response.items.map((item) => (
-                    <tr key={item.id} className="border-b border-white/[0.06] last:border-b-0 hover:bg-white/[0.025]">
-                      <TableCell>
-                        <div className="font-semibold text-slate-50">{item.title}</div>
-                        <div className="mt-1 max-w-xl text-xs leading-5 text-slate-500">{item.description || "-"}</div>
-                      </TableCell>
-                      <TableCell><TonePill tone={tone(item.kind)}>{label(item.kind)}</TonePill></TableCell>
-                      <TableCell><TonePill tone={tone(item.source)}>{label(item.source)}</TonePill></TableCell>
-                      <TableCell><TonePill tone={tone(item.severity)}>{label(item.severity)}</TonePill></TableCell>
-                      <TableCell>
-                        <div className="text-slate-200">{item.actor?.name || "-"}</div>
-                        <div className="mt-1 text-xs text-slate-500">{item.actor?.email || ""}</div>
-                      </TableCell>
-                      <TableCell className="max-w-md text-xs leading-5 text-slate-400">{refs(item)}</TableCell>
-                      <TableCell className="whitespace-nowrap text-slate-300">{new Date(item.createdAt).toLocaleString("pt-BR")}</TableCell>
-                    </tr>
+                    <tr key={item.id} className="border-b border-white/[0.06] last:border-b-0 hover:bg-white/[0.025]"><TableCell><div className="font-semibold text-slate-50">{item.title}</div><div className="mt-1 max-w-xl text-xs leading-5 text-slate-500">{item.description || "-"}</div></TableCell><TableCell><TonePill tone={tone(item.kind)}>{label(item.kind)}</TonePill></TableCell><TableCell><TonePill tone={tone(item.source)}>{label(item.source)}</TonePill></TableCell><TableCell><TonePill tone={tone(item.severity)}>{label(item.severity)}</TonePill></TableCell><TableCell><div className="text-slate-200">{item.actor?.name || "-"}</div><div className="mt-1 text-xs text-slate-500">{item.actor?.email || ""}</div></TableCell><TableCell className="max-w-md text-xs leading-5 text-slate-400">{refs(item)}</TableCell><TableCell className="whitespace-nowrap text-slate-300">{new Date(item.createdAt).toLocaleString("pt-BR")}</TableCell></tr>
                   ))}
-                </tbody>
-              </DenseTable>
-            </TableShell>
+                </tbody></DenseTable></TableShell>
           ) : (
             <EmptyState title="Nenhuma atividade encontrada" description="Ajuste filtros ou registre uma nota manual quando houver contexto operacional que não veio de automação." />
           )}
-        </div>
-      </Surface>
-
-      <ListPagination pathname="/operacao/atividade" searchParams={params} meta={response.meta} />
+        </div></Surface><ListPagination pathname="/operacao/atividade" searchParams={params} meta={response.meta} />
 
       {isAdmin ? (
-        <Surface className="p-5 sm:p-6">
-          <SectionIntro
+        <Surface className="p-5 sm:p-6"><SectionIntro
             eyebrow="Registro manual"
             title="Nova atividade"
-            description="Use para complementar a trilha com decisão, contato, evidência ou próximo passo sem trocar de tela."
+            description="Decisão, contato, evidência ou próximo passo."
             compact
-          />
-
-          <ActionForm
+          /><ActionForm
             action={createActivity}
             className="mt-5 grid gap-4"
             submitLabel="Criar atividade"
             pendingLabel="Criando..."
-          >
-            <div className="grid gap-3 lg:grid-cols-4">
-              <div className="lg:col-span-2">
-                <FieldLabel>Título</FieldLabel>
-                <input name="title" placeholder="Resumo curto da atividade" className={inputClass} />
-              </div>
-              <div>
-                <FieldLabel>Tipo</FieldLabel>
-                <select name="kind" defaultValue="note" className={selectClass}>
-                  <option value="note">Nota</option>
-                  <option value="event">Evento</option>
-                  <option value="exception">Exceção</option>
-                  <option value="automation">Automação</option>
-                  <option value="system">Sistema</option>
-                </select>
-              </div>
-              <div>
-                <FieldLabel>Severidade</FieldLabel>
-                <select name="severity" defaultValue="info" className={selectClass}>
-                  <option value="info">Info</option>
-                  <option value="low">Baixa</option>
-                  <option value="medium">Média</option>
-                  <option value="high">Alta</option>
-                  <option value="critical">Crítica</option>
-                </select>
-              </div>
-              <div className="lg:col-span-2">
-                <FieldLabel>Ator</FieldLabel>
-                <select name="userId" className={selectClass}>
-                  <option value="">Sem ator</option>
+          ><div className="grid gap-3 lg:grid-cols-4"><div className="lg:col-span-2"><FieldLabel>Título</FieldLabel><input name="title" placeholder="Resumo curto da atividade" className={inputClass} /></div><div><FieldLabel>Tipo</FieldLabel><select name="kind" defaultValue="note" className={selectClass}><option value="note">Nota</option><option value="event">Evento</option><option value="exception">Exceção</option><option value="automation">Automação</option><option value="system">Sistema</option></select></div><div><FieldLabel>Severidade</FieldLabel><select name="severity" defaultValue="info" className={selectClass}><option value="info">Info</option><option value="low">Baixa</option><option value="medium">Média</option><option value="high">Alta</option><option value="critical">Crítica</option></select></div><div className="lg:col-span-2"><FieldLabel>Ator</FieldLabel><select name="userId" className={selectClass}><option value="">Sem ator</option>
                   {usersResponse.items.map((item) => (
                     <option key={item.id} value={item.id}>{item.name} - {item.email}</option>
                   ))}
-                </select>
-              </div>
-              <div>
-                <FieldLabel>Exceção</FieldLabel>
-                <select name="exceptionId" className={selectClass}>
-                  <option value="">Sem exceção</option>
+                </select></div><div><FieldLabel>Exceção</FieldLabel><select name="exceptionId" className={selectClass}><option value="">Sem exceção</option>
                   {exceptionsResponse.items.map((item) => (
                     <option key={item.id} value={item.id}>{item.code} - {item.title}</option>
                   ))}
-                </select>
-              </div>
-              <div>
-                <FieldLabel>Regra</FieldLabel>
-                <select name="automationId" className={selectClass}>
-                  <option value="">Sem regra</option>
+                </select></div><div><FieldLabel>Regra</FieldLabel><select name="automationId" className={selectClass}><option value="">Sem regra</option>
                   {automationsResponse.items.map((item) => (
                     <option key={item.id} value={item.id}>{item.code} - {item.name}</option>
                   ))}
-                </select>
-              </div>
-              <div>
-                <FieldLabel>Run</FieldLabel>
-                <select name="automationRunId" className={selectClass}>
-                  <option value="">Sem run</option>
+                </select></div><div><FieldLabel>Run</FieldLabel><select name="automationRunId" className={selectClass}><option value="">Sem run</option>
                   {runsResponse.items.map((item) => (
                     <option key={item.id} value={item.id}>{item.rule.code} - {new Date(item.startedAt).toLocaleString("pt-BR")}</option>
                   ))}
-                </select>
-              </div>
-              <div>
-                <FieldLabel>Parceiro</FieldLabel>
-                <select name="partnerId" className={selectClass}>
-                  <option value="">Sem parceiro</option>
+                </select></div><div><FieldLabel>Parceiro</FieldLabel><select name="partnerId" className={selectClass}><option value="">Sem parceiro</option>
                   {partnersResponse.items.map((item) => (
                     <option key={item.id} value={item.id}>{item.code} - {item.name}</option>
                   ))}
-                </select>
-              </div>
-              <div>
-                <FieldLabel>Unidade</FieldLabel>
-                <select name="unitId" className={selectClass}>
-                  <option value="">Sem unidade</option>
+                </select></div><div><FieldLabel>Unidade</FieldLabel><select name="unitId" className={selectClass}><option value="">Sem unidade</option>
                   {unitsResponse.items.map((item) => (
                     <option key={item.id} value={item.id}>{item.code} - {item.name}</option>
                   ))}
-                </select>
-              </div>
-              <div>
-                <FieldLabel>Equipamento</FieldLabel>
-                <select name="equipmentId" className={selectClass}>
-                  <option value="">Sem equipamento</option>
+                </select></div><div><FieldLabel>Equipamento</FieldLabel><select name="equipmentId" className={selectClass}><option value="">Sem equipamento</option>
                   {equipmentsResponse.items.map((item) => (
                     <option key={item.id} value={item.id}>{item.tag} - {item.name}</option>
                   ))}
-                </select>
-              </div>
-              <div>
-                <FieldLabel>Integração</FieldLabel>
-                <select name="integrationId" className={selectClass}>
-                  <option value="">Sem integração</option>
+                </select></div><div><FieldLabel>Integração</FieldLabel><select name="integrationId" className={selectClass}><option value="">Sem integração</option>
                   {integrationsResponse.items.map((item) => (
                     <option key={item.id} value={item.id}>{item.code} - {item.name}</option>
                   ))}
-                </select>
-              </div>
-              <div>
-                <FieldLabel>Ocorrência</FieldLabel>
-                <select name="occurrenceId" className={selectClass}>
-                  <option value="">Sem ocorrência</option>
+                </select></div><div><FieldLabel>Ocorrência</FieldLabel><select name="occurrenceId" className={selectClass}><option value="">Sem ocorrência</option>
                   {occurrencesResponse.items.map((item) => (
                     <option key={item.id} value={item.id}>{item.code} - {item.title}</option>
                   ))}
-                </select>
-              </div>
-              <div>
-                <FieldLabel>Manutenção</FieldLabel>
-                <select name="maintenanceId" className={selectClass}>
-                  <option value="">Sem manutenção</option>
+                </select></div><div><FieldLabel>Manutenção</FieldLabel><select name="maintenanceId" className={selectClass}><option value="">Sem manutenção</option>
                   {maintenancesResponse.items.map((item) => (
                     <option key={item.id} value={item.id}>{item.code} - {item.title}</option>
                   ))}
-                </select>
-              </div>
-              <div className="lg:col-span-4">
-                <FieldLabel>Descrição</FieldLabel>
-                <textarea name="description" placeholder="Contexto, decisão, evidência ou próximo passo" className={`${inputClass} min-h-28`} />
-              </div>
-            </div>
-          </ActionForm>
-        </Surface>
+                </select></div><div className="lg:col-span-4"><FieldLabel>Descrição</FieldLabel><textarea name="description" placeholder="Contexto, decisão, evidência ou próximo passo" className={`${inputClass} min-h-28`} /></div></div></ActionForm></Surface>
       ) : null}
     </AppShell>
   );
