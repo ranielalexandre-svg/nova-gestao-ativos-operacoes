@@ -142,6 +142,10 @@ export default async function NovaUnidadePage({
           city: String(formData.get("city") || ""),
           state: String(formData.get("state") || ""),
           partnerId: String(formData.get("partnerId") || ""),
+          reportContractLabel: String(formData.get("reportContractLabel") || ""),
+          reportAddressLine: String(formData.get("reportAddressLine") || ""),
+          reportContractedBandwidth: String(formData.get("reportContractedBandwidth") || ""),
+          reportNotes: String(formData.get("reportNotes") || ""),
         }),
       });
 
@@ -158,10 +162,7 @@ export default async function NovaUnidadePage({
     <AppShell
       title="Nova unidade"
       subtitle="Cadastro guiado para criar a unidade, vincular parceiro e preparar o monitoramento."
-    >
-      <div className="mx-auto max-w-6xl rounded-[22px] border border-white/[0.08] bg-[#0c1016] shadow-[0_30px_80px_rgba(0,0,0,0.32)]">
-        <div className="flex items-start justify-between gap-4 border-b border-white/[0.08] px-5 py-5 sm:px-6">
-          <SectionIntro
+    ><div className="mx-auto max-w-6xl rounded-[22px] border border-white/[0.08] bg-[#0c1016] shadow-[0_30px_80px_rgba(0,0,0,0.32)]"><div className="flex items-start justify-between gap-4 border-b border-white/[0.08] px-5 py-5 sm:px-6"><SectionIntro
             eyebrow="Cadastro guiado"
             title="Nova unidade"
             description="Fluxo curto para identificar, vincular e revisar antes de criar."
@@ -171,69 +172,42 @@ export default async function NovaUnidadePage({
               ) : undefined
             }
             compact
-          />
-          <div className="shrink-0">
-            <Link
+          /><div className="shrink-0"><Link
               href="/unidades"
               aria-label="Fechar cadastro"
               className="inline-flex h-11 w-11 items-center justify-center rounded-[16px] border border-white/10 bg-white/[0.04] text-lg leading-none text-slate-300 transition hover:bg-white/[0.08] hover:text-white"
             >
               ×
-            </Link>
-          </div>
-        </div>
-
-        <div className="border-b border-white/[0.08] bg-[#0f141b] px-5 py-4 sm:px-6">
-          <div className="grid gap-3 lg:grid-cols-4">
-            <WizardStep
+            </Link></div></div><div className="border-b border-white/[0.08] bg-[#0f141b] px-5 py-4 sm:px-6"><div className="grid gap-3 lg:grid-cols-4"><WizardStep
               index={1}
               title="Base"
               description="Identificação principal."
               state={step === 1 ? "current" : step > 1 ? "done" : "available"}
               href={buildWizardHref(1, wizardValues)}
-            />
-            <WizardStep
+            /><WizardStep
               index={2}
               title="Vínculos"
               description="Parceiro e localização."
               state={step === 2 ? "current" : step > 2 ? "done" : baseReady ? "available" : "locked"}
               href={baseReady ? buildWizardHref(2, wizardValues) : undefined}
-            />
-            <WizardStep
+            /><WizardStep
               index={3}
               title="Monitoramento"
               description="Leitura e sync depois da criação."
               state={step === 3 ? "current" : step > 3 ? "done" : linkReady ? "available" : "locked"}
               href={linkReady ? buildWizardHref(3, wizardValues) : undefined}
-            />
-            <WizardStep
+            /><WizardStep
               index={4}
               title="Observações"
               description="Revisão final."
               state={step === 4 ? "current" : linkReady ? "available" : "locked"}
               href={linkReady ? buildWizardHref(4, wizardValues) : undefined}
-            />
-          </div>
-        </div>
-
-        <div className="px-5 py-5 sm:px-6">
+            /></div></div><div className="px-5 py-5 sm:px-6">
           {step === 1 ? (
             <WizardPanel
               title="Base"
               description="Identifique a unidade e sua posição operacional."
-            >
-              <form method="GET" className="grid gap-5">
-                <input type="hidden" name="step" value="2" />
-                <input type="hidden" name="city" value={city} />
-                <input type="hidden" name="state" value={state} />
-                <input type="hidden" name="partnerId" value={partnerId} />
-                <input type="hidden" name="partnerCode" value={partnerCode} />
-                <input type="hidden" name="from" value={origin} />
-
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="grid gap-2">
-                    <FieldLabel htmlFor="wizard-code" label="Código" hint="Mínimo de 2 caracteres" />
-                    <input
+            ><form method="GET" className="grid gap-5"><input type="hidden" name="step" value="2" /><input type="hidden" name="city" value={city} /><input type="hidden" name="state" value={state} /><input type="hidden" name="partnerId" value={partnerId} /><input type="hidden" name="partnerCode" value={partnerCode} /><input type="hidden" name="from" value={origin} /><div className="grid gap-4 md:grid-cols-2"><div className="grid gap-2"><FieldLabel htmlFor="wizard-code" label="Código" hint="Mínimo de 2 caracteres" /><input
                       id="wizard-code"
                       name="code"
                       defaultValue={code}
@@ -241,11 +215,7 @@ export default async function NovaUnidadePage({
                       minLength={2}
                       required
                       className="w-full rounded-[16px] border border-white/10 bg-[#090d13] px-4 py-3 text-sm uppercase text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <FieldLabel htmlFor="wizard-name" label="Nome da unidade" hint="Nome operacional claro" />
-                    <input
+                    /></div><div className="grid gap-2"><FieldLabel htmlFor="wizard-name" label="Nome da unidade" hint="Nome operacional claro" /><input
                       id="wizard-name"
                       name="name"
                       defaultValue={name}
@@ -253,48 +223,27 @@ export default async function NovaUnidadePage({
                       minLength={2}
                       required
                       className="w-full rounded-[16px] border border-white/10 bg-[#090d13] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between gap-3 border-t border-white/[0.08] pt-5">
-                  <Link
+                    /></div></div><div className="flex items-center justify-between gap-3 border-t border-white/[0.08] pt-5"><Link
                     href="/unidades"
                     className="rounded-[16px] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]"
                   >
                     Voltar
-                  </Link>
-                  <button className="rounded-[16px] border border-white/10 bg-white/[0.04] px-5 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]">
+                  </Link><button className="rounded-[16px] border border-white/10 bg-white/[0.04] px-5 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]">
                     Próximo
-                  </button>
-                </div>
-              </form>
-            </WizardPanel>
+                  </button></div></form></WizardPanel>
           ) : null}
 
           {step === 2 ? (
             <WizardPanel
               title="Vínculos"
               description="Associe o parceiro principal e guarde o mínimo de localização útil para consulta e reconciliação."
-            >
-              <form method="GET" className="grid gap-5">
-                <input type="hidden" name="step" value="3" />
-                <input type="hidden" name="code" value={code} />
-                <input type="hidden" name="name" value={name} />
-                <input type="hidden" name="partnerCode" value={partnerCode} />
-                <input type="hidden" name="from" value={origin} />
-
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="grid gap-2">
-                    <FieldLabel htmlFor="wizard-partner" label="Parceiro principal" hint="Obrigatório para avançar" />
-                    <select
+            ><form method="GET" className="grid gap-5"><input type="hidden" name="step" value="3" /><input type="hidden" name="code" value={code} /><input type="hidden" name="name" value={name} /><input type="hidden" name="partnerCode" value={partnerCode} /><input type="hidden" name="from" value={origin} /><div className="grid gap-4 md:grid-cols-2"><div className="grid gap-2"><FieldLabel htmlFor="wizard-partner" label="Parceiro principal" hint="Obrigatório para avançar" /><select
                       id="wizard-partner"
                       name="partnerId"
                       defaultValue={partnerId}
                       required
                       className="w-full rounded-[16px] border border-white/10 bg-[#090d13] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-                    >
-                      <option value="">Selecione um parceiro</option>
+                    ><option value="">Selecione um parceiro</option>
                       {partnerOptions.map((partner) => (
                         <option key={partner.id} value={partner.id}>
                           {partner.code} - {partner.name}
@@ -310,168 +259,109 @@ export default async function NovaUnidadePage({
                           : " · selecione o equivalente antes de gravar"}
                       </div>
                     ) : null}
-                  </div>
-                  <div className="grid gap-2">
-                    <FieldLabel htmlFor="wizard-city" label="Cidade" hint="Opcional" />
-                    <input
+                  </div><div className="grid gap-2"><FieldLabel htmlFor="wizard-city" label="Cidade" hint="Opcional" /><input
                       id="wizard-city"
                       name="city"
                       defaultValue={city}
                       placeholder="Araguaína"
                       className="w-full rounded-[16px] border border-white/10 bg-[#090d13] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="grid gap-2">
-                    <FieldLabel htmlFor="wizard-state" label="UF" hint="Sigla" />
-                    <input
+                    /></div></div><div className="grid gap-4 md:grid-cols-2"><div className="grid gap-2"><FieldLabel htmlFor="wizard-state" label="UF" hint="Sigla" /><input
                       id="wizard-state"
                       name="state"
                       defaultValue={state}
                       placeholder="TO"
                       maxLength={2}
                       className="w-full rounded-[16px] border border-white/10 bg-[#090d13] px-4 py-3 text-sm uppercase text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
-                    />
-                  </div>
-                  <div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] px-4 py-4">
-                    <div className="text-sm font-semibold text-slate-50">Leitura do vínculo</div>
-                    <div className="mt-2 text-sm leading-6 text-slate-400">
+                    /></div><div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] px-4 py-4"><div className="text-sm font-semibold text-slate-50">Leitura do vínculo</div><div className="mt-2 text-sm leading-6 text-slate-400">
                       O parceiro já entra aqui porque ele é a peça central do atendimento externo. O restante do contexto operacional continua no detalhe da unidade depois da criação.
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between gap-3 border-t border-white/[0.08] pt-5">
-                  <Link
+                    </div></div></div><div className="flex items-center justify-between gap-3 border-t border-white/[0.08] pt-5"><Link
                     href={buildWizardHref(1, wizardValues)}
                     className="rounded-[16px] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]"
                   >
                     Voltar
-                  </Link>
-                  <button className="rounded-[16px] border border-white/10 bg-white/[0.04] px-5 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]">
+                  </Link><button className="rounded-[16px] border border-white/10 bg-white/[0.04] px-5 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]">
                     Próximo
-                  </button>
-                </div>
-              </form>
-            </WizardPanel>
+                  </button></div></form></WizardPanel>
           ) : null}
 
           {step === 3 ? (
             <WizardPanel
               title="Monitoramento"
               description="Prepare a unidade para o match técnico com host, legado e cobertura do parceiro."
-            >
-              <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
-                <div className="grid gap-4">
-                  <div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4">
-                    <div className="text-sm font-semibold text-slate-50">Fluxo recomendado</div>
-                    <div className="mt-2 text-sm leading-6 text-slate-400">
+            ><div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]"><div className="grid gap-4"><div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="text-sm font-semibold text-slate-50">Fluxo recomendado</div><div className="mt-2 text-sm leading-6 text-slate-400">
                       1. Crie a unidade com base e vínculo corretos. 2. Abra a ficha da unidade. 3. Resolva o match do host Zabbix, legado e cobertura do parceiro no detalhe operacional.
-                    </div>
-                  </div>
-                  <div className="grid gap-3 md:grid-cols-3">
-                    <SummaryItem label="Código" value={code} />
-                    <SummaryItem label="Nome" value={name} />
-                    <SummaryItem label="Parceiro" value={selectedPartner ? `${selectedPartner.code} - ${selectedPartner.name}` : "-"} />
-                    <SummaryItem label="Cidade" value={city || "-"} />
-                    <SummaryItem label="UF" value={state || "-"} />
-                    <SummaryItem label="Origem" value={origin === "legacy" ? "legado importado" : "cadastro manual"} />
-                  </div>
-                </div>
-
-                <div className="rounded-[16px] border border-sky-500/18 bg-sky-500/[0.06] p-4">
-                  <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-sky-100">
+                    </div></div><div className="grid gap-3 md:grid-cols-3"><SummaryItem label="Código" value={code} /><SummaryItem label="Nome" value={name} /><SummaryItem label="Parceiro" value={selectedPartner ? `${selectedPartner.code} - ${selectedPartner.name}` : "-"} /><SummaryItem label="Cidade" value={city || "-"} /><SummaryItem label="UF" value={state || "-"} /><SummaryItem label="Origem" value={origin === "legacy" ? "legado importado" : "cadastro manual"} /></div></div><div className="rounded-[16px] border border-sky-500/18 bg-sky-500/[0.06] p-4"><div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-sky-100">
                     pós-criação
-                  </div>
-                  <div className="mt-3 text-sm font-semibold text-white">
+                  </div><div className="mt-3 text-sm font-semibold text-white">
                     O monitoramento nasce no detalhe
-                  </div>
-                  <div className="mt-2 text-sm leading-6 text-slate-300">
-                    Assim que a unidade existir, a tela de detalhe pode exibir match de host, contexto legado, backup, Starlink e lacunas de acionamento.
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-5 flex items-center justify-between gap-3 border-t border-white/[0.08] pt-5">
-                <Link
+                  </div><div className="mt-2 text-sm leading-6 text-slate-300">
+                    Após criar, complete vínculos, monitoramento e acionamento.
+                  </div></div></div><div className="mt-5 flex items-center justify-between gap-3 border-t border-white/[0.08] pt-5"><Link
                   href={buildWizardHref(2, wizardValues)}
                   className="rounded-[16px] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]"
                 >
                   Voltar
-                </Link>
-                <Link
+                </Link><Link
                   href={buildWizardHref(4, wizardValues)}
                   className="rounded-[16px] border border-white/10 bg-white/[0.04] px-5 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]"
                 >
                   Próximo
-                </Link>
-              </div>
-            </WizardPanel>
+                </Link></div></WizardPanel>
           ) : null}
 
           {step === 4 ? (
             <WizardPanel
               title="Observações"
               description="Revise os dados antes de criar a unidade."
-            >
-              <ActionForm
+            ><ActionForm
                 action={createFromWizard}
                 className="grid gap-5"
                 submitLabel="Criar unidade"
                 pendingLabel="Criando unidade..."
                 hideSubmit
-              >
-                <input type="hidden" name="code" value={code} />
-                <input type="hidden" name="name" value={name} />
-                <input type="hidden" name="city" value={city} />
-                <input type="hidden" name="state" value={state} />
-                <input type="hidden" name="partnerId" value={partnerId} />
-                <input type="hidden" name="partnerCode" value={partnerCode} />
-                <input type="hidden" name="from" value={origin} />
-
-                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                  <SummaryItem label="Código" value={code} />
-                  <SummaryItem label="Nome da unidade" value={name} />
-                  <SummaryItem label="Parceiro" value={selectedPartner ? `${selectedPartner.code} - ${selectedPartner.name}` : "-"} />
-                  <SummaryItem label="Cidade" value={city || "-"} />
-                  <SummaryItem label="UF" value={state || "-"} />
-                  <SummaryItem label="Origem" value={origin === "legacy" ? "legado importado" : "cadastro manual"} />
-                </div>
-
-                <div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4 text-sm leading-6 text-slate-400">
+              ><input type="hidden" name="code" value={code} /><input type="hidden" name="name" value={name} /><input type="hidden" name="city" value={city} /><input type="hidden" name="state" value={state} /><input type="hidden" name="partnerId" value={partnerId} /><input type="hidden" name="partnerCode" value={partnerCode} /><input type="hidden" name="from" value={origin} /><div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3"><SummaryItem label="Código" value={code} /><SummaryItem label="Nome da unidade" value={name} /><SummaryItem label="Parceiro" value={selectedPartner ? `${selectedPartner.code} - ${selectedPartner.name}` : "-"} /><SummaryItem label="Cidade" value={city || "-"} /><SummaryItem label="UF" value={state || "-"} /><SummaryItem label="Origem" value={origin === "legacy" ? "legado importado" : "cadastro manual"} /></div><div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                  Dados para relatório
+                </div><div className="mt-2 text-sm leading-6 text-slate-400">
+                  Preencha quando a unidade já tiver contrato, endereço de instalação ou banda oficial. Esses dados entram automaticamente no DOCX/PDF.
+                </div><div className="mt-4 grid gap-4 md:grid-cols-2"><div className="grid gap-2"><FieldLabel htmlFor="new-unit-report-contract" label="Contrato do relatório" hint="Opcional" /><input
+                      id="new-unit-report-contract"
+                      name="reportContractLabel"
+                      placeholder="Contrato nº ..."
+                      className="w-full rounded-[16px] border border-white/10 bg-[#090d13] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
+                    /></div><div className="grid gap-2"><FieldLabel htmlFor="new-unit-report-bandwidth" label="Banda contratada" hint="Opcional" /><input
+                      id="new-unit-report-bandwidth"
+                      name="reportContractedBandwidth"
+                      placeholder="Ex.: 100 Mbps"
+                      className="w-full rounded-[16px] border border-white/10 bg-[#090d13] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
+                    /></div><div className="grid gap-2 md:col-span-2"><FieldLabel htmlFor="new-unit-report-address" label="Endereço do relatório" hint="Opcional; vazio usa Cidade - UF" /><input
+                      id="new-unit-report-address"
+                      name="reportAddressLine"
+                      placeholder="Endereço de instalação ou Cidade - UF"
+                      className="w-full rounded-[16px] border border-white/10 bg-[#090d13] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
+                    /></div><div className="grid gap-2 md:col-span-2"><FieldLabel htmlFor="new-unit-report-notes" label="Observações do relatório" hint="Opcional" /><textarea
+                      id="new-unit-report-notes"
+                      name="reportNotes"
+                      rows={3}
+                      placeholder="Observações internas para emissão do relatório"
+                      className="w-full rounded-[16px] border border-white/10 bg-[#090d13] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
+                    /></div></div></div><div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4 text-sm leading-6 text-slate-400">
                   Depois de criar, abra a ficha da unidade para amarrar monitoramento, contexto legado, backup e equipamentos.
-                </div>
-
-                <div className="flex items-center justify-between gap-3 border-t border-white/[0.08] pt-5">
-                  <Link
+                </div><div className="flex items-center justify-between gap-3 border-t border-white/[0.08] pt-5"><Link
                     href={buildWizardHref(3, wizardValues)}
                     className="rounded-[16px] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]"
                   >
                     Voltar
-                  </Link>
-                  <FormSubmitButton
+                  </Link><FormSubmitButton
                     idleLabel="Criar unidade"
                     pendingLabel="Criando unidade..."
                     className="min-w-[148px]"
-                  />
-                </div>
-              </ActionForm>
-            </WizardPanel>
+                  /></div></ActionForm></WizardPanel>
           ) : null}
-        </div>
-
-        <div className="flex items-center justify-end gap-3 border-t border-white/[0.08] px-5 py-4 sm:px-6">
-          <TonePill tone="info">cadastro guiado</TonePill>
-          <Link
+        </div><div className="flex items-center justify-end gap-3 border-t border-white/[0.08] px-5 py-4 sm:px-6"><TonePill tone="info">cadastro guiado</TonePill><Link
             href="/unidades"
             className="rounded-[16px] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]"
           >
             Cancelar
-          </Link>
-        </div>
-      </div>
-    </AppShell>
+          </Link></div></div></AppShell>
   );
 }
