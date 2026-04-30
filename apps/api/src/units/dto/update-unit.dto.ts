@@ -32,6 +32,22 @@ export class UpdateUnitDto {
   partnerId?: string;
 
   @IsOptional()
+  @IsString()
+  reportContractLabel?: string;
+
+  @IsOptional()
+  @IsString()
+  reportAddressLine?: string;
+
+  @IsOptional()
+  @IsString()
+  reportContractedBandwidth?: string;
+
+  @IsOptional()
+  @IsString()
+  reportNotes?: string;
+
+  @IsOptional()
   @IsBoolean()
   isActive?: boolean;
 }

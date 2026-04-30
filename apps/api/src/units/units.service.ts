@@ -25,6 +25,10 @@ export class UnitsService {
       name: true,
       city: true,
       state: true,
+      reportContractLabel: true,
+      reportAddressLine: true,
+      reportContractedBandwidth: true,
+      reportNotes: true,
       zabbixHost: true,
       zabbixVisibleName: true,
       isActive: true,
@@ -143,6 +147,10 @@ export class UnitsService {
           name: true,
           city: true,
           state: true,
+          reportContractLabel: true,
+          reportAddressLine: true,
+          reportContractedBandwidth: true,
+          reportNotes: true,
           isActive: true,
           createdAt: true,
           partner: {
@@ -194,6 +202,10 @@ export class UnitsService {
         name: true,
         city: true,
         state: true,
+        reportContractLabel: true,
+        reportAddressLine: true,
+        reportContractedBandwidth: true,
+        reportNotes: true,
         zabbixHost: true,
         zabbixVisibleName: true,
         isActive: true,
@@ -262,6 +274,10 @@ export class UnitsService {
     const city = payload.city?.trim() || "";
     const state = payload.state?.trim().toUpperCase() || "";
     const partnerId = payload.partnerId.trim();
+    const reportContractLabel = payload.reportContractLabel?.trim() || null;
+    const reportAddressLine = payload.reportAddressLine?.trim() || null;
+    const reportContractedBandwidth = payload.reportContractedBandwidth?.trim() || null;
+    const reportNotes = payload.reportNotes?.trim() || null;
 
     const existing = await this.prisma.unit.findUnique({
       where: { code },
@@ -287,6 +303,10 @@ export class UnitsService {
         name,
         city: city || null,
         state: state || null,
+        reportContractLabel,
+        reportAddressLine,
+        reportContractedBandwidth,
+        reportNotes,
         isActive: true,
         partnerId,
       },
@@ -296,6 +316,10 @@ export class UnitsService {
         name: true,
         city: true,
         state: true,
+        reportContractLabel: true,
+        reportAddressLine: true,
+        reportContractedBandwidth: true,
+        reportNotes: true,
         isActive: true,
         createdAt: true,
       },
@@ -356,6 +380,23 @@ export class UnitsService {
       data.partnerId = partnerId;
     }
 
+
+    if (payload.reportContractLabel !== undefined) {
+      data.reportContractLabel = payload.reportContractLabel.trim() || null;
+    }
+
+    if (payload.reportAddressLine !== undefined) {
+      data.reportAddressLine = payload.reportAddressLine.trim() || null;
+    }
+
+    if (payload.reportContractedBandwidth !== undefined) {
+      data.reportContractedBandwidth = payload.reportContractedBandwidth.trim() || null;
+    }
+
+    if (payload.reportNotes !== undefined) {
+      data.reportNotes = payload.reportNotes.trim() || null;
+    }
+
     if (payload.isActive !== undefined) {
       data.isActive = payload.isActive;
     }
@@ -369,6 +410,10 @@ export class UnitsService {
         name: true,
         city: true,
         state: true,
+        reportContractLabel: true,
+        reportAddressLine: true,
+        reportContractedBandwidth: true,
+        reportNotes: true,
         isActive: true,
         createdAt: true,
       },

@@ -32,6 +32,10 @@ export type UnitMinAggregateOutputType = {
   state: string | null
   zabbixHost: string | null
   zabbixVisibleName: string | null
+  reportContractLabel: string | null
+  reportAddressLine: string | null
+  reportContractedBandwidth: string | null
+  reportNotes: string | null
   isActive: boolean | null
   partnerId: string | null
   createdAt: Date | null
@@ -46,6 +50,10 @@ export type UnitMaxAggregateOutputType = {
   state: string | null
   zabbixHost: string | null
   zabbixVisibleName: string | null
+  reportContractLabel: string | null
+  reportAddressLine: string | null
+  reportContractedBandwidth: string | null
+  reportNotes: string | null
   isActive: boolean | null
   partnerId: string | null
   createdAt: Date | null
@@ -60,6 +68,10 @@ export type UnitCountAggregateOutputType = {
   state: number
   zabbixHost: number
   zabbixVisibleName: number
+  reportContractLabel: number
+  reportAddressLine: number
+  reportContractedBandwidth: number
+  reportNotes: number
   isActive: number
   partnerId: number
   createdAt: number
@@ -76,6 +88,10 @@ export type UnitMinAggregateInputType = {
   state?: true
   zabbixHost?: true
   zabbixVisibleName?: true
+  reportContractLabel?: true
+  reportAddressLine?: true
+  reportContractedBandwidth?: true
+  reportNotes?: true
   isActive?: true
   partnerId?: true
   createdAt?: true
@@ -90,6 +106,10 @@ export type UnitMaxAggregateInputType = {
   state?: true
   zabbixHost?: true
   zabbixVisibleName?: true
+  reportContractLabel?: true
+  reportAddressLine?: true
+  reportContractedBandwidth?: true
+  reportNotes?: true
   isActive?: true
   partnerId?: true
   createdAt?: true
@@ -104,6 +124,10 @@ export type UnitCountAggregateInputType = {
   state?: true
   zabbixHost?: true
   zabbixVisibleName?: true
+  reportContractLabel?: true
+  reportAddressLine?: true
+  reportContractedBandwidth?: true
+  reportNotes?: true
   isActive?: true
   partnerId?: true
   createdAt?: true
@@ -191,6 +215,10 @@ export type UnitGroupByOutputType = {
   state: string | null
   zabbixHost: string | null
   zabbixVisibleName: string | null
+  reportContractLabel: string | null
+  reportAddressLine: string | null
+  reportContractedBandwidth: string | null
+  reportNotes: string | null
   isActive: boolean
   partnerId: string
   createdAt: Date
@@ -226,6 +254,10 @@ export type UnitWhereInput = {
   state?: Prisma.StringNullableFilter<"Unit"> | string | null
   zabbixHost?: Prisma.StringNullableFilter<"Unit"> | string | null
   zabbixVisibleName?: Prisma.StringNullableFilter<"Unit"> | string | null
+  reportContractLabel?: Prisma.StringNullableFilter<"Unit"> | string | null
+  reportAddressLine?: Prisma.StringNullableFilter<"Unit"> | string | null
+  reportContractedBandwidth?: Prisma.StringNullableFilter<"Unit"> | string | null
+  reportNotes?: Prisma.StringNullableFilter<"Unit"> | string | null
   isActive?: Prisma.BoolFilter<"Unit"> | boolean
   partnerId?: Prisma.StringFilter<"Unit"> | string
   createdAt?: Prisma.DateTimeFilter<"Unit"> | Date | string
@@ -246,6 +278,10 @@ export type UnitOrderByWithRelationInput = {
   state?: Prisma.SortOrderInput | Prisma.SortOrder
   zabbixHost?: Prisma.SortOrderInput | Prisma.SortOrder
   zabbixVisibleName?: Prisma.SortOrderInput | Prisma.SortOrder
+  reportContractLabel?: Prisma.SortOrderInput | Prisma.SortOrder
+  reportAddressLine?: Prisma.SortOrderInput | Prisma.SortOrder
+  reportContractedBandwidth?: Prisma.SortOrderInput | Prisma.SortOrder
+  reportNotes?: Prisma.SortOrderInput | Prisma.SortOrder
   isActive?: Prisma.SortOrder
   partnerId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -269,6 +305,10 @@ export type UnitWhereUniqueInput = Prisma.AtLeast<{
   state?: Prisma.StringNullableFilter<"Unit"> | string | null
   zabbixHost?: Prisma.StringNullableFilter<"Unit"> | string | null
   zabbixVisibleName?: Prisma.StringNullableFilter<"Unit"> | string | null
+  reportContractLabel?: Prisma.StringNullableFilter<"Unit"> | string | null
+  reportAddressLine?: Prisma.StringNullableFilter<"Unit"> | string | null
+  reportContractedBandwidth?: Prisma.StringNullableFilter<"Unit"> | string | null
+  reportNotes?: Prisma.StringNullableFilter<"Unit"> | string | null
   isActive?: Prisma.BoolFilter<"Unit"> | boolean
   partnerId?: Prisma.StringFilter<"Unit"> | string
   createdAt?: Prisma.DateTimeFilter<"Unit"> | Date | string
@@ -289,6 +329,10 @@ export type UnitOrderByWithAggregationInput = {
   state?: Prisma.SortOrderInput | Prisma.SortOrder
   zabbixHost?: Prisma.SortOrderInput | Prisma.SortOrder
   zabbixVisibleName?: Prisma.SortOrderInput | Prisma.SortOrder
+  reportContractLabel?: Prisma.SortOrderInput | Prisma.SortOrder
+  reportAddressLine?: Prisma.SortOrderInput | Prisma.SortOrder
+  reportContractedBandwidth?: Prisma.SortOrderInput | Prisma.SortOrder
+  reportNotes?: Prisma.SortOrderInput | Prisma.SortOrder
   isActive?: Prisma.SortOrder
   partnerId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -309,6 +353,10 @@ export type UnitScalarWhereWithAggregatesInput = {
   state?: Prisma.StringNullableWithAggregatesFilter<"Unit"> | string | null
   zabbixHost?: Prisma.StringNullableWithAggregatesFilter<"Unit"> | string | null
   zabbixVisibleName?: Prisma.StringNullableWithAggregatesFilter<"Unit"> | string | null
+  reportContractLabel?: Prisma.StringNullableWithAggregatesFilter<"Unit"> | string | null
+  reportAddressLine?: Prisma.StringNullableWithAggregatesFilter<"Unit"> | string | null
+  reportContractedBandwidth?: Prisma.StringNullableWithAggregatesFilter<"Unit"> | string | null
+  reportNotes?: Prisma.StringNullableWithAggregatesFilter<"Unit"> | string | null
   isActive?: Prisma.BoolWithAggregatesFilter<"Unit"> | boolean
   partnerId?: Prisma.StringWithAggregatesFilter<"Unit"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Unit"> | Date | string
@@ -323,6 +371,10 @@ export type UnitCreateInput = {
   state?: string | null
   zabbixHost?: string | null
   zabbixVisibleName?: string | null
+  reportContractLabel?: string | null
+  reportAddressLine?: string | null
+  reportContractedBandwidth?: string | null
+  reportNotes?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -342,6 +394,10 @@ export type UnitUncheckedCreateInput = {
   state?: string | null
   zabbixHost?: string | null
   zabbixVisibleName?: string | null
+  reportContractLabel?: string | null
+  reportAddressLine?: string | null
+  reportContractedBandwidth?: string | null
+  reportNotes?: string | null
   isActive?: boolean
   partnerId: string
   createdAt?: Date | string
@@ -361,6 +417,10 @@ export type UnitUpdateInput = {
   state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   zabbixHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   zabbixVisibleName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportContractLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportAddressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportContractedBandwidth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -380,6 +440,10 @@ export type UnitUncheckedUpdateInput = {
   state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   zabbixHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   zabbixVisibleName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportContractLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportAddressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportContractedBandwidth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   partnerId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -399,6 +463,10 @@ export type UnitCreateManyInput = {
   state?: string | null
   zabbixHost?: string | null
   zabbixVisibleName?: string | null
+  reportContractLabel?: string | null
+  reportAddressLine?: string | null
+  reportContractedBandwidth?: string | null
+  reportNotes?: string | null
   isActive?: boolean
   partnerId: string
   createdAt?: Date | string
@@ -413,6 +481,10 @@ export type UnitUpdateManyMutationInput = {
   state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   zabbixHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   zabbixVisibleName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportContractLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportAddressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportContractedBandwidth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -426,6 +498,10 @@ export type UnitUncheckedUpdateManyInput = {
   state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   zabbixHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   zabbixVisibleName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportContractLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportAddressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportContractedBandwidth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   partnerId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -450,6 +526,10 @@ export type UnitCountOrderByAggregateInput = {
   state?: Prisma.SortOrder
   zabbixHost?: Prisma.SortOrder
   zabbixVisibleName?: Prisma.SortOrder
+  reportContractLabel?: Prisma.SortOrder
+  reportAddressLine?: Prisma.SortOrder
+  reportContractedBandwidth?: Prisma.SortOrder
+  reportNotes?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   partnerId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -464,6 +544,10 @@ export type UnitMaxOrderByAggregateInput = {
   state?: Prisma.SortOrder
   zabbixHost?: Prisma.SortOrder
   zabbixVisibleName?: Prisma.SortOrder
+  reportContractLabel?: Prisma.SortOrder
+  reportAddressLine?: Prisma.SortOrder
+  reportContractedBandwidth?: Prisma.SortOrder
+  reportNotes?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   partnerId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -478,6 +562,10 @@ export type UnitMinOrderByAggregateInput = {
   state?: Prisma.SortOrder
   zabbixHost?: Prisma.SortOrder
   zabbixVisibleName?: Prisma.SortOrder
+  reportContractLabel?: Prisma.SortOrder
+  reportAddressLine?: Prisma.SortOrder
+  reportContractedBandwidth?: Prisma.SortOrder
+  reportNotes?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   partnerId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -626,6 +714,10 @@ export type UnitCreateWithoutPartnerInput = {
   state?: string | null
   zabbixHost?: string | null
   zabbixVisibleName?: string | null
+  reportContractLabel?: string | null
+  reportAddressLine?: string | null
+  reportContractedBandwidth?: string | null
+  reportNotes?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -644,6 +736,10 @@ export type UnitUncheckedCreateWithoutPartnerInput = {
   state?: string | null
   zabbixHost?: string | null
   zabbixVisibleName?: string | null
+  reportContractLabel?: string | null
+  reportAddressLine?: string | null
+  reportContractedBandwidth?: string | null
+  reportNotes?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -691,6 +787,10 @@ export type UnitScalarWhereInput = {
   state?: Prisma.StringNullableFilter<"Unit"> | string | null
   zabbixHost?: Prisma.StringNullableFilter<"Unit"> | string | null
   zabbixVisibleName?: Prisma.StringNullableFilter<"Unit"> | string | null
+  reportContractLabel?: Prisma.StringNullableFilter<"Unit"> | string | null
+  reportAddressLine?: Prisma.StringNullableFilter<"Unit"> | string | null
+  reportContractedBandwidth?: Prisma.StringNullableFilter<"Unit"> | string | null
+  reportNotes?: Prisma.StringNullableFilter<"Unit"> | string | null
   isActive?: Prisma.BoolFilter<"Unit"> | boolean
   partnerId?: Prisma.StringFilter<"Unit"> | string
   createdAt?: Prisma.DateTimeFilter<"Unit"> | Date | string
@@ -705,6 +805,10 @@ export type UnitCreateWithoutEquipmentsInput = {
   state?: string | null
   zabbixHost?: string | null
   zabbixVisibleName?: string | null
+  reportContractLabel?: string | null
+  reportAddressLine?: string | null
+  reportContractedBandwidth?: string | null
+  reportNotes?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -723,6 +827,10 @@ export type UnitUncheckedCreateWithoutEquipmentsInput = {
   state?: string | null
   zabbixHost?: string | null
   zabbixVisibleName?: string | null
+  reportContractLabel?: string | null
+  reportAddressLine?: string | null
+  reportContractedBandwidth?: string | null
+  reportNotes?: string | null
   isActive?: boolean
   partnerId: string
   createdAt?: Date | string
@@ -757,6 +865,10 @@ export type UnitUpdateWithoutEquipmentsInput = {
   state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   zabbixHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   zabbixVisibleName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportContractLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportAddressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportContractedBandwidth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -775,6 +887,10 @@ export type UnitUncheckedUpdateWithoutEquipmentsInput = {
   state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   zabbixHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   zabbixVisibleName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportContractLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportAddressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportContractedBandwidth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   partnerId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -793,6 +909,10 @@ export type UnitCreateWithoutOccurrencesInput = {
   state?: string | null
   zabbixHost?: string | null
   zabbixVisibleName?: string | null
+  reportContractLabel?: string | null
+  reportAddressLine?: string | null
+  reportContractedBandwidth?: string | null
+  reportNotes?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -811,6 +931,10 @@ export type UnitUncheckedCreateWithoutOccurrencesInput = {
   state?: string | null
   zabbixHost?: string | null
   zabbixVisibleName?: string | null
+  reportContractLabel?: string | null
+  reportAddressLine?: string | null
+  reportContractedBandwidth?: string | null
+  reportNotes?: string | null
   isActive?: boolean
   partnerId: string
   createdAt?: Date | string
@@ -845,6 +969,10 @@ export type UnitUpdateWithoutOccurrencesInput = {
   state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   zabbixHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   zabbixVisibleName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportContractLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportAddressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportContractedBandwidth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -863,6 +991,10 @@ export type UnitUncheckedUpdateWithoutOccurrencesInput = {
   state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   zabbixHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   zabbixVisibleName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportContractLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportAddressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportContractedBandwidth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   partnerId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -881,6 +1013,10 @@ export type UnitCreateWithoutMaintenancesInput = {
   state?: string | null
   zabbixHost?: string | null
   zabbixVisibleName?: string | null
+  reportContractLabel?: string | null
+  reportAddressLine?: string | null
+  reportContractedBandwidth?: string | null
+  reportNotes?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -899,6 +1035,10 @@ export type UnitUncheckedCreateWithoutMaintenancesInput = {
   state?: string | null
   zabbixHost?: string | null
   zabbixVisibleName?: string | null
+  reportContractLabel?: string | null
+  reportAddressLine?: string | null
+  reportContractedBandwidth?: string | null
+  reportNotes?: string | null
   isActive?: boolean
   partnerId: string
   createdAt?: Date | string
@@ -933,6 +1073,10 @@ export type UnitUpdateWithoutMaintenancesInput = {
   state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   zabbixHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   zabbixVisibleName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportContractLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportAddressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportContractedBandwidth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -951,6 +1095,10 @@ export type UnitUncheckedUpdateWithoutMaintenancesInput = {
   state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   zabbixHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   zabbixVisibleName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportContractLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportAddressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportContractedBandwidth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   partnerId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -969,6 +1117,10 @@ export type UnitCreateWithoutExceptionCasesInput = {
   state?: string | null
   zabbixHost?: string | null
   zabbixVisibleName?: string | null
+  reportContractLabel?: string | null
+  reportAddressLine?: string | null
+  reportContractedBandwidth?: string | null
+  reportNotes?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -987,6 +1139,10 @@ export type UnitUncheckedCreateWithoutExceptionCasesInput = {
   state?: string | null
   zabbixHost?: string | null
   zabbixVisibleName?: string | null
+  reportContractLabel?: string | null
+  reportAddressLine?: string | null
+  reportContractedBandwidth?: string | null
+  reportNotes?: string | null
   isActive?: boolean
   partnerId: string
   createdAt?: Date | string
@@ -1021,6 +1177,10 @@ export type UnitUpdateWithoutExceptionCasesInput = {
   state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   zabbixHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   zabbixVisibleName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportContractLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportAddressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportContractedBandwidth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1039,6 +1199,10 @@ export type UnitUncheckedUpdateWithoutExceptionCasesInput = {
   state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   zabbixHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   zabbixVisibleName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportContractLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportAddressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportContractedBandwidth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   partnerId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1057,6 +1221,10 @@ export type UnitCreateWithoutActivitiesInput = {
   state?: string | null
   zabbixHost?: string | null
   zabbixVisibleName?: string | null
+  reportContractLabel?: string | null
+  reportAddressLine?: string | null
+  reportContractedBandwidth?: string | null
+  reportNotes?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1075,6 +1243,10 @@ export type UnitUncheckedCreateWithoutActivitiesInput = {
   state?: string | null
   zabbixHost?: string | null
   zabbixVisibleName?: string | null
+  reportContractLabel?: string | null
+  reportAddressLine?: string | null
+  reportContractedBandwidth?: string | null
+  reportNotes?: string | null
   isActive?: boolean
   partnerId: string
   createdAt?: Date | string
@@ -1109,6 +1281,10 @@ export type UnitUpdateWithoutActivitiesInput = {
   state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   zabbixHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   zabbixVisibleName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportContractLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportAddressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportContractedBandwidth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1127,6 +1303,10 @@ export type UnitUncheckedUpdateWithoutActivitiesInput = {
   state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   zabbixHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   zabbixVisibleName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportContractLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportAddressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportContractedBandwidth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   partnerId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1145,6 +1325,10 @@ export type UnitCreateManyPartnerInput = {
   state?: string | null
   zabbixHost?: string | null
   zabbixVisibleName?: string | null
+  reportContractLabel?: string | null
+  reportAddressLine?: string | null
+  reportContractedBandwidth?: string | null
+  reportNotes?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1158,6 +1342,10 @@ export type UnitUpdateWithoutPartnerInput = {
   state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   zabbixHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   zabbixVisibleName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportContractLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportAddressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportContractedBandwidth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1176,6 +1364,10 @@ export type UnitUncheckedUpdateWithoutPartnerInput = {
   state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   zabbixHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   zabbixVisibleName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportContractLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportAddressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportContractedBandwidth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1194,6 +1386,10 @@ export type UnitUncheckedUpdateManyWithoutPartnerInput = {
   state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   zabbixHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   zabbixVisibleName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportContractLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportAddressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportContractedBandwidth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1274,6 +1470,10 @@ export type UnitSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   state?: boolean
   zabbixHost?: boolean
   zabbixVisibleName?: boolean
+  reportContractLabel?: boolean
+  reportAddressLine?: boolean
+  reportContractedBandwidth?: boolean
+  reportNotes?: boolean
   isActive?: boolean
   partnerId?: boolean
   createdAt?: boolean
@@ -1295,6 +1495,10 @@ export type UnitSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   state?: boolean
   zabbixHost?: boolean
   zabbixVisibleName?: boolean
+  reportContractLabel?: boolean
+  reportAddressLine?: boolean
+  reportContractedBandwidth?: boolean
+  reportNotes?: boolean
   isActive?: boolean
   partnerId?: boolean
   createdAt?: boolean
@@ -1310,6 +1514,10 @@ export type UnitSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   state?: boolean
   zabbixHost?: boolean
   zabbixVisibleName?: boolean
+  reportContractLabel?: boolean
+  reportAddressLine?: boolean
+  reportContractedBandwidth?: boolean
+  reportNotes?: boolean
   isActive?: boolean
   partnerId?: boolean
   createdAt?: boolean
@@ -1325,13 +1533,17 @@ export type UnitSelectScalar = {
   state?: boolean
   zabbixHost?: boolean
   zabbixVisibleName?: boolean
+  reportContractLabel?: boolean
+  reportAddressLine?: boolean
+  reportContractedBandwidth?: boolean
+  reportNotes?: boolean
   isActive?: boolean
   partnerId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type UnitOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "name" | "city" | "state" | "zabbixHost" | "zabbixVisibleName" | "isActive" | "partnerId" | "createdAt" | "updatedAt", ExtArgs["result"]["unit"]>
+export type UnitOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "name" | "city" | "state" | "zabbixHost" | "zabbixVisibleName" | "reportContractLabel" | "reportAddressLine" | "reportContractedBandwidth" | "reportNotes" | "isActive" | "partnerId" | "createdAt" | "updatedAt", ExtArgs["result"]["unit"]>
 export type UnitInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   partner?: boolean | Prisma.PartnerDefaultArgs<ExtArgs>
   equipments?: boolean | Prisma.Unit$equipmentsArgs<ExtArgs>
@@ -1366,6 +1578,10 @@ export type $UnitPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     state: string | null
     zabbixHost: string | null
     zabbixVisibleName: string | null
+    reportContractLabel: string | null
+    reportAddressLine: string | null
+    reportContractedBandwidth: string | null
+    reportNotes: string | null
     isActive: boolean
     partnerId: string
     createdAt: Date
@@ -1806,6 +2022,10 @@ export interface UnitFieldRefs {
   readonly state: Prisma.FieldRef<"Unit", 'String'>
   readonly zabbixHost: Prisma.FieldRef<"Unit", 'String'>
   readonly zabbixVisibleName: Prisma.FieldRef<"Unit", 'String'>
+  readonly reportContractLabel: Prisma.FieldRef<"Unit", 'String'>
+  readonly reportAddressLine: Prisma.FieldRef<"Unit", 'String'>
+  readonly reportContractedBandwidth: Prisma.FieldRef<"Unit", 'String'>
+  readonly reportNotes: Prisma.FieldRef<"Unit", 'String'>
   readonly isActive: Prisma.FieldRef<"Unit", 'Boolean'>
   readonly partnerId: Prisma.FieldRef<"Unit", 'String'>
   readonly createdAt: Prisma.FieldRef<"Unit", 'DateTime'>

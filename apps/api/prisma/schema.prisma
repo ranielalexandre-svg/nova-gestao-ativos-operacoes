@@ -45,6 +45,10 @@ model Unit {
   state          String?
   zabbixHost     String?
   zabbixVisibleName String?
+  reportContractLabel String?
+  reportAddressLine String?
+  reportContractedBandwidth String?
+  reportNotes String?
   isActive       Boolean        @default(true)
   partnerId      String
   partner        Partner        @relation(fields: [partnerId], references: [id], onDelete: Restrict)

@@ -19,4 +19,20 @@ export class CreateUnitDto {
 
   @IsString()
   partnerId!: string;
+
+  @IsOptional()
+  @IsString()
+  reportContractLabel?: string;
+
+  @IsOptional()
+  @IsString()
+  reportAddressLine?: string;
+
+  @IsOptional()
+  @IsString()
+  reportContractedBandwidth?: string;
+
+  @IsOptional()
+  @IsString()
+  reportNotes?: string;
 }
