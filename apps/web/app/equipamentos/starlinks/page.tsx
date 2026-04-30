@@ -6,6 +6,9 @@ import {
   EmptyState,
   SectionIntro,
   Surface,
+  TableActionCell,
+  TableActionHeader,
+  TableActionLink,
   TableCell,
   TableHead,
   TableShell,
@@ -99,16 +102,14 @@ export default async function StarlinksPage({
 
   return (
     <AppShell
-      title="Starlinks"
-      subtitle="Recorte dedicado dos kits Starlink antes da virada do legado."
-    >
-      <RegistryHero
-        eyebrow="Starlink Fleet"
-        title="Operação satelital em lista própria"
-        description="O legado tratava Starlinks como um módulo visível. Aqui mantemos o recorte dedicado, mas reaproveitando o inventário técnico do NOVA."
+      title="Equipamentos / Starlinks"
+      subtitle="Subgrupo de equipamentos satelitais."
+    ><RegistryHero
+        eyebrow="Equipamentos"
+        title="Starlinks"
+        description="Filtro operacional dos kits Starlink dentro do inventário técnico."
         actions={
-          <div className="flex flex-wrap gap-2">
-            <Link
+          <div className="flex flex-wrap gap-2"><Link
               href="/export/starlinks"
               className="inline-flex h-11 items-center justify-center rounded-[14px] border border-white/10 bg-white/[0.05] px-4 text-sm font-semibold text-slate-100 transition hover:bg-white/[0.09]"
             >
@@ -124,9 +125,7 @@ export default async function StarlinksPage({
             ) : null}
           </div>
         }
-      />
-
-      <RegistrySummaryStrip
+      /><RegistrySummaryStrip
         items={[
           { label: "Starlinks", value: filtered.length, meta: `${items.length} no total`, tone: "info" },
           { label: "Ativos", value: active, meta: "no recorte atual", tone: active ? "success" : "neutral" },
@@ -135,13 +134,10 @@ export default async function StarlinksPage({
         ]}
         noteTitle="Contrato com o legado"
         noteCopy="Esta tela reduz risco de troca para quem já procurava Starlink como módulo separado, sem duplicar cadastro no banco."
-      />
-
-      <Surface className="p-5 sm:p-6">
-        <SectionIntro
+      /><Surface className="p-5 sm:p-6"><SectionIntro
           eyebrow="Filtros"
           title="Encontrar kit por unidade, parceiro ou serial"
-          description="A busca roda no recorte carregado da frota Starlink. Para edições profundas, abra o equipamento vinculado."
+          description="Para editar cadastro, abra o equipamento vinculado."
           actions={
             <Link
               href="/equipamentos/starlinks"
@@ -151,90 +147,37 @@ export default async function StarlinksPage({
             </Link>
           }
           compact
-        />
-
-        <form method="GET" className="mt-5 grid gap-3 md:grid-cols-[minmax(0,1fr)_220px_160px]">
-          <input
+        /><form method="GET" className="mt-5 grid gap-3 md:grid-cols-[minmax(0,1fr)_220px_160px]"><input
             name="q"
             defaultValue={q}
             placeholder="Buscar por kit, serial, unidade, parceiro ou cidade"
             className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
-          />
-          <select
+          /><select
             name="status"
             defaultValue={status}
             className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-          >
-            <option value="all">Todos os status</option>
-            <option value="active">Ativos</option>
-            <option value="stock">Estoque</option>
-            <option value="repair">Reparo</option>
-            <option value="retired">Retirados</option>
-          </select>
-          <button className="rounded-[14px] bg-white px-4 py-3 text-sm font-semibold text-black transition hover:opacity-95">
+          ><option value="all">Todos os status</option><option value="active">Ativos</option><option value="stock">Estoque</option><option value="repair">Reparo</option><option value="retired">Retirados</option></select><button className="rounded-[14px] bg-white px-4 py-3 text-sm font-semibold text-black transition hover:opacity-95">
             Filtrar
-          </button>
-        </form>
-      </Surface>
-
-      <Surface className="p-5 sm:p-6">
-        <SectionIntro
+          </button></form></Surface><Surface className="p-5 sm:p-6"><SectionIntro
           eyebrow="Frota"
           title="Kits Starlink"
           description={`${filtered.length} kit(s) no recorte atual.`}
           compact
-        />
-
-        <div className="mt-5">
+        /><div className="mt-5">
           {filtered.length ? (
-            <TableShell>
-              <DenseTable>
-                <TableHead>
-                  <tr>
-                    <th className="px-4 py-3">Kit</th>
-                    <th className="px-4 py-3">Unidade</th>
-                    <th className="px-4 py-3">Parceiro</th>
-                    <th className="px-4 py-3">Serial</th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3 text-right">Ação</th>
-                  </tr>
-                </TableHead>
-                <tbody>
+            <TableShell><DenseTable><TableHead><tr><th className="px-4 py-3">Kit</th><th className="px-4 py-3">Unidade</th><th className="px-4 py-3">Parceiro</th><th className="px-4 py-3">Serial</th><th className="px-4 py-3">Status</th><TableActionHeader /></tr></TableHead><tbody>
                   {filtered.map((item) => (
-                    <tr key={item.id} className="border-b border-white/6 last:border-b-0 hover:bg-white/[0.025]">
-                      <TableCell>
-                        <Link href={`/equipamentos/${item.id}`} className="font-medium text-white hover:text-sky-100">
+                    <tr key={item.id} className="border-b border-white/6 last:border-b-0 hover:bg-white/[0.025]"><TableCell><Link href={`/equipamentos/${item.id}`} className="font-medium text-white hover:text-sky-100">
                           {item.assetTag}
-                        </Link>
-                        <div className="mt-1 max-w-[260px] truncate text-xs text-slate-500">
+                        </Link><div className="mt-1 max-w-[260px] truncate text-xs text-slate-500">
                           {item.model || item.manufacturer} · {item.technology}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Link href={`/unidades/${item.unitId}`} className="font-medium text-slate-100 hover:text-sky-100">
+                        </div></TableCell><TableCell><Link href={`/unidades/${item.unitId}`} className="font-medium text-slate-100 hover:text-sky-100">
                           {item.unitName}
-                        </Link>
-                        <div className="mt-1 text-xs text-slate-500">{item.city || "sem cidade"}</div>
-                      </TableCell>
-                      <TableCell className="text-slate-300">{item.partnerName}</TableCell>
-                      <TableCell className="text-slate-300">{item.serial || "-"}</TableCell>
-                      <TableCell>
-                        <TonePill tone={statusTone(item.status)}>{item.status || "sem status"}</TonePill>
-                        <div className="mt-1 text-xs text-slate-500">desde {formatDate(item.installedAt || item.createdAt)}</div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Link
-                          href={`/equipamentos/${item.id}`}
-                          className="rounded-full border border-white/10 bg-black/20 px-3 py-1.5 text-xs text-slate-200 transition hover:bg-white/[0.06] hover:text-white"
-                        >
+                        </Link><div className="mt-1 text-xs text-slate-500">{item.city || "sem cidade"}</div></TableCell><TableCell className="text-slate-300">{item.partnerName}</TableCell><TableCell className="text-slate-300">{item.serial || "-"}</TableCell><TableCell><TonePill tone={statusTone(item.status)}>{item.status || "sem status"}</TonePill><div className="mt-1 text-xs text-slate-500">desde {formatDate(item.installedAt || item.createdAt)}</div></TableCell><TableActionCell><TableActionLink href={`/equipamentos/${item.id}`}>
                           Abrir ativo
-                        </Link>
-                      </TableCell>
-                    </tr>
+                        </TableActionLink></TableActionCell></tr>
                   ))}
-                </tbody>
-              </DenseTable>
-            </TableShell>
+                </tbody></DenseTable></TableShell>
           ) : (
             <EmptyState
               title="Nenhum Starlink encontrado"
@@ -248,8 +191,6 @@ export default async function StarlinksPage({
               }
             />
           )}
-        </div>
-      </Surface>
-    </AppShell>
+        </div></Surface></AppShell>
   );
 }

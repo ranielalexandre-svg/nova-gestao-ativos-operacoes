@@ -9,6 +9,9 @@ import {
   KpiTile,
   SectionIntro,
   Surface,
+  TableActionCell,
+  TableActionHeader,
+  TableActionLink,
   TableCell,
   TableHead,
   TableShell,
@@ -519,39 +522,20 @@ function ReconciliationHero({
   const failures = sourceFailures(telemetry);
 
   return (
-    <Surface className="p-5 sm:p-6">
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px] xl:items-stretch">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <TonePill tone={failures ? "attention" : "success"}>
+    <Surface className="p-5 sm:p-6"><div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px] xl:items-stretch"><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><TonePill tone={failures ? "attention" : "success"}>
               {failures ? "fonte com alerta" : "fontes ok"}
-            </TonePill>
-            <TonePill tone="neutral">leitura {formatDateTime(telemetry.generatedAt)}</TonePill>
-          </div>
-          <h2 className="mt-4 max-w-5xl text-[28px] font-semibold leading-tight tracking-tight text-slate-50 sm:text-[36px]">
+            </TonePill><TonePill tone="neutral">leitura {formatDateTime(telemetry.generatedAt)}</TonePill></div><h2 className="mt-4 max-w-5xl text-[28px] font-semibold leading-tight tracking-tight text-slate-50 sm:text-[36px]">
             Reconcilie cadastro, host Zabbix e inventário antes de automatizar.
-          </h2>
-          <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-400">
+          </h2><p className="mt-3 max-w-4xl text-sm leading-7 text-slate-400">
             Esta tela separa o trabalho de saneamento do dashboard NOC. A escrita no Zabbix só acontece
             quando a unidade tem host único e tag explícita; os demais casos ficam em fila de ajuste.
-          </p>
-        </div>
-
-        <div className="rounded-[18px] border border-white/[0.08] bg-[#0a0f15] p-4">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+          </p></div><div className="rounded-[18px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="flex items-start justify-between gap-4"><div><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
                 Cobertura reconciliada
-              </div>
-              <div className="mt-2 text-4xl font-semibold tracking-tight text-slate-50">{coverage}%</div>
-              <div className="mt-1 text-sm text-slate-400">
+              </div><div className="mt-2 text-4xl font-semibold tracking-tight text-slate-50">{coverage}%</div><div className="mt-1 text-sm text-slate-400">
                 {telemetry.counts.matched} de {telemetry.counts.units} unidade(s) com host
-              </div>
-            </div>
-            <TonePill tone={telemetry.counts.syncReady ? "success" : "attention"}>
+              </div></div><TonePill tone={telemetry.counts.syncReady ? "success" : "attention"}>
               {telemetry.counts.syncReady} pronto(s)
-            </TonePill>
-          </div>
+            </TonePill></div>
 
           {isAdmin && telemetry.counts.syncReady > 0 ? (
             <ActionForm
@@ -561,11 +545,9 @@ function ReconciliationHero({
               variant="secondary"
               className="mt-4"
               submitClassName="justify-start"
-            >
-              <div className="rounded-[14px] border border-white/[0.08] bg-white/[0.035] p-3 text-xs leading-5 text-slate-400">
+            ><div className="rounded-[14px] border border-white/[0.08] bg-white/[0.035] p-3 text-xs leading-5 text-slate-400">
                 Atualiza apenas hosts com vínculo explícito. Casos ambíguos ou sem tag continuam bloqueados.
-              </div>
-            </ActionForm>
+              </div></ActionForm>
           ) : (
             <div className="mt-4 rounded-[14px] border border-white/[0.08] bg-white/[0.035] p-3 text-xs leading-5 text-slate-400">
               {isAdmin
@@ -573,67 +555,29 @@ function ReconciliationHero({
                 : "A sincronização é restrita a administradores."}
             </div>
           )}
-        </div>
-      </div>
-    </Surface>
+        </div></div></Surface>
   );
 }
 
 function ReadyTable({ rows }: { rows: UnitHostTelemetryItem[] }) {
   return (
-    <Surface className="p-5 sm:p-6">
-      <SectionIntro
+    <Surface className="p-5 sm:p-6"><SectionIntro
         eyebrow="Execução segura"
         title="Prontos para sincronizar"
         description="Unidades com host único e tag explícita. O sync atualiza tags e inventário do host, preservando a regra de não criar hosts automaticamente."
         actions={<TonePill tone={rows.length ? "success" : "neutral"}>{rows.length} unidade(s)</TonePill>}
         compact
-      />
-
-      <div className="mt-4">
+      /><div className="mt-4">
         {rows.length ? (
-          <TableShell>
-            <DenseTable>
-              <TableHead>
-                <tr>
-                  <th className="px-4 py-3">Unidade</th>
-                  <th className="px-4 py-3">Parceiro</th>
-                  <th className="px-4 py-3">Host Zabbix</th>
-                  <th className="px-4 py-3">Saúde</th>
-                  <th className="px-4 py-3">Loss</th>
-                  <th className="px-4 py-3">Itens de vínculo</th>
-                </tr>
-              </TableHead>
-              <tbody>
+          <TableShell><DenseTable><TableHead><tr><th className="px-4 py-3">Unidade</th><th className="px-4 py-3">Parceiro</th><th className="px-4 py-3">Host Zabbix</th><th className="px-4 py-3">Saúde</th><th className="px-4 py-3">Loss</th><th className="px-4 py-3">Itens de vínculo</th></tr></TableHead><tbody>
                 {rows.map((item) => (
-                  <tr key={item.unit.id} className="border-b border-white/6 last:border-b-0">
-                    <TableCell>
-                      <Link href={`/unidades/${item.unit.id}`} className="font-semibold text-slate-50 hover:text-sky-100">
+                  <tr key={item.unit.id} className="border-b border-white/6 last:border-b-0"><TableCell><Link href={`/unidades/${item.unit.id}`} className="font-semibold text-slate-50 hover:text-sky-100">
                         {item.unit.code}
-                      </Link>
-                      <div className="mt-1 max-w-[260px] text-sm text-slate-300">{item.unit.name}</div>
-                      <div className="mt-1 text-xs text-slate-500">{cityLine(item)}</div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="font-medium text-slate-100">{item.partner.code}</div>
-                      <div className="mt-1 max-w-[220px] text-xs text-slate-500">{item.partner.name}</div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="font-medium text-slate-50">{item.match.hostName || item.match.host}</div>
-                      <div className="mt-1 text-xs text-slate-500">
+                      </Link><div className="mt-1 max-w-[260px] text-sm text-slate-300">{item.unit.name}</div><div className="mt-1 text-xs text-slate-500">{cityLine(item)}</div></TableCell><TableCell><div className="font-medium text-slate-100">{item.partner.code}</div><div className="mt-1 max-w-[220px] text-xs text-slate-500">{item.partner.name}</div></TableCell><TableCell><div className="font-medium text-slate-50">{item.match.hostName || item.match.host}</div><div className="mt-1 text-xs text-slate-500">
                         {item.match.integrationCode} · {item.match.confidence}% confiança
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <TonePill tone={healthTone(item.health)}>{item.health}</TonePill>
-                    </TableCell>
-                    <TableCell>
-                      <TonePill tone={(item.metrics.lossPct ?? 0) >= 5 ? "attention" : "success"}>
+                      </div></TableCell><TableCell><TonePill tone={healthTone(item.health)}>{item.health}</TonePill></TableCell><TableCell><TonePill tone={(item.metrics.lossPct ?? 0) >= 5 ? "attention" : "success"}>
                         {formatPercent(item.metrics.lossPct)}
-                      </TonePill>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex max-w-[340px] flex-wrap gap-1">
+                      </TonePill></TableCell><TableCell><div className="flex max-w-[340px] flex-wrap gap-1">
                         {item.match.matchedBy.slice(0, 4).map((reason) => (
                           <span
                             key={reason}
@@ -642,144 +586,79 @@ function ReadyTable({ rows }: { rows: UnitHostTelemetryItem[] }) {
                             {reason}
                           </span>
                         ))}
-                      </div>
-                    </TableCell>
-                  </tr>
+                      </div></TableCell></tr>
                 ))}
-              </tbody>
-            </DenseTable>
-          </TableShell>
+              </tbody></DenseTable></TableShell>
         ) : (
           <EmptyState
             title="Nenhum item pronto"
             description="Adicione a tag explícita no host correto ou saneie os candidatos ambíguos para liberar a sincronização."
           />
         )}
-      </div>
-    </Surface>
+      </div></Surface>
   );
 }
 
 function BacklogTable({ rows }: { rows: UnitHostTelemetryItem[] }) {
   return (
-    <Surface className="p-5 sm:p-6">
-      <SectionIntro
+    <Surface className="p-5 sm:p-6"><SectionIntro
         eyebrow="Backlog"
         title="Pendências de vínculo"
         description="Casos que não devem receber escrita automática: sem host, mais de um candidato ou host encontrado sem a tag de unidade."
         actions={<TonePill tone={rows.length ? "attention" : "success"}>{rows.length} pendente(s)</TonePill>}
         compact
-      />
-
-      <div className="mt-4">
+      /><div className="mt-4">
         {rows.length ? (
-          <TableShell>
-            <DenseTable>
-              <TableHead>
-                <tr>
-                  <th className="px-4 py-3">Unidade</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Candidatos</th>
-                  <th className="px-4 py-3">Ajuste recomendado</th>
-                  <th className="px-4 py-3">Equipamentos</th>
-                </tr>
-              </TableHead>
-              <tbody>
+          <TableShell><DenseTable><TableHead><tr><th className="px-4 py-3">Unidade</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Candidatos</th><th className="px-4 py-3">Ajuste recomendado</th><th className="px-4 py-3">Equipamentos</th></tr></TableHead><tbody>
                 {rows.map((item) => (
-                  <tr key={item.unit.id} className="border-b border-white/6 last:border-b-0">
-                    <TableCell>
-                      <Link href={`/unidades/${item.unit.id}`} className="font-semibold text-slate-50 hover:text-sky-100">
+                  <tr key={item.unit.id} className="border-b border-white/6 last:border-b-0"><TableCell><Link href={`/unidades/${item.unit.id}`} className="font-semibold text-slate-50 hover:text-sky-100">
                         {item.unit.code}
-                      </Link>
-                      <div className="mt-1 max-w-[280px] text-sm text-slate-300">{item.unit.name}</div>
-                      <div className="mt-1 text-xs text-slate-500">{item.partner.code} · {cityLine(item)}</div>
-                    </TableCell>
-                    <TableCell>
-                      <TonePill tone={matchTone(item.match)}>{matchLabel(item.match)}</TonePill>
+                      </Link><div className="mt-1 max-w-[280px] text-sm text-slate-300">{item.unit.name}</div><div className="mt-1 text-xs text-slate-500">{item.partner.code} · {cityLine(item)}</div></TableCell><TableCell><TonePill tone={matchTone(item.match)}>{matchLabel(item.match)}</TonePill>
                       {item.match.hostName || item.match.host ? (
                         <div className="mt-2 max-w-[260px] truncate text-xs text-slate-500">
                           {item.match.hostName || item.match.host}
                         </div>
                       ) : null}
-                    </TableCell>
-                    <TableCell className="text-slate-400">{item.match.candidates}</TableCell>
-                    <TableCell>
-                      <code className="rounded-[10px] border border-white/[0.08] bg-black/30 px-2 py-1 text-xs text-slate-200">
+                    </TableCell><TableCell className="text-slate-400">{item.match.candidates}</TableCell><TableCell><code className="rounded-[10px] border border-white/[0.08] bg-black/30 px-2 py-1 text-xs text-slate-200">
                         {suggestedTag(item)}
-                      </code>
-                      <div className="mt-2 max-w-[420px] text-xs leading-5 text-slate-500">
+                      </code><div className="mt-2 max-w-[420px] text-xs leading-5 text-slate-500">
                         Use esta tag no host da unidade. Serial/MAC no inventário do host ajuda a reduzir ambiguidade.
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="max-w-[280px] text-xs leading-5 text-slate-400">
+                      </div></TableCell><TableCell><div className="max-w-[280px] text-xs leading-5 text-slate-400">
                         {item.equipments.length
                           ? item.equipments
                               .slice(0, 4)
                               .map((equipment) => equipment.serialNumber || equipment.tag)
                               .join(", ")
                           : "Sem equipamento cadastrado"}
-                      </div>
-                    </TableCell>
-                  </tr>
+                      </div></TableCell></tr>
                 ))}
-              </tbody>
-            </DenseTable>
-          </TableShell>
+              </tbody></DenseTable></TableShell>
         ) : (
           <EmptyState
             title="Sem pendências de vínculo"
             description="Todos os hosts encontrados estão confiáveis para leitura e sincronização controlada."
           />
         )}
-      </div>
-    </Surface>
+      </div></Surface>
   );
 }
 
 function SourcePanel({ telemetry }: { telemetry: UnitHostTelemetry }) {
   return (
-    <Surface className="p-5 sm:p-6">
-      <SectionIntro
+    <Surface className="p-5 sm:p-6"><SectionIntro
         eyebrow="Conectores"
         title="Fontes Zabbix usadas na reconciliação"
-        description="A integração continua sendo a infraestrutura. A operação principal fica no host da unidade."
+        description="Integração e host da unidade."
         compact
-      />
-
-      <div className="mt-4 grid gap-3">
+      /><div className="mt-4 grid gap-3">
         {telemetry.sources.map((source) => (
-          <div key={source.id} className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div className="min-w-0">
-                <div className="font-semibold text-slate-50">{source.code} · {source.name}</div>
-                <div className="mt-1 max-w-[620px] truncate text-xs text-slate-500">
+          <div key={source.id} className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="flex flex-wrap items-start justify-between gap-3"><div className="min-w-0"><div className="font-semibold text-slate-50">{source.code} · {source.name}</div><div className="mt-1 max-w-[620px] truncate text-xs text-slate-500">
                   {source.targetUrl || "URL não exposta"}
-                </div>
-              </div>
-              <TonePill tone={source.ok ? "success" : "attention"}>
+                </div></div><TonePill tone={source.ok ? "success" : "attention"}>
                 {source.ok ? "operante" : "atenção"}
-              </TonePill>
-            </div>
-            <div className="mt-3 grid gap-2 sm:grid-cols-3">
-              <div className="rounded-[12px] border border-white/[0.08] bg-white/[0.035] px-3 py-2">
-                <div className="text-[10px] uppercase tracking-[0.12em] text-slate-500">Versão</div>
-                <div className="mt-1 font-semibold text-slate-50">{source.version || "-"}</div>
-              </div>
-              <div className="rounded-[12px] border border-white/[0.08] bg-white/[0.035] px-3 py-2">
-                <div className="text-[10px] uppercase tracking-[0.12em] text-slate-500">Hosts lidos</div>
-                <div className="mt-1 font-semibold text-slate-50">{source.totalHosts}</div>
-              </div>
-              <div className="rounded-[12px] border border-white/[0.08] bg-white/[0.035] px-3 py-2">
-                <div className="text-[10px] uppercase tracking-[0.12em] text-slate-500">Unidades vinculadas</div>
-                <div className="mt-1 font-semibold text-slate-50">{source.matchedUnits}</div>
-              </div>
-            </div>
-            <div className="mt-3 text-sm leading-6 text-slate-400">{source.message}</div>
-          </div>
+              </TonePill></div><div className="mt-3 grid gap-2 sm:grid-cols-3"><div className="rounded-[12px] border border-white/[0.08] bg-white/[0.035] px-3 py-2"><div className="text-[10px] uppercase tracking-[0.12em] text-slate-500">Versão</div><div className="mt-1 font-semibold text-slate-50">{source.version || "-"}</div></div><div className="rounded-[12px] border border-white/[0.08] bg-white/[0.035] px-3 py-2"><div className="text-[10px] uppercase tracking-[0.12em] text-slate-500">Hosts lidos</div><div className="mt-1 font-semibold text-slate-50">{source.totalHosts}</div></div><div className="rounded-[12px] border border-white/[0.08] bg-white/[0.035] px-3 py-2"><div className="text-[10px] uppercase tracking-[0.12em] text-slate-500">Unidades vinculadas</div><div className="mt-1 font-semibold text-slate-50">{source.matchedUnits}</div></div></div><div className="mt-3 text-sm leading-6 text-slate-400">{source.message}</div></div>
         ))}
-      </div>
-    </Surface>
+      </div></Surface>
   );
 }
 
@@ -792,8 +671,7 @@ function LegacyImportPanel({
 }) {
   if (!legacy.sourceAvailable) {
     return (
-      <Surface className="p-5 sm:p-6">
-        <SectionIntro
+      <Surface className="p-5 sm:p-6"><SectionIntro
           eyebrow="Legado"
           title="Bases SQLite ainda não carregadas nesta execução"
           description={legacy.message || "Gere o pacote legado para cruzar contatos, parceiros, Starlinks e equipamentos antigos com o cadastro atual."}
@@ -802,8 +680,7 @@ function LegacyImportPanel({
         />
         {legacy.expectedPath ? (
           <div className="mt-4 rounded-[14px] border border-white/[0.08] bg-[#0a0f15] px-4 py-3 text-sm text-slate-400">
-            Caminho esperado: <span className="font-medium text-slate-200">{legacy.expectedPath}</span>
-          </div>
+            Caminho esperado: <span className="font-medium text-slate-200">{legacy.expectedPath}</span></div>
         ) : null}
       </Surface>
     );
@@ -819,85 +696,31 @@ function LegacyImportPanel({
   const sources = Object.entries(legacy.sources || {});
 
   return (
-    <Surface className="p-5 sm:p-6">
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="min-w-0">
-          <SectionIntro
+    <Surface className="p-5 sm:p-6"><div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]"><div className="min-w-0"><SectionIntro
             eyebrow="Legado importado"
             title="SQLite virou fonte de reconciliação operacional"
             description="Contatos, parceiros, Starlinks e ativos antigos ficam disponíveis para consulta e saneamento sem aumentar o Prisma nesta etapa."
             actions={
-              <div className="flex flex-wrap gap-2">
-                <TonePill tone={legacy.redactedSecrets ? "attention" : "success"}>
+              <div className="flex flex-wrap gap-2"><TonePill tone={legacy.redactedSecrets ? "attention" : "success"}>
                   {legacy.redactedSecrets ? "segredos ocultos" : "com segredos"}
                 </TonePill>
                 {legacy.generatedAt ? <TonePill tone="neutral">{formatDateTime(legacy.generatedAt)}</TonePill> : null}
               </div>
             }
             compact
-          />
-
-          <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-            <div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4">
-              <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Unidades legadas</div>
-              <div className="mt-2 text-2xl font-semibold text-slate-50">{legacyUnits}</div>
-              <div className="mt-1 text-sm text-slate-400">{telemetry.counts.units} no cadastro atual</div>
-            </div>
-            <div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4">
-              <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Parceiros</div>
-              <div className="mt-2 text-2xl font-semibold text-slate-50">{legacyPartners}</div>
-              <div className="mt-1 text-sm text-slate-400">{legacyCount(legacy, "raw", "parceiros")} linha(s) na origem</div>
-            </div>
-            <div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4">
-              <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Ativos legados</div>
-              <div className="mt-2 text-2xl font-semibold text-slate-50">{legacyEquipments}</div>
-              <div className="mt-1 text-sm text-slate-400">{contactsWithMacOnu} com MAC/ONU</div>
-            </div>
-            <div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4">
-              <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Starlinks</div>
-              <div className="mt-2 text-2xl font-semibold text-slate-50">{starlinksInstalled}</div>
-              <div className="mt-1 text-sm text-slate-400">{legacyCount(legacy, "raw", "starlinks")} registro(s) brutos</div>
-            </div>
-          </div>
-
-          <div className="mt-4 grid gap-2 md:grid-cols-3">
-            <div className="rounded-[14px] border border-white/[0.08] bg-white/[0.035] px-4 py-3">
-              <div className="text-sm font-semibold text-slate-50">{adoption}% migrado para leitura atual</div>
-              <div className="mt-1 text-xs leading-5 text-slate-500">Comparação simples entre unidades ativas lidas e unidades normalizadas do legado.</div>
-            </div>
-            <div className="rounded-[14px] border border-white/[0.08] bg-white/[0.035] px-4 py-3">
-              <div className="text-sm font-semibold text-slate-50">{contactsWithBackup} com contingência</div>
-              <div className="mt-1 text-xs leading-5 text-slate-500">Registros que já trazem parceiro/rota de backup para orientar operação.</div>
-            </div>
-            <div className="rounded-[14px] border border-white/[0.08] bg-white/[0.035] px-4 py-3">
-              <div className="text-sm font-semibold text-slate-50">{legacyCount(legacy, "raw", "starlinkHistory")} histórico(s)</div>
-              <div className="mt-1 text-xs leading-5 text-slate-500">Movimentações de Starlink preservadas para consulta nos detalhes.</div>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4">
-          <div className="text-sm font-semibold text-slate-50">Arquivos coletados</div>
-          <div className="mt-3 grid gap-2">
+          /><div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4"><div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Unidades legadas</div><div className="mt-2 text-2xl font-semibold text-slate-50">{legacyUnits}</div><div className="mt-1 text-sm text-slate-400">{telemetry.counts.units} no cadastro atual</div></div><div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Parceiros</div><div className="mt-2 text-2xl font-semibold text-slate-50">{legacyPartners}</div><div className="mt-1 text-sm text-slate-400">{legacyCount(legacy, "raw", "parceiros")} linha(s) na origem</div></div><div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Ativos legados</div><div className="mt-2 text-2xl font-semibold text-slate-50">{legacyEquipments}</div><div className="mt-1 text-sm text-slate-400">{contactsWithMacOnu} com MAC/ONU</div></div><div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Starlinks</div><div className="mt-2 text-2xl font-semibold text-slate-50">{starlinksInstalled}</div><div className="mt-1 text-sm text-slate-400">{legacyCount(legacy, "raw", "starlinks")} registro(s) brutos</div></div></div><div className="mt-4 grid gap-2 md:grid-cols-3"><div className="rounded-[14px] border border-white/[0.08] bg-white/[0.035] px-4 py-3"><div className="text-sm font-semibold text-slate-50">{adoption}% migrado para leitura atual</div><div className="mt-1 text-xs leading-5 text-slate-500">Comparação simples entre unidades ativas lidas e unidades normalizadas do legado.</div></div><div className="rounded-[14px] border border-white/[0.08] bg-white/[0.035] px-4 py-3"><div className="text-sm font-semibold text-slate-50">{contactsWithBackup} com contingência</div><div className="mt-1 text-xs leading-5 text-slate-500">Registros que já trazem parceiro/rota de backup para orientar operação.</div></div><div className="rounded-[14px] border border-white/[0.08] bg-white/[0.035] px-4 py-3"><div className="text-sm font-semibold text-slate-50">{legacyCount(legacy, "raw", "starlinkHistory")} histórico(s)</div><div className="mt-1 text-xs leading-5 text-slate-500">Movimentações de Starlink preservadas para consulta nos detalhes.</div></div></div></div><div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="text-sm font-semibold text-slate-50">Arquivos coletados</div><div className="mt-3 grid gap-2">
             {sources.length ? (
               sources.map(([key, path]) => (
-                <div key={key} className="rounded-[12px] border border-white/[0.08] bg-white/[0.035] px-3 py-2">
-                  <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">{key}</div>
-                  <div className="mt-1 truncate text-sm font-medium text-slate-100" title={path}>
+                <div key={key} className="rounded-[12px] border border-white/[0.08] bg-white/[0.035] px-3 py-2"><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">{key}</div><div className="mt-1 truncate text-sm font-medium text-slate-100" title={path}>
                     {sourceName(path)}
-                  </div>
-                </div>
+                  </div></div>
               ))
             ) : (
               <div className="text-sm text-slate-500">Sem lista de origem no pacote.</div>
             )}
-          </div>
-          <div className="mt-4 rounded-[12px] border border-sky-500/16 bg-sky-500/[0.08] px-3 py-2 text-xs leading-5 text-sky-100">
+          </div><div className="mt-4 rounded-[12px] border border-sky-500/16 bg-sky-500/[0.08] px-3 py-2 text-xs leading-5 text-sky-100">
             A conversão atual é consultiva: blocos de unidade, parceiro e equipamento exibem dados legados quando há correspondência segura.
-          </div>
-        </div>
-      </div>
-    </Surface>
+          </div></div></div></Surface>
   );
 }
 
@@ -908,15 +731,13 @@ function LegacyReconciliationPanel({
 }) {
   if (!reconciliation.sourceAvailable) {
     return (
-      <Surface className="p-5 sm:p-6">
-        <SectionIntro
+      <Surface className="p-5 sm:p-6"><SectionIntro
           eyebrow="Fila de migração"
           title="Reconciliação legada indisponível"
           description={reconciliation.message || "A fila será exibida quando o pacote legado puder ser lido pela API."}
           actions={<TonePill tone="attention">sem leitura</TonePill>}
           compact
-        />
-      </Surface>
+        /></Surface>
     );
   }
 
@@ -933,240 +754,109 @@ function LegacyReconciliationPanel({
   const unmatchedCurrent = reconciliation.unmatchedCurrentUnits.slice(0, 6);
 
   return (
-    <Surface className="p-5 sm:p-6">
-      <SectionIntro
+    <Surface className="p-5 sm:p-6"><SectionIntro
         eyebrow="Fila de migração"
         title="O legado agora mostra o que precisa entrar no cadastro atual"
         description="A prioridade fica nas unidades com backup, Starlink, MAC/ONU ou ativo, porque esses sinais afetam acionamento e monitoramento dos hosts."
         actions={
-          <div className="flex flex-wrap gap-2">
-            <TonePill tone={counts.unmatchedLegacyUnits ? "attention" : "success"}>
+          <div className="flex flex-wrap gap-2"><TonePill tone={counts.unmatchedLegacyUnits ? "attention" : "success"}>
               {counts.unmatchedLegacyUnits} sem match
-            </TonePill>
-            <TonePill tone={counts.weakUnitMatches ? "attention" : "neutral"}>
+            </TonePill><TonePill tone={counts.weakUnitMatches ? "attention" : "neutral"}>
               {counts.weakUnitMatches} fraco(s)
-            </TonePill>
-          </div>
+            </TonePill></div>
         }
         compact
-      />
-
-      <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Unidades cruzadas</div>
-          <div className="mt-2 text-2xl font-semibold text-slate-50">{unitCoverage}%</div>
-          <div className="mt-1 text-sm text-slate-400">
+      /><div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4"><div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Unidades cruzadas</div><div className="mt-2 text-2xl font-semibold text-slate-50">{unitCoverage}%</div><div className="mt-1 text-sm text-slate-400">
             {counts.matchedUnits} de {counts.legacyUnits} legado(s)
-          </div>
-        </div>
-        <div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Ativos cruzados</div>
-          <div className="mt-2 text-2xl font-semibold text-slate-50">{equipmentCoverage}%</div>
-          <div className="mt-1 text-sm text-slate-400">
+          </div></div><div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Ativos cruzados</div><div className="mt-2 text-2xl font-semibold text-slate-50">{equipmentCoverage}%</div><div className="mt-1 text-sm text-slate-400">
             {counts.matchedEquipments} de {counts.legacyEquipments} ativo(s)
-          </div>
-        </div>
-        <div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Parceiros cruzados</div>
-          <div className="mt-2 text-2xl font-semibold text-slate-50">{counts.matchedPartners}</div>
-          <div className="mt-1 text-sm text-slate-400">
+          </div></div><div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Parceiros cruzados</div><div className="mt-2 text-2xl font-semibold text-slate-50">{counts.matchedPartners}</div><div className="mt-1 text-sm text-slate-400">
             {counts.legacyPartners - counts.matchedPartners} sem cadastro atual
-          </div>
-        </div>
-        <div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Starlinks legados</div>
-          <div className="mt-2 text-2xl font-semibold text-slate-50">{counts.starlinks}</div>
-          <div className="mt-1 text-sm text-slate-400">consultivos nesta fase</div>
-        </div>
-      </div>
-
-      <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
-        <div>
-          <SectionIntro
+          </div></div><div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Starlinks legados</div><div className="mt-2 text-2xl font-semibold text-slate-50">{counts.starlinks}</div><div className="mt-1 text-sm text-slate-400">consultivos nesta fase</div></div></div><div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]"><div><SectionIntro
             eyebrow="Saneamento prioritário"
             title="Unidades legadas sem cadastro seguro"
             description="Lista limitada aos sinais mais úteis para decidir o próximo cadastro ou ajuste de vínculo."
             compact
-          />
-
-          <div className="mt-4">
+          /><div className="mt-4">
             {prioritizedUnits.length ? (
-              <TableShell>
-                <DenseTable>
-                  <TableHead>
-                    <tr>
-                      <th className="px-4 py-3">Unidade legada</th>
-                      <th className="px-4 py-3">Parceiro</th>
-                      <th className="px-4 py-3">Sinais</th>
-                      <th className="px-4 py-3">Possível match</th>
-                      <th className="px-4 py-3 text-right">Ação</th>
-                    </tr>
-                  </TableHead>
-                  <tbody>
+              <TableShell><DenseTable><TableHead><tr><th className="px-4 py-3">Unidade legada</th><th className="px-4 py-3">Parceiro</th><th className="px-4 py-3">Sinais</th><th className="px-4 py-3">Possível match</th><TableActionHeader className="min-w-[11rem]" /></tr></TableHead><tbody>
                     {prioritizedUnits.map((unit) => (
-                      <tr key={`${unit.partnerCode}:${unit.code}:${unit.name}`} className="border-b border-white/6 last:border-b-0">
-                        <TableCell>
-                          <div className="font-semibold text-slate-50">{unit.code || "sem código"}</div>
-                          <div className="mt-1 max-w-[320px] text-sm text-slate-300">{unit.name}</div>
-                          <div className="mt-1 text-xs text-slate-500">
+                      <tr key={`${unit.partnerCode}:${unit.code}:${unit.name}`} className="border-b border-white/6 last:border-b-0"><TableCell><div className="font-semibold text-slate-50">{unit.code || "sem código"}</div><div className="mt-1 max-w-[320px] text-sm text-slate-300">{unit.name}</div><div className="mt-1 text-xs text-slate-500">
                             {[unit.city, unit.state].filter(Boolean).join(" / ") || "Local não informado"}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <TonePill tone={unit.partnerCode ? "info" : "neutral"}>{unit.partnerCode || "sem parceiro"}</TonePill>
-                        </TableCell>
-                        <TableCell>
-                          <LegacySignalPills signal={unit.signal} />
-                        </TableCell>
-                        <TableCell>
+                          </div></TableCell><TableCell><TonePill tone={unit.partnerCode ? "info" : "neutral"}>{unit.partnerCode || "sem parceiro"}</TonePill></TableCell><TableCell><LegacySignalPills signal={unit.signal} /></TableCell><TableCell>
                           {unit.bestCurrentUnit ? (
-                            <>
-                              <Link
+                            <><Link
                                 href={`/unidades/${unit.bestCurrentUnit.id}`}
                                 className="font-semibold text-sky-100 hover:text-white"
                               >
                                 {unit.bestCurrentUnit.code}
-                              </Link>
-                              <div className="mt-1 max-w-[260px] text-xs text-slate-500">
+                              </Link><div className="mt-1 max-w-[260px] text-xs text-slate-500">
                                 {unit.bestCurrentUnit.name} · score {unit.bestScore}
-                              </div>
-                            </>
+                              </div></>
                           ) : (
                             <span className="text-sm text-slate-500">Sem candidato</span>
                           )}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Link
+                        </TableCell><TableActionCell className="min-w-[11rem]"><TableActionLink
                             href={legacyUnitWizardHref(unit)}
-                            className="inline-flex rounded-full border border-sky-400/20 bg-sky-500/[0.08] px-3 py-1.5 text-xs font-semibold text-sky-100 transition hover:border-sky-300/40 hover:bg-sky-500/[0.14]"
+                            className="border-sky-400/20 bg-sky-500/[0.08] text-sky-100 hover:border-sky-300/40 hover:bg-sky-500/[0.14]"
                           >
                             Abrir cadastro guiado
-                          </Link>
-                        </TableCell>
-                      </tr>
+                          </TableActionLink></TableActionCell></tr>
                     ))}
-                  </tbody>
-                </DenseTable>
-              </TableShell>
+                  </tbody></DenseTable></TableShell>
             ) : (
               <EmptyState
                 title="Sem unidades legadas pendentes"
                 description="As unidades do pacote legado encontraram correspondência segura no cadastro atual."
               />
             )}
-          </div>
-        </div>
-
-        <div className="grid gap-4">
-          <div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Matches fracos</div>
-                <div className="mt-1 text-sm font-semibold text-slate-50">Revisar antes de importar</div>
-              </div>
-              <TonePill tone={weakMatches.length ? "attention" : "success"}>{weakMatches.length}</TonePill>
-            </div>
-            <div className="mt-3 grid gap-2">
+          </div></div><div className="grid gap-4"><div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="flex items-start justify-between gap-3"><div><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Matches fracos</div><div className="mt-1 text-sm font-semibold text-slate-50">Revisar antes de importar</div></div><TonePill tone={weakMatches.length ? "attention" : "success"}>{weakMatches.length}</TonePill></div><div className="mt-3 grid gap-2">
               {weakMatches.length ? (
                 weakMatches.map((unit) => (
-                  <div key={`${unit.partnerCode}:${unit.code}:${unit.score}`} className="rounded-[12px] border border-white/[0.08] bg-white/[0.035] p-3">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="truncate text-sm font-semibold text-slate-50">{unit.code || unit.name}</div>
-                        <div className="mt-1 truncate text-xs text-slate-500">
+                  <div key={`${unit.partnerCode}:${unit.code}:${unit.score}`} className="rounded-[12px] border border-white/[0.08] bg-white/[0.035] p-3"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><div className="truncate text-sm font-semibold text-slate-50">{unit.code || unit.name}</div><div className="mt-1 truncate text-xs text-slate-500">
                           {unit.currentUnit ? `${unit.currentUnit.code} · ${unit.currentUnit.name}` : "Sem candidato atual"}
-                        </div>
-                      </div>
-                      <TonePill tone="attention">{unit.score}</TonePill>
-                    </div>
-                  </div>
+                        </div></div><TonePill tone="attention">{unit.score}</TonePill></div></div>
                 ))
               ) : (
                 <div className="text-sm leading-6 text-slate-500">Nenhum match fraco nesta leitura.</div>
               )}
-            </div>
-          </div>
-
-          <div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Parceiros</div>
-                <div className="mt-1 text-sm font-semibold text-slate-50">Legado sem cadastro atual</div>
-              </div>
-              <TonePill tone={reconciliation.unmatchedLegacyPartners.length ? "attention" : "success"}>
+            </div></div><div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="flex items-start justify-between gap-3"><div><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Parceiros</div><div className="mt-1 text-sm font-semibold text-slate-50">Legado sem cadastro atual</div></div><TonePill tone={reconciliation.unmatchedLegacyPartners.length ? "attention" : "success"}>
                 {reconciliation.unmatchedLegacyPartners.length}
-              </TonePill>
-            </div>
-            <div className="mt-3 grid gap-2">
+              </TonePill></div><div className="mt-3 grid gap-2">
               {reconciliation.unmatchedLegacyPartners.slice(0, 5).map((partner) => (
-                <div key={`${partner.code}:${partner.name}`} className="rounded-[12px] border border-white/[0.08] bg-white/[0.035] p-3">
-                  <div className="text-sm font-semibold text-slate-50">{partner.code || partner.name}</div>
-                  <div className="mt-1 text-xs leading-5 text-slate-500">
+                <div key={`${partner.code}:${partner.name}`} className="rounded-[12px] border border-white/[0.08] bg-white/[0.035] p-3"><div className="text-sm font-semibold text-slate-50">{partner.code || partner.name}</div><div className="mt-1 text-xs leading-5 text-slate-500">
                     {partner.name} · {partner.contacts} contato(s) · {partner.primaryUnitCount + partner.backupUnitCount} vínculo(s)
-                  </div>
-                </div>
+                  </div></div>
               ))}
               {!reconciliation.unmatchedLegacyPartners.length ? (
                 <div className="text-sm leading-6 text-slate-500">Todos os parceiros legados encontraram match.</div>
               ) : null}
-            </div>
-          </div>
-
-          <div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Ativos</div>
-                <div className="mt-1 text-sm font-semibold text-slate-50">Legado sem match por tag/serial</div>
-              </div>
-              <TonePill tone={reconciliation.unmatchedLegacyEquipments.length ? "attention" : "success"}>
+            </div></div><div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="flex items-start justify-between gap-3"><div><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Ativos</div><div className="mt-1 text-sm font-semibold text-slate-50">Legado sem match por tag/serial</div></div><TonePill tone={reconciliation.unmatchedLegacyEquipments.length ? "attention" : "success"}>
                 {reconciliation.unmatchedLegacyEquipments.length}
-              </TonePill>
-            </div>
-            <div className="mt-3 grid gap-2">
+              </TonePill></div><div className="mt-3 grid gap-2">
               {reconciliation.unmatchedLegacyEquipments.slice(0, 5).map((equipment) => (
-                <div key={`${equipment.source}:${equipment.tag}:${equipment.serialNumber || ""}`} className="rounded-[12px] border border-white/[0.08] bg-white/[0.035] p-3">
-                  <div className="text-sm font-semibold text-slate-50">{equipment.tag || equipment.name}</div>
-                  <div className="mt-1 text-xs leading-5 text-slate-500">
+                <div key={`${equipment.source}:${equipment.tag}:${equipment.serialNumber || ""}`} className="rounded-[12px] border border-white/[0.08] bg-white/[0.035] p-3"><div className="text-sm font-semibold text-slate-50">{equipment.tag || equipment.name}</div><div className="mt-1 text-xs leading-5 text-slate-500">
                     {equipment.type || "tipo não informado"} · {equipment.serialNumber || "sem serial"} · {equipment.unitCode || "sem unidade"}
-                  </div>
-                </div>
+                  </div></div>
               ))}
               {!reconciliation.unmatchedLegacyEquipments.length ? (
                 <div className="text-sm leading-6 text-slate-500">Todos os ativos legados bateram por tag ou serial.</div>
               ) : null}
-            </div>
-          </div>
-
-          <div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Cadastro atual</div>
-                <div className="mt-1 text-sm font-semibold text-slate-50">Unidades sem rastro legado</div>
-              </div>
-              <TonePill tone={unmatchedCurrent.length ? "neutral" : "success"}>{unmatchedCurrent.length}</TonePill>
-            </div>
-            <div className="mt-3 grid gap-2">
+            </div></div><div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="flex items-start justify-between gap-3"><div><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Cadastro atual</div><div className="mt-1 text-sm font-semibold text-slate-50">Unidades sem rastro legado</div></div><TonePill tone={unmatchedCurrent.length ? "neutral" : "success"}>{unmatchedCurrent.length}</TonePill></div><div className="mt-3 grid gap-2">
               {unmatchedCurrent.length ? (
                 unmatchedCurrent.map((unit) => (
                   <Link
                     key={unit.id}
                     href={`/unidades/${unit.id}`}
                     className="rounded-[12px] border border-white/[0.08] bg-white/[0.035] p-3 transition hover:border-white/14 hover:bg-white/[0.06]"
-                  >
-                    <div className="text-sm font-semibold text-slate-50">{unit.code}</div>
-                    <div className="mt-1 truncate text-xs text-slate-500">
+                  ><div className="text-sm font-semibold text-slate-50">{unit.code}</div><div className="mt-1 truncate text-xs text-slate-500">
                       {unit.name} · {unit.partnerCode}
-                    </div>
-                  </Link>
+                    </div></Link>
                 ))
               ) : (
                 <div className="text-sm leading-6 text-slate-500">Sem cadastro atual órfão do legado.</div>
               )}
-            </div>
-          </div>
-        </div>
-      </div>
-    </Surface>
+            </div></div></div></div></Surface>
   );
 }
 
@@ -1179,22 +869,18 @@ function ContractPanel() {
   ];
 
   return (
-    <Surface className="p-5 sm:p-6">
-      <SectionIntro
+    <Surface className="p-5 sm:p-6"><SectionIntro
         eyebrow="Contrato operacional"
         title="Como preparar o host para automação"
         description="Um contrato pequeno evita o erro caro: atualizar o host errado."
         compact
-      />
-
-      <div className="mt-4 grid gap-2">
+      /><div className="mt-4 grid gap-2">
         {rules.map((rule) => (
           <div key={rule} className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] px-4 py-3 text-sm leading-6 text-slate-300">
             {rule}
           </div>
         ))}
-      </div>
-    </Surface>
+      </div></Surface>
   );
 }
 
@@ -1225,48 +911,26 @@ export default async function ReconciliacaoCentralPage() {
     <AppShell
       title="Reconciliação"
       subtitle="Vínculo entre unidades, parceiros, equipamentos e hosts Zabbix antes da automação."
-    >
-      <ReconciliationHero telemetry={telemetry} isAdmin={isAdmin} />
-
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <KpiTile
+    ><ReconciliationHero telemetry={telemetry} isAdmin={isAdmin} /><section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4"><KpiTile
           label="Unidades lidas"
           value={telemetry.counts.units}
           meta={`${telemetry.counts.matched} com host identificado`}
           tone={telemetry.counts.unmapped ? "attention" : "success"}
-        />
-        <KpiTile
+        /><KpiTile
           label="Prontas para sync"
           value={telemetry.counts.syncReady}
           meta={`${telemetry.counts.matched - telemetry.counts.syncReady} com host sem tag explícita`}
           tone={telemetry.counts.syncReady ? "success" : "neutral"}
-        />
-        <KpiTile
+        /><KpiTile
           label="Backlog"
           value={backlogRows.length}
           meta={`${telemetry.counts.ambiguous} ambígua(s) · ${telemetry.counts.unmapped} sem host`}
           tone={backlogRows.length ? "attention" : "success"}
-        />
-        <KpiTile
+        /><KpiTile
           label="Perda média"
           value={formatPercent(telemetry.counts.avgLossPct)}
           meta={`${telemetry.counts.withProblems} unidade(s) com problema Zabbix`}
           tone={telemetry.counts.withProblems ? "attention" : "success"}
-        />
-      </section>
-
-      <LegacyImportPanel legacy={legacySummary} telemetry={telemetry} />
-
-      <LegacyReconciliationPanel reconciliation={legacyReconciliation} />
-
-      <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
-        <ReadyTable rows={readyRows} />
-        <ContractPanel />
-      </section>
-
-      <BacklogTable rows={backlogRows} />
-
-      <SourcePanel telemetry={telemetry} />
-    </AppShell>
+        /></section><LegacyImportPanel legacy={legacySummary} telemetry={telemetry} /><LegacyReconciliationPanel reconciliation={legacyReconciliation} /><section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]"><ReadyTable rows={readyRows} /><ContractPanel /></section><BacklogTable rows={backlogRows} /><SourcePanel telemetry={telemetry} /></AppShell>
   );
 }

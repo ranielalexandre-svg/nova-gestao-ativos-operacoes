@@ -148,66 +148,41 @@ export default async function NovoEquipamentoPage({
     <AppShell
       title="Novo equipamento"
       subtitle="Cadastro guiado para vincular ativo, unidade e rastreabilidade."
-    >
-      <div className="mx-auto max-w-6xl rounded-[22px] border border-white/[0.08] bg-[#0c1016] shadow-[0_30px_80px_rgba(0,0,0,0.32)]">
-        <div className="flex items-start justify-between gap-4 border-b border-white/[0.08] px-5 py-5 sm:px-6">
-          <SectionIntro
+    ><div className="mx-auto max-w-6xl rounded-[22px] border border-white/[0.08] bg-[#0c1016] shadow-[0_30px_80px_rgba(0,0,0,0.32)]"><div className="flex items-start justify-between gap-4 border-b border-white/[0.08] px-5 py-5 sm:px-6"><SectionIntro
             eyebrow="Cadastro guiado"
             title="Novo equipamento"
-            description="Fluxo guiado para identificar o ativo, vincular à unidade e revisar antes de criar."
+            description="Cadastro de ativo."
             compact
-          />
-          <Link
+          /><Link
             href="/equipamentos"
             aria-label="Fechar cadastro"
             className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-[16px] border border-white/10 bg-white/[0.04] text-lg leading-none text-slate-300 transition hover:bg-white/[0.08] hover:text-white"
           >
             ×
-          </Link>
-        </div>
-
-        <div className="border-b border-white/[0.08] bg-[#0f141b] px-5 py-4 sm:px-6">
-          <div className="grid gap-3 lg:grid-cols-3">
-            <WizardStep
+          </Link></div><div className="border-b border-white/[0.08] bg-[#0f141b] px-5 py-4 sm:px-6"><div className="grid gap-3 lg:grid-cols-3"><WizardStep
               index={1}
               title="Base"
               description="Tag, nome e tipo."
               state={step === 1 ? "current" : step > 1 ? "done" : "available"}
               href={buildWizardHref(1, wizardValues)}
-            />
-            <WizardStep
+            /><WizardStep
               index={2}
               title="Vínculo"
               description="Unidade, serial e status."
               state={step === 2 ? "current" : step > 2 ? "done" : baseReady ? "available" : "locked"}
               href={baseReady ? buildWizardHref(2, wizardValues) : undefined}
-            />
-            <WizardStep
+            /><WizardStep
               index={3}
               title="Revisão"
               description="Salvar ativo."
               state={step === 3 ? "current" : linkReady ? "available" : "locked"}
               href={linkReady ? buildWizardHref(3, wizardValues) : undefined}
-            />
-          </div>
-        </div>
-
-        <div className="px-5 py-5 sm:px-6">
+            /></div></div><div className="px-5 py-5 sm:px-6">
           {step === 1 ? (
             <WizardPanel
               title="Base"
-              description="Crie uma identidade técnica que funcione na busca, na unidade e na mesa de monitoramento."
-            >
-              <form method="GET" className="grid gap-5">
-                <input type="hidden" name="step" value="2" />
-                <input type="hidden" name="serialNumber" value={serialNumber} />
-                <input type="hidden" name="status" value={status} />
-                <input type="hidden" name="unitId" value={unitId} />
-
-                <div className="grid gap-4 md:grid-cols-3">
-                  <div className="grid gap-2">
-                    <FieldLabel htmlFor="equipment-tag" label="Tag" hint="Código único do ativo" />
-                    <input
+              description="Identificação, unidade e monitoramento."
+            ><form method="GET" className="grid gap-5"><input type="hidden" name="step" value="2" /><input type="hidden" name="serialNumber" value={serialNumber} /><input type="hidden" name="status" value={status} /><input type="hidden" name="unitId" value={unitId} /><div className="grid gap-4 md:grid-cols-3"><div className="grid gap-2"><FieldLabel htmlFor="equipment-tag" label="Tag" hint="Código único do ativo" /><input
                       id="equipment-tag"
                       name="tag"
                       defaultValue={tag}
@@ -215,11 +190,7 @@ export default async function NovoEquipamentoPage({
                       minLength={2}
                       required
                       className="w-full rounded-[16px] border border-white/10 bg-[#090d13] px-4 py-3 text-sm uppercase text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <FieldLabel htmlFor="equipment-name" label="Nome" hint="Nome visível para operação" />
-                    <input
+                    /></div><div className="grid gap-2"><FieldLabel htmlFor="equipment-name" label="Nome" hint="Nome visível para operação" /><input
                       id="equipment-name"
                       name="name"
                       defaultValue={name}
@@ -227,11 +198,7 @@ export default async function NovoEquipamentoPage({
                       minLength={2}
                       required
                       className="w-full rounded-[16px] border border-white/10 bg-[#090d13] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <FieldLabel htmlFor="equipment-type" label="Tipo" hint="switch, rádio, roteador..." />
-                    <input
+                    /></div><div className="grid gap-2"><FieldLabel htmlFor="equipment-type" label="Tipo" hint="switch, rádio, roteador..." /><input
                       id="equipment-type"
                       name="type"
                       defaultValue={type}
@@ -239,164 +206,86 @@ export default async function NovoEquipamentoPage({
                       minLength={2}
                       required
                       className="w-full rounded-[16px] border border-white/10 bg-[#090d13] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between gap-3 border-t border-white/[0.08] pt-5">
-                  <Link
+                    /></div></div><div className="flex items-center justify-between gap-3 border-t border-white/[0.08] pt-5"><Link
                     href="/equipamentos"
                     className="rounded-[16px] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]"
                   >
                     Voltar
-                  </Link>
-                  <button className="rounded-[16px] border border-white/10 bg-white/[0.04] px-5 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]">
+                  </Link><button className="rounded-[16px] border border-white/10 bg-white/[0.04] px-5 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]">
                     Próximo
-                  </button>
-                </div>
-              </form>
-            </WizardPanel>
+                  </button></div></form></WizardPanel>
           ) : null}
 
           {step === 2 ? (
             <WizardPanel
               title="Vínculo"
               description="Associe o ativo à unidade correta. É esse vínculo que permite ler parceiro, legado e monitoramento sem duplicar contexto."
-            >
-              <form method="GET" className="grid gap-5">
-                <input type="hidden" name="step" value="3" />
-                <input type="hidden" name="tag" value={tag} />
-                <input type="hidden" name="name" value={name} />
-                <input type="hidden" name="type" value={type} />
-
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="grid gap-2">
-                    <FieldLabel htmlFor="equipment-unit" label="Unidade" hint="Obrigatório" />
-                    <select
+            ><form method="GET" className="grid gap-5"><input type="hidden" name="step" value="3" /><input type="hidden" name="tag" value={tag} /><input type="hidden" name="name" value={name} /><input type="hidden" name="type" value={type} /><div className="grid gap-4 md:grid-cols-2"><div className="grid gap-2"><FieldLabel htmlFor="equipment-unit" label="Unidade" hint="Obrigatório" /><select
                       id="equipment-unit"
                       name="unitId"
                       defaultValue={unitId}
                       required
                       className="w-full rounded-[16px] border border-white/10 bg-[#090d13] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-                    >
-                      <option value="">Selecione uma unidade</option>
+                    ><option value="">Selecione uma unidade</option>
                       {unitsResponse.items.map((unit) => (
                         <option key={unit.id} value={unit.id}>
                           {unit.code} - {unit.name}
                         </option>
                       ))}
-                    </select>
-                  </div>
-                  <div className="grid gap-2">
-                    <FieldLabel htmlFor="equipment-serial" label="Serial / MAC" hint="Ajuda no match com legado/Zabbix" />
-                    <input
+                    </select></div><div className="grid gap-2"><FieldLabel htmlFor="equipment-serial" label="Serial / MAC" hint="Ajuda no match com legado/Zabbix" /><input
                       id="equipment-serial"
                       name="serialNumber"
                       defaultValue={serialNumber}
                       placeholder="SN, MAC ou identificador salvo"
                       className="w-full rounded-[16px] border border-white/10 bg-[#090d13] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <FieldLabel htmlFor="equipment-status" label="Status" hint="Estado operacional" />
-                    <select
+                    /></div><div className="grid gap-2"><FieldLabel htmlFor="equipment-status" label="Status" hint="Estado operacional" /><select
                       id="equipment-status"
                       name="status"
                       defaultValue={status}
                       className="w-full rounded-[16px] border border-white/10 bg-[#090d13] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-                    >
-                      <option value="active">Ativo</option>
-                      <option value="stock">Estoque</option>
-                      <option value="repair">Reparo</option>
-                      <option value="retired">Retirado</option>
-                    </select>
-                  </div>
-                  <div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] px-4 py-4">
-                    <div className="text-sm font-semibold text-slate-50">Leitura do vínculo</div>
-                    <div className="mt-2 text-sm leading-6 text-slate-400">
+                    ><option value="active">Ativo</option><option value="stock">Estoque</option><option value="repair">Reparo</option><option value="retired">Retirado</option></select></div><div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] px-4 py-4"><div className="text-sm font-semibold text-slate-50">Leitura do vínculo</div><div className="mt-2 text-sm leading-6 text-slate-400">
                       A unidade traz o parceiro, cidade e host de monitoramento. O equipamento fica como ativo técnico dentro dessa operação.
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between gap-3 border-t border-white/[0.08] pt-5">
-                  <Link
+                    </div></div></div><div className="flex items-center justify-between gap-3 border-t border-white/[0.08] pt-5"><Link
                     href={buildWizardHref(1, wizardValues)}
                     className="rounded-[16px] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]"
                   >
                     Voltar
-                  </Link>
-                  <button className="rounded-[16px] border border-white/10 bg-white/[0.04] px-5 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]">
+                  </Link><button className="rounded-[16px] border border-white/10 bg-white/[0.04] px-5 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]">
                     Próximo
-                  </button>
-                </div>
-              </form>
-            </WizardPanel>
+                  </button></div></form></WizardPanel>
           ) : null}
 
           {step === 3 ? (
             <WizardPanel
               title="Revisão"
               description="Confirme o ativo antes de gravar. A próxima leitura acontece no detalhe do equipamento e da unidade."
-            >
-              <ActionForm
+            ><ActionForm
                 action={createFromWizard}
                 className="grid gap-5"
                 submitLabel="Criar equipamento"
                 pendingLabel="Criando equipamento..."
                 hideSubmit
-              >
-                <input type="hidden" name="tag" value={tag} />
-                <input type="hidden" name="name" value={name} />
-                <input type="hidden" name="type" value={type} />
-                <input type="hidden" name="serialNumber" value={serialNumber} />
-                <input type="hidden" name="status" value={status} />
-                <input type="hidden" name="unitId" value={unitId} />
-
-                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                  <SummaryItem label="Tag" value={tag} />
-                  <SummaryItem label="Nome" value={name} />
-                  <SummaryItem label="Tipo" value={type} />
-                  <SummaryItem label="Serial / MAC" value={serialNumber || "-"} />
-                  <SummaryItem label="Status" value={statusLabel(status)} />
-                  <SummaryItem
+              ><input type="hidden" name="tag" value={tag} /><input type="hidden" name="name" value={name} /><input type="hidden" name="type" value={type} /><input type="hidden" name="serialNumber" value={serialNumber} /><input type="hidden" name="status" value={status} /><input type="hidden" name="unitId" value={unitId} /><div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3"><SummaryItem label="Tag" value={tag} /><SummaryItem label="Nome" value={name} /><SummaryItem label="Tipo" value={type} /><SummaryItem label="Serial / MAC" value={serialNumber || "-"} /><SummaryItem label="Status" value={statusLabel(status)} /><SummaryItem
                     label="Unidade"
                     value={selectedUnit ? `${selectedUnit.code} - ${selectedUnit.name}` : "-"}
-                  />
-                </div>
-
-                <div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4 text-sm leading-6 text-slate-400">
+                  /></div><div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4 text-sm leading-6 text-slate-400">
                   Ao salvar, o equipamento já aparece no inventário e passa a herdar o contexto operacional da unidade: parceiro, cidade, legado e monitoramento.
-                </div>
-
-                <div className="flex items-center justify-between gap-3 border-t border-white/[0.08] pt-5">
-                  <Link
+                </div><div className="flex items-center justify-between gap-3 border-t border-white/[0.08] pt-5"><Link
                     href={buildWizardHref(2, wizardValues)}
                     className="rounded-[16px] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]"
                   >
                     Voltar
-                  </Link>
-                  <FormSubmitButton
+                  </Link><FormSubmitButton
                     idleLabel="Criar equipamento"
                     pendingLabel="Criando equipamento..."
                     className="min-w-[148px]"
-                  />
-                </div>
-              </ActionForm>
-            </WizardPanel>
+                  /></div></ActionForm></WizardPanel>
           ) : null}
-        </div>
-
-        <div className="flex items-center justify-end gap-3 border-t border-white/[0.08] px-5 py-4 sm:px-6">
-          <TonePill tone="info">cadastro guiado</TonePill>
-          <Link
+        </div><div className="flex items-center justify-end gap-3 border-t border-white/[0.08] px-5 py-4 sm:px-6"><TonePill tone="info">cadastro guiado</TonePill><Link
             href="/equipamentos"
             className="rounded-[16px] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]"
           >
             Cancelar
-          </Link>
-        </div>
-      </div>
-    </AppShell>
+          </Link></div></div></AppShell>
   );
 }

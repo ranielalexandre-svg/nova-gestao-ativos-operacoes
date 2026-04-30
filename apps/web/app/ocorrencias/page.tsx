@@ -16,6 +16,9 @@ import {
   EmptyState,
   SectionIntro,
   Surface,
+  TableActionCell,
+  TableActionHeader,
+  TableActionLink,
   TableCell,
   TableHead,
   TableShell,
@@ -191,20 +194,20 @@ export default async function OcorrenciasPage({
   const connectedRoutes = [
     {
       href: "/operacao/fila",
-      title: "Fila operacional",
-      description: "Triagem e despacho continuam acontecendo na mesa do turno.",
+      title: "Fila",
+      description: "Triagem e despacho.",
       badge: <TonePill tone="info">core</TonePill>,
     },
     {
       href: "/monitoramento?view=events",
-      title: "Monitoramento por eventos",
-      description: "Cruza ocorrências internas com problemas ativos dos hosts das unidades.",
+      title: "Monitoramento",
+      description: "Eventos e hosts ativos.",
       badge: <TonePill tone="attention">NOC</TonePill>,
     },
     {
       href: "/manutencoes",
-      title: "Manutenções vinculadas",
-      description: "Abra a agenda técnica quando a ocorrência já exigir ação planejada ou corretiva.",
+      title: "Manutenções",
+      description: "Agenda técnica vinculada.",
       badge: <TonePill tone="success">agenda</TonePill>,
     },
   ];
@@ -213,30 +216,24 @@ export default async function OcorrenciasPage({
     <AppShell
       title="Ocorrências"
       subtitle="Consulta operacional de incidentes e eventos de campo."
-    >
-      <RegistryHero
+    ><RegistryHero
         eyebrow="Incident Desk"
-        title="Incidentes em leitura direta, sem ruído paralelo"
-        description="A tela fica centrada na consulta e no vínculo operacional. Você encontra, abre e entende o impacto sem competir com blocos secundários."
+        title="Incidentes"
+        description="Consulta e impacto."
         actions={
-          <div className="flex flex-wrap gap-2">
-            <Link
+          <div className="flex flex-wrap gap-2"><Link
               href="/operacao/fila?view=pending"
               className="inline-flex h-11 items-center justify-center rounded-[14px] border border-blue-400/30 bg-[#17213a] px-4 text-sm font-semibold text-white transition hover:bg-[#1b2946]"
             >
               Abrir fila
-            </Link>
-            <Link
+            </Link><Link
               href="/monitoramento?view=events"
               className="inline-flex h-11 items-center justify-center rounded-[14px] border border-white/10 bg-white/[0.04] px-4 text-sm font-semibold text-slate-100 transition hover:bg-white/[0.08]"
             >
               Ver eventos NOC
-            </Link>
-          </div>
+            </Link></div>
         }
-      />
-
-      <RegistrySummaryStrip
+      /><RegistrySummaryStrip
         items={[
           {
             label: "Ocorrências",
@@ -269,15 +266,12 @@ export default async function OcorrenciasPage({
             tone: withMaintenanceOnPage ? "success" : "neutral",
           },
         ]}
-        noteTitle="Consulta primeiro"
-        noteCopy="A superfície principal continua sendo a grade. O trabalho aqui é localizar rápido, abrir a ficha certa e seguir para a unidade, ativo ou manutenção relacionada."
-      />
-
-      <Surface className="p-5 sm:p-6">
-        <SectionIntro
+        noteTitle="Consulta"
+        noteCopy="Ocorrências localizadas."
+      /><Surface className="p-5 sm:p-6"><SectionIntro
           eyebrow="Filtros"
-          title="Refine severidade, status e vínculo"
-          description="Busca por código, título, origem e entidade relacionada. Os filtros continuam persistidos na URL."
+          title="Filtros"
+          description="Código, título, origem e entidade relacionada."
           actions={
             <Link
               href="/ocorrencias"
@@ -287,157 +281,76 @@ export default async function OcorrenciasPage({
             </Link>
           }
           compact
-        />
-
-        <form method="GET" className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-6">
-          <div className="grid gap-2 xl:col-span-2">
-            <FieldLabel htmlFor="occurrence-q" label="Busca" />
-            <input
+        /><form method="GET" className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-6"><div className="grid gap-2 xl:col-span-2"><FieldLabel htmlFor="occurrence-q" label="Busca" /><input
               id="occurrence-q"
               name="q"
               defaultValue={q}
               placeholder="Código, título, origem ou equipamento"
               className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
-            />
-          </div>
-
-          <div className="grid gap-2">
-            <FieldLabel htmlFor="occurrence-severity" label="Severidade" />
-            <select
+            /></div><div className="grid gap-2"><FieldLabel htmlFor="occurrence-severity" label="Severidade" /><select
               id="occurrence-severity"
               name="severity"
               defaultValue={severity}
               className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            >
-              <option value="all">Todas</option>
+            ><option value="all">Todas</option>
               {severityOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
               ))}
-            </select>
-          </div>
-
-          <div className="grid gap-2">
-            <FieldLabel htmlFor="occurrence-status" label="Status" />
-            <select
+            </select></div><div className="grid gap-2"><FieldLabel htmlFor="occurrence-status" label="Status" /><select
               id="occurrence-status"
               name="status"
               defaultValue={status}
               className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            >
-              <option value="all">Todos</option>
+            ><option value="all">Todos</option>
               {statusOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
               ))}
-            </select>
-          </div>
-
-          <div className="grid gap-2">
-            <FieldLabel htmlFor="occurrence-sort-by" label="Ordenar por" />
-            <select
+            </select></div><div className="grid gap-2"><FieldLabel htmlFor="occurrence-sort-by" label="Ordenar por" /><select
               id="occurrence-sort-by"
               name="sortBy"
               defaultValue={sortBy}
               className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            >
-              <option value="createdAt">Cadastro</option>
-              <option value="code">Código</option>
-              <option value="title">Título</option>
-              <option value="severity">Severidade</option>
-              <option value="status">Status</option>
-            </select>
-          </div>
-
-          <div className="grid gap-2">
-            <FieldLabel htmlFor="occurrence-sort-dir" label="Direção" />
-            <select
+            ><option value="createdAt">Cadastro</option><option value="code">Código</option><option value="title">Título</option><option value="severity">Severidade</option><option value="status">Status</option></select></div><div className="grid gap-2"><FieldLabel htmlFor="occurrence-sort-dir" label="Direção" /><select
               id="occurrence-sort-dir"
               name="sortDir"
               defaultValue={sortDir}
               className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            >
-              <option value="desc">Descendente</option>
-              <option value="asc">Ascendente</option>
-            </select>
-          </div>
-
-          <div className="grid gap-2 md:col-span-2 xl:col-span-2">
-            <FieldLabel htmlFor="occurrence-page-size" label="Página" />
-            <select
+            ><option value="desc">Descendente</option><option value="asc">Ascendente</option></select></div><div className="grid gap-2 md:col-span-2 xl:col-span-2"><FieldLabel htmlFor="occurrence-page-size" label="Página" /><select
               id="occurrence-page-size"
               name="pageSize"
               defaultValue={String(pageSize)}
               className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            >
-              <option value="10">10 por página</option>
-              <option value="20">20 por página</option>
-              <option value="50">50 por página</option>
-            </select>
-          </div>
-
-          <button className="rounded-[14px] bg-white px-4 py-3 text-sm font-medium text-black transition hover:opacity-95 md:col-span-2 xl:col-span-4">
+            ><option value="10">10 por página</option><option value="20">20 por página</option><option value="50">50 por página</option></select></div><button className="rounded-[14px] bg-white px-4 py-3 text-sm font-medium text-black transition hover:opacity-95 md:col-span-2 xl:col-span-4">
             Aplicar filtros
-          </button>
-        </form>
-      </Surface>
-
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
-        <Surface className="p-5 sm:p-6">
-          <SectionIntro
+          </button></form></Surface><div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]"><Surface className="p-5 sm:p-6"><SectionIntro
             eyebrow="Incidentes"
             title="Ocorrências cadastradas"
             description={`${response.meta.total} ocorrência(s) encontradas nesta visão.`}
             actions={<TonePill tone="neutral">{response.items.length} linhas</TonePill>}
             compact
-          />
-
-          <div className="mt-4">
+          /><div className="mt-4">
             {response.items.length ? (
-              <TableShell>
-                <DenseTable>
-                  <TableHead>
-                    <tr>
-                      <th className="px-4 py-3">Ocorrência</th>
-                      <th className="px-4 py-3">Severidade</th>
-                      <th className="px-4 py-3">Status</th>
-                      <th className="px-4 py-3">Vínculo</th>
-                      <th className="px-4 py-3">Manut.</th>
-                      <th className="px-4 py-3">Atualização</th>
-                      <th className="px-4 py-3 text-right">Ação</th>
-                    </tr>
-                  </TableHead>
-                  <tbody>
+              <TableShell><DenseTable><TableHead><tr><th className="px-4 py-3">Ocorrência</th><th className="px-4 py-3">Severidade</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Vínculo</th><th className="px-4 py-3">Manut.</th><th className="px-4 py-3">Atualização</th><TableActionHeader /></tr></TableHead><tbody>
                     {response.items.map((occurrence) => (
                       <tr
                         key={occurrence.id}
                         className="border-b border-white/6 last:border-b-0 hover:bg-white/[0.025]"
-                      >
-                        <TableCell>
-                          <Link
+                      ><TableCell><Link
                             href={`/ocorrencias/${occurrence.id}`}
                             className="font-medium text-white transition hover:text-sky-200"
                           >
                             {occurrence.code}
-                          </Link>
-                          <div className="mt-1 max-w-[420px] truncate text-xs text-slate-500">
+                          </Link><div className="mt-1 max-w-[420px] truncate text-xs text-slate-500">
                             {occurrence.title}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <TonePill tone={severityTone(occurrence.severity)}>
+                          </div></TableCell><TableCell><TonePill tone={severityTone(occurrence.severity)}>
                             {optionLabel(severityOptions, occurrence.severity)}
-                          </TonePill>
-                        </TableCell>
-                        <TableCell>
-                          <TonePill tone={statusTone(occurrence.status)}>
+                          </TonePill></TableCell><TableCell><TonePill tone={statusTone(occurrence.status)}>
                             {optionLabel(statusOptions, occurrence.status)}
-                          </TonePill>
-                        </TableCell>
-                        <TableCell className="text-slate-400">
-                          <div className="max-w-[320px] truncate">
+                          </TonePill></TableCell><TableCell className="text-slate-400"><div className="max-w-[320px] truncate">
                             {occurrenceEntity(occurrence)}
                           </div>
                           {occurrence.source ? (
@@ -445,26 +358,15 @@ export default async function OcorrenciasPage({
                               {occurrence.source}
                             </div>
                           ) : null}
-                        </TableCell>
-                        <TableCell className="text-slate-300">
+                        </TableCell><TableCell className="text-slate-300">
                           {occurrence._count.maintenances}
-                        </TableCell>
-                        <TableCell className="text-slate-400">
+                        </TableCell><TableCell className="text-slate-400">
                           {formatDate(occurrence.updatedAt)}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Link
-                            href={`/ocorrencias/${occurrence.id}`}
-                            className="inline-flex rounded-[12px] border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-semibold text-slate-100 transition hover:border-white/18 hover:bg-white/[0.08]"
-                          >
+                        </TableCell><TableActionCell><TableActionLink href={`/ocorrencias/${occurrence.id}`}>
                             Abrir
-                          </Link>
-                        </TableCell>
-                      </tr>
+                          </TableActionLink></TableActionCell></tr>
                     ))}
-                  </tbody>
-                </DenseTable>
-              </TableShell>
+                  </tbody></DenseTable></TableShell>
             ) : (
               <EmptyState
                 title="Nenhuma ocorrência encontrada"
@@ -479,14 +381,10 @@ export default async function OcorrenciasPage({
                 }
               />
             )}
-          </div>
-        </Surface>
-
-        <div className="grid gap-5">
-          <WorkflowStatsPanel
+          </div></Surface><div className="nova-page-stack nova-page-list nova-page-incidents grid gap-5"><WorkflowStatsPanel
             eyebrow="Turno"
-            title="Leitura rápida da mesa"
-            description="Sinais suficientes para decidir se a próxima ação está na própria ocorrência, na manutenção ou no monitoramento."
+            title="Resumo"
+            description="Indicadores do turno."
             stats={[
               {
                 label: "Abertas na página",
@@ -519,42 +417,26 @@ export default async function OcorrenciasPage({
                 tone: commandCenter.metrics.overdueMaintenances ? "attention" : "neutral",
               },
             ]}
-          />
-
-          <ConnectedRoutesPanel
-            eyebrow="Trilha"
-            title="Rotas que continuam o trabalho"
-            description="Essas rotas realmente completam a investigação e o despacho. Não são navegação decorativa."
+          /><ConnectedRoutesPanel
+            eyebrow="Histórico"
+            title="Ações relacionadas"
+            description="Investigação e despacho."
             routes={connectedRoutes}
-          />
-
-          <Surface className="p-5 sm:p-6">
-            <SectionIntro
+          /><Surface className="p-5 sm:p-6"><SectionIntro
               eyebrow="Foco"
-              title="Quando abrir a ficha"
-              description="Abra o detalhe quando a ocorrência já pedir contexto de unidade, equipamento, manutenção ou origem técnica."
+              title="Critérios"
+              description="Contexto de unidade, equipamento, manutenção e origem."
               compact
-            />
-
-            <div className="mt-4 grid gap-3">
-              <ActionTile
+            /><div className="mt-4 grid gap-3"><ActionTile
                 href="/operacao/fila?view=breached"
-                title="Priorizar casos vencidos"
-                description="Quando a ocorrência já virou SLA ou ameaça de vencimento, a fila operacional dita a ordem."
+                title="Casos vencidos"
+                description="SLA e vencimento."
                 badge={<TonePill tone="critical">{commandCenter.metrics.criticalOpenOccurrences} críticas</TonePill>}
-              />
-              <ActionTile
+              /><ActionTile
                 href="/monitoramento?health=problem"
-                title="Cruzar com host e problema ativo"
-                description="Se a ocorrência depende de estado real da unidade, a leitura dos hosts reduz dúvida antes do acionamento."
+                title="Host e problema ativo"
+                description="Estado real da unidade."
                 badge={<TonePill tone="attention">host</TonePill>}
-              />
-            </div>
-          </Surface>
-        </div>
-      </div>
-
-      <ListPagination pathname="/ocorrencias" searchParams={params} meta={response.meta} />
-    </AppShell>
+              /></div></Surface></div></div><ListPagination pathname="/ocorrencias" searchParams={params} meta={response.meta} /></AppShell>
   );
 }

@@ -132,12 +132,9 @@ function RelatedLink({
     <Link
       href={href}
       className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4 transition hover:border-white/14 hover:bg-[#10161d]"
-    >
-      <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+    ><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
         {label}
-      </div>
-      <div className="mt-2 text-sm font-semibold text-slate-50">{value}</div>
-    </Link>
+      </div><div className="mt-2 text-sm font-semibold text-slate-50">{value}</div></Link>
   );
 }
 
@@ -176,7 +173,7 @@ export default async function ManutencaoDetailPage({
     {
       href: "/ocorrencias",
       title: "Abrir incidente relacionado",
-      description: "Quando a ação técnica ainda depende do contexto do evento originador, volte pela mesa de ocorrências.",
+      description: "Evento originador e vínculos.",
       badge: <TonePill tone="info">incidente</TonePill>,
     },
     {
@@ -191,47 +188,32 @@ export default async function ManutencaoDetailPage({
     <AppShell
       title={`${maintenance.code} · ${maintenance.title}`}
       subtitle="Ficha operacional da manutenção, vínculo técnico e janela de execução."
-    >
-      <RegistryDetailHero
+    ><RegistryDetailHero
         eyebrow="Manutenção"
         title={maintenance.title}
         description={maintenance.description || "Sem descrição complementar registrada."}
         badges={
-          <>
-            <TonePill tone={typeTone(maintenance.type)}>{typeLabel(maintenance.type)}</TonePill>
-            <TonePill tone={overdue ? "critical" : statusTone(maintenance.status)}>
+          <><TonePill tone={typeTone(maintenance.type)}>{typeLabel(maintenance.type)}</TonePill><TonePill tone={overdue ? "critical" : statusTone(maintenance.status)}>
               {overdue ? "vencida" : statusLabel(maintenance.status)}
-            </TonePill>
-          </>
+            </TonePill></>
         }
         meta={
-          <>
-            <span>{maintenance.code}</span>
-            <span className="text-slate-700">•</span>
-            <span>Criada em {formatDateTime(maintenance.createdAt)}</span>
-            <span className="text-slate-700">•</span>
-            <span>Atualizada em {formatDateTime(maintenance.updatedAt)}</span>
-          </>
+          <><span>{maintenance.code}</span><span className="text-slate-700">•</span><span>Criada em {formatDateTime(maintenance.createdAt)}</span><span className="text-slate-700">•</span><span>Atualizada em {formatDateTime(maintenance.updatedAt)}</span></>
         }
         actions={
-          <div className="flex flex-wrap gap-2">
-            <Link
+          <div className="flex flex-wrap gap-2"><Link
               href="/manutencoes"
               className="rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/[0.06] hover:text-white"
             >
               Voltar
-            </Link>
-            <Link
+            </Link><Link
               href="/operacao/fila?view=dueSoon"
               className="rounded-full border border-blue-400/30 bg-[#17213a] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1b2946]"
             >
               Abrir fila
-            </Link>
-          </div>
+            </Link></div>
         }
-      />
-
-      <RegistryMetricGrid
+      /><RegistryMetricGrid
         items={[
           {
             label: "Tipo",
@@ -265,19 +247,12 @@ export default async function ManutencaoDetailPage({
           },
         ]}
         columnsClassName="md:grid-cols-2 xl:grid-cols-5"
-      />
-
-      <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
-        <Surface className="p-5 sm:p-6">
-          <SectionIntro
+      /><section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]"><Surface className="p-5 sm:p-6"><SectionIntro
             eyebrow="Resumo"
             title="Contexto da manutenção"
             description="Código, agenda e entidade relacionada em uma ficha mais direta."
             compact
-          />
-
-          <div className="mt-5">
-            <RegistryInfoGrid
+          /><div className="mt-5"><RegistryInfoGrid
               columnsClassName="md:grid-cols-2 xl:grid-cols-3"
               items={[
                 { label: "Código", value: maintenance.code },
@@ -312,20 +287,13 @@ export default async function ManutencaoDetailPage({
                   )}`,
                 },
               ]}
-            />
-          </div>
-        </Surface>
-
-        <div className="grid gap-5">
-          <LinkedHostPanel
+            /></div></Surface><div className="nova-page-stack grid gap-5"><LinkedHostPanel
             item={linkedHost}
             title="Host da unidade em manutenção"
             description="A ficha já mostra o estado do host correspondente quando o cadastro consegue bater com a unidade monitorada."
-          />
-
-          <WorkflowStatsPanel
+          /><WorkflowStatsPanel
             eyebrow="Turno"
-            title="Leitura rápida da execução"
+            title="Execução"
             description="Esses sinais ajudam a decidir se a manutenção continua na agenda, volta ao incidente ou já pressiona a fila."
             stats={[
               {
@@ -349,23 +317,17 @@ export default async function ManutencaoDetailPage({
                 tone: commandCenter.metrics.openOccurrences ? "info" : "neutral",
               },
             ]}
-          />
-
-          <ConnectedRoutesPanel
-            eyebrow="Trilha"
+          /><ConnectedRoutesPanel
+            eyebrow="Histórico"
             title="Rotas que completam a execução"
             description="A manutenção conversa com fila, incidente e host. Essas são as rotas úteis da operação."
             routes={connectedRoutes}
-          />
-
-          <Surface className="p-5 sm:p-6">
-            <SectionIntro
+          /><Surface className="p-5 sm:p-6"><SectionIntro
               eyebrow="Vínculos"
               title="Abrir relacionados"
               description="Use estes atalhos quando a execução depender de contexto adicional."
               compact
-            />
-            <div className="mt-5 grid gap-3">
+            /><div className="mt-5 grid gap-3">
               {maintenance.partner ? (
                 <RelatedLink
                   href={`/parceiros/${maintenance.partner.id}`}
@@ -391,24 +353,15 @@ export default async function ManutencaoDetailPage({
                 <Link
                   href={`/ocorrencias/${maintenance.occurrence.id}`}
                   className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4 transition hover:border-white/14 hover:bg-[#10161d]"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+                ><div className="flex items-start justify-between gap-3"><div><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
                         Ocorrência
-                      </div>
-                      <div className="mt-2 text-sm font-semibold text-slate-50">
+                      </div><div className="mt-2 text-sm font-semibold text-slate-50">
                         {maintenance.occurrence.code} · {maintenance.occurrence.title}
-                      </div>
-                      <div className="mt-1 text-xs text-slate-500">
+                      </div><div className="mt-1 text-xs text-slate-500">
                         {occurrenceStatusLabel(maintenance.occurrence.status)}
-                      </div>
-                    </div>
-                    <TonePill tone={occurrenceTone(maintenance.occurrence.severity)}>
+                      </div></div><TonePill tone={occurrenceTone(maintenance.occurrence.severity)}>
                       {occurrenceSeverityLabel(maintenance.occurrence.severity)}
-                    </TonePill>
-                  </div>
-                </Link>
+                    </TonePill></div></Link>
               ) : null}
               {!maintenance.partner &&
               !maintenance.unit &&
@@ -419,10 +372,6 @@ export default async function ManutencaoDetailPage({
                   description="A manutenção ainda não aponta para parceiro, unidade, equipamento ou ocorrência."
                 />
               ) : null}
-            </div>
-          </Surface>
-        </div>
-      </section>
-    </AppShell>
+            </div></Surface></div></section></AppShell>
   );
 }

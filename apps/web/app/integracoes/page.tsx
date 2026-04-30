@@ -298,8 +298,7 @@ function ConnectorConfigForm({
   const zabbixWithoutAuth = integration.type === "zabbix" && integration.authMode === "none";
 
   return (
-    <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
-      <ActionForm
+    <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]"><ActionForm
         action={updateAction}
         className="grid gap-3 rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4 md:grid-cols-2"
         noticeClassName="md:col-span-2"
@@ -307,56 +306,9 @@ function ConnectorConfigForm({
         submitLabel="Salvar conector"
         pendingLabel="Salvando..."
         variant="secondary"
-      >
-        <input type="hidden" name="id" value={integration.id} />
-        <label className="grid gap-2">
-          <FieldLabel>Código</FieldLabel>
-          <input name="code" defaultValue={integration.code} />
-        </label>
-        <label className="grid gap-2">
-          <FieldLabel>Nome</FieldLabel>
-          <input name="name" defaultValue={integration.name} />
-        </label>
-        <label className="grid gap-2">
-          <FieldLabel>Tipo</FieldLabel>
-          <select name="type" defaultValue={integration.type}>
-            <option value="zabbix">zabbix</option>
-            <option value="generic_http">generic_http</option>
-          </select>
-        </label>
-        <label className="grid gap-2">
-          <FieldLabel>Autenticação</FieldLabel>
-          <select name="authMode" defaultValue={integration.authMode}>
-            <option value="none">none</option>
-            <option value="token">token</option>
-            <option value="userpass">userpass</option>
-          </select>
-        </label>
-        <label className="grid gap-2 md:col-span-2">
-          <FieldLabel>Base URL</FieldLabel>
-          <input name="baseUrl" defaultValue={integration.baseUrl} />
-        </label>
-        <label className="grid gap-2 md:col-span-2">
-          <FieldLabel>Caminho</FieldLabel>
-          <input name="apiPath" defaultValue={integration.apiPath || ""} placeholder="Opcional" />
-        </label>
-        <label className="grid gap-2 md:col-span-2">
-          <FieldLabel>Novo API token</FieldLabel>
-          <input name="apiToken" placeholder="Opcional, deixa em branco para preservar" />
-        </label>
-        <label className="grid gap-2">
-          <FieldLabel>Novo usuário</FieldLabel>
-          <input name="username" placeholder="Opcional" />
-        </label>
-        <label className="grid gap-2">
-          <FieldLabel>Nova senha</FieldLabel>
-          <input name="password" type="password" placeholder="Opcional" />
-        </label>
-        <label className="flex items-center gap-2 text-sm text-slate-300 md:col-span-2">
-          <input type="checkbox" name="isActive" defaultChecked={integration.isActive} />
+      ><input type="hidden" name="id" value={integration.id} /><label className="grid gap-2"><FieldLabel>Código</FieldLabel><input name="code" defaultValue={integration.code} /></label><label className="grid gap-2"><FieldLabel>Nome</FieldLabel><input name="name" defaultValue={integration.name} /></label><label className="grid gap-2"><FieldLabel>Tipo</FieldLabel><select name="type" defaultValue={integration.type}><option value="zabbix">zabbix</option><option value="generic_http">generic_http</option></select></label><label className="grid gap-2"><FieldLabel>Autenticação</FieldLabel><select name="authMode" defaultValue={integration.authMode}><option value="none">none</option><option value="token">token</option><option value="userpass">userpass</option></select></label><label className="grid gap-2 md:col-span-2"><FieldLabel>Base URL</FieldLabel><input name="baseUrl" defaultValue={integration.baseUrl} /></label><label className="grid gap-2 md:col-span-2"><FieldLabel>Caminho</FieldLabel><input name="apiPath" defaultValue={integration.apiPath || ""} placeholder="Opcional" /></label><label className="grid gap-2 md:col-span-2"><FieldLabel>Novo API token</FieldLabel><input name="apiToken" placeholder="Opcional, deixa em branco para preservar" /></label><label className="grid gap-2"><FieldLabel>Novo usuário</FieldLabel><input name="username" placeholder="Opcional" /></label><label className="grid gap-2"><FieldLabel>Nova senha</FieldLabel><input name="password" type="password" placeholder="Opcional" /></label><label className="flex items-center gap-2 text-sm text-slate-300 md:col-span-2"><input type="checkbox" name="isActive" defaultChecked={integration.isActive} />
           Ativo
-        </label>
-        <div className="text-xs leading-5 text-slate-500 md:col-span-2">
+        </label><div className="text-xs leading-5 text-slate-500 md:col-span-2">
           Segredos não são exibidos. Deixe token, usuário e senha em branco para preservar os valores atuais.
         </div>
         {zabbixWithoutAuth ? (
@@ -367,29 +319,19 @@ function ConnectorConfigForm({
             <span className="font-semibold">usuário/senha</span>.
           </div>
         ) : null}
-      </ActionForm>
-
-      <ActionForm
+      </ActionForm><ActionForm
         action={testAction}
         className="grid gap-3 rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4"
         submitLabel="Testar agora"
         pendingLabel="Testando..."
         variant="secondary"
-      >
-        <input type="hidden" name="id" value={integration.id} />
-        <div>
-          <div className="text-sm font-semibold text-slate-50">Teste real</div>
-          <p className="mt-2 text-sm leading-6 text-slate-400">
+      ><input type="hidden" name="id" value={integration.id} /><div><div className="text-sm font-semibold text-slate-50">Teste real</div><p className="mt-2 text-sm leading-6 text-slate-400">
             Valida reachability e, no Zabbix autenticado, consulta versão, hosts e problemas.
-          </p>
-        </div>
-        <div className="rounded-[14px] border border-white/10 bg-white/[0.035] px-4 py-3 text-sm text-slate-300">
+          </p></div><div className="rounded-[14px] border border-white/10 bg-white/[0.035] px-4 py-3 text-sm text-slate-300">
           {integration.type === "zabbix"
             ? "apiinfo.version + host.get + problem.get"
             : "GET simples no endpoint configurado"}
-        </div>
-      </ActionForm>
-    </div>
+        </div></ActionForm></div>
   );
 }
 
@@ -434,9 +376,7 @@ function ZabbixReadinessPanel({
   const sourceFailures = telemetry.sources.filter((source) => !source.ok).length;
 
   return (
-    <Surface className="p-5 sm:p-6">
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px] xl:items-start">
-        <SectionIntro
+    <Surface className="p-5 sm:p-6"><div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px] xl:items-start"><SectionIntro
           eyebrow="Zabbix"
           title="Sincronização e vínculo de hosts"
           description="Integrações concentra credenciais, teste, contrato de vínculo e atualização segura dos hosts."
@@ -455,159 +395,70 @@ function ZabbixReadinessPanel({
             submitLabel="Sincronizar prontos"
             pendingLabel="Sincronizando..."
             variant="secondary"
-          >
-            <div className="text-sm font-semibold text-slate-50">
+          ><div className="text-sm font-semibold text-slate-50">
               Lote seguro: {telemetry.counts.syncReady} unidade(s)
-            </div>
-            <p className="mt-2 text-sm leading-6 text-slate-400">
+            </div><p className="mt-2 text-sm leading-6 text-slate-400">
               Apenas hosts com vínculo explícito entram no lote.
-            </p>
-          </ActionForm>
+            </p></ActionForm>
         ) : (
-          <div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4">
-            <div className="text-sm font-semibold text-slate-50">Leitura administrativa</div>
-            <p className="mt-2 text-sm leading-6 text-slate-400">
+          <div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="text-sm font-semibold text-slate-50">Leitura administrativa</div><p className="mt-2 text-sm leading-6 text-slate-400">
               Configuração e escrita no Zabbix ficam restritas ao admin.
-            </p>
-          </div>
+            </p></div>
         )}
-      </div>
-
-      <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-        <KpiTile
+      </div><div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-5"><KpiTile
           label="Prontas"
           value={telemetry.counts.syncReady}
           meta="host certo e tag explícita"
           tone={telemetry.counts.syncReady ? "success" : "neutral"}
-        />
-        <KpiTile
+        /><KpiTile
           label="Vinculadas"
           value={telemetry.counts.matched}
           meta={`${matchedNotReady} pedem tag explícita`}
           tone={matchedNotReady ? "attention" : "success"}
-        />
-        <KpiTile
+        /><KpiTile
           label="Sem host"
           value={telemetry.counts.unmapped}
           meta="sem candidato confiável"
           tone={telemetry.counts.unmapped ? "attention" : "success"}
-        />
-        <KpiTile
+        /><KpiTile
           label="Ambíguas"
           value={telemetry.counts.ambiguous}
           meta="mais de um candidato"
           tone={telemetry.counts.ambiguous ? "attention" : "success"}
-        />
-        <KpiTile
+        /><KpiTile
           label="Bloqueadas"
           value={blocked}
           meta="fora do lote automático"
           tone={blocked ? "attention" : "success"}
-        />
-      </div>
-
-      <div className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
-        <div>
+        /></div><div className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1fr)_380px]"><div>
           {pendingRows.length ? (
-            <TableShell>
-              <DenseTable>
-                <TableHead>
-                  <tr>
-                    <th className="px-4 py-3">Unidade</th>
-                    <th className="px-4 py-3">Host</th>
-                    <th className="px-4 py-3">Estado</th>
-                    <th className="px-4 py-3">Ação</th>
-                  </tr>
-                </TableHead>
-                <tbody>
+            <TableShell><DenseTable><TableHead><tr><th className="px-4 py-3">Unidade</th><th className="px-4 py-3">Host</th><th className="px-4 py-3">Estado</th><th className="px-4 py-3">Ação</th></tr></TableHead><tbody>
                   {pendingRows.map((item) => (
-                    <tr key={`sync-pending-${item.unit.id}`} className="border-b border-white/6 last:border-b-0">
-                      <TableCell>
-                        <Link href={`/unidades/${item.unit.id}`} className="font-semibold text-slate-50 hover:text-sky-100">
+                    <tr key={`sync-pending-${item.unit.id}`} className="border-b border-white/6 last:border-b-0"><TableCell><Link href={`/unidades/${item.unit.id}`} className="font-semibold text-slate-50 hover:text-sky-100">
                           {item.unit.code}
-                        </Link>
-                        <div className="mt-1 max-w-[300px] text-sm text-slate-300">{item.unit.name}</div>
-                        <div className="mt-1 text-xs text-slate-500">{locationLine(item.unit)}</div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="max-w-[320px] truncate text-sm font-medium text-slate-100">
+                        </Link><div className="mt-1 max-w-[300px] text-sm text-slate-300">{item.unit.name}</div><div className="mt-1 text-xs text-slate-500">{locationLine(item.unit)}</div></TableCell><TableCell><div className="max-w-[320px] truncate text-sm font-medium text-slate-100">
                           {item.match.hostName || item.match.host || "sem host confiável"}
-                        </div>
-                        <div className="mt-1 text-xs text-slate-500">
+                        </div><div className="mt-1 text-xs text-slate-500">
                           {item.match.integrationCode
                             ? `${item.match.integrationCode} · ${item.match.confidence}%`
                             : `${item.match.candidates} candidato(s)`}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <TonePill tone={matchTone(item)}>{matchLabel(item)}</TonePill>
-                      </TableCell>
-                      <TableCell>
-                        <div className="font-mono text-xs text-slate-400">nova.unit_code={item.unit.code}</div>
-                      </TableCell>
-                    </tr>
+                        </div></TableCell><TableCell><TonePill tone={matchTone(item)}>{matchLabel(item)}</TonePill></TableCell><TableCell><div className="font-mono text-xs text-slate-400">nova.unit_code={item.unit.code}</div></TableCell></tr>
                   ))}
-                </tbody>
-              </DenseTable>
-            </TableShell>
+                </tbody></DenseTable></TableShell>
           ) : (
             <EmptyState
               title="Nenhum bloqueio de sincronização"
               description="As unidades ativas no recorte estão aptas ou não há telemetria carregada."
             />
           )}
-        </div>
-
-        <div className="grid content-start gap-3">
-          <div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4">
-            <div className="text-sm font-semibold text-slate-50">Contrato usado pelo portal</div>
-            <div className="mt-3 grid gap-2">
-              <div className="rounded-[12px] border border-white/[0.08] bg-white/[0.035] px-3 py-2">
-                <div className="text-[10px] uppercase tracking-[0.14em] text-slate-500">Tag principal</div>
-                <div className="mt-1 font-mono text-sm text-slate-100">nova.unit_code</div>
-              </div>
-              <div className="rounded-[12px] border border-white/[0.08] bg-white/[0.035] px-3 py-2">
-                <div className="text-[10px] uppercase tracking-[0.14em] text-slate-500">Inventário</div>
-                <div className="mt-1 text-sm text-slate-100">unidade, parceiro, cidade, serial e MAC</div>
-              </div>
-              <div className="rounded-[12px] border border-white/[0.08] bg-white/[0.035] px-3 py-2">
-                <div className="text-[10px] uppercase tracking-[0.14em] text-slate-500">Escrita</div>
-                <div className="mt-1 text-sm text-slate-100">somente host inequívoco</div>
-              </div>
-            </div>
-          </div>
+        </div><div className="grid content-start gap-3"><div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="text-sm font-semibold text-slate-50">Contrato usado pelo portal</div><div className="mt-3 grid gap-2"><div className="rounded-[12px] border border-white/[0.08] bg-white/[0.035] px-3 py-2"><div className="text-[10px] uppercase tracking-[0.14em] text-slate-500">Tag principal</div><div className="mt-1 font-mono text-sm text-slate-100">nova.unit_code</div></div><div className="rounded-[12px] border border-white/[0.08] bg-white/[0.035] px-3 py-2"><div className="text-[10px] uppercase tracking-[0.14em] text-slate-500">Inventário</div><div className="mt-1 text-sm text-slate-100">unidade, parceiro, cidade, serial e MAC</div></div><div className="rounded-[12px] border border-white/[0.08] bg-white/[0.035] px-3 py-2"><div className="text-[10px] uppercase tracking-[0.14em] text-slate-500">Escrita</div><div className="mt-1 text-sm text-slate-100">somente host inequívoco</div></div></div></div>
 
           {telemetry.sources.map((source) => (
-            <div key={`zbx-source-${source.id}`} className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="font-semibold text-slate-50">{source.code} · {source.name}</div>
-                  <div className="mt-1 truncate text-xs text-slate-500">{source.targetUrl || "sem URL"}</div>
-                </div>
-                <TonePill tone={source.ok ? "success" : "attention"}>
+            <div key={`zbx-source-${source.id}`} className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><div className="font-semibold text-slate-50">{source.code} · {source.name}</div><div className="mt-1 truncate text-xs text-slate-500">{source.targetUrl || "sem URL"}</div></div><TonePill tone={source.ok ? "success" : "attention"}>
                   {source.ok ? "lendo" : "alerta"}
-                </TonePill>
-              </div>
-              <div className="mt-3 grid grid-cols-3 gap-2">
-                <div className="rounded-[12px] border border-white/[0.08] bg-white/[0.035] px-3 py-2">
-                  <div className="text-[10px] uppercase tracking-[0.12em] text-slate-500">Hosts</div>
-                  <div className="mt-1 font-semibold text-slate-50">{source.totalHosts}</div>
-                </div>
-                <div className="rounded-[12px] border border-white/[0.08] bg-white/[0.035] px-3 py-2">
-                  <div className="text-[10px] uppercase tracking-[0.12em] text-slate-500">Match</div>
-                  <div className="mt-1 font-semibold text-slate-50">{source.matchedUnits}</div>
-                </div>
-                <div className="rounded-[12px] border border-white/[0.08] bg-white/[0.035] px-3 py-2">
-                  <div className="text-[10px] uppercase tracking-[0.12em] text-slate-500">Versão</div>
-                  <div className="mt-1 truncate font-semibold text-slate-50">{source.version || "-"}</div>
-                </div>
-              </div>
-              <div className="mt-3 text-sm leading-5 text-slate-400">{source.message}</div>
-            </div>
+                </TonePill></div><div className="mt-3 grid grid-cols-3 gap-2"><div className="rounded-[12px] border border-white/[0.08] bg-white/[0.035] px-3 py-2"><div className="text-[10px] uppercase tracking-[0.12em] text-slate-500">Hosts</div><div className="mt-1 font-semibold text-slate-50">{source.totalHosts}</div></div><div className="rounded-[12px] border border-white/[0.08] bg-white/[0.035] px-3 py-2"><div className="text-[10px] uppercase tracking-[0.12em] text-slate-500">Match</div><div className="mt-1 font-semibold text-slate-50">{source.matchedUnits}</div></div><div className="rounded-[12px] border border-white/[0.08] bg-white/[0.035] px-3 py-2"><div className="text-[10px] uppercase tracking-[0.12em] text-slate-500">Versão</div><div className="mt-1 truncate font-semibold text-slate-50">{source.version || "-"}</div></div></div><div className="mt-3 text-sm leading-5 text-slate-400">{source.message}</div></div>
           ))}
-        </div>
-      </div>
-    </Surface>
+        </div></div></Surface>
   );
 }
 
@@ -619,37 +470,21 @@ function ReadOnlyIntegrations({
   telemetry: UnitHostTelemetry;
 }) {
   return (
-    <>
-      <ZabbixReadinessPanel telemetry={telemetry} isAdmin={false} />
-
-      <Surface className="p-5 sm:p-6">
-        <SectionIntro
+    <><ZabbixReadinessPanel telemetry={telemetry} isAdmin={false} /><Surface className="p-5 sm:p-6"><SectionIntro
           eyebrow="Conectores"
           title="Leitura disponível"
-          description="A manutenção de endpoints é administrativa; a leitura abaixo mostra o estado atual."
+          description="Endpoints e credenciais."
           actions={<TonePill tone="neutral">{formatDateTime(summary.checkedAt)}</TonePill>}
           compact
-        />
-
-        <div className="mt-4 grid gap-3">
+        /><div className="mt-4 grid gap-3">
           {summary.integrationChecks.length ? (
             summary.integrationChecks.map((check) => (
-              <div key={check.id} className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="font-semibold text-slate-50">{check.code} · {check.name}</div>
-                    <div className="mt-1 truncate text-xs text-slate-500">{check.targetUrl}</div>
-                  </div>
-                  <TonePill tone={check.ok ? "success" : "attention"}>{statusLabel(check)}</TonePill>
-                </div>
-              </div>
+              <div key={check.id} className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="flex flex-wrap items-start justify-between gap-3"><div className="min-w-0"><div className="font-semibold text-slate-50">{check.code} · {check.name}</div><div className="mt-1 truncate text-xs text-slate-500">{check.targetUrl}</div></div><TonePill tone={check.ok ? "success" : "attention"}>{statusLabel(check)}</TonePill></div></div>
             ))
           ) : (
             <EmptyState title="Nenhum conector ativo" description="Cadastre uma integração como admin para iniciar a leitura." />
           )}
-        </div>
-      </Surface>
-    </>
+        </div></Surface></>
   );
 }
 
@@ -790,9 +625,7 @@ export default async function IntegracoesPage({
       <AppShell
         title="Integrações"
         subtitle="Leitura dos conectores e contrato de vínculo com o Zabbix."
-      >
-        <Surface className="p-5 sm:p-6">
-          <SectionIntro
+      ><Surface className="p-5 sm:p-6"><SectionIntro
             eyebrow="Integrações"
             title="Conectores sem sair para o dashboard"
             description="Você continua nesta rota para entender o estado das fontes; edição e sincronização ficam com admin."
@@ -805,38 +638,27 @@ export default async function IntegracoesPage({
               </Link>
             }
             compact
-          />
-        </Surface>
-
-        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <KpiTile
+          /></Surface><section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4"><KpiTile
             label="Conectores"
             value={summary.counts.integrationsTotal}
             meta={`${summary.counts.integrationsActive} ativos`}
             tone={summary.counts.integrationsActive ? "info" : "neutral"}
-          />
-          <KpiTile
+          /><KpiTile
             label="Saudáveis"
             value={summary.counts.integrationsHealthy}
             meta={`${summary.counts.integrationsFailing} falhando`}
             tone={summary.counts.integrationsFailing ? "attention" : "success"}
-          />
-          <KpiTile
+          /><KpiTile
             label="Zabbix"
             value={summary.zabbixSnapshots.length}
             meta="snapshot(s) ativos"
             tone={summary.zabbixSnapshots.length ? "success" : "neutral"}
-          />
-          <KpiTile
+          /><KpiTile
             label="Unidades"
             value={telemetry.counts.units}
             meta={`${telemetry.counts.matched} com host`}
             tone={telemetry.counts.unmapped || telemetry.counts.ambiguous ? "attention" : "success"}
-          />
-        </section>
-
-        <ReadOnlyIntegrations summary={summary} telemetry={telemetry} />
-      </AppShell>
+          /></section><ReadOnlyIntegrations summary={summary} telemetry={telemetry} /></AppShell>
     );
   }
 
@@ -859,59 +681,22 @@ export default async function IntegracoesPage({
     <AppShell
       title="Integrações"
       subtitle="Conectores, endpoints e credenciais que alimentam o monitoramento."
-    >
-      <Surface className="p-5 sm:p-6">
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-start">
-          <SectionIntro
+    ><Surface className="p-5 sm:p-6"><div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-start"><SectionIntro
             eyebrow="Configuração"
             title="Conectores, credenciais e sync"
             description="Aqui ficam endpoint, teste, contrato de host e sincronização segura. Monitoramento fica livre para o dashboard NOC."
             compact
-          />
-          <div className="flex flex-wrap gap-2 xl:justify-end">
-            <Link
+          /><div className="flex flex-wrap gap-2 xl:justify-end"><Link
               href="/monitoramento"
               className="inline-flex h-11 items-center justify-center rounded-[14px] border border-white/10 bg-white/[0.04] px-4 text-sm font-semibold text-slate-100 transition hover:bg-white/[0.08]"
             >
               Ver monitoramento
-            </Link>
-            <a
+            </Link><a
               href="#novo-conector"
               className="inline-flex h-11 items-center justify-center rounded-[14px] border border-blue-400/30 bg-[#17213a] px-4 text-sm font-semibold text-slate-50 transition hover:bg-[#1b2946]"
             >
               Novo conector
-            </a>
-          </div>
-        </div>
-      </Surface>
-
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-[16px] border border-white/[0.08] bg-[#10161d] p-4">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Conectores</div>
-          <div className="mt-3 text-[26px] font-semibold text-slate-50">{summary.counts.integrationsTotal}</div>
-          <div className="mt-1 text-sm text-slate-400">{summary.counts.integrationsActive} ativos</div>
-        </div>
-        <div className="rounded-[16px] border border-white/[0.08] bg-[#10161d] p-4">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Saudáveis</div>
-          <div className="mt-3 text-[26px] font-semibold text-slate-50">{summary.counts.integrationsHealthy}</div>
-          <div className="mt-1 text-sm text-slate-400">{summary.counts.integrationsFailing} falhando</div>
-        </div>
-        <div className="rounded-[16px] border border-white/[0.08] bg-[#10161d] p-4">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Zabbix</div>
-          <div className="mt-3 text-[26px] font-semibold text-slate-50">{summary.zabbixSnapshots.length}</div>
-          <div className="mt-1 text-sm text-slate-400">snapshot(s) ativos</div>
-        </div>
-        <div className="rounded-[16px] border border-white/[0.08] bg-[#10161d] p-4">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Filtro atual</div>
-          <div className="mt-3 text-[26px] font-semibold text-slate-50">{integrationsResponse.meta.total}</div>
-          <div className="mt-1 text-sm text-slate-400">resultado(s)</div>
-        </div>
-      </section>
-
-      <ZabbixReadinessPanel telemetry={telemetry} isAdmin={isAdmin} />
-
-      <Surface className="p-5 sm:p-6">
-        <SectionIntro
+            </a></div></div></Surface><section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4"><div className="rounded-[16px] border border-white/[0.08] bg-[#10161d] p-4"><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Conectores</div><div className="mt-3 text-[26px] font-semibold text-slate-50">{summary.counts.integrationsTotal}</div><div className="mt-1 text-sm text-slate-400">{summary.counts.integrationsActive} ativos</div></div><div className="rounded-[16px] border border-white/[0.08] bg-[#10161d] p-4"><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Saudáveis</div><div className="mt-3 text-[26px] font-semibold text-slate-50">{summary.counts.integrationsHealthy}</div><div className="mt-1 text-sm text-slate-400">{summary.counts.integrationsFailing} falhando</div></div><div className="rounded-[16px] border border-white/[0.08] bg-[#10161d] p-4"><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Zabbix</div><div className="mt-3 text-[26px] font-semibold text-slate-50">{summary.zabbixSnapshots.length}</div><div className="mt-1 text-sm text-slate-400">snapshot(s) ativos</div></div><div className="rounded-[16px] border border-white/[0.08] bg-[#10161d] p-4"><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Filtro atual</div><div className="mt-3 text-[26px] font-semibold text-slate-50">{integrationsResponse.meta.total}</div><div className="mt-1 text-sm text-slate-400">resultado(s)</div></div></section><ZabbixReadinessPanel telemetry={telemetry} isAdmin={isAdmin} /><Surface className="p-5 sm:p-6"><SectionIntro
           eyebrow="Consulta"
           title="Buscar conectores"
           description="Filtros persistem na URL para retornar à mesma visão de configuração."
@@ -921,66 +706,12 @@ export default async function IntegracoesPage({
             </Link>
           }
           compact
-        />
-
-        <form method="GET" className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-6">
-          <label className="grid gap-2 xl:col-span-2">
-            <FieldLabel>Busca</FieldLabel>
-            <input name="q" defaultValue={q} placeholder="Código, nome, tipo ou URL" />
-          </label>
-          <label className="grid gap-2">
-            <FieldLabel>Tipo</FieldLabel>
-            <select name="type" defaultValue={type}>
-              <option value="all">Todos</option>
-              <option value="zabbix">zabbix</option>
-              <option value="generic_http">generic_http</option>
-            </select>
-          </label>
-          <label className="grid gap-2">
-            <FieldLabel>Status</FieldLabel>
-            <select name="active" defaultValue={active}>
-              <option value="all">Todos</option>
-              <option value="true">Ativos</option>
-              <option value="false">Inativos</option>
-            </select>
-          </label>
-          <label className="grid gap-2">
-            <FieldLabel>Ordenar por</FieldLabel>
-            <select name="sortBy" defaultValue={sortBy}>
-              <option value="code">Código</option>
-              <option value="name">Nome</option>
-              <option value="type">Tipo</option>
-              <option value="createdAt">Cadastro</option>
-            </select>
-          </label>
-          <label className="grid gap-2">
-            <FieldLabel>Direção</FieldLabel>
-            <select name="sortDir" defaultValue={sortDir}>
-              <option value="asc">Ascendente</option>
-              <option value="desc">Descendente</option>
-            </select>
-          </label>
-          <label className="grid gap-2 md:col-span-1 xl:col-span-2">
-            <FieldLabel>Página</FieldLabel>
-            <select name="pageSize" defaultValue={String(pageSize)}>
-              <option value="10">10 por página</option>
-              <option value="20">20 por página</option>
-              <option value="50">50 por página</option>
-            </select>
-          </label>
-          <button className="md:col-span-1 xl:col-span-4">Aplicar filtros</button>
-        </form>
-      </Surface>
-
-      <Surface className="p-5 sm:p-6">
-        <SectionIntro
+        /><form method="GET" className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-6"><label className="grid gap-2 xl:col-span-2"><FieldLabel>Busca</FieldLabel><input name="q" defaultValue={q} placeholder="Código, nome, tipo ou URL" /></label><label className="grid gap-2"><FieldLabel>Tipo</FieldLabel><select name="type" defaultValue={type}><option value="all">Todos</option><option value="zabbix">zabbix</option><option value="generic_http">generic_http</option></select></label><label className="grid gap-2"><FieldLabel>Status</FieldLabel><select name="active" defaultValue={active}><option value="all">Todos</option><option value="true">Ativos</option><option value="false">Inativos</option></select></label><label className="grid gap-2"><FieldLabel>Ordenar por</FieldLabel><select name="sortBy" defaultValue={sortBy}><option value="code">Código</option><option value="name">Nome</option><option value="type">Tipo</option><option value="createdAt">Cadastro</option></select></label><label className="grid gap-2"><FieldLabel>Direção</FieldLabel><select name="sortDir" defaultValue={sortDir}><option value="asc">Ascendente</option><option value="desc">Descendente</option></select></label><label className="grid gap-2 md:col-span-1 xl:col-span-2"><FieldLabel>Página</FieldLabel><select name="pageSize" defaultValue={String(pageSize)}><option value="10">10 por página</option><option value="20">20 por página</option><option value="50">50 por página</option></select></label><button className="md:col-span-1 xl:col-span-4">Aplicar filtros</button></form></Surface><Surface className="p-5 sm:p-6"><SectionIntro
           eyebrow="Base"
           title="Conectores cadastrados"
-          description="Cada conector aparece como bloco completo para editar credenciais, endpoint e executar teste manual sem esconder a configuração."
+          description="Conectores e testes."
           compact
-        />
-
-        <div className="mt-4">
+        /><div className="mt-4">
           {integrationsResponse.items.length ? (
             <div className="grid gap-3">
               {integrationsResponse.items.map((integration) => {
@@ -991,54 +722,23 @@ export default async function IntegracoesPage({
                   <article
                     key={integration.id}
                     className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4"
-                  >
-                    <div className="grid gap-3 border-b border-white/[0.08] pb-4 lg:grid-cols-[minmax(0,1fr)_120px_150px_120px_140px] lg:items-center">
-                      <div className="min-w-0">
-                        <div className="font-semibold text-slate-50">
+                  ><div className="grid gap-3 border-b border-white/[0.08] pb-4 lg:grid-cols-[minmax(0,1fr)_120px_150px_120px_140px] lg:items-center"><div className="min-w-0"><div className="font-semibold text-slate-50">
                           {integration.code} · {integration.name}
-                        </div>
-                        <div className="mt-1 truncate text-sm text-slate-500">
+                        </div><div className="mt-1 truncate text-sm text-slate-500">
                           {truncateUrl(integration.baseUrl)}
                           {integration.apiPath || ""}
-                        </div>
-                      </div>
-                      <div className="text-sm text-slate-300">{typeLabel(integration.type)}</div>
-                      <div className="text-sm text-slate-400">{authLabel(integration.authMode)}</div>
-                      <div>
-                        <TonePill tone={integration.isActive ? "success" : "subtle"}>
+                        </div></div><div className="text-sm text-slate-300">{typeLabel(integration.type)}</div><div className="text-sm text-slate-400">{authLabel(integration.authMode)}</div><div><TonePill tone={integration.isActive ? "success" : "subtle"}>
                           {integration.isActive ? "ativo" : "inativo"}
-                        </TonePill>
-                      </div>
-                      <div className="flex items-center gap-2 lg:justify-end">
-                        <TonePill tone={healthTone(check?.ok)}>{statusLabel(check)}</TonePill>
-                      </div>
-                    </div>
-
-                    <div className="pt-4">
+                        </TonePill></div><div className="flex items-center gap-2 lg:justify-end"><TonePill tone={healthTone(check?.ok)}>{statusLabel(check)}</TonePill></div></div><div className="pt-4">
                       {zabbix ? (
-                        <div className="mb-4 grid gap-3 md:grid-cols-3">
-                          <div className="rounded-[14px] border border-white/[0.08] bg-white/[0.035] px-4 py-3">
-                            <div className="text-[10px] uppercase tracking-[0.12em] text-slate-500">Versão</div>
-                            <div className="mt-2 text-lg font-semibold text-slate-50">{zabbix.version || "-"}</div>
-                          </div>
-                          <div className="rounded-[14px] border border-white/[0.08] bg-white/[0.035] px-4 py-3">
-                            <div className="text-[10px] uppercase tracking-[0.12em] text-slate-500">Hosts</div>
-                            <div className="mt-2 text-lg font-semibold text-slate-50">{zabbix.monitoredHosts ?? "-"}</div>
-                          </div>
-                          <div className="rounded-[14px] border border-white/[0.08] bg-white/[0.035] px-4 py-3">
-                            <div className="text-[10px] uppercase tracking-[0.12em] text-slate-500">Problemas</div>
-                            <div className="mt-2 text-lg font-semibold text-slate-50">{zabbix.openProblems ?? "-"}</div>
-                          </div>
-                        </div>
+                        <div className="mb-4 grid gap-3 md:grid-cols-3"><div className="rounded-[14px] border border-white/[0.08] bg-white/[0.035] px-4 py-3"><div className="text-[10px] uppercase tracking-[0.12em] text-slate-500">Versão</div><div className="mt-2 text-lg font-semibold text-slate-50">{zabbix.version || "-"}</div></div><div className="rounded-[14px] border border-white/[0.08] bg-white/[0.035] px-4 py-3"><div className="text-[10px] uppercase tracking-[0.12em] text-slate-500">Hosts</div><div className="mt-2 text-lg font-semibold text-slate-50">{zabbix.monitoredHosts ?? "-"}</div></div><div className="rounded-[14px] border border-white/[0.08] bg-white/[0.035] px-4 py-3"><div className="text-[10px] uppercase tracking-[0.12em] text-slate-500">Problemas</div><div className="mt-2 text-lg font-semibold text-slate-50">{zabbix.openProblems ?? "-"}</div></div></div>
                       ) : null}
 
                       <ConnectorConfigForm
                         integration={integration}
                         updateAction={updateIntegration}
                         testAction={testIntegration}
-                      />
-                    </div>
-                  </article>
+                      /></div></article>
                 );
               })}
             </div>
@@ -1048,71 +748,18 @@ export default async function IntegracoesPage({
               description="Ajuste filtros ou cadastre um novo conector para alimentar o monitoramento."
             />
           )}
-        </div>
-      </Surface>
-
-      <ListPagination pathname="/integracoes" searchParams={params} meta={integrationsResponse.meta} />
-      <Surface id="novo-conector" className="p-5 sm:p-6">
-        <SectionIntro
+        </div></Surface><ListPagination pathname="/integracoes" searchParams={params} meta={integrationsResponse.meta} /><Surface id="novo-conector" className="p-5 sm:p-6"><SectionIntro
           eyebrow="Administração"
           title="Novo conector"
-          description="Cadastro de endpoint e credenciais para o monitoramento, no mesmo fluxo das demais configurações."
+          description="Endpoint e credenciais de monitoramento."
           compact
-        />
-
-        <ActionForm
+        /><ActionForm
           action={createIntegration}
           className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-6"
           noticeClassName="md:col-span-2 xl:col-span-6"
           submitClassName="md:col-span-2 xl:col-span-6"
           submitLabel="Criar conector"
           pendingLabel="Criando..."
-        >
-          <label className="grid gap-2">
-            <FieldLabel>Código</FieldLabel>
-            <input name="code" placeholder="ZBX" />
-          </label>
-          <label className="grid gap-2">
-            <FieldLabel>Nome</FieldLabel>
-            <input name="name" placeholder="Zabbix principal" />
-          </label>
-          <label className="grid gap-2">
-            <FieldLabel>Tipo</FieldLabel>
-            <select name="type" defaultValue="zabbix">
-              <option value="zabbix">zabbix</option>
-              <option value="generic_http">generic_http</option>
-            </select>
-          </label>
-          <label className="grid gap-2">
-            <FieldLabel>Autenticação</FieldLabel>
-            <select name="authMode" defaultValue="none">
-              <option value="none">none</option>
-              <option value="token">token</option>
-              <option value="userpass">userpass</option>
-            </select>
-          </label>
-          <label className="grid gap-2 xl:col-span-2">
-            <FieldLabel>Base URL</FieldLabel>
-            <input name="baseUrl" placeholder="https://monitoramento.exemplo/zabbix" />
-          </label>
-          <label className="grid gap-2 md:col-span-2">
-            <FieldLabel>Caminho opcional</FieldLabel>
-            <input name="apiPath" placeholder="/api_jsonrpc.php" />
-          </label>
-          <label className="grid gap-2 md:col-span-2">
-            <FieldLabel>API token</FieldLabel>
-            <input name="apiToken" placeholder="Opcional" />
-          </label>
-          <label className="grid gap-2">
-            <FieldLabel>Usuário</FieldLabel>
-            <input name="username" placeholder="Opcional" />
-          </label>
-          <label className="grid gap-2">
-            <FieldLabel>Senha</FieldLabel>
-            <input name="password" type="password" placeholder="Opcional" />
-          </label>
-        </ActionForm>
-      </Surface>
-    </AppShell>
+        ><label className="grid gap-2"><FieldLabel>Código</FieldLabel><input name="code" placeholder="ZBX" /></label><label className="grid gap-2"><FieldLabel>Nome</FieldLabel><input name="name" placeholder="Zabbix principal" /></label><label className="grid gap-2"><FieldLabel>Tipo</FieldLabel><select name="type" defaultValue="zabbix"><option value="zabbix">zabbix</option><option value="generic_http">generic_http</option></select></label><label className="grid gap-2"><FieldLabel>Autenticação</FieldLabel><select name="authMode" defaultValue="none"><option value="none">none</option><option value="token">token</option><option value="userpass">userpass</option></select></label><label className="grid gap-2 xl:col-span-2"><FieldLabel>Base URL</FieldLabel><input name="baseUrl" placeholder="https://monitoramento.exemplo/zabbix" /></label><label className="grid gap-2 md:col-span-2"><FieldLabel>Caminho opcional</FieldLabel><input name="apiPath" placeholder="/api_jsonrpc.php" /></label><label className="grid gap-2 md:col-span-2"><FieldLabel>API token</FieldLabel><input name="apiToken" placeholder="Opcional" /></label><label className="grid gap-2"><FieldLabel>Usuário</FieldLabel><input name="username" placeholder="Opcional" /></label><label className="grid gap-2"><FieldLabel>Senha</FieldLabel><input name="password" type="password" placeholder="Opcional" /></label></ActionForm></Surface></AppShell>
   );
 }

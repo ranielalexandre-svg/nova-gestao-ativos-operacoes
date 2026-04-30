@@ -143,12 +143,9 @@ function RelatedLink({
     <Link
       href={href}
       className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4 transition hover:border-white/14 hover:bg-[#10161d]"
-    >
-      <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+    ><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
         {label}
-      </div>
-      <div className="mt-2 text-sm font-semibold text-slate-50">{value}</div>
-    </Link>
+      </div><div className="mt-2 text-sm font-semibold text-slate-50">{value}</div></Link>
   );
 }
 
@@ -210,50 +207,36 @@ export default async function OcorrenciaDetailPage({
     <AppShell
       title={`${occurrence.code} · ${occurrence.title}`}
       subtitle="Ficha operacional da ocorrência, vínculos e ações relacionadas."
-    >
-      <RegistryDetailHero
+    ><RegistryDetailHero
         eyebrow="Ocorrência"
         title={occurrence.title}
         description={occurrence.description || "Sem descrição complementar registrada."}
         badges={
-          <>
-            <TonePill tone={severityTone(occurrence.severity)}>
+          <><TonePill tone={severityTone(occurrence.severity)}>
               {severityLabel(occurrence.severity)}
-            </TonePill>
-            <TonePill tone={statusTone(occurrence.status)}>
+            </TonePill><TonePill tone={statusTone(occurrence.status)}>
               {statusLabel(occurrence.status)}
             </TonePill>
             {occurrence.source ? <TonePill tone="subtle">{occurrence.source}</TonePill> : null}
           </>
         }
         meta={
-          <>
-            <span>{occurrence.code}</span>
-            <span className="text-slate-700">•</span>
-            <span>Criada em {formatDateTime(occurrence.createdAt)}</span>
-            <span className="text-slate-700">•</span>
-            <span>Atualizada em {formatDateTime(occurrence.updatedAt)}</span>
-          </>
+          <><span>{occurrence.code}</span><span className="text-slate-700">•</span><span>Criada em {formatDateTime(occurrence.createdAt)}</span><span className="text-slate-700">•</span><span>Atualizada em {formatDateTime(occurrence.updatedAt)}</span></>
         }
         actions={
-          <div className="flex flex-wrap gap-2">
-            <Link
+          <div className="flex flex-wrap gap-2"><Link
               href="/ocorrencias"
               className="rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/[0.06] hover:text-white"
             >
               Voltar
-            </Link>
-            <Link
+            </Link><Link
               href="/operacao/fila?view=pending"
               className="rounded-full border border-blue-400/30 bg-[#17213a] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1b2946]"
             >
               Abrir fila
-            </Link>
-          </div>
+            </Link></div>
         }
-      />
-
-      <RegistryMetricGrid
+      /><RegistryMetricGrid
         items={[
           {
             label: "Manutenções",
@@ -287,19 +270,12 @@ export default async function OcorrenciaDetailPage({
           },
         ]}
         columnsClassName="md:grid-cols-2 xl:grid-cols-5"
-      />
-
-      <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
-        <Surface className="p-5 sm:p-6">
-          <SectionIntro
+      /><section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]"><Surface className="p-5 sm:p-6"><SectionIntro
             eyebrow="Resumo"
             title="Contexto do incidente"
             description="Entidade afetada, código e vínculo operacional em uma ficha mais direta."
             compact
-          />
-
-          <div className="mt-5">
-            <RegistryInfoGrid
+          /><div className="mt-5"><RegistryInfoGrid
               columnsClassName="md:grid-cols-2 xl:grid-cols-3"
               items={[
                 { label: "Código", value: occurrence.code },
@@ -321,20 +297,13 @@ export default async function OcorrenciaDetailPage({
                   span: "full",
                 },
               ]}
-            />
-          </div>
-        </Surface>
-
-        <div className="grid gap-5">
-          <LinkedHostPanel
+            /></div></Surface><div className="nova-page-stack grid gap-5"><LinkedHostPanel
             item={linkedHost}
             title="Host da unidade afetada"
             description="Quando existe correspondência entre cadastro e host, a ficha já mostra o sinal técnico que ajuda a decidir o próximo passo."
-          />
-
-          <WorkflowStatsPanel
+          /><WorkflowStatsPanel
             eyebrow="Turno"
-            title="Leitura rápida do caso"
+            title="Resumo do caso"
             description="O ponto aqui é saber se o caso pede fila, agenda técnica ou monitoramento antes de abrir mais telas."
             stats={[
               {
@@ -358,23 +327,17 @@ export default async function OcorrenciaDetailPage({
                 tone: commandCenter.metrics.overdueMaintenances ? "attention" : "neutral",
               },
             ]}
-          />
-
-          <ConnectedRoutesPanel
-            eyebrow="Trilha"
+          /><ConnectedRoutesPanel
+            eyebrow="Histórico"
             title="Rotas que completam o caso"
             description="Essas rotas continuam a operação sem repetir navegação de enfeite."
             routes={connectedRoutes}
-          />
-
-          <Surface className="p-5 sm:p-6">
-            <SectionIntro
+          /><Surface className="p-5 sm:p-6"><SectionIntro
               eyebrow="Vínculos"
               title="Abrir relacionados"
               description="Use estes atalhos quando o trabalho exigir contexto de parceiro, unidade ou equipamento."
               compact
-            />
-            <div className="mt-5 grid gap-3">
+            /><div className="mt-5 grid gap-3">
               {occurrence.partner ? (
                 <RelatedLink
                   href={`/parceiros/${occurrence.partner.id}`}
@@ -402,24 +365,16 @@ export default async function OcorrenciaDetailPage({
                   description="A ocorrência ainda não aponta para parceiro, unidade ou equipamento."
                 />
               ) : null}
-            </div>
-          </Surface>
-        </div>
-      </section>
-
-      <AttachmentPanel
+            </div></Surface></div></section><AttachmentPanel
         entityPath="occurrences"
         entityId={occurrence.id}
         entityLabel="ocorrência"
         returnPath={`/ocorrencias/${occurrence.id}`}
         canEdit={canEditAttachments}
-      />
-
-      <Surface className="p-5 sm:p-6">
-        <SectionIntro
+      /><Surface className="p-5 sm:p-6"><SectionIntro
           eyebrow="Agenda"
-          title="Manutenções vinculadas"
-          description="Ações abertas ou já executadas para resolver ou acompanhar este incidente."
+          title="Manutenções"
+          description="Ações do incidente."
           actions={
             <Link
               href="/manutencoes"
@@ -429,56 +384,28 @@ export default async function OcorrenciaDetailPage({
             </Link>
           }
           compact
-        />
-
-        <div className="mt-5">
+        /><div className="mt-5">
           {occurrence.maintenances.length ? (
-            <TableShell>
-              <DenseTable>
-                <TableHead>
-                  <tr>
-                    <th className="px-4 py-3">Manutenção</th>
-                    <th className="px-4 py-3">Tipo</th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3">Agendada</th>
-                    <th className="px-4 py-3">Concluída</th>
-                  </tr>
-                </TableHead>
-                <tbody>
+            <TableShell><DenseTable><TableHead><tr><th className="px-4 py-3">Manutenção</th><th className="px-4 py-3">Tipo</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Agendada</th><th className="px-4 py-3">Concluída</th></tr></TableHead><tbody>
                   {occurrence.maintenances.map((item) => (
-                    <tr key={item.id} className="border-b border-white/6 last:border-b-0 hover:bg-white/[0.025]">
-                      <TableCell>
-                        <Link
+                    <tr key={item.id} className="border-b border-white/6 last:border-b-0 hover:bg-white/[0.025]"><TableCell><Link
                           href={`/manutencoes/${item.id}`}
                           className="font-medium text-white transition hover:text-sky-200"
                         >
                           {item.code}
-                        </Link>
-                        <div className="mt-1 max-w-[360px] truncate text-xs text-slate-500">
+                        </Link><div className="mt-1 max-w-[360px] truncate text-xs text-slate-500">
                           {item.title}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-slate-300">{maintenanceTypeLabel(item.type)}</TableCell>
-                      <TableCell>
-                        <TonePill tone={maintenanceStatusTone(item.status)}>
+                        </div></TableCell><TableCell className="text-slate-300">{maintenanceTypeLabel(item.type)}</TableCell><TableCell><TonePill tone={maintenanceStatusTone(item.status)}>
                           {maintenanceStatusLabel(item.status)}
-                        </TonePill>
-                      </TableCell>
-                      <TableCell className="text-slate-400">{formatDateTime(item.scheduledAt)}</TableCell>
-                      <TableCell className="text-slate-400">{formatDateTime(item.completedAt)}</TableCell>
-                    </tr>
+                        </TonePill></TableCell><TableCell className="text-slate-400">{formatDateTime(item.scheduledAt)}</TableCell><TableCell className="text-slate-400">{formatDateTime(item.completedAt)}</TableCell></tr>
                   ))}
-                </tbody>
-              </DenseTable>
-            </TableShell>
+                </tbody></DenseTable></TableShell>
           ) : (
             <EmptyState
               title="Nenhuma manutenção vinculada"
-              description="Quando uma manutenção for vinculada à ocorrência, ela aparecerá nesta mesa."
+              description="Manutenções vinculadas à ocorrência."
             />
           )}
-        </div>
-      </Surface>
-    </AppShell>
+        </div></Surface></AppShell>
   );
 }

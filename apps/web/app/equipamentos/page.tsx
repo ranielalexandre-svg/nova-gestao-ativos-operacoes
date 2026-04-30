@@ -7,6 +7,9 @@ import {
   EmptyState,
   SectionIntro,
   Surface,
+  TableActionCell,
+  TableActionHeader,
+  TableActionLink,
   TableCell,
   TableHead,
   TableShell,
@@ -207,7 +210,7 @@ export default async function EquipamentosPage({
   const q = readStringParam(params, "q");
   const unitId = readStringParam(params, "unitId");
   const status = readStringParam(params, "status", "all");
-  const active = readStringParam(params, "active", "all");
+  const active = readStringParam(params, "active", "true");
   const sortBy = readStringParam(params, "sortBy", "createdAt");
   const sortDir = readStringParam(params, "sortDir", "desc");
   const page = readPositiveIntParam(params, "page", 1);
@@ -276,21 +279,18 @@ export default async function EquipamentosPage({
   return (
     <AppShell
       title="Equipamentos"
-      subtitle="Inventário operacional com vínculo, rede e telemetria lidos na mesma mesa."
-    >
-      <RegistryHero
+      subtitle="Inventário, vínculo, rede e telemetria."
+    ><RegistryHero
         eyebrow="Asset Registry"
         title="Base técnica com vínculo e telemetria"
         description="Inventário em leitura densa: unidade, parceiro, rastreabilidade e indício de monitoramento visíveis na mesma linha."
         actions={
-          <div className="flex flex-wrap gap-2">
-            <Link
+          <div className="flex flex-wrap gap-2"><Link
               href="/equipamentos/starlinks"
               className="inline-flex h-11 items-center justify-center rounded-[14px] border border-white/10 bg-white/[0.05] px-4 text-sm font-semibold text-slate-100 transition hover:bg-white/[0.09]"
             >
-              Ver Starlinks
-            </Link>
-            <Link
+              Starlinks
+            </Link><Link
               href="/export/equipments"
               className="inline-flex h-11 items-center justify-center rounded-[14px] border border-white/10 bg-white/[0.05] px-4 text-sm font-semibold text-slate-100 transition hover:bg-white/[0.09]"
             >
@@ -306,9 +306,7 @@ export default async function EquipamentosPage({
             ) : null}
           </div>
         }
-      />
-
-      <RegistrySummaryStrip
+      /><RegistrySummaryStrip
         items={[
           {
             label: "Equipamentos",
@@ -339,10 +337,7 @@ export default async function EquipamentosPage({
         ]}
         noteTitle="Tabela primeiro"
         noteCopy="O ativo não precisa abrir outra tela para fazer sentido. Unidade, parceiro, serial, origem e pulso do host ficam juntos para reduzir clique de triagem."
-      />
-
-      <Surface className="p-5 sm:p-6">
-        <SectionIntro
+      /><Surface className="p-5 sm:p-6"><SectionIntro
           eyebrow="Filtros"
           title="Refine vínculo, rede e recorte"
           description="Busca por tag, nome, tipo, serial, unidade e parceiro. O objetivo aqui é chegar rápido ao ativo certo sem perder o contexto da unidade."
@@ -355,141 +350,59 @@ export default async function EquipamentosPage({
             </Link>
           }
           compact
-        />
-
-        <form method="GET" className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-6">
-          <div className="grid gap-2 xl:col-span-2">
-            <FieldLabel htmlFor="equipments-q" label="Busca" />
-            <input
+        /><form method="GET" className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-6"><div className="grid gap-2 xl:col-span-2"><FieldLabel htmlFor="equipments-q" label="Busca" /><input
               id="equipments-q"
               name="q"
               defaultValue={q}
               placeholder="Tag, serial, MAC salvo, unidade ou parceiro"
               className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
-            />
-          </div>
-
-          <div className="grid gap-2">
-            <FieldLabel htmlFor="equipments-unit" label="Unidade" />
-            <select
+            /></div><div className="grid gap-2"><FieldLabel htmlFor="equipments-unit" label="Unidade" /><select
               id="equipments-unit"
               name="unitId"
               defaultValue={unitId}
               className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            >
-              <option value="">Todas as unidades</option>
+            ><option value="">Todas as unidades</option>
               {unitOptions.map((unit) => (
                 <option key={unit.id} value={unit.id}>
                   {unit.code} - {unit.name}
                 </option>
               ))}
-            </select>
-          </div>
-
-          <div className="grid gap-2">
-            <FieldLabel htmlFor="equipments-status" label="Status" />
-            <select
+            </select></div><div className="grid gap-2"><FieldLabel htmlFor="equipments-status" label="Status" /><select
               id="equipments-status"
               name="status"
               defaultValue={status}
               className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            >
-              <option value="all">Todos</option>
-              <option value="active">Ativo</option>
-              <option value="stock">Estoque</option>
-              <option value="repair">Reparo</option>
-              <option value="retired">Retirado</option>
-            </select>
-          </div>
-
-          <div className="grid gap-2">
-            <FieldLabel htmlFor="equipments-active" label="Cadastro" />
-            <select
+            ><option value="all">Todos</option><option value="active">Ativo</option><option value="stock">Estoque</option><option value="repair">Reparo</option><option value="retired">Retirado</option></select></div><div className="grid gap-2"><FieldLabel htmlFor="equipments-active" label="Cadastro" /><select
               id="equipments-active"
               name="active"
               defaultValue={active}
               className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            >
-              <option value="all">Todos</option>
-              <option value="true">Ativos</option>
-              <option value="false">Inativos</option>
-            </select>
-          </div>
-
-          <div className="grid gap-2">
-            <FieldLabel htmlFor="equipments-sort" label="Ordenar por" />
-            <select
+            ><option value="all">Todos</option><option value="true">Ativos</option><option value="false">Excluídos</option></select></div><div className="grid gap-2"><FieldLabel htmlFor="equipments-sort" label="Ordenar por" /><select
               id="equipments-sort"
               name="sortBy"
               defaultValue={sortBy}
               className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            >
-              <option value="createdAt">Cadastro</option>
-              <option value="tag">Tag</option>
-              <option value="name">Nome</option>
-              <option value="type">Tipo</option>
-              <option value="status">Status</option>
-            </select>
-          </div>
-
-          <div className="grid gap-2">
-            <FieldLabel htmlFor="equipments-dir" label="Direção" />
-            <select
+            ><option value="createdAt">Cadastro</option><option value="tag">Tag</option><option value="name">Nome</option><option value="type">Tipo</option><option value="status">Status</option></select></div><div className="grid gap-2"><FieldLabel htmlFor="equipments-dir" label="Direção" /><select
               id="equipments-dir"
               name="sortDir"
               defaultValue={sortDir}
               className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            >
-              <option value="desc">Descendente</option>
-              <option value="asc">Ascendente</option>
-            </select>
-          </div>
-
-          <div className="grid gap-2 md:col-span-1 xl:col-span-2">
-            <FieldLabel htmlFor="equipments-page-size" label="Página" />
-            <select
+            ><option value="desc">Descendente</option><option value="asc">Ascendente</option></select></div><div className="grid gap-2 md:col-span-1 xl:col-span-2"><FieldLabel htmlFor="equipments-page-size" label="Página" /><select
               id="equipments-page-size"
               name="pageSize"
               defaultValue={String(pageSize)}
               className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            >
-              <option value="10">10 por página</option>
-              <option value="20">20 por página</option>
-              <option value="50">50 por página</option>
-            </select>
-          </div>
-
-          <button className="rounded-[14px] bg-white px-4 py-3 text-sm font-semibold text-black transition hover:opacity-95 md:col-span-1 xl:col-span-4 xl:self-end">
+            ><option value="10">10 por página</option><option value="20">20 por página</option><option value="50">50 por página</option></select></div><button className="rounded-[14px] bg-white px-4 py-3 text-sm font-semibold text-black transition hover:opacity-95 md:col-span-1 xl:col-span-4 xl:self-end">
             Aplicar filtros
-          </button>
-        </form>
-      </Surface>
-
-      <Surface className="p-5 sm:p-6">
-        <SectionIntro
+          </button></form></Surface><Surface className="p-5 sm:p-6"><SectionIntro
           eyebrow="Asset Registry"
           title="Base técnica"
           description={`${response.meta.total} equipamento(s) encontrados nesta visão.`}
           actions={<TonePill tone="neutral">{response.items.length} linhas</TonePill>}
           compact
-        />
-
-        <div className="mt-5">
+        /><div className="mt-5">
           {response.items.length ? (
-            <TableShell>
-              <DenseTable>
-                <TableHead>
-                  <tr>
-                    <th className="px-4 py-3">Equipamento</th>
-                    <th className="px-4 py-3">Unidade</th>
-                    <th className="px-4 py-3">Parceiro</th>
-                    <th className="px-4 py-3">Rede / origem</th>
-                    <th className="px-4 py-3">Monitoramento</th>
-                    <th className="px-4 py-3">Qualidade</th>
-                    <th className="px-4 py-3 text-right">Ação</th>
-                  </tr>
-                </TableHead>
-                <tbody>
+            <TableShell><DenseTable><TableHead><tr><th className="px-4 py-3">Equipamento</th><th className="px-4 py-3">Unidade</th><th className="px-4 py-3">Parceiro</th><th className="px-4 py-3">Rede / origem</th><th className="px-4 py-3">Monitoramento</th><th className="px-4 py-3">Qualidade</th><TableActionHeader /></tr></TableHead><tbody>
                   {response.items.map((equipment) => (
                     (() => {
                       const legacy = legacyByEquipmentId[equipment.id];
@@ -500,48 +413,29 @@ export default async function EquipamentosPage({
                         <tr
                           key={equipment.id}
                           className="border-b border-white/6 last:border-b-0 hover:bg-white/[0.025]"
-                        >
-                          <TableCell>
-                            <Link
+                        ><TableCell><Link
                               href={`/equipamentos/${equipment.id}`}
                               className="font-medium text-white transition hover:text-sky-100"
                             >
                               {equipment.tag}
-                            </Link>
-                            <div className="mt-1 max-w-[300px] truncate text-xs text-slate-500">
+                            </Link><div className="mt-1 max-w-[300px] truncate text-xs text-slate-500">
                               {equipment.name} · {equipment.type}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Link
+                            </div></TableCell><TableCell><Link
                               href={`/unidades/${equipment.unit.id}`}
                               className="font-medium text-slate-100 transition hover:text-sky-100"
                             >
                               {equipment.unit.code}
-                            </Link>
-                            <div className="mt-1 max-w-[260px] truncate text-xs text-slate-500">
+                            </Link><div className="mt-1 max-w-[260px] truncate text-xs text-slate-500">
                               {equipment.unit.name}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="text-slate-200">{equipment.unit.partner.code}</div>
-                            <div className="mt-1 max-w-[260px] truncate text-xs text-slate-500">
+                            </div></TableCell><TableCell><div className="text-slate-200">{equipment.unit.partner.code}</div><div className="mt-1 max-w-[260px] truncate text-xs text-slate-500">
                               {equipment.unit.partner.name}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="text-slate-200">
+                            </div></TableCell><TableCell><div className="text-slate-200">
                               {equipment.serialNumber || legacy?.serialOrMac || "-"}
-                            </div>
-                            <div className="mt-1 max-w-[280px] truncate text-xs text-slate-500">
+                            </div><div className="mt-1 max-w-[280px] truncate text-xs text-slate-500">
                               {[legacy?.source, legacy?.starlinkCount ? `${legacy.starlinkCount} starlink` : null]
                                 .filter(Boolean)
                                 .join(" · ") || "sem origem legada"}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex flex-wrap items-center gap-2">
-                              <TonePill
+                            </div></TableCell><TableCell><div className="flex flex-wrap items-center gap-2"><TonePill
                                 tone={
                                   monitor
                                     ? healthTone(monitor.health)
@@ -555,44 +449,25 @@ export default async function EquipamentosPage({
                                   {monitor.problems.length} alerta(s)
                                 </TonePill>
                               ) : null}
-                            </div>
-                            <div className="mt-1 text-xs text-slate-500">
+                            </div><div className="mt-1 text-xs text-slate-500">
                               {monitor
                                 ? `${formatMs(monitor.metrics.latencyMs)} · ${formatPercent(
                                     monitor.metrics.lossPct,
                                   )}`
                                 : "use a unidade para ler telemetria"}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex flex-wrap items-center gap-2">
-                              <TonePill tone={quality.tone}>{quality.label}</TonePill>
-                              <TonePill tone={statusTone(equipment.status, equipment.isActive)}>
+                            </div></TableCell><TableCell><div className="flex flex-wrap items-center gap-2"><TonePill tone={quality.tone}>{quality.label}</TonePill><TonePill tone={statusTone(equipment.status, equipment.isActive)}>
                                 {statusLabel(equipment.status)}
-                              </TonePill>
-                            </div>
-                            <div className="mt-1 max-w-[280px] text-xs text-slate-500">
+                              </TonePill></div><div className="mt-1 max-w-[280px] text-xs text-slate-500">
                               {quality.detail}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Link
-                              href={`/equipamentos/${equipment.id}`}
-                              className="rounded-full border border-white/10 bg-black/20 px-3 py-1.5 text-xs text-slate-200 transition hover:bg-white/[0.06] hover:text-white"
-                            >
+                            </div></TableCell><TableActionCell><TableActionLink href={`/equipamentos/${equipment.id}`}>
                               Abrir ativo
-                            </Link>
-                            <div className="mt-2 text-[11px] text-slate-500">
+                            </TableActionLink><div className="mt-2 text-[11px] text-slate-500">
                               {formatDate(equipment.createdAt)}
-                            </div>
-                          </TableCell>
-                        </tr>
+                            </div></TableActionCell></tr>
                       );
                     })()
                   ))}
-                </tbody>
-              </DenseTable>
-            </TableShell>
+                </tbody></DenseTable></TableShell>
           ) : (
             <EmptyState
               title="Nenhum equipamento encontrado"
@@ -607,10 +482,6 @@ export default async function EquipamentosPage({
               }
             />
           )}
-        </div>
-      </Surface>
-
-      <ListPagination pathname="/equipamentos" searchParams={params} meta={response.meta} />
-    </AppShell>
+        </div></Surface><ListPagination pathname="/equipamentos" searchParams={params} meta={response.meta} /></AppShell>
   );
 }

@@ -117,67 +117,41 @@ export default async function NovoParceiroPage({
     <AppShell
       title="Novo parceiro"
       subtitle="Cadastro guiado para identificar o parceiro, registrar contato e revisar a operação."
-    >
-      <div className="mx-auto max-w-6xl rounded-[22px] border border-white/[0.08] bg-[#0c1016] shadow-[0_30px_80px_rgba(0,0,0,0.32)]">
-        <div className="flex items-start justify-between gap-4 border-b border-white/[0.08] px-5 py-5 sm:px-6">
-          <SectionIntro
+    ><div className="mx-auto max-w-6xl rounded-[22px] border border-white/[0.08] bg-[#0c1016] shadow-[0_30px_80px_rgba(0,0,0,0.32)]"><div className="flex items-start justify-between gap-4 border-b border-white/[0.08] px-5 py-5 sm:px-6"><SectionIntro
             eyebrow="Cadastro guiado"
             title="Novo parceiro"
             description="Fluxo direto para criar a estrutura parceira e preparar contato/cobertura para a próxima etapa de dados."
             compact
-          />
-          <Link
+          /><Link
             href="/parceiros"
             aria-label="Fechar cadastro"
             className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-[16px] border border-white/10 bg-white/[0.04] text-lg leading-none text-slate-300 transition hover:bg-white/[0.08] hover:text-white"
           >
             ×
-          </Link>
-        </div>
-
-        <div className="border-b border-white/[0.08] bg-[#0f141b] px-5 py-4 sm:px-6">
-          <div className="grid gap-3 lg:grid-cols-3">
-            <WizardStep
+          </Link></div><div className="border-b border-white/[0.08] bg-[#0f141b] px-5 py-4 sm:px-6"><div className="grid gap-3 lg:grid-cols-3"><WizardStep
               index={1}
               title="Identificação"
               description="Código e nome."
               state={step === 1 ? "current" : step > 1 ? "done" : "available"}
               href={buildWizardHref(1, wizardValues)}
-            />
-            <WizardStep
+            /><WizardStep
               index={2}
               title="Contato"
               description="Acionamento e cidade base."
               state={step === 2 ? "current" : step > 2 ? "done" : identityReady ? "available" : "locked"}
               href={identityReady ? buildWizardHref(2, wizardValues) : undefined}
-            />
-            <WizardStep
+            /><WizardStep
               index={3}
               title="Operação"
               description="Revisão e criação."
               state={step === 3 ? "current" : identityReady ? "available" : "locked"}
               href={identityReady ? buildWizardHref(3, wizardValues) : undefined}
-            />
-          </div>
-        </div>
-
-        <div className="px-5 py-5 sm:px-6">
+            /></div></div><div className="px-5 py-5 sm:px-6">
           {step === 1 ? (
             <WizardPanel
               title="Identificação"
-              description="Defina o parceiro como uma entidade curta e fácil de localizar nas mesas de unidade, ativo e ocorrência."
-            >
-              <form method="GET" className="grid gap-5">
-                <input type="hidden" name="step" value="2" />
-                <input type="hidden" name="cityBase" value={cityBase} />
-                <input type="hidden" name="contactName" value={contactName} />
-                <input type="hidden" name="contactPhone" value={contactPhone} />
-                <input type="hidden" name="coverage" value={coverage} />
-
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="grid gap-2">
-                    <FieldLabel htmlFor="partner-code" label="Código" hint="Mínimo de 2 caracteres" />
-                    <input
+              description="Identificação e contato do parceiro."
+            ><form method="GET" className="grid gap-5"><input type="hidden" name="step" value="2" /><input type="hidden" name="cityBase" value={cityBase} /><input type="hidden" name="contactName" value={contactName} /><input type="hidden" name="contactPhone" value={contactPhone} /><input type="hidden" name="coverage" value={coverage} /><div className="grid gap-4 md:grid-cols-2"><div className="grid gap-2"><FieldLabel htmlFor="partner-code" label="Código" hint="Mínimo de 2 caracteres" /><input
                       id="partner-code"
                       name="code"
                       defaultValue={code}
@@ -185,11 +159,7 @@ export default async function NovoParceiroPage({
                       minLength={2}
                       required
                       className="w-full rounded-[16px] border border-white/10 bg-[#090d13] px-4 py-3 text-sm uppercase text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <FieldLabel htmlFor="partner-name" label="Nome do parceiro" hint="Nome operacional claro" />
-                    <input
+                    /></div><div className="grid gap-2"><FieldLabel htmlFor="partner-name" label="Nome do parceiro" hint="Nome operacional claro" /><input
                       id="partner-name"
                       name="name"
                       defaultValue={name}
@@ -197,153 +167,84 @@ export default async function NovoParceiroPage({
                       minLength={2}
                       required
                       className="w-full rounded-[16px] border border-white/10 bg-[#090d13] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between gap-3 border-t border-white/[0.08] pt-5">
-                  <Link
+                    /></div></div><div className="flex items-center justify-between gap-3 border-t border-white/[0.08] pt-5"><Link
                     href="/parceiros"
                     className="rounded-[16px] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]"
                   >
                     Voltar
-                  </Link>
-                  <button className="rounded-[16px] border border-white/10 bg-white/[0.04] px-5 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]">
+                  </Link><button className="rounded-[16px] border border-white/10 bg-white/[0.04] px-5 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]">
                     Próximo
-                  </button>
-                </div>
-              </form>
-            </WizardPanel>
+                  </button></div></form></WizardPanel>
           ) : null}
 
           {step === 2 ? (
             <WizardPanel
               title="Contato"
               description="Centralize contato, acionamento e cobertura antes de revisar."
-            >
-              <form method="GET" className="grid gap-5">
-                <input type="hidden" name="step" value="3" />
-                <input type="hidden" name="code" value={code} />
-                <input type="hidden" name="name" value={name} />
-
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="grid gap-2">
-                    <FieldLabel htmlFor="partner-city" label="Cidade base" hint="Preparado para cobertura operacional" />
-                    <input
+            ><form method="GET" className="grid gap-5"><input type="hidden" name="step" value="3" /><input type="hidden" name="code" value={code} /><input type="hidden" name="name" value={name} /><div className="grid gap-4 md:grid-cols-2"><div className="grid gap-2"><FieldLabel htmlFor="partner-city" label="Cidade base" hint="Preparado para cobertura operacional" /><input
                       id="partner-city"
                       name="cityBase"
                       defaultValue={cityBase}
                       placeholder="Araguaína"
                       className="w-full rounded-[16px] border border-white/10 bg-[#090d13] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <FieldLabel htmlFor="partner-contact-name" label="Contato principal" hint="Referência de acionamento" />
-                    <input
+                    /></div><div className="grid gap-2"><FieldLabel htmlFor="partner-contact-name" label="Contato principal" hint="Referência de acionamento" /><input
                       id="partner-contact-name"
                       name="contactName"
                       defaultValue={contactName}
                       placeholder="Central de atendimento"
                       className="w-full rounded-[16px] border border-white/10 bg-[#090d13] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <FieldLabel htmlFor="partner-phone" label="Telefone / WhatsApp" hint="Canal de acionamento" />
-                    <input
+                    /></div><div className="grid gap-2"><FieldLabel htmlFor="partner-phone" label="Telefone / WhatsApp" hint="Canal de acionamento" /><input
                       id="partner-phone"
                       name="contactPhone"
                       defaultValue={contactPhone}
                       placeholder="(63) 99999-0000"
                       className="w-full rounded-[16px] border border-white/10 bg-[#090d13] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <FieldLabel htmlFor="partner-coverage" label="Cobertura" hint="Notas para futura persistência" />
-                    <input
+                    /></div><div className="grid gap-2"><FieldLabel htmlFor="partner-coverage" label="Cobertura" hint="Notas para futura persistência" /><input
                       id="partner-coverage"
                       name="coverage"
                       defaultValue={coverage}
                       placeholder="24h, cidades atendidas, central"
                       className="w-full rounded-[16px] border border-white/10 bg-[#090d13] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
-                    />
-                  </div>
-                </div>
-
-                <div className="rounded-[16px] border border-sky-500/18 bg-sky-500/[0.06] p-4 text-sm leading-6 text-slate-300">
+                    /></div></div><div className="rounded-[16px] border border-sky-500/18 bg-sky-500/[0.06] p-4 text-sm leading-6 text-slate-300">
                   Use esta etapa para conferir contato e cobertura antes de criar o parceiro. A ficha fica preparada para receber a cobertura completa na próxima camada.
-                </div>
-
-                <div className="flex items-center justify-between gap-3 border-t border-white/[0.08] pt-5">
-                  <Link
+                </div><div className="flex items-center justify-between gap-3 border-t border-white/[0.08] pt-5"><Link
                     href={buildWizardHref(1, wizardValues)}
                     className="rounded-[16px] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]"
                   >
                     Voltar
-                  </Link>
-                  <button className="rounded-[16px] border border-white/10 bg-white/[0.04] px-5 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]">
+                  </Link><button className="rounded-[16px] border border-white/10 bg-white/[0.04] px-5 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]">
                     Próximo
-                  </button>
-                </div>
-              </form>
-            </WizardPanel>
+                  </button></div></form></WizardPanel>
           ) : null}
 
           {step === 3 ? (
             <WizardPanel
               title="Operação"
               description="Revise a entidade que será criada e mantenha contato e cobertura como guia operacional."
-            >
-              <ActionForm
+            ><ActionForm
                 action={createFromWizard}
                 className="grid gap-5"
                 submitLabel="Criar parceiro"
                 pendingLabel="Criando parceiro..."
                 hideSubmit
-              >
-                <input type="hidden" name="code" value={code} />
-                <input type="hidden" name="name" value={name} />
-
-                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                  <SummaryItem label="Código" value={code} />
-                  <SummaryItem label="Nome" value={name} />
-                  <SummaryItem label="Cidade base" value={cityBase || "preparado"} />
-                  <SummaryItem label="Contato" value={contactName || "preparado"} />
-                  <SummaryItem label="Telefone" value={contactPhone || "preparado"} />
-                  <SummaryItem label="Cobertura" value={coverage || "preparado"} />
-                </div>
-
-                <div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4 text-sm leading-6 text-slate-400">
+              ><input type="hidden" name="code" value={code} /><input type="hidden" name="name" value={name} /><div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3"><SummaryItem label="Código" value={code} /><SummaryItem label="Nome" value={name} /><SummaryItem label="Cidade base" value={cityBase || "preparado"} /><SummaryItem label="Contato" value={contactName || "preparado"} /><SummaryItem label="Telefone" value={contactPhone || "preparado"} /><SummaryItem label="Cobertura" value={coverage || "preparado"} /></div><div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4 text-sm leading-6 text-slate-400">
                   O parceiro será criado com a identificação principal. Contato, cidade base e cobertura permanecem visíveis como contexto operacional para a próxima etapa.
-                </div>
-
-                <div className="flex items-center justify-between gap-3 border-t border-white/[0.08] pt-5">
-                  <Link
+                </div><div className="flex items-center justify-between gap-3 border-t border-white/[0.08] pt-5"><Link
                     href={buildWizardHref(2, wizardValues)}
                     className="rounded-[16px] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]"
                   >
                     Voltar
-                  </Link>
-                  <FormSubmitButton
+                  </Link><FormSubmitButton
                     idleLabel="Criar parceiro"
                     pendingLabel="Criando parceiro..."
                     className="min-w-[148px]"
-                  />
-                </div>
-              </ActionForm>
-            </WizardPanel>
+                  /></div></ActionForm></WizardPanel>
           ) : null}
-        </div>
-
-        <div className="flex items-center justify-end gap-3 border-t border-white/[0.08] px-5 py-4 sm:px-6">
-          <TonePill tone="info">cadastro guiado</TonePill>
-          <Link
+        </div><div className="flex items-center justify-end gap-3 border-t border-white/[0.08] px-5 py-4 sm:px-6"><TonePill tone="info">cadastro guiado</TonePill><Link
             href="/parceiros"
             className="rounded-[16px] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]"
           >
             Cancelar
-          </Link>
-        </div>
-      </div>
-    </AppShell>
+          </Link></div></div></AppShell>
   );
 }

@@ -7,6 +7,8 @@ import {
   EmptyState,
   SectionIntro,
   Surface,
+  TableActionCell,
+  TableActionLink,
   TableCell,
   TableHead,
   TableShell,
@@ -77,7 +79,7 @@ export default async function ParceirosPage({
 
   const params = await resolveSearchParams(searchParams);
   const q = readStringParam(params, "q");
-  const active = readStringParam(params, "active", "all");
+  const active = readStringParam(params, "active", "true");
   const sortBy = readStringParam(params, "sortBy", "createdAt");
   const sortDir = readStringParam(params, "sortDir", "desc");
   const page = readPositiveIntParam(params, "page", 1);
@@ -118,12 +120,11 @@ export default async function ParceirosPage({
   return (
     <AppShell
       title="Parceiros"
-      subtitle="Cadastro parceiro com leitura de contato e cobertura operacional."
-    >
-      <RegistryHero
+      subtitle="Cadastro de parceiros."
+    ><RegistryHero
         eyebrow="Partner Desk"
-        title="Contatos, cobertura e peso operacional"
-        description="A primeira vista fica focada em encontrar o parceiro certo, ver como ele é acionado e abrir o detalhe sem esconder a tabela."
+        title="Parceiros"
+        description="Cadastro de parceiros."
         actions={
           isAdmin ? (
             <Link
@@ -134,9 +135,7 @@ export default async function ParceirosPage({
             </Link>
           ) : null
         }
-      />
-
-      <RegistrySummaryStrip
+      /><RegistrySummaryStrip
         items={[
           {
             label: "Parceiros",
@@ -164,14 +163,10 @@ export default async function ParceirosPage({
           },
         ]}
         noteTitle="Tabela primeiro"
-        noteCopy="A lista principal continua sendo a mesa de trabalho; novas entradas seguem pelo cadastro guiado para manter a consulta limpa."
-      />
-
-      <Surface className="p-5 sm:p-6">
-        <SectionIntro
+        noteCopy="Lista de parceiros e novo cadastro."
+      /><Surface className="p-5 sm:p-6"><SectionIntro
           eyebrow="Filtros"
-          title="Refine contato, cobertura e responsável"
-          description="Busca por nome ou código, com URL compartilhável. A leitura abaixo continua focada em contato e cobertura, não em cards soltos."
+          title="Consulta"
           actions={
             <Link
               href="/parceiros"
@@ -181,94 +176,38 @@ export default async function ParceirosPage({
             </Link>
           }
           compact
-        />
-
-        <form method="GET" className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-          <div className="grid gap-2 xl:col-span-2">
-            <FieldLabel htmlFor="partners-q" label="Busca" />
-            <input
+        /><form method="GET" className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-5"><div className="grid gap-2 xl:col-span-2"><FieldLabel htmlFor="partners-q" label="Busca" /><input
               id="partners-q"
               name="q"
               defaultValue={q}
               placeholder="Nome, código, cidade base ou contato"
               className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
-            />
-          </div>
-
-          <div className="grid gap-2">
-            <FieldLabel htmlFor="partners-active" label="Status" />
-            <select
+            /></div><div className="grid gap-2"><FieldLabel htmlFor="partners-active" label="Status" /><select
               id="partners-active"
               name="active"
               defaultValue={active}
               className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            >
-              <option value="all">Todos</option>
-              <option value="true">Ativos</option>
-              <option value="false">Inativos</option>
-            </select>
-          </div>
-
-          <div className="grid gap-2">
-            <FieldLabel htmlFor="partners-sort-by" label="Ordenar por" />
-            <select
+            ><option value="all">Todos</option><option value="true">Ativos</option><option value="false">Excluídos</option></select></div><div className="grid gap-2"><FieldLabel htmlFor="partners-sort-by" label="Ordenar por" /><select
               id="partners-sort-by"
               name="sortBy"
               defaultValue={sortBy}
               className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            >
-              <option value="createdAt">Cadastro</option>
-              <option value="code">Código</option>
-              <option value="name">Nome</option>
-            </select>
-          </div>
-
-          <div className="grid gap-2">
-            <FieldLabel htmlFor="partners-page-size" label="Página" />
-            <select
+            ><option value="createdAt">Cadastro</option><option value="code">Código</option><option value="name">Nome</option></select></div><div className="grid gap-2"><FieldLabel htmlFor="partners-page-size" label="Página" /><select
               id="partners-page-size"
               name="pageSize"
               defaultValue={String(pageSize)}
               className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            >
-              <option value="10">10 por página</option>
-              <option value="20">20 por página</option>
-              <option value="50">50 por página</option>
-            </select>
-          </div>
-
-          <input type="hidden" name="sortDir" value={sortDir} />
-
-          <button className="rounded-[14px] bg-white px-4 py-3 text-sm font-medium text-black transition hover:opacity-95 md:col-span-2 xl:col-span-5">
+            ><option value="10">10 por página</option><option value="20">20 por página</option><option value="50">50 por página</option></select></div><input type="hidden" name="sortDir" value={sortDir} /><button className="rounded-[14px] bg-white px-4 py-3 text-sm font-medium text-black transition hover:opacity-95 md:col-span-2 xl:col-span-5">
             Aplicar filtros
-          </button>
-        </form>
-      </Surface>
-
-      <Surface className="p-5 sm:p-6">
-        <SectionIntro
+          </button></form></Surface><Surface className="p-5 sm:p-6"><SectionIntro
           eyebrow="Partner Desk"
           title="Contatos e cobertura"
           description={`${response.meta.total} parceiro(s) encontrados nesta visão.`}
           actions={<TonePill tone="neutral">{response.items.length} linhas</TonePill>}
           compact
-        />
-
-        <div className="mt-4">
+        /><div className="mt-4">
           {response.items.length ? (
-            <TableShell>
-              <DenseTable>
-                <TableHead>
-                  <tr>
-                    <th className="px-4 py-3">Parceiro</th>
-                    <th className="px-4 py-3">Cidade base</th>
-                    <th className="px-4 py-3">Contato</th>
-                    <th className="px-4 py-3">Cobertura</th>
-                    <th className="px-4 py-3">Locais</th>
-                    <th className="px-4 py-3 text-right">Ações</th>
-                  </tr>
-                </TableHead>
-                <tbody>
+            <TableShell><DenseTable><TableHead><tr><th className="px-4 py-3">Parceiro</th><th className="px-4 py-3">Cidade base</th><th className="px-4 py-3">Contato</th><th className="px-4 py-3">Cobertura</th><th className="px-4 py-3">Locais</th><th className="px-4 py-3 text-right">Ações</th></tr></TableHead><tbody>
                   {response.items.map((partner) => {
                     const legacy = legacyByPartnerId[partner.id];
 
@@ -276,61 +215,33 @@ export default async function ParceirosPage({
                       <tr
                         key={partner.id}
                         className="border-b border-white/6 last:border-b-0 hover:bg-white/[0.025]"
-                      >
-                        <TableCell>
-                          <Link
+                      ><TableCell><Link
                             href={`/parceiros/${partner.id}`}
                             className="font-medium text-white transition hover:text-sky-200"
                           >
                             {partner.name}
-                          </Link>
-                          <div className="mt-1 text-xs text-slate-500">{partner.code}</div>
-                        </TableCell>
-                        <TableCell className="text-slate-300">
+                          </Link><div className="mt-1 text-xs text-slate-500">{partner.code}</div></TableCell><TableCell className="text-slate-300">
                           {legacy?.cityBase || "-"}
-                        </TableCell>
-                        <TableCell>
-                          <div className="max-w-[280px] text-sm text-slate-200">
+                        </TableCell><TableCell><div className="max-w-[280px] text-sm text-slate-200">
                             {contactCaption(legacy)}
-                          </div>
-                          <div className="mt-1 max-w-[280px] text-xs text-slate-500">
+                          </div><div className="mt-1 max-w-[280px] text-xs text-slate-500">
                             {firstPhones(legacy)}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="max-w-[260px] text-sm text-slate-200">
+                          </div></TableCell><TableCell><div className="max-w-[260px] text-sm text-slate-200">
                             {legacy?.coverage || "Cobertura não importada"}
-                          </div>
-                          <div className="mt-1 text-xs text-slate-500">
+                          </div><div className="mt-1 text-xs text-slate-500">
                             {legacy?.matched ? "base legada vinculada" : "sem match legado"}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm font-medium text-slate-100">
+                          </div></TableCell><TableCell><div className="text-sm font-medium text-slate-100">
                             {partner._count.units}
-                          </div>
-                          <div className="mt-1 text-xs text-slate-500">
+                          </div><div className="mt-1 text-xs text-slate-500">
                             {legacy?.backupUnitCount
                               ? `${legacy.backupUnitCount} em contingência`
                               : "sem contingência registrada"}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Link
-                              href={`/parceiros/${partner.id}`}
-                              className="rounded-full border border-white/10 bg-black/20 px-3 py-1.5 text-xs text-slate-200 transition hover:bg-white/[0.06] hover:text-white"
-                            >
+                          </div></TableCell><TableActionCell><div className="flex justify-end gap-2"><TableActionLink href={`/parceiros/${partner.id}`}>
                               Abrir
-                            </Link>
-                          </div>
-                        </TableCell>
-                      </tr>
+                            </TableActionLink></div></TableActionCell></tr>
                     );
                   })}
-                </tbody>
-              </DenseTable>
-            </TableShell>
+                </tbody></DenseTable></TableShell>
           ) : (
             <EmptyState
               title="Nenhum parceiro encontrado"
@@ -345,10 +256,6 @@ export default async function ParceirosPage({
               }
             />
           )}
-        </div>
-      </Surface>
-
-      <ListPagination pathname="/parceiros" searchParams={params} meta={response.meta} />
-    </AppShell>
+        </div></Surface><ListPagination pathname="/parceiros" searchParams={params} meta={response.meta} /></AppShell>
   );
 }

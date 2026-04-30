@@ -12,6 +12,9 @@ import {
   EmptyState,
   SectionIntro,
   Surface,
+  TableActionCell,
+  TableActionHeader,
+  TableActionLink,
   TableCell,
   TableHead,
   TableShell,
@@ -207,7 +210,7 @@ export default async function ManutencoesPage({
     {
       href: "/ocorrencias",
       title: "Ocorrências relacionadas",
-      description: "Use a mesa de incidentes quando a manutenção ainda depende de causa, vínculo ou evento originador.",
+      description: "Causa, vínculo e evento originador.",
       badge: <TonePill tone="info">incidente</TonePill>,
     },
     {
@@ -221,31 +224,25 @@ export default async function ManutencoesPage({
   return (
     <AppShell
       title="Manutenções"
-      subtitle="Agenda técnica com vínculo, status e janela de execução em uma leitura compacta."
-    >
-      <RegistryHero
+      subtitle="Agenda técnica, vínculo e status."
+    ><RegistryHero
         eyebrow="Maintenance Desk"
-        title="Planejamento operacional sem poluir a mesa"
-        description="A listagem fica como superfície principal. O cadastro entra como bloco administrativo da mesma tela, sem competir com a agenda e os filtros."
+        title="Planejamento operacional"
+        description="Agenda, filtros e cadastro."
         actions={
-          <div className="flex flex-wrap gap-2">
-            <Link
+          <div className="flex flex-wrap gap-2"><Link
               href="/operacao/fila?view=dueSoon"
               className="inline-flex h-11 items-center justify-center rounded-[14px] border border-blue-400/30 bg-[#17213a] px-4 text-sm font-semibold text-white transition hover:bg-[#1b2946]"
             >
               Abrir fila
-            </Link>
-            <Link
+            </Link><Link
               href="/monitoramento?view=events"
               className="inline-flex h-11 items-center justify-center rounded-[14px] border border-white/10 bg-white/[0.04] px-4 text-sm font-semibold text-slate-100 transition hover:bg-white/[0.08]"
             >
               Ver eventos NOC
-            </Link>
-          </div>
+            </Link></div>
         }
-      />
-
-      <RegistrySummaryStrip
+      /><RegistrySummaryStrip
         items={[
           {
             label: "Manutenções",
@@ -280,10 +277,7 @@ export default async function ManutencoesPage({
         ]}
         noteTitle="Agenda primeiro"
         noteCopy="A tela prioriza a lista: o usuário entende o vínculo primeiro e só abre cadastro quando precisa registrar uma ação."
-      />
-
-      <Surface className="p-5 sm:p-6">
-        <SectionIntro
+      /><Surface className="p-5 sm:p-6"><SectionIntro
           eyebrow="Filtros"
           title="Refine agenda, vínculo e status"
           description="Busca por código, título, ocorrência, equipamento, unidade e parceiro. Os filtros continuam persistidos na URL."
@@ -296,158 +290,76 @@ export default async function ManutencoesPage({
             </Link>
           }
           compact
-        />
-
-        <form method="GET" className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-6">
-          <div className="grid gap-2 xl:col-span-2">
-            <FieldLabel htmlFor="maintenance-q" label="Busca" />
-            <input
+        /><form method="GET" className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-6"><div className="grid gap-2 xl:col-span-2"><FieldLabel htmlFor="maintenance-q" label="Busca" /><input
               id="maintenance-q"
               name="q"
               defaultValue={q}
               placeholder="Código, título, ocorrência, unidade ou equipamento"
               className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
-            />
-          </div>
-
-          <div className="grid gap-2">
-            <FieldLabel htmlFor="maintenance-type" label="Tipo" />
-            <select
+            /></div><div className="grid gap-2"><FieldLabel htmlFor="maintenance-type" label="Tipo" /><select
               id="maintenance-type"
               name="type"
               defaultValue={type}
               className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            >
-              <option value="all">Todos os tipos</option>
+            ><option value="all">Todos os tipos</option>
               {typeOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
               ))}
-            </select>
-          </div>
-
-          <div className="grid gap-2">
-            <FieldLabel htmlFor="maintenance-status" label="Status" />
-            <select
+            </select></div><div className="grid gap-2"><FieldLabel htmlFor="maintenance-status" label="Status" /><select
               id="maintenance-status"
               name="status"
               defaultValue={status}
               className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            >
-              <option value="all">Todos os status</option>
+            ><option value="all">Todos os status</option>
               {statusOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
               ))}
-            </select>
-          </div>
-
-          <div className="grid gap-2">
-            <FieldLabel htmlFor="maintenance-sort-by" label="Ordenar por" />
-            <select
+            </select></div><div className="grid gap-2"><FieldLabel htmlFor="maintenance-sort-by" label="Ordenar por" /><select
               id="maintenance-sort-by"
               name="sortBy"
               defaultValue={sortBy}
               className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            >
-              <option value="createdAt">Cadastro</option>
-              <option value="code">Código</option>
-              <option value="title">Título</option>
-              <option value="type">Tipo</option>
-              <option value="status">Status</option>
-              <option value="scheduledAt">Agendada</option>
-            </select>
-          </div>
-
-          <div className="grid gap-2">
-            <FieldLabel htmlFor="maintenance-sort-dir" label="Direção" />
-            <select
+            ><option value="createdAt">Cadastro</option><option value="code">Código</option><option value="title">Título</option><option value="type">Tipo</option><option value="status">Status</option><option value="scheduledAt">Agendada</option></select></div><div className="grid gap-2"><FieldLabel htmlFor="maintenance-sort-dir" label="Direção" /><select
               id="maintenance-sort-dir"
               name="sortDir"
               defaultValue={sortDir}
               className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            >
-              <option value="desc">Descendente</option>
-              <option value="asc">Ascendente</option>
-            </select>
-          </div>
-
-          <div className="grid gap-2 md:col-span-2 xl:col-span-2">
-            <FieldLabel htmlFor="maintenance-page-size" label="Página" />
-            <select
+            ><option value="desc">Descendente</option><option value="asc">Ascendente</option></select></div><div className="grid gap-2 md:col-span-2 xl:col-span-2"><FieldLabel htmlFor="maintenance-page-size" label="Página" /><select
               id="maintenance-page-size"
               name="pageSize"
               defaultValue={String(pageSize)}
               className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            >
-              <option value="10">10 por página</option>
-              <option value="20">20 por página</option>
-              <option value="50">50 por página</option>
-            </select>
-          </div>
-
-          <button className="rounded-[14px] bg-white px-4 py-3 text-sm font-semibold text-black transition hover:opacity-95 md:col-span-2 xl:col-span-4">
+            ><option value="10">10 por página</option><option value="20">20 por página</option><option value="50">50 por página</option></select></div><button className="rounded-[14px] bg-white px-4 py-3 text-sm font-semibold text-black transition hover:opacity-95 md:col-span-2 xl:col-span-4">
             Aplicar filtros
-          </button>
-        </form>
-      </Surface>
-
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
-        <Surface className="p-5 sm:p-6">
-          <SectionIntro
+          </button></form></Surface><div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]"><Surface className="p-5 sm:p-6"><SectionIntro
             eyebrow="Agenda"
             title="Manutenções cadastradas"
             description={`${response.meta.total} manutenção(ões) encontradas nesta visão.`}
             actions={<TonePill tone="neutral">{response.items.length} linhas</TonePill>}
             compact
-          />
-
-          <div className="mt-5">
+          /><div className="mt-5">
             {response.items.length ? (
-              <TableShell>
-                <DenseTable>
-                  <TableHead>
-                    <tr>
-                      <th className="px-4 py-3">Manutenção</th>
-                      <th className="px-4 py-3">Tipo</th>
-                      <th className="px-4 py-3">Status</th>
-                      <th className="px-4 py-3">Vínculo</th>
-                      <th className="px-4 py-3">Ocorrência</th>
-                      <th className="px-4 py-3">Agenda</th>
-                      <th className="px-4 py-3 text-right">Ação</th>
-                    </tr>
-                  </TableHead>
-                  <tbody>
+              <TableShell><DenseTable><TableHead><tr><th className="px-4 py-3">Manutenção</th><th className="px-4 py-3">Tipo</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Vínculo</th><th className="px-4 py-3">Ocorrência</th><th className="px-4 py-3">Agenda</th><TableActionHeader /></tr></TableHead><tbody>
                     {response.items.map((maintenance) => (
                       <tr
                         key={maintenance.id}
                         className="border-b border-white/6 last:border-b-0 hover:bg-white/[0.025]"
-                      >
-                        <TableCell>
-                          <Link
+                      ><TableCell><Link
                             href={`/manutencoes/${maintenance.id}`}
                             className="font-medium text-white transition hover:text-sky-200"
                           >
                             {maintenance.code}
-                          </Link>
-                          <div className="mt-1 max-w-[360px] truncate text-xs text-slate-500">
+                          </Link><div className="mt-1 max-w-[360px] truncate text-xs text-slate-500">
                             {maintenance.title}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <TonePill tone={typeTone(maintenance.type)}>
+                          </div></TableCell><TableCell><TonePill tone={typeTone(maintenance.type)}>
                             {optionLabel(typeOptions, maintenance.type)}
-                          </TonePill>
-                        </TableCell>
-                        <TableCell>
-                          <TonePill tone={statusTone(maintenance.status)}>
+                          </TonePill></TableCell><TableCell><TonePill tone={statusTone(maintenance.status)}>
                             {optionLabel(statusOptions, maintenance.status)}
-                          </TonePill>
-                        </TableCell>
-                        <TableCell>
-                          <div className="max-w-[320px] truncate text-slate-300">
+                          </TonePill></TableCell><TableCell><div className="max-w-[320px] truncate text-slate-300">
                             {maintenanceEntity(maintenance)}
                           </div>
                           {maintenance.partner ? (
@@ -455,14 +367,11 @@ export default async function ManutencoesPage({
                               {maintenance.partner.code} - {maintenance.partner.name}
                             </div>
                           ) : null}
-                        </TableCell>
-                        <TableCell className="text-slate-400">
+                        </TableCell><TableCell className="text-slate-400">
                           {maintenance.occurrence
                             ? `${maintenance.occurrence.code} - ${maintenance.occurrence.title}`
                             : "-"}
-                        </TableCell>
-                        <TableCell>
-                          <div className={isOverdue(maintenance) ? "text-rose-200" : "text-slate-300"}>
+                        </TableCell><TableCell><div className={isOverdue(maintenance) ? "text-rose-200" : "text-slate-300"}>
                             {formatDateTime(maintenance.scheduledAt)}
                           </div>
                           {maintenance.completedAt ? (
@@ -470,20 +379,11 @@ export default async function ManutencoesPage({
                               concluída em {formatDateTime(maintenance.completedAt)}
                             </div>
                           ) : null}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Link
-                            href={`/manutencoes/${maintenance.id}`}
-                            className="inline-flex rounded-[12px] border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-semibold text-slate-100 transition hover:border-white/18 hover:bg-white/[0.08]"
-                          >
+                        </TableCell><TableActionCell><TableActionLink href={`/manutencoes/${maintenance.id}`}>
                             Abrir
-                          </Link>
-                        </TableCell>
-                      </tr>
+                          </TableActionLink></TableActionCell></tr>
                     ))}
-                  </tbody>
-                </DenseTable>
-              </TableShell>
+                  </tbody></DenseTable></TableShell>
             ) : (
               <EmptyState
                 title="Nenhuma manutenção encontrada"
@@ -498,13 +398,9 @@ export default async function ManutencoesPage({
                 }
               />
             )}
-          </div>
-        </Surface>
-
-        <div className="grid gap-5">
-          <WorkflowStatsPanel
+          </div></Surface><div className="nova-page-stack nova-page-list nova-page-maintenance grid gap-5"><WorkflowStatsPanel
             eyebrow="Turno"
-            title="Leitura rápida da agenda"
+            title="Agenda"
             description="Esses números ajudam a decidir se a próxima ação é executar, reagendar, concluir ou voltar ao incidente de origem."
             stats={[
               {
@@ -538,42 +434,26 @@ export default async function ManutencoesPage({
                 tone: commandCenter.metrics.openOccurrences ? "info" : "neutral",
               },
             ]}
-          />
-
-          <ConnectedRoutesPanel
-            eyebrow="Trilha"
+          /><ConnectedRoutesPanel
+            eyebrow="Histórico"
             title="Rotas que completam a agenda"
             description="A manutenção quase sempre conversa com fila, ocorrência e host da unidade. Essas rotas continuam o trabalho sem dispersão."
             routes={connectedRoutes}
-          />
-
-          <Surface className="p-5 sm:p-6">
-            <SectionIntro
+          /><Surface className="p-5 sm:p-6"><SectionIntro
               eyebrow="Foco"
-              title="Quando abrir a ficha"
+              title="Critérios"
               description="Abra o detalhe quando a manutenção já exigir histórico, evidência, relação com ocorrência ou conferência da janela técnica."
               compact
-            />
-
-            <div className="mt-4 grid gap-3">
-              <ActionTile
+            /><div className="mt-4 grid gap-3"><ActionTile
                 href="/operacao/fila?view=dueSoon"
                 title="Priorizar vencimento e prazo"
                 description="Se a manutenção já encostou em prazo, a ordem de execução precisa sair da fila."
                 badge={<TonePill tone="attention">{commandCenter.metrics.dueTodayMaintenances} hoje</TonePill>}
-              />
-              <ActionTile
+              /><ActionTile
                 href="/ocorrencias"
                 title="Reabrir contexto do incidente"
-                description="Quando a ação técnica ainda depende de causa, vínculo ou impacto, volte pela mesa de ocorrências."
+                description="Causa, vínculo e impacto."
                 badge={<TonePill tone="info">incidente</TonePill>}
-              />
-            </div>
-          </Surface>
-        </div>
-      </div>
-
-      <ListPagination pathname="/manutencoes" searchParams={params} meta={response.meta} />
-    </AppShell>
+              /></div></Surface></div></div><ListPagination pathname="/manutencoes" searchParams={params} meta={response.meta} /></AppShell>
   );
 }
