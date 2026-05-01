@@ -2,7 +2,6 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { LogoutButton } from "@/components/logout-button";
 import { AppSidebarNav, type NavItem } from "@/components/app-sidebar-nav";
-import { SidebarCollapseControls } from "@/components/sidebar-collapse-controls";
 import { getServerWebSession, normalizeRole } from "@/lib/web-session";
 
 type NavEntry = NavItem & { adminOnly?: boolean };
@@ -173,9 +172,7 @@ export async function AppShell({
         Pular para o conteúdo
       </a>
 
-      <div className="nova-layout grid min-h-dvh lg:grid-cols-[136px_minmax(0,1fr)]">
-        <SidebarCollapseControls items={visibleNav} />
-
+      <div className="nova-layout grid min-h-dvh lg:grid-cols-[232px_minmax(0,1fr)]">
         <aside className="nova-sidebar hidden border-r border-white/[0.08] bg-[#080d14]/98 lg:sticky lg:top-0 lg:flex lg:h-dvh">
           <div className="flex h-full min-h-0 w-full flex-col">
             <div className="border-b border-white/[0.08] px-3 py-3">
@@ -214,14 +211,6 @@ export async function AppShell({
 
           <div className="nova-top-strip hidden h-[42px] items-center justify-between border-b border-white/[0.08] bg-[#080d14]/72 px-4 backdrop-blur-2xl lg:flex">
             <div className="flex items-center gap-3">
-              <button
-                type="button"
-                aria-label="Alternar menu"
-                className="inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-300 transition hover:bg-white/[0.06] hover:text-white"
-              >
-                <span className="text-sm leading-none">☰</span>
-              </button>
-              <div className="h-5 w-px bg-white/10" />
               <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
                 Command center operacional
               </div>

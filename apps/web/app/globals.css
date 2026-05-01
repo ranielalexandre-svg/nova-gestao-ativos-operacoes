@@ -3157,3 +3157,115 @@ body:has([role="dialog"]) nav {
     width: 320px !important;
   }
 }
+
+/* NOVA shell stability fix - remove mixed collapsed/open desktop state */
+@media (min-width: 1024px) {
+  html[data-nova-sidebar="closed"] .nova-command-center .nova-layout,
+  .nova-command-center .nova-layout {
+    grid-template-columns: 232px minmax(0, 1fr) !important;
+  }
+
+  html[data-nova-sidebar="closed"] .nova-command-center .nova-sidebar,
+  html[data-nova-sidebar="closed"] .nova-command-center .nova-sidebar > div,
+  .nova-command-center .nova-sidebar,
+  .nova-command-center .nova-sidebar > div {
+    width: 232px !important;
+    min-width: 232px !important;
+    max-width: 232px !important;
+    opacity: 1 !important;
+    transform: none !important;
+    pointer-events: auto !important;
+    overflow: hidden !important;
+  }
+
+  .nova-sidebar-rail,
+  .nova-sidebar-open-floating,
+  .nova-sidebar-close-floating {
+    display: none !important;
+  }
+
+  .nova-command-center .nova-sidebar > div > div:first-child {
+    min-height: 68px !important;
+    padding: 1.05rem 1.35rem !important;
+  }
+
+  .nova-command-center .nova-sidebar .nova-brand span:first-child {
+    font-size: 24px !important;
+    letter-spacing: -0.13em !important;
+  }
+
+  .nova-command-center .nova-sidebar .nova-brand span:last-child {
+    font-size: 8px !important;
+    letter-spacing: 0.5em !important;
+  }
+
+  .nova-command-center .nova-sidebar nav {
+    gap: 0.95rem !important;
+  }
+
+  .nova-command-center .nova-sidebar nav section {
+    gap: 0.22rem !important;
+  }
+
+  .nova-command-center .nova-sidebar nav section > div:first-child {
+    padding: 0 0.35rem 0.28rem !important;
+    font-size: 8px !important;
+    letter-spacing: 0.14em !important;
+  }
+
+  .nova-command-center .nova-sidebar nav a {
+    min-height: 30px !important;
+    padding: 0.28rem 0.52rem !important;
+    gap: 0.5rem !important;
+    border-radius: 7px !important;
+    font-size: 11px !important;
+    line-height: 1.15 !important;
+  }
+
+  .nova-command-center .nova-sidebar nav a > span:not(.absolute):first-of-type {
+    width: 24px !important;
+    height: 24px !important;
+    min-width: 24px !important;
+    max-width: 24px !important;
+    border-radius: 6px !important;
+  }
+
+  .nova-command-center .nova-sidebar nav svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  .nova-command-center .nova-sidebar nav a span.min-w-0,
+  .nova-command-center .nova-sidebar nav a span.truncate {
+    display: block !important;
+    min-width: 0 !important;
+    max-width: 150px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .nova-command-center .nova-sidebar .shrink-0 {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+
+  .nova-command-center .nova-sidebar .nova-sidebar-user {
+    border-radius: 10px !important;
+    padding: 0.65rem !important;
+  }
+
+  .nova-command-center .nova-top-strip {
+    height: 40px !important;
+    min-height: 40px !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  .nova-command-center .nova-content,
+  .nova-command-center .nova-content:not(:has(.nova-monitoring-report-page)) {
+    width: 100% !important;
+    max-width: 1480px !important;
+    padding: 0.95rem 1.1rem !important;
+  }
+}
