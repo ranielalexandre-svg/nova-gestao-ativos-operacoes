@@ -1,14 +1,43 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
-import { RecentMaintenancesPanel, RecentOccurrencesPanel } from "@/components/recent-ops-panels";
-import { ActionTile, InlineStat, KpiTile, SectionIntro, Surface, TonePill } from "@/components/ops-ui";
+import {
+  ChartCard,
+  DenseTable,
+  RightPanel,
+  StatCard,
+  Surface,
+  TableCell,
+  TableHead,
+  TableShell,
+  TonePill,
+} from "@/components/ops-ui";
 import {
   emptyCommandCenter,
   safeApiJson,
+  targetLabel,
   type CommandCenter,
 } from "@/lib/noc-overview";
 import { getServerWebSession } from "@/lib/web-session";
+
+function severityTone(value: string) {
+  if (value === "critical") return "critical";
+  if (value === "high") return "attention";
+  if (value === "medium") return "info";
+  return "neutral";
+}
+
+function statusTone(value: string) {
+  if (["resolved", "done", "completed"].includes(value)) return "success";
+  if (["acknowledged", "in_progress"].includes(value)) return "info";
+  if (["open", "planned"].includes(value)) return "attention";
+  return "neutral";
+}
+
+function formatDate(value: string | null) {
+  if (!value) return "-";
+  return new Date(value).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+}
 
 export default async function DashboardPage() {
   const session = await getServerWebSession();
@@ -18,108 +47,135 @@ export default async function DashboardPage() {
   }
 
   const commandCenter = await safeApiJson<CommandCenter>("/monitoring/command-center", emptyCommandCenter());
-
-  const pathways = [
-    {
-      href: "/operacao/fila",
-      title: "Fila",
-      description: "Triagem, backlog, SLA e despacho do turno.",
-      badge: <TonePill tone="info">core</TonePill>,
-    },
-    {
-      href: "/monitoramento",
-      title: "Monitoramento",
-      description: "Hosts, perda, latência, sensores e reconciliação assistida.",
-      badge: <TonePill tone="attention">NOC</TonePill>,
-    },
-    {
-      href: "/unidades",
-      title: "Unidades",
-      description: "Cadastro operacional, vínculos, equipamentos e status da base.",
-      badge: <TonePill tone="success">cadastro</TonePill>,
-    },
-    {
-      href: "/parceiros",
-      title: "Parceiros",
-      description: "Cobertura, acionamento e contexto da operação terceirizada.",
-      badge: <TonePill tone="neutral">rede</TonePill>,
-    },
-    {
-      href: "/equipamentos",
-      title: "Equipamentos",
-      description: "Inventário, serial, MAC salvo e associação à unidade real.",
-      badge: <TonePill tone="subtle">ativos</TonePill>,
-    },
-    {
-      href: "/integracoes",
-      title: "Integrações",
-      description: "Conectores, reconciliação e preparação da sincronização segura.",
-      badge: <TonePill tone="violet">sync</TonePill>,
-    },
-  ];
+  const pressure =
+    commandCenter.metrics.openOccurrences +
+    commandCenter.metrics.criticalOpenOccurrences * 2 +
+    commandCenter.metrics.overdueMaintenances +
+    commandCenter.metrics.dueTodayMaintenances;
 
   return (
-    <AppShell
-      title="Dashboard"
-    ><section className="nova-dashboard-page grid gap-5"><Surface className="p-5 sm:p-6"><SectionIntro
-            eyebrow="Painel"
-            title="Saúde operacional"
-            actions={
-              <div className="flex flex-wrap gap-2"><Link
-                  href="/operacao/fila"
-                  className="inline-flex h-11 items-center justify-center rounded-[14px] border border-blue-400/30 bg-[#17213a] px-4 text-sm font-semibold text-white transition hover:bg-[#1b2946]"
-                >
-                  Abrir fila
-                </Link><Link
-                  href="/monitoramento"
-                  className="inline-flex h-11 items-center justify-center rounded-[14px] border border-white/10 bg-white/[0.04] px-4 text-sm font-semibold text-slate-100 transition hover:bg-white/[0.08]"
-                >
-                  Abrir monitoramento
-                </Link></div>
-            }
-          /><div className="mt-4 flex flex-wrap gap-2"><TonePill tone={commandCenter.metrics.openOccurrences ? "attention" : "success"}>
-              {commandCenter.metrics.openOccurrences} ocorrência(s) aberta(s)
-            </TonePill><TonePill tone={commandCenter.metrics.criticalOpenOccurrences ? "critical" : "success"}>
-              {commandCenter.metrics.criticalOpenOccurrences} crítica(s)
-            </TonePill><TonePill tone="info">telemetria ao vivo em Monitoramento</TonePill></div><div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4"><InlineStat label="Ocorrências abertas" value={commandCenter.metrics.openOccurrences} tone={commandCenter.metrics.openOccurrences ? "info" : "neutral"} /><InlineStat label="Críticas abertas" value={commandCenter.metrics.criticalOpenOccurrences} tone={commandCenter.metrics.criticalOpenOccurrences ? "critical" : "neutral"} /><InlineStat label="Manutenções vencidas" value={commandCenter.metrics.overdueMaintenances} tone={commandCenter.metrics.overdueMaintenances ? "attention" : "neutral"} /><InlineStat label="Manutenções hoje" value={commandCenter.metrics.dueTodayMaintenances} tone={commandCenter.metrics.dueTodayMaintenances ? "info" : "neutral"} /></div></Surface><div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]"><div className="nova-page-stack nova-page-dashboard grid gap-5"><section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4"><KpiTile
-                href="/operacao/fila"
-                label="Fila"
-                value={commandCenter.metrics.openOccurrences}
-                meta="ocorrências abertas para triagem"
-                tone={commandCenter.metrics.openOccurrences ? "attention" : "success"}
-              /><KpiTile
-                href="/monitoramento?health=down"
-                label="Monitoramento"
-                value="Zabbix"
-                meta="abrir leitura completa de hosts e sensores"
-                tone="info"
-              /><KpiTile
-                href="/unidades"
-                label="Unidades"
-                value="Base"
-                meta="cadastro, vínculos e equipamentos"
-                tone="neutral"
-              /><KpiTile
-                href="/relatorios"
-                label="Relatórios"
-                value="Exportar"
-                meta="consumo técnico em PDF ou DOCX"
-                tone="subtle"
-              /></section><section className="grid gap-5 xl:grid-cols-2"><RecentOccurrencesPanel commandCenter={commandCenter} /><RecentMaintenancesPanel commandCenter={commandCenter} /></section></div><Surface className="p-5 sm:p-6"><SectionIntro
-              eyebrow="Rotas reais"
-              title="Acessos"
-              description=" "
-              compact
-            /><div className="mt-4 grid gap-3">
-              {pathways.map((item) => (
-                <ActionTile
-                  key={item.href}
-                  href={item.href}
-                  title={item.title}
-                  description={item.description}
-                  badge={item.badge}
-                />
-              ))}
-            </div></Surface></div></section></AppShell>
+    <AppShell title="Visão geral" subtitle="Resumo operacional no padrão NOVA Telecom.">
+      <section className="nova-dashboard-mock grid gap-3">
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <StatCard
+            label="Ocorrências abertas"
+            value={commandCenter.metrics.openOccurrences}
+            detail="triagem e atendimento"
+            tone={commandCenter.metrics.openOccurrences ? "attention" : "success"}
+          />
+          <StatCard
+            label="Críticas"
+            value={commandCenter.metrics.criticalOpenOccurrences}
+            detail="prioridade máxima"
+            tone={commandCenter.metrics.criticalOpenOccurrences ? "critical" : "success"}
+          />
+          <StatCard
+            label="Manutenções vencidas"
+            value={commandCenter.metrics.overdueMaintenances}
+            detail="fora do prazo"
+            tone={commandCenter.metrics.overdueMaintenances ? "attention" : "success"}
+          />
+          <StatCard
+            label="Pressão operacional"
+            value={pressure}
+            detail="índice do turno"
+            tone={pressure >= 10 ? "critical" : pressure >= 4 ? "attention" : "success"}
+          />
+        </div>
+
+        <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="grid gap-3">
+            <div className="grid gap-3 lg:grid-cols-3">
+              <ChartCard title="Saúde da rede" subtitle="tendência de disponibilidade" tone="success" />
+              <ChartCard title="Backlog" subtitle="ocorrências por severidade" tone={pressure ? "attention" : "info"} />
+              <ChartCard title="Tempo de resposta" subtitle="janela operacional" tone="info" />
+            </div>
+
+            <Surface>
+              <div className="flex items-center justify-between gap-3 border-b border-white/[0.08] pb-3">
+                <div>
+                  <div className="text-[8px] font-black uppercase tracking-[0.16em] text-orange-300/80">Eventos recentes</div>
+                  <h2 className="mt-1 text-[15px] font-black text-white">Ocorrências</h2>
+                </div>
+                <Link href="/ocorrencias" className="nova-primary-action px-3 py-1.5 text-[11px] font-black">Abrir alertas</Link>
+              </div>
+              <div className="mt-3">
+                <TableShell>
+                  <DenseTable>
+                    <TableHead>
+                      <tr>
+                        <th className="px-4 py-3">Caso</th>
+                        <th className="px-4 py-3">Alvo</th>
+                        <th className="px-4 py-3">Severidade</th>
+                        <th className="px-4 py-3">Status</th>
+                        <th className="px-4 py-3">Criado</th>
+                      </tr>
+                    </TableHead>
+                    <tbody>
+                      {commandCenter.recentOccurrences.slice(0, 6).map((item) => (
+                        <tr key={item.id} className="hover:bg-white/[0.025]">
+                          <TableCell>
+                            <Link href={`/ocorrencias/${item.id}`} className="font-bold text-white hover:text-orange-100">{item.code}</Link>
+                            <div className="mt-1 max-w-[260px] truncate text-xs text-slate-500">{item.title}</div>
+                          </TableCell>
+                          <TableCell className="text-slate-300">{targetLabel(item)}</TableCell>
+                          <TableCell><TonePill tone={severityTone(item.severity)}>{item.severity}</TonePill></TableCell>
+                          <TableCell><TonePill tone={statusTone(item.status)}>{item.status}</TonePill></TableCell>
+                          <TableCell className="text-slate-400">{formatDate(item.createdAt)}</TableCell>
+                        </tr>
+                      ))}
+                      {!commandCenter.recentOccurrences.length ? (
+                        <tr><TableCell colSpan={5} className="text-slate-500">Nenhuma ocorrência recente.</TableCell></tr>
+                      ) : null}
+                    </tbody>
+                  </DenseTable>
+                </TableShell>
+              </div>
+            </Surface>
+
+            <Surface>
+              <div className="flex items-center justify-between gap-3 border-b border-white/[0.08] pb-3">
+                <div>
+                  <div className="text-[8px] font-black uppercase tracking-[0.16em] text-orange-300/80">Rotina</div>
+                  <h2 className="mt-1 text-[15px] font-black text-white">Manutenções</h2>
+                </div>
+                <Link href="/manutencoes" className="rounded border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[11px] font-bold text-white hover:border-orange-300/30">Abrir chamados</Link>
+              </div>
+              <div className="mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+                {commandCenter.recentMaintenances.slice(0, 4).map((item) => (
+                  <Link key={item.id} href={`/manutencoes/${item.id}`} className="rounded-md border border-white/[0.08] bg-[#07101a] p-3 hover:border-orange-300/30">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-bold text-white">{item.code}</span>
+                      <TonePill tone={statusTone(item.status)}>{item.status}</TonePill>
+                    </div>
+                    <div className="mt-2 truncate text-xs text-slate-400">{item.title}</div>
+                    <div className="mt-2 text-[10px] text-slate-500">{formatDate(item.scheduledAt || item.createdAt)}</div>
+                  </Link>
+                ))}
+                {!commandCenter.recentMaintenances.length ? <div className="text-xs text-slate-500">Nenhuma manutenção recente.</div> : null}
+              </div>
+            </Surface>
+          </div>
+
+          <RightPanel title="Atalhos" description="Ações principais do turno.">
+            <Link href="/monitoramento" className="rounded-md border border-white/[0.08] bg-[#07101a] p-3 text-sm font-bold text-white hover:border-orange-300/30">Monitoramento</Link>
+            <Link href="/unidades" className="rounded-md border border-white/[0.08] bg-[#07101a] p-3 text-sm font-bold text-white hover:border-orange-300/30">Unidades</Link>
+            <Link href="/relatorios/monitoramento" className="rounded-md border border-orange-400/30 bg-orange-500/[0.12] p-3 text-sm font-bold text-orange-100 hover:bg-orange-500/[0.18]">Gerar relatório</Link>
+            <div className="rounded-md border border-white/[0.08] bg-[#07101a] p-3">
+              <div className="text-[8px] font-black uppercase tracking-[0.16em] text-slate-500">Severidades</div>
+              <div className="mt-3 grid gap-2">
+                {commandCenter.buckets.occurrenceBySeverity.slice(0, 5).map((bucket) => (
+                  <div key={bucket.key} className="flex items-center justify-between gap-3 text-xs text-slate-300">
+                    <span>{bucket.key}</span>
+                    <TonePill tone={severityTone(bucket.key)}>{bucket.count}</TonePill>
+                  </div>
+                ))}
+                {!commandCenter.buckets.occurrenceBySeverity.length ? <div className="text-xs text-slate-500">Sem buckets ativos.</div> : null}
+              </div>
+            </div>
+          </RightPanel>
+        </div>
+      </section>
+    </AppShell>
   );
 }

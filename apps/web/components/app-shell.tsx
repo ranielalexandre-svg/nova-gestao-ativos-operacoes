@@ -49,13 +49,13 @@ function NovaLogo() {
     <Link
       href="/"
       aria-label="Ir para o início"
-      className="nova-brand group inline-flex min-w-0 items-center gap-3 rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-orange-400/45"
+      className="nova-brand group inline-flex min-w-0 items-center gap-2 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-orange-400/45"
     >
       <span className="leading-none">
-        <span className="block text-[25px] font-black tracking-[-0.13em] text-white">
+        <span className="block text-[18px] font-black tracking-[-0.13em] text-white">
           NOV<span className="text-orange-500">A</span>
         </span>
-        <span className="mt-1 block text-[9px] font-semibold uppercase tracking-[0.58em] text-slate-400">
+        <span className="mt-0.5 block text-[6px] font-semibold uppercase tracking-[0.42em] text-slate-400">
           TELECOM
         </span>
       </span>
@@ -68,7 +68,7 @@ function IconButton({ children, label }: { children: ReactNode; label: string })
     <button
       type="button"
       aria-label={label}
-      className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.035] text-slate-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white focus-visible:ring-2 focus-visible:ring-orange-400/35"
+      className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-white/10 bg-white/[0.035] text-[11px] text-slate-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white focus-visible:ring-2 focus-visible:ring-orange-400/35"
     >
       {children}
     </button>
@@ -96,14 +96,14 @@ function UserTopCard({
   const initial = (session.user.name || session.user.email || "N").trim().slice(0, 1).toUpperCase();
 
   return (
-    <div className="flex min-w-0 items-center gap-3 border-l border-white/10 pl-4">
+    <div className="flex min-w-0 items-center gap-2 border-l border-white/10 pl-3">
       <div className="hidden min-w-0 text-right md:block">
-        <div className="truncate text-sm font-bold text-slate-50">
+        <div className="truncate text-[11px] font-bold text-slate-50">
           {role === "admin" ? "Administrador" : session.user.name}
         </div>
-        <div className="mt-0.5 truncate text-xs text-slate-500">{session.user.email}</div>
+        <div className="mt-0.5 truncate text-[10px] text-slate-500">{session.user.email}</div>
       </div>
-      <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-orange-500 text-base font-black text-white shadow-[0_18px_40px_rgba(249,115,22,0.22)]">
+      <div className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-orange-500 text-[11px] font-black text-white shadow-[0_12px_26px_rgba(249,115,22,0.2)]">
         {initial}
       </div>
     </div>
@@ -132,18 +132,18 @@ function SidebarUserCard({
   }
 
   return (
-    <div className="rounded-3xl border border-white/[0.08] bg-white/[0.04] p-4 text-sm shadow-[0_20px_55px_rgba(0,0,0,0.24)]">
-      <div className="flex items-center gap-3">
-        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-orange-500 text-sm font-black text-white">
+    <div className="nova-sidebar-user rounded-md border border-white/[0.08] bg-white/[0.035] p-2 text-[11px] shadow-none">
+      <div className="flex items-center gap-2">
+        <div className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-orange-500 text-[11px] font-black text-white">
           {(session.user.name || "N").slice(0, 1).toUpperCase()}
         </div>
         <div className="min-w-0">
           <div className="truncate font-bold text-white">{session.user.name}</div>
-          <div className="mt-0.5 truncate text-xs text-slate-500">{session.user.email}</div>
+          <div className="mt-0.5 truncate text-[10px] text-slate-500">{session.user.email}</div>
         </div>
       </div>
-      <div className="mt-3 flex items-center justify-between gap-3">
-        <span className="inline-flex rounded-full border border-orange-400/25 bg-orange-400/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-orange-100">
+      <div className="mt-2 flex items-center justify-between gap-2">
+        <span className="inline-flex rounded border border-orange-400/25 bg-orange-400/10 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-[0.1em] text-orange-100">
           {role === "admin" ? "Admin" : session.user.role}
         </span>
         <LogoutButton />
@@ -173,20 +173,20 @@ export async function AppShell({
         Pular para o conteúdo
       </a>
 
-      <div className="nova-layout grid min-h-dvh lg:grid-cols-[236px_minmax(0,1fr)]">
+      <div className="nova-layout grid min-h-dvh lg:grid-cols-[136px_minmax(0,1fr)]">
         <SidebarCollapseControls items={visibleNav} />
 
         <aside className="nova-sidebar hidden border-r border-white/[0.08] bg-[#080d14]/98 lg:sticky lg:top-0 lg:flex lg:h-dvh">
           <div className="flex h-full min-h-0 w-full flex-col">
-            <div className="border-b border-white/[0.08] px-6 py-5">
+            <div className="border-b border-white/[0.08] px-3 py-3">
               <NovaLogo />
             </div>
 
-            <div className="min-h-0 flex-1 overflow-y-auto px-3 py-5 [scrollbar-gutter:stable]">
+            <div className="min-h-0 flex-1 overflow-y-auto px-2 py-3 [scrollbar-gutter:stable]">
               <AppSidebarNav items={visibleNav} />
             </div>
 
-            <div className="shrink-0 px-3 pb-5 pt-3">
+            <div className="shrink-0 px-2 pb-3 pt-2">
               <SidebarUserCard session={session} role={role} />
             </div>
           </div>
@@ -212,22 +212,22 @@ export async function AppShell({
             </details>
           </div>
 
-          <div className="nova-top-strip hidden h-[58px] items-center justify-between border-b border-white/[0.08] bg-[#080d14]/72 px-6 backdrop-blur-2xl lg:flex">
-            <div className="flex items-center gap-4">
+          <div className="nova-top-strip hidden h-[42px] items-center justify-between border-b border-white/[0.08] bg-[#080d14]/72 px-4 backdrop-blur-2xl lg:flex">
+            <div className="flex items-center gap-3">
               <button
                 type="button"
                 aria-label="Alternar menu"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-slate-300 transition hover:bg-white/[0.06] hover:text-white"
+                className="inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-300 transition hover:bg-white/[0.06] hover:text-white"
               >
-                <span className="text-xl leading-none">☰</span>
+                <span className="text-sm leading-none">☰</span>
               </button>
-              <div className="h-7 w-px bg-white/10" />
-              <div className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+              <div className="h-5 w-px bg-white/10" />
+              <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
                 Command center operacional
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <IconButton label="Notificações">
                 <span className="relative text-lg leading-none">
                   ♢
@@ -244,7 +244,7 @@ export async function AppShell({
 
           <div
             id="conteudo-principal"
-            className="nova-content mx-auto w-full max-w-[1340px] px-6 py-6 sm:px-7 lg:px-8"
+            className="nova-content mx-auto w-full max-w-[1340px] px-4 py-4 sm:px-5 lg:px-5"
           >
             {!hidePageHeader ? (
               <header className="nova-page-heading mb-6">

@@ -107,10 +107,10 @@ export function AppSidebarNav({ items }: { items: NavItem[] }) {
   };
 
   return (
-    <nav aria-label="Navegação principal" className="grid gap-6">
+    <nav aria-label="Navegação principal" className="grid gap-3">
       {groups.map((group) => (
-        <section key={group.section} className="grid gap-1.5" aria-label={group.section}>
-          <div className="px-1 pb-2 text-[10px] font-bold uppercase tracking-[0.17em] text-slate-500">
+        <section key={group.section} className="grid gap-1" aria-label={group.section}>
+          <div className="px-1 pb-1 text-[8px] font-bold uppercase tracking-[0.14em] text-slate-500">
             {group.section}
           </div>
 
@@ -124,7 +124,7 @@ export function AppSidebarNav({ items }: { items: NavItem[] }) {
                   href={item.href}
                   aria-current={exactActive ? "page" : undefined}
                   className={[
-                    "group relative flex min-h-9 items-center gap-2 rounded-xl border px-2 text-[13px] font-medium outline-none transition",
+                    "group relative flex min-h-7 items-center gap-1.5 rounded-md border px-1.5 text-[10px] font-medium outline-none transition",
                     "focus-visible:border-orange-300/70 focus-visible:ring-2 focus-visible:ring-orange-400/30",
                     branchActive
                       ? "border-orange-400/25 bg-orange-500/[0.13] text-orange-100 shadow-none"
@@ -132,12 +132,12 @@ export function AppSidebarNav({ items }: { items: NavItem[] }) {
                   ].join(" ")}
                 >
                   {branchActive ? (
-                    <span className="absolute left-[-13px] top-1.5 h-6 w-[3px] rounded-r-full bg-orange-500 shadow-[0_0_18px_rgba(249,115,22,0.72)]" />
+                    <span className="absolute left-[-8px] top-1 h-5 w-[2px] rounded-r-full bg-orange-500 shadow-[0_0_14px_rgba(249,115,22,0.72)]" />
                   ) : null}
 
                   <span
                     className={[
-                      "inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border transition",
+                      "inline-flex h-5 w-5 shrink-0 items-center justify-center rounded border transition",
                       branchActive
                         ? "border-orange-300/35 bg-orange-500/18 text-orange-100"
                         : "border-transparent bg-transparent text-slate-400 group-hover:text-slate-100",
@@ -156,7 +156,7 @@ export function AppSidebarNav({ items }: { items: NavItem[] }) {
                 </Link>
 
                 {item.children?.length ? (
-                  <div className="ml-6 grid gap-1 border-l border-white/[0.08] py-1 pl-2">
+                  <div className="ml-4 grid gap-1 border-l border-white/[0.08] py-1 pl-1.5">
                     {item.children.map((child) => {
                       const childActive = isBranch(child.href);
 
@@ -166,14 +166,14 @@ export function AppSidebarNav({ items }: { items: NavItem[] }) {
                           href={child.href}
                           aria-current={childActive ? "page" : undefined}
                           className={[
-                            "group flex min-h-10 items-center gap-2 rounded-xl px-3 text-sm font-medium outline-none transition",
+                            "group flex min-h-7 items-center gap-1.5 rounded-md px-2 text-[10px] font-medium outline-none transition",
                             "focus-visible:ring-2 focus-visible:ring-orange-400/30",
                             childActive
                               ? "bg-orange-400/10 text-orange-50"
                               : "text-slate-400 hover:bg-white/[0.045] hover:text-white",
                           ].join(" ")}
                         >
-                          <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-lg text-slate-500 group-hover:text-slate-200">
+                          <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded text-slate-500 group-hover:text-slate-200">
                             <NavIcon name={child.icon} fallback={child.short} />
                           </span>
                           <span className="truncate">{child.label}</span>
