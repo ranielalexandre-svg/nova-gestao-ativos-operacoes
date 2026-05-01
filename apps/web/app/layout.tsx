@@ -17,14 +17,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning><head>
-        {/* eslint-disable-next-line @next/next/no-css-tags */}
-        <link
-          id="nova-critical-css"
-          rel="stylesheet"
-          href="/nova-critical.css?v=20260426-sidebar-rail"
-          media="all"
-        /></head><body><AssetReloadGuard />
+    <html lang="pt-BR" suppressHydrationWarning><body><AssetReloadGuard />
         {children}
       </body></html>
   );

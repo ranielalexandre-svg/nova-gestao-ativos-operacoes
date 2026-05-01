@@ -163,13 +163,13 @@ export async function AppShell({
   const visibleNav = NAV.filter((item) => !item.adminOnly || role === "admin");
 
   return (
-    <div className="nova-app nds-shell" data-nova-layout="layoutA">
+    <div className="nds-shell" data-nova-layout="layoutA">
       <a href="#conteudo-principal" className="nova-skip-link">
         Pular para o conteúdo
       </a>
 
-      <div className="nds-layout nova-layout">
-        <aside className="nds-sidebar nova-sidebar">
+      <div className="nds-layout">
+        <aside className="nds-sidebar">
           <div className="nds-sidebar-inner">
             <div className="nds-logo-wrap">
               <NovaLogo />
@@ -185,7 +185,7 @@ export async function AppShell({
           </div>
         </aside>
 
-        <main className="nds-main nova-main">
+        <main className="nds-main">
           <div className="sticky top-0 z-50 border-b border-white/[0.08] bg-[#080d14]/88 px-4 py-3 backdrop-blur-2xl lg:hidden">
             <details className="nova-mobile-menu group">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.04] px-4 py-3 outline-none transition marker:hidden focus-visible:ring-2 focus-visible:ring-orange-400/35">
@@ -205,7 +205,7 @@ export async function AppShell({
             </details>
           </div>
 
-          <div className="nds-topbar nova-top-strip">
+          <div className="nds-topbar">
             <div className="nds-topbar-title">
               <span className="nds-topbar-menu" aria-hidden="true">≡</span>
               <div>
@@ -226,10 +226,10 @@ export async function AppShell({
 
           <div
             id="conteudo-principal"
-            className="nds-content nova-content"
+            className="nds-content"
           >
             {!hidePageHeader ? (
-              <header className="nds-page-header nova-page-heading">
+              <header className="nds-page-header">
                 <div className="min-w-0">
                   <div className="nds-breadcrumb">
                     <span>Nova</span>
