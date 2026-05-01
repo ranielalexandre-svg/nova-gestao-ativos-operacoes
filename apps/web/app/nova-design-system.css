@@ -865,6 +865,25 @@ body {
 
 .nds-shell .nova-monitoring-report-page {
   gap: 8px;
+  margin-top: -4px;
+}
+
+.nds-shell .nova-monitoring-report-page :where(section, article, aside, details, .nova-report-stepper) {
+  border-radius: var(--nova-radius-card);
+}
+
+.nds-shell .nova-monitoring-report-page :where(input:not([type="checkbox"]):not([type="radio"]), select) {
+  min-height: var(--nova-control-height);
+  border-radius: var(--nova-radius-control);
+  background: var(--nova-surface-3);
+}
+
+.nds-shell .nova-monitoring-report-page :where(button, a[class*="inline-flex"]) {
+  border-radius: var(--nova-radius-control);
+}
+
+.nds-shell .nova-monitoring-report-page :where(table th, table td) {
+  vertical-align: top;
 }
 
 .nds-shell .nova-report-hero {

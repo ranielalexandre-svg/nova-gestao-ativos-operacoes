@@ -39,12 +39,6 @@ function parseUnitMetadataJson(formData: FormData) {
 
 export async function POST(request: Request) {
   const formData = await request.formData();
-  console.log("[web-monitoring-export] route=%s format=%s reportStyle=%s includeCharts=%s",
-    new URL(request.url).pathname,
-    String(formData.get("format")),
-    String(formData.get("reportStyle")),
-    String(formData.get("includeCharts")),
-  );
   const unitIds = parseUnitIds(formData);
 
   if (!unitIds.length) {
