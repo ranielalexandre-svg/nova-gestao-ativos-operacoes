@@ -18,6 +18,34 @@ export function NovaThemeProvider({
   return <div data-nova-layout={variant}>{children}</div>;
 }
 
+export function NovaShell({ children, variant = "layoutA" }: { children: ReactNode; variant?: NovaLayoutVariant }) {
+  return (
+    <div className="nds-shell" data-nova-layout={variant}>
+      <div className="nds-layout">{children}</div>
+    </div>
+  );
+}
+
+export function NovaSidebar({ children }: { children: ReactNode }) {
+  return (
+    <aside className="nds-sidebar">
+      <div className="nds-sidebar-inner">{children}</div>
+    </aside>
+  );
+}
+
+export function NovaTopbar({ title = "Sistema de gestão operacional", actions }: { title?: string; actions?: ReactNode }) {
+  return (
+    <div className="nds-topbar">
+      <div className="nds-topbar-title">
+        <span className="nds-topbar-menu" aria-hidden="true">≡</span>
+        <span>{title}</span>
+      </div>
+      {actions ? <div className="nds-topbar-actions">{actions}</div> : null}
+    </div>
+  );
+}
+
 export function NovaButton({
   asChild,
   href,

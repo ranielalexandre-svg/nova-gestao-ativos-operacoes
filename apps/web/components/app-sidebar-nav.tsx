@@ -68,7 +68,6 @@ function NavIcon({ name, fallback }: { name?: IconName; fallback: string }) {
     <svg
       aria-hidden="true"
       viewBox="0 0 24 24"
-      className="h-[16px] w-[16px]"
       fill="none"
       stroke="currentColor"
       strokeWidth="1.75"
@@ -107,10 +106,10 @@ export function AppSidebarNav({ items }: { items: NavItem[] }) {
   };
 
   return (
-    <nav aria-label="Navegação principal" className="grid gap-3">
+    <nav aria-label="Navegação principal" className="nds-nav">
       {groups.map((group) => (
-        <section key={group.section} className="grid gap-1" aria-label={group.section}>
-          <div className="px-1 pb-1 text-[8px] font-bold uppercase tracking-[0.14em] text-slate-500">
+        <section key={group.section} className="nds-nav-section" aria-label={group.section}>
+          <div className="nds-nav-label">
             {group.section}
           </div>
 
@@ -124,39 +123,25 @@ export function AppSidebarNav({ items }: { items: NavItem[] }) {
                   href={item.href}
                   aria-current={exactActive ? "page" : undefined}
                   className={[
-                    "group relative flex min-h-7 items-center gap-1.5 rounded-md border px-1.5 text-[10px] font-medium outline-none transition",
-                    "focus-visible:border-orange-300/70 focus-visible:ring-2 focus-visible:ring-orange-400/30",
-                    branchActive
-                      ? "border-orange-400/25 bg-orange-500/[0.13] text-orange-100 shadow-none"
-                      : "border-transparent text-slate-400 hover:bg-white/[0.045] hover:text-white",
+                    "nds-nav-link",
+                    exactActive ? "is-active" : branchActive ? "is-parent-active" : "",
                   ].join(" ")}
                 >
-                  {branchActive ? (
-                    <span className="absolute left-[-8px] top-1 h-5 w-[2px] rounded-r-full bg-orange-500 shadow-[0_0_14px_rgba(249,115,22,0.72)]" />
-                  ) : null}
-
-                  <span
-                    className={[
-                      "inline-flex h-5 w-5 shrink-0 items-center justify-center rounded border transition",
-                      branchActive
-                        ? "border-orange-300/35 bg-orange-500/18 text-orange-100"
-                        : "border-transparent bg-transparent text-slate-400 group-hover:text-slate-100",
-                    ].join(" ")}
-                  >
+                  <span className="nds-nav-icon">
                     <NavIcon name={item.icon} fallback={item.short} />
                   </span>
 
-                  <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                  <span className="nds-nav-text">{item.label}</span>
 
                   {item.children?.length ? (
-                    <span className={branchActive ? "text-orange-200" : "text-slate-600 group-hover:text-slate-400"} aria-hidden="true">
+                    <span className="ml-auto text-[var(--nova-text-dim)]" aria-hidden="true">
                       ›
                     </span>
                   ) : null}
                 </Link>
 
                 {item.children?.length ? (
-                  <div className="ml-4 grid gap-1 border-l border-white/[0.08] py-1 pl-1.5">
+                  <div className="nds-nav-children">
                     {item.children.map((child) => {
                       const childActive = isBranch(child.href);
 
@@ -166,17 +151,14 @@ export function AppSidebarNav({ items }: { items: NavItem[] }) {
                           href={child.href}
                           aria-current={childActive ? "page" : undefined}
                           className={[
-                            "group flex min-h-7 items-center gap-1.5 rounded-md px-2 text-[10px] font-medium outline-none transition",
-                            "focus-visible:ring-2 focus-visible:ring-orange-400/30",
-                            childActive
-                              ? "bg-orange-400/10 text-orange-50"
-                              : "text-slate-400 hover:bg-white/[0.045] hover:text-white",
+                            "nds-nav-link",
+                            childActive ? "is-active" : "",
                           ].join(" ")}
                         >
-                          <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded text-slate-500 group-hover:text-slate-200">
+                          <span className="nds-nav-icon">
                             <NavIcon name={child.icon} fallback={child.short} />
                           </span>
-                          <span className="truncate">{child.label}</span>
+                          <span className="nds-nav-text">{child.label}</span>
                         </Link>
                       );
                     })}

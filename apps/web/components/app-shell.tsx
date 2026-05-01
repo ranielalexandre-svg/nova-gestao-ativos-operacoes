@@ -18,29 +18,27 @@ const NAV: NavEntry[] = [
     label: "Ativos",
     short: "AT",
     icon: "equipment",
-    section: "Cadastro",
+    section: "Gestão",
     children: [{ href: "/equipamentos/starlinks", label: "Starlinks", short: "ST", icon: "satellite" }],
   },
-  { href: "/unidades", label: "Unidades", short: "UN", icon: "units", section: "Cadastro" },
-  { href: "/parceiros", label: "Parceiros", short: "PR", icon: "partners", section: "Cadastro" },
-  { href: "/contratos", label: "Contratos", short: "CT", icon: "contracts", section: "Cadastro" },
-
-  { href: "/manutencoes", label: "Chamados", short: "CH", icon: "queue", section: "Operação" },
-  { href: "/operacao/excecoes", label: "Exceções", short: "EX", icon: "exceptions", section: "Operação" },
-  { href: "/operacao/automacoes", label: "Automação", short: "AU", icon: "automation", section: "Operação" },
+  { href: "/unidades", label: "Unidades", short: "UN", icon: "units", section: "Gestão" },
+  { href: "/parceiros", label: "Parceiros", short: "PR", icon: "partners", section: "Gestão" },
+  { href: "/contratos", label: "Contratos", short: "CT", icon: "contracts", section: "Gestão" },
+  { href: "/manutencoes", label: "Chamados", short: "CH", icon: "queue", section: "Gestão" },
+  { href: "/operacao/excecoes", label: "Exceções", short: "EX", icon: "exceptions", section: "Gestão" },
+  { href: "/operacao/automacoes", label: "Automação", short: "AU", icon: "automation", section: "Gestão" },
 
   { href: "/relatorios/monitoramento", label: "Monitoramento", short: "RM", icon: "reports", section: "Relatórios" },
   { href: "/relatorios", label: "Consumo", short: "RC", icon: "reports", section: "Relatórios" },
   { href: "/relatorios/disponibilidade", label: "Disponibilidade", short: "DI", icon: "sla", section: "Relatórios", adminOnly: true },
   { href: "/relatorios/performance", label: "Performance", short: "PF", icon: "activity", section: "Relatórios", adminOnly: true },
 
-  { href: "/operacao/importacao", label: "Importação", short: "IM", icon: "import", section: "Dados", adminOnly: true },
-  { href: "/reconciliacao-central", label: "Reconciliação", short: "RE", icon: "reconcile", section: "Dados", adminOnly: true },
-
-  { href: "/usuarios", label: "Usuários", short: "US", icon: "users", section: "Administração", adminOnly: true },
-  { href: "/perfis", label: "Perfis", short: "PF", icon: "profiles", section: "Administração", adminOnly: true },
-  { href: "/integracoes", label: "Integrações", short: "IN", icon: "integrations", section: "Administração", adminOnly: true },
-  { href: "/configuracoes", label: "Configurações", short: "CF", icon: "settings", section: "Administração", adminOnly: true },
+  { href: "/operacao/importacao", label: "Importação", short: "IM", icon: "import", section: "Configurações", adminOnly: true },
+  { href: "/reconciliacao-central", label: "Reconciliação", short: "RE", icon: "reconcile", section: "Configurações", adminOnly: true },
+  { href: "/usuarios", label: "Usuários", short: "US", icon: "users", section: "Configurações", adminOnly: true },
+  { href: "/perfis", label: "Perfis", short: "PF", icon: "profiles", section: "Configurações", adminOnly: true },
+  { href: "/integracoes", label: "Integrações", short: "IN", icon: "integrations", section: "Configurações", adminOnly: true },
+  { href: "/configuracoes", label: "Sistema", short: "CF", icon: "settings", section: "Configurações", adminOnly: true },
 ];
 
 function NovaLogo() {
@@ -48,15 +46,13 @@ function NovaLogo() {
     <Link
       href="/"
       aria-label="Ir para o início"
-      className="nova-brand group inline-flex min-w-0 items-center gap-2 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-orange-400/45"
+      className="nds-logo"
     >
-      <span className="leading-none">
-        <span className="block text-[18px] font-black tracking-[-0.13em] text-white">
-          NOV<span className="text-orange-500">A</span>
-        </span>
-        <span className="mt-0.5 block text-[6px] font-semibold uppercase tracking-[0.42em] text-slate-400">
-          TELECOM
-        </span>
+      <span className="nds-logo-main">
+        NOV<span className="nds-logo-a">A</span>
+      </span>
+      <span className="nds-logo-sub">
+        TELECOM
       </span>
     </Link>
   );
@@ -67,7 +63,7 @@ function IconButton({ children, label }: { children: ReactNode; label: string })
     <button
       type="button"
       aria-label={label}
-      className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-white/10 bg-white/[0.035] text-[11px] text-slate-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white focus-visible:ring-2 focus-visible:ring-orange-400/35"
+      className="nds-icon-button"
     >
       {children}
     </button>
@@ -102,7 +98,7 @@ function UserTopCard({
         </div>
         <div className="mt-0.5 truncate text-[10px] text-slate-500">{session.user.email}</div>
       </div>
-      <div className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-orange-500 text-[11px] font-black text-white shadow-[0_12px_26px_rgba(249,115,22,0.2)]">
+      <div className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[var(--nova-primary)] text-[10px] font-black text-white">
         {initial}
       </div>
     </div>
@@ -131,9 +127,9 @@ function SidebarUserCard({
   }
 
   return (
-    <div className="nova-sidebar-user rounded-md border border-white/[0.08] bg-white/[0.035] p-2 text-[11px] shadow-none">
+    <div className="nds-user-card text-[11px]">
       <div className="flex items-center gap-2">
-        <div className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-orange-500 text-[11px] font-black text-white">
+        <div className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[var(--nova-primary)] text-[11px] font-black text-white">
           {(session.user.name || "N").slice(0, 1).toUpperCase()}
         </div>
         <div className="min-w-0">
@@ -142,7 +138,7 @@ function SidebarUserCard({
         </div>
       </div>
       <div className="mt-2 flex items-center justify-between gap-2">
-        <span className="inline-flex rounded border border-orange-400/25 bg-orange-400/10 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-[0.1em] text-orange-100">
+        <span className="nds-badge" data-tone="primary">
           {role === "admin" ? "Admin" : session.user.role}
         </span>
         <LogoutButton />
@@ -167,29 +163,29 @@ export async function AppShell({
   const visibleNav = NAV.filter((item) => !item.adminOnly || role === "admin");
 
   return (
-    <div className="nova-app nova-command-center min-h-dvh text-slate-100">
+    <div className="nova-app nds-shell" data-nova-layout="layoutA">
       <a href="#conteudo-principal" className="nova-skip-link">
         Pular para o conteúdo
       </a>
 
-      <div className="nova-layout grid min-h-dvh lg:grid-cols-[232px_minmax(0,1fr)]">
-        <aside className="nova-sidebar hidden border-r border-white/[0.08] bg-[#080d14]/98 lg:sticky lg:top-0 lg:flex lg:h-dvh">
-          <div className="flex h-full min-h-0 w-full flex-col">
-            <div className="border-b border-white/[0.08] px-3 py-3">
+      <div className="nds-layout nova-layout">
+        <aside className="nds-sidebar nova-sidebar">
+          <div className="nds-sidebar-inner">
+            <div className="nds-logo-wrap">
               <NovaLogo />
             </div>
 
-            <div className="min-h-0 flex-1 overflow-y-auto px-2 py-3 [scrollbar-gutter:stable]">
+            <div className="nds-sidebar-scroll">
               <AppSidebarNav items={visibleNav} />
             </div>
 
-            <div className="shrink-0 px-2 pb-3 pt-2">
+            <div className="shrink-0">
               <SidebarUserCard session={session} role={role} />
             </div>
           </div>
         </aside>
 
-        <main className="nova-main min-w-0">
+        <main className="nds-main nova-main">
           <div className="sticky top-0 z-50 border-b border-white/[0.08] bg-[#080d14]/88 px-4 py-3 backdrop-blur-2xl lg:hidden">
             <details className="nova-mobile-menu group">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.04] px-4 py-3 outline-none transition marker:hidden focus-visible:ring-2 focus-visible:ring-orange-400/35">
@@ -209,21 +205,18 @@ export async function AppShell({
             </details>
           </div>
 
-          <div className="nova-top-strip hidden h-[42px] items-center justify-between border-b border-white/[0.08] bg-[#080d14]/72 px-4 backdrop-blur-2xl lg:flex">
-            <div className="flex items-center gap-3">
-              <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                Command center operacional
+          <div className="nds-topbar nova-top-strip">
+            <div className="nds-topbar-title">
+              <span className="nds-topbar-menu" aria-hidden="true">≡</span>
+              <div>
+                Sistema de gestão operacional
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="nds-topbar-actions">
               <IconButton label="Notificações">
-                <span className="relative text-lg leading-none">
-                  ♢
-                  <span className="absolute -right-2 -top-2 grid h-4 w-4 place-items-center rounded-full bg-orange-500 text-[10px] font-black text-white">
-                    3
-                  </span>
-                </span>
+                ♢
+                <span className="nds-notification-dot">3</span>
               </IconButton>
               <IconButton label="Ajuda">?</IconButton>
               <IconButton label="Tema">☼</IconButton>
@@ -233,27 +226,27 @@ export async function AppShell({
 
           <div
             id="conteudo-principal"
-            className="nova-content mx-auto w-full max-w-[1340px] px-4 py-4 sm:px-5 lg:px-5"
+            className="nds-content nova-content"
           >
             {!hidePageHeader ? (
-              <header className="nova-page-heading mb-6">
+              <header className="nds-page-header nova-page-heading">
                 <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
+                  <div className="nds-breadcrumb">
                     <span>Nova</span>
-                    <span>/</span>
+                    <span className="mx-1">/</span>
                     <span className="text-slate-300">{title}</span>
                   </div>
-                  <h1 className="mt-3 text-[26px] font-black tracking-[-0.035em] text-white sm:text-[31px]">
+                  <h1 className="nds-page-title">
                     {title}
                   </h1>
                   {subtitle ? (
-                    <p className="mt-2 max-w-4xl text-sm leading-6 text-slate-400">{subtitle}</p>
+                    <p className="nds-page-subtitle">{subtitle}</p>
                   ) : null}
                 </div>
               </header>
             ) : null}
 
-            <div className="min-w-0 space-y-5">{children}</div>
+            <div className="nds-stack min-w-0">{children}</div>
           </div>
         </main>
       </div>

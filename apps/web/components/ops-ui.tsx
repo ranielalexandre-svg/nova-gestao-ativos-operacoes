@@ -42,7 +42,7 @@ export function Surface({
   return (
     <section
       className={cx(
-        "nova-surface overflow-hidden rounded-[24px] border border-white/[0.09] bg-[linear-gradient(180deg,rgba(17,24,34,0.96),rgba(10,15,22,0.96))] shadow-[0_24px_70px_rgba(0,0,0,0.28)] ring-1 ring-white/[0.025]",
+        "nds-surface nova-surface overflow-hidden",
         className,
       )}
       {...props}
@@ -92,7 +92,7 @@ export function TonePill({
   return (
     <span
       className={cx(
-        "nova-pill inline-flex min-h-7 items-center rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.11em] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]",
+        "nds-badge nova-pill",
         toneMap[tone] || toneMap.neutral,
         className,
       )}
@@ -130,7 +130,7 @@ export function FilterChip({
 
 export function TableShell({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
-    <div className={cx("nova-table-shell overflow-x-auto rounded-[20px] border border-white/[0.09] bg-[#080d13] shadow-[0_18px_55px_rgba(0,0,0,0.22)] ring-1 ring-white/[0.025]", className)}>
+    <div className={cx("nds-table-shell nova-table-shell", className)}>
       {children}
     </div>
   );
@@ -141,12 +141,12 @@ export function TableWrap({ children, className = "" }: { children: ReactNode; c
 }
 
 export function DenseTable({ children }: { children: ReactNode }) {
-  return <table className="nova-table min-w-full border-separate border-spacing-0 text-sm text-slate-200">{children}</table>;
+  return <table className="nds-table nova-table">{children}</table>;
 }
 
 export function TableHead({ children }: { children: ReactNode }) {
   return (
-    <thead className="sticky top-0 z-10 border-b border-white/[0.08] bg-[#111821]/95 text-left text-[10px] font-black uppercase tracking-[0.14em] text-slate-400 backdrop-blur">
+    <thead>
       {children}
     </thead>
   );
@@ -161,14 +161,14 @@ export function TableCell({
   className?: string;
 } & TdHTMLAttributes<HTMLTableCellElement>) {
   return (
-    <td className={cx("px-4 py-4 align-top", className)} {...props}>
+    <td className={cx("align-top", className)} {...props}>
       {children}
     </td>
   );
 }
 
 const tableActionClass =
-  "inline-flex min-h-9 items-center justify-center whitespace-nowrap rounded-full border border-white/10 bg-white/[0.045] px-3.5 py-1.5 text-xs font-bold text-slate-200 transition hover:border-sky-400/25 hover:bg-sky-500/[0.10] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/35";
+  "nds-button whitespace-nowrap";
 
 export function TableActionHeader({
   children = "Ação",
@@ -179,7 +179,7 @@ export function TableActionHeader({
   className?: string;
 } & ThHTMLAttributes<HTMLTableCellElement>) {
   return (
-    <th className={cx("nova-table-actions w-32 min-w-[8rem] px-4 py-3 text-right", className)} {...props}>
+    <th className={cx("nds-table-actions nova-table-actions", className)} {...props}>
       {children}
     </th>
   );
@@ -194,7 +194,7 @@ export function TableActionCell({
   className?: string;
 } & TdHTMLAttributes<HTMLTableCellElement>) {
   return (
-    <TableCell className={cx("nova-table-actions w-32 min-w-[8rem] text-right", className)} {...props}>
+    <TableCell className={cx("nds-table-actions nova-table-actions", className)} {...props}>
       {children}
     </TableCell>
   );
@@ -204,14 +204,14 @@ export function TableActionLink({
   className = "",
   ...props
 }: ComponentPropsWithoutRef<typeof Link>) {
-  return <Link className={cx(tableActionClass, "focus-visible:ring-4 focus-visible:ring-sky-500/15", className)} {...props} />;
+  return <Link className={cx(tableActionClass, className)} data-variant="secondary" {...props} />;
 }
 
 export function TableActionAnchor({
   className = "",
   ...props
 }: ComponentPropsWithoutRef<"a">) {
-  return <a className={cx(tableActionClass, "focus-visible:ring-4 focus-visible:ring-sky-500/15", className)} {...props} />;
+  return <a className={cx(tableActionClass, className)} data-variant="secondary" {...props} />;
 }
 
 export function KpiTile({
@@ -293,14 +293,14 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="nova-empty rounded-[22px] border border-dashed border-white/14 bg-[radial-gradient(circle_at_50%_0%,rgba(59,130,246,0.08),transparent_20rem),#090f16] p-10 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"><div className="text-sm font-black tracking-[-0.01em] text-slate-50">{title}</div><div className="mt-2 text-sm leading-6 text-slate-400">{description}</div>
+    <div className="nds-empty nova-empty"><div className="text-[13px] font-black tracking-[-0.01em] text-slate-50">{title}</div><div className="mt-2 text-[11px] leading-5 text-[var(--nova-text-muted)]">{description}</div>
       {action ? <div className="mt-5">{action}</div> : null}
     </div>
   );
 }
 
 export function FieldLabel({ children }: { children: ReactNode }) {
-  return <div className="nova-field-label text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">{children}</div>;
+  return <div className="nds-label nova-field-label">{children}</div>;
 }
 
 export function PageHeader({
@@ -315,17 +315,17 @@ export function PageHeader({
   actions?: ReactNode;
 }) {
   return (
-    <header className="nova-page-header flex flex-col gap-4 border-b border-white/[0.08] pb-5 lg:flex-row lg:items-end lg:justify-between">
+    <header className="nds-page-header nova-page-header">
       <div className="min-w-0">
         {eyebrow ? (
-          <div className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-300/80">
+          <div className="nds-breadcrumb">
             {eyebrow}
           </div>
         ) : null}
-        <h1 className="mt-2 text-[28px] font-black leading-tight tracking-[-0.045em] text-white sm:text-[34px]">
+        <h1 className="nds-page-title">
           {title}
         </h1>
-        {subtitle ? <p className="mt-2 max-w-4xl text-sm leading-6 text-slate-400">{subtitle}</p> : null}
+        {subtitle ? <p className="nds-page-subtitle">{subtitle}</p> : null}
       </div>
       {actions ? <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div> : null}
     </header>
@@ -356,13 +356,13 @@ export function StatCard({
   tone?: keyof typeof toneMap | string;
 }) {
   return (
-    <div className="nova-stat-card rounded-[14px] border border-white/[0.08] bg-[#121923] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]">
-      <div className="flex items-start justify-between gap-3">
-        <div className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">{label}</div>
-        <span className={cx("mt-1 h-2.5 w-2.5 rounded-full", toneDotMap[tone] || toneDotMap.neutral)} />
+    <div className="nds-stat-card nova-stat-card">
+      <div className="nds-stat-top">
+        <div className="nds-label">{label}</div>
+        <span className="nds-dot" data-tone={tone} />
       </div>
-      <div className="mt-3 text-[28px] font-black leading-none tracking-[-0.04em] text-white">{value}</div>
-      {detail ? <div className="mt-2 text-sm leading-5 text-slate-400">{detail}</div> : null}
+      <div className="nds-stat-value">{value}</div>
+      {detail ? <div className="nds-stat-detail">{detail}</div> : null}
     </div>
   );
 }
@@ -378,8 +378,8 @@ export function FilterBar({
 }) {
   return (
     <Surface className={cx("nova-filter-bar p-4", className)}>
-      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">{children}</div>
+      <div className="grid gap-2 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+        <div className="nds-filter-grid">{children}</div>
         {actions ? <div className="flex flex-wrap items-center justify-end gap-2">{actions}</div> : null}
       </div>
     </Surface>
@@ -398,11 +398,11 @@ export function RightPanel({
   actions?: ReactNode;
 }) {
   return (
-    <aside className="nova-right-panel rounded-[14px] border border-white/[0.08] bg-[#121923] p-4 shadow-[0_18px_55px_rgba(0,0,0,0.18),inset_0_1px_0_rgba(255,255,255,0.035)]">
+    <aside className="nds-panel nova-right-panel">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-base font-black tracking-[-0.02em] text-white">{title}</h2>
-          {description ? <p className="mt-1 text-sm leading-6 text-slate-400">{description}</p> : null}
+          <h2 className="text-[13px] font-black tracking-[-0.02em] text-white">{title}</h2>
+          {description ? <p className="mt-1 text-[11px] leading-5 text-[var(--nova-text-muted)]">{description}</p> : null}
         </div>
         {actions ? <div className="shrink-0">{actions}</div> : null}
       </div>
@@ -425,15 +425,15 @@ export function ChartCard({
   const dotClass = toneDotMap[tone] || toneDotMap.info;
 
   return (
-    <div className="nova-chart-card rounded-[14px] border border-white/[0.08] bg-[#121923] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]">
+    <div className="nds-chart-card nova-chart-card">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h3 className="text-sm font-black text-white">{title}</h3>
-          {subtitle ? <p className="mt-1 text-xs leading-5 text-slate-500">{subtitle}</p> : null}
+          <h3 className="text-[13px] font-black text-white">{title}</h3>
+          {subtitle ? <p className="mt-1 text-[10px] leading-4 text-[var(--nova-text-muted)]">{subtitle}</p> : null}
         </div>
         <span className={cx("mt-1 h-2.5 w-2.5 rounded-full", dotClass)} />
       </div>
-      <div className="mt-4 min-h-[180px] rounded-[12px] border border-white/[0.07] bg-[#070b10] p-3">
+      <div className="nds-chart-area">
         {children || <FakeChart tone={tone} />}
       </div>
     </div>
