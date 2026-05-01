@@ -51,8 +51,8 @@ export default async function MapasPage() {
 
   return (
     <AppShell title="Mapas" subtitle="Mapa operacional de unidades, camadas e alertas por localidade.">
-      <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="grid gap-5">
+      <section className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_300px]">
+        <div className="grid gap-3">
           <div className="grid gap-3 md:grid-cols-4">
             <StatCard label="Unidades" value={telemetry.counts.units} detail="na visão de monitoramento" tone="info" />
             <StatCard label="Online" value={telemetry.counts.online} detail="hosts com leitura saudável" tone="success" />
@@ -60,11 +60,11 @@ export default async function MapasPage() {
             <StatCard label="Offline" value={telemetry.counts.down} detail="hosts indisponíveis" tone="critical" />
           </div>
 
-          <Surface className="min-h-[560px] overflow-hidden p-5">
+          <Surface className="min-h-[380px] overflow-hidden">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <div className="text-[10px] font-black uppercase tracking-[0.18em] text-orange-300/80">Mapa técnico</div>
-                <h2 className="mt-2 text-xl font-black text-white">Cobertura por cidade</h2>
+                <h2 className="mt-1 text-[15px] font-black text-white">Cobertura por cidade</h2>
               </div>
               <div className="flex flex-wrap gap-2">
                 <TonePill tone="success">online</TonePill>
@@ -73,7 +73,7 @@ export default async function MapasPage() {
               </div>
             </div>
 
-            <div className="relative mt-5 min-h-[450px] overflow-hidden rounded-[14px] border border-white/[0.08] bg-[radial-gradient(circle_at_52%_45%,rgba(249,115,22,0.14),transparent_10rem),linear-gradient(135deg,#0b121b,#070b10)]">
+            <div className="relative mt-3 min-h-[300px] overflow-hidden rounded-[8px] border border-white/[0.08] bg-[radial-gradient(circle_at_52%_45%,rgba(249,115,22,0.14),transparent_10rem),linear-gradient(135deg,#0b121b,#070b10)]">
               <div className="absolute inset-0 opacity-35 [background-image:linear-gradient(rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:42px_42px]" />
               <div className="absolute left-[10%] top-[18%] h-[62%] w-[78%] rounded-[48%] border border-orange-300/20 bg-orange-500/[0.025]" />
               {cities.length ? (
@@ -85,7 +85,7 @@ export default async function MapasPage() {
                     <Link
                       key={label}
                       href={`/unidades?q=${encodeURIComponent(label.split("/")[0])}`}
-                      className="absolute z-10 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10 bg-[#121923] px-3 py-2 text-xs font-bold text-white shadow-[0_18px_45px_rgba(0,0,0,0.35)] transition hover:border-orange-300/40"
+                      className="absolute z-10 -translate-x-1/2 -translate-y-1/2 rounded border border-white/10 bg-[#121923] px-2 py-1.5 text-[10px] font-bold text-white shadow-[0_18px_45px_rgba(0,0,0,0.35)] transition hover:border-orange-300/40"
                       style={{ left: `${left}%`, top: `${top}%` }}
                     >
                       <span className={`mr-2 inline-block h-2 w-2 rounded-full ${color}`} />

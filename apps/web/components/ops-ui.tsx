@@ -66,14 +66,14 @@ export function SectionIntro({
   compact?: boolean;
 }) {
   return (
-    <div className={cx("nova-section-intro flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between", compact && "gap-3")}><div className="min-w-0">
+    <div className={cx("nova-section-intro flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between", compact && "gap-2")}><div className="min-w-0">
         {eyebrow ? (
-          <div className="inline-flex items-center rounded-full border border-white/[0.08] bg-white/[0.035] px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">{eyebrow}</div>
+          <div className="nds-label">{eyebrow}</div>
         ) : null}
-        <h2 className={cx("mt-2 font-black tracking-[-0.03em] text-slate-50", compact ? "text-[18px] sm:text-[20px]" : "text-[24px] sm:text-[28px]")}>
+        <h2 className={cx("font-black tracking-[-0.03em] text-slate-50", compact ? "mt-1 text-[14px]" : "mt-1 text-[16px]")}>
           {title}
         </h2>
-        {description ? <p className="mt-2 max-w-4xl text-sm leading-6 text-slate-400 sm:text-[15px]">{description}</p> : null}
+        {description ? <p className="mt-1 max-w-4xl text-[11px] leading-5 text-[var(--nova-text-muted)]">{description}</p> : null}
       </div>
       {actions ? <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div> : null}
     </div>
@@ -117,9 +117,9 @@ export function FilterChip({
     <Link
       href={href}
       className={cx(
-        "nova-filter-chip inline-flex min-h-10 items-center gap-2 rounded-[16px] border px-3.5 py-2 text-sm font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/35",
+        "nova-filter-chip inline-flex min-h-[30px] items-center gap-2 rounded-[4px] border px-2.5 py-1 text-[11px] font-black transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400/25",
         active
-          ? "border-sky-400/35 bg-sky-500/[0.16] text-sky-50 shadow-[0_10px_28px_rgba(14,165,233,0.12)]"
+          ? "border-orange-400/35 bg-orange-500/[0.16] text-orange-50 shadow-[0_10px_24px_rgba(249,115,22,0.12)]"
           : "border-white/10 bg-white/[0.035] text-slate-300 hover:border-white/16 hover:bg-white/[0.07] hover:text-white",
       )}
     ><span>{label}</span>
@@ -230,17 +230,14 @@ export function KpiTile({
   badgeLabel?: string;
 }) {
   const content = (
-    <div className="nova-kpi min-h-[118px] rounded-[20px] border border-white/[0.09] bg-[linear-gradient(180deg,rgba(17,24,34,0.95),rgba(10,15,22,0.95))] p-4 shadow-[0_16px_40px_rgba(0,0,0,0.18)] transition hover:-translate-y-0.5 hover:border-white/14 hover:bg-[#121923]"><div className="flex items-start justify-between gap-3"><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">{label}</div>
+    <div className="nova-kpi nds-stat-card transition hover:border-orange-300/25"><div className="nds-stat-top"><div className="nds-label">{label}</div>
         {badgeLabel ? (
           <TonePill tone={tone}>{badgeLabel}</TonePill>
         ) : (
-          <span
-            aria-hidden="true"
-            className={cx("mt-1 h-2.5 w-2.5 shrink-0 rounded-full", toneDotMap[tone] || toneDotMap.neutral)}
-          />
+          <span aria-hidden="true" className="nds-dot" data-tone={tone} />
         )}
-      </div><div className="mt-3 text-[28px] font-black tracking-[-0.04em] text-slate-50">{value}</div>
-      {meta ? <div className="mt-2 text-sm leading-5 text-slate-400">{meta}</div> : null}
+      </div><div className="nds-stat-value">{value}</div>
+      {meta ? <div className="nds-stat-detail">{meta}</div> : null}
     </div>
   );
 
@@ -262,10 +259,10 @@ export function ActionTile({
   return (
     <Link
       href={href}
-      className="rounded-[20px] border border-white/[0.09] bg-[linear-gradient(180deg,rgba(17,24,34,0.92),rgba(10,15,22,0.92))] p-4 shadow-[0_14px_34px_rgba(0,0,0,0.16)] transition hover:-translate-y-0.5 hover:border-white/14 hover:bg-[#121923]"
-    ><div className="flex items-start justify-between gap-3"><div className="text-sm font-black tracking-[-0.01em] text-slate-50">{title}</div>
+      className="nds-card block transition hover:border-orange-300/25"
+    ><div className="flex items-start justify-between gap-3"><div className="text-[12px] font-black tracking-[-0.01em] text-slate-50">{title}</div>
         {badge}
-      </div><div className="mt-2 text-sm leading-6 text-slate-400">{description}</div></Link>
+      </div><div className="mt-1 text-[11px] leading-5 text-[var(--nova-text-muted)]">{description}</div></Link>
   );
 }
 
@@ -279,7 +276,7 @@ export function InlineStat({
   tone?: keyof typeof toneMap | string;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-[16px] border border-white/[0.09] bg-[#090f16] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]"><div className="text-sm text-slate-400">{label}</div><TonePill tone={tone}>{value}</TonePill></div>
+    <div className="flex min-h-[34px] items-center justify-between gap-3 rounded-[6px] border border-white/[0.08] bg-[#07101a] px-3 py-2"><div className="text-[11px] text-slate-400">{label}</div><TonePill tone={tone}>{value}</TonePill></div>
   );
 }
 
@@ -472,29 +469,24 @@ export function Stepper({
   activeIndex?: number;
 }) {
   return (
-    <div className="nova-stepper grid gap-2 md:grid-cols-3">
+    <div className="nds-stepper nova-stepper">
       {steps.map((step, index) => {
         const active = index === activeIndex;
         const completed = index < activeIndex;
         return (
           <div
             key={step.title}
-            className={cx(
-              "rounded-[14px] border px-4 py-3",
-              active
-                ? "border-orange-400/35 bg-orange-500/[0.13]"
-                : completed
-                  ? "border-emerald-400/22 bg-emerald-500/[0.08]"
-                  : "border-white/[0.08] bg-[#121923]",
-            )}
+            className="nds-step"
+            data-active={active}
+            data-completed={completed}
           >
             <div className="flex items-center gap-2">
-              <span className="grid h-7 w-7 place-items-center rounded-full border border-white/10 bg-black/20 text-xs font-black text-white">
+              <span className="grid h-5 w-5 place-items-center rounded-full border border-white/10 bg-black/20 text-[10px] font-black text-white">
                 {index + 1}
               </span>
-              <div className="text-sm font-black text-white">{step.title}</div>
+              <div className="text-[11px] font-black text-white">{step.title}</div>
             </div>
-            {step.description ? <div className="mt-2 text-xs leading-5 text-slate-500">{step.description}</div> : null}
+            {step.description ? <div className="mt-1 text-[10px] leading-4 text-slate-500">{step.description}</div> : null}
           </div>
         );
       })}
@@ -514,7 +506,7 @@ export function ReportPreviewCard({
   units: number;
 }) {
   return (
-    <div className="nova-report-preview-card rounded-[14px] border border-white/[0.08] bg-[#121923] p-4">
+    <div className="nds-report-preview nova-report-preview-card">
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">Prévia</div>
@@ -522,7 +514,7 @@ export function ReportPreviewCard({
         </div>
         <TonePill tone="attention">{format}</TonePill>
       </div>
-      <div className="mt-4 aspect-[0.72] rounded-[12px] border border-white/[0.08] bg-[#f8fafc] p-3 text-slate-900 shadow-inner">
+      <div className="nds-report-preview-page mt-3">
         <div className="h-4 rounded-sm bg-orange-500" />
         <div className="mt-4 h-3 w-2/3 rounded-sm bg-slate-300" />
         <div className="mt-2 h-2 w-full rounded-sm bg-slate-200" />
@@ -538,7 +530,7 @@ export function ReportPreviewCard({
           </div>
         )}
       </div>
-      <div className="mt-3 flex items-center justify-between text-sm text-slate-400">
+      <div className="mt-3 flex items-center justify-between text-[11px] text-slate-400">
         <span>{units} unidade(s)</span>
         <span>{includeCharts ? "com gráficos" : "somente indicadores"}</span>
       </div>

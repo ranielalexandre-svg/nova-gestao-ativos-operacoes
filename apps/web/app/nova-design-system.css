@@ -585,7 +585,8 @@ body {
 .nds-field,
 .nds-input,
 .nds-select,
-.nds-textarea {
+.nds-textarea,
+.nds-shell :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea) {
   width: 100%;
   min-height: 30px;
   border: 1px solid var(--nova-border);
@@ -605,7 +606,8 @@ body {
 .nds-field:focus,
 .nds-input:focus,
 .nds-select:focus,
-.nds-textarea:focus {
+.nds-textarea:focus,
+.nds-shell :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea):focus {
   border-color: color-mix(in srgb, var(--nova-primary) 44%, transparent);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--nova-primary) 12%, transparent);
 }
@@ -709,6 +711,11 @@ body {
   background: var(--nova-primary-soft);
 }
 
+.nds-step[data-completed="true"] {
+  border-color: color-mix(in srgb, var(--nova-success) 28%, transparent);
+  background: color-mix(in srgb, var(--nova-success) 8%, transparent);
+}
+
 .nds-progress-track {
   height: 5px;
   overflow: hidden;
@@ -777,38 +784,68 @@ body {
   text-align: center;
 }
 
-/* Transitional compatibility: central only, while pages move from ops-ui to nds components. */
-.nova-command-center .nova-surface,
-.nova-command-center .nova-stat-card,
-.nova-command-center .nova-chart-card,
-.nova-command-center .nova-right-panel,
-.nova-command-center .nova-report-preview-card,
-.nova-command-center .nova-filter-bar {
-  border-radius: var(--nova-radius-card) !important;
-  border-color: var(--nova-border) !important;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--nova-surface-2) 64%, transparent), var(--nova-surface)) !important;
-  box-shadow: var(--nova-shadow-card) !important;
+/* Central compatibility layer for pages/components not yet fully replaced by nds primitives. */
+.nds-shell .nova-primary-action {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid color-mix(in srgb, var(--nova-primary) 55%, transparent);
+  border-radius: var(--nova-radius-control);
+  background: linear-gradient(180deg, var(--nova-primary), var(--nova-primary-2));
+  color: #fff;
+  padding: 0 10px;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
+  text-decoration: none;
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--nova-primary) 16%, transparent);
 }
 
-.nova-command-center .nova-table-shell {
-  border-radius: 6px !important;
-  border-color: var(--nova-border-soft) !important;
-  background: var(--nova-surface-3) !important;
+.nds-shell .nova-surface,
+.nds-shell .nova-stat-card,
+.nds-shell .nova-chart-card,
+.nds-shell .nova-right-panel,
+.nds-shell .nova-report-preview-card,
+.nds-shell .nova-filter-bar,
+.nds-shell .nova-summary-card,
+.nds-shell .nova-registry-metric,
+.nds-shell .nova-info-card,
+.nds-shell .nova-form-panel,
+.nds-shell .nova-attachment-card {
+  border-radius: var(--nova-radius-card);
+  border-color: var(--nova-border);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--nova-surface-2) 64%, transparent), var(--nova-surface));
+  box-shadow: var(--nova-shadow-card);
 }
 
-.nova-command-center .nova-pill {
-  min-height: 18px !important;
-  padding: 2px 7px !important;
-  border-radius: 999px !important;
-  font-size: 8px !important;
-  letter-spacing: 0.08em !important;
+.nds-shell .nova-table-shell {
+  border-radius: 6px;
+  border-color: var(--nova-border-soft);
+  background: var(--nova-surface-3);
 }
 
-.nova-command-center :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
-  min-height: 30px !important;
-  border-radius: var(--nova-radius-control) !important;
-  border-color: var(--nova-border) !important;
-  background: var(--nova-surface-3) !important;
-  color: var(--nova-text) !important;
-  font-size: 11px !important;
+.nds-shell .nova-pill {
+  min-height: 18px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 8px;
+  letter-spacing: 0.08em;
+}
+
+.nds-shell :where(.p-5, .sm\:p-6, .lg\:p-7) {
+  padding: 10px;
+}
+
+.nds-shell :where(.gap-5, .gap-6) {
+  gap: 8px;
+}
+
+.nds-shell :where(.rounded-\[28px\], .rounded-\[24px\], .rounded-\[22px\], .rounded-\[20px\], .rounded-\[18px\], .rounded-\[16px\], .rounded-\[14px\], .rounded-\[12px\], .rounded-\[10px\]) {
+  border-radius: var(--nova-radius-card);
+}
+
+.nds-shell :where(button:not(.nds-icon-button):not([class*="rounded-full"]), a[class*="rounded-"]:not(.nds-logo):not(.nds-nav-link):not(.nds-button)) {
+  border-radius: var(--nova-radius-control);
 }
