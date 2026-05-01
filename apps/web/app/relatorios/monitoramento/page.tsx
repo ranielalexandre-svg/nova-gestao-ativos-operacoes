@@ -352,7 +352,8 @@ async function readReportRuns() {
 function QuickLink({ href, children }: { href: string; children: ReactNode }) {
   return (
     <Link
-      className="inline-flex h-9 items-center rounded-[12px] border border-white/10 bg-white/[0.04] px-3 text-sm font-semibold text-slate-100 transition hover:bg-white/[0.08]"
+      className="nds-button"
+      data-variant="secondary"
       href={href}
     >
       {children}
@@ -366,12 +367,12 @@ function SourceModeLink({ tab, active, href }: { tab: SourceTab; active: boolean
       href={href}
       aria-current={active ? "page" : undefined}
       className={[
-        "rounded-[16px] border px-4 py-3 transition",
+        "block rounded-[8px] border px-3 py-2 transition",
         active
-          ? "border-sky-400/35 bg-sky-500/14 text-sky-50"
+          ? "border-orange-400/35 bg-orange-500/14 text-orange-50"
           : "border-white/10 bg-white/[0.03] text-slate-300 hover:bg-white/[0.07] hover:text-white",
       ].join(" ")}
-    ><span className="block text-sm font-semibold">{tab.label}</span><span className="mt-1 block text-xs leading-5 text-slate-400">{tab.description}</span></Link>
+    ><span className="block text-[11px] font-black">{tab.label}</span><span className="mt-1 block text-[10px] leading-4 text-slate-400">{tab.description}</span></Link>
   );
 }
 
@@ -382,7 +383,7 @@ function ReportNotice({ tone, children }: { tone: "success" | "info" | "error"; 
     error: "border-rose-500/25 bg-rose-500/10 text-rose-100",
   }[tone];
 
-  return <div className={`rounded-[16px] border px-4 py-3 text-sm ${toneClass}`}>{children}</div>;
+  return <div className={`rounded-[8px] border px-3 py-2 text-[11px] ${toneClass}`}>{children}</div>;
 }
 
 export default async function MonitoringReportsPage({
