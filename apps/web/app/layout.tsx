@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { AssetReloadGuard } from '@/components/asset-reload-guard';
 import './globals.css';
+import './nova-design-system.css';
 
 export const metadata: Metadata = {
   title: 'NOVA',
