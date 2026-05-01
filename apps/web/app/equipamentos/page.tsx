@@ -5,8 +5,9 @@ import { ListPagination } from "@/components/list-pagination";
 import {
   DenseTable,
   EmptyState,
-  SectionIntro,
+  RightPanel,
   Surface,
+  StatCard,
   TableActionCell,
   TableActionHeader,
   TableActionLink,
@@ -15,10 +16,6 @@ import {
   TableShell,
   TonePill,
 } from "@/components/ops-ui";
-import {
-  RegistryHero,
-  RegistrySummaryStrip,
-} from "@/components/registry-shell";
 import { apiJson } from "@/lib/server-api";
 import {
   getLegacyEquipmentDeskForEquipments,
@@ -187,6 +184,34 @@ function qualityMeta(
   };
 }
 
+function formatRatio(value: number, total: number) {
+  if (!total) return "0%";
+  return `${Math.round((value / total) * 100)}%`;
+}
+
+function ProgressLine({
+  label,
+  value,
+  tone = "bg-orange-500",
+}: {
+  label: string;
+  value: number;
+  tone?: string;
+}) {
+  const safeValue = Math.max(0, Math.min(100, value));
+  return (
+    <div>
+      <div className="flex items-center justify-between gap-3 text-[11px]">
+        <span className="font-semibold text-slate-300">{label}</span>
+        <span className="font-black text-white">{safeValue}%</span>
+      </div>
+      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/[0.07]">
+        <div className={`h-full rounded-full ${tone}`} style={{ width: `${safeValue}%` }} />
+      </div>
+    </div>
+  );
+}
+
 async function readMonitorSnapshots() {
   try {
     return await apiJson<UnitMonitorResponse>("/monitoring/unit-hosts");
@@ -275,132 +300,113 @@ export default async function EquipamentosPage({
           monitor.problems.length),
     );
   }).length;
+  const pageTotal = response.items.length;
 
   return (
     <AppShell
-      title="Equipamentos"
-      subtitle="Inventário, vínculo, rede e telemetria."
-    ><RegistryHero
-        eyebrow="Asset Registry"
-        title="Base técnica com vínculo e telemetria"
-        description="Inventário em leitura densa: unidade, parceiro, rastreabilidade e indício de monitoramento visíveis na mesma linha."
-        actions={
-          <div className="flex flex-wrap gap-2"><Link
-              href="/equipamentos/starlinks"
-              className="inline-flex h-11 items-center justify-center rounded-[14px] border border-white/10 bg-white/[0.05] px-4 text-sm font-semibold text-slate-100 transition hover:bg-white/[0.09]"
-            >
+      title="Ativos"
+      subtitle="Inventário técnico, Starlinks e telemetria por unidade."
+    ><div className="nova-assets-page grid gap-3">
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+          <StatCard label="Ativos" value={response.meta.total} detail="resultado filtrado" tone="info" />
+          <StatCard label="Operando" value={activeOnPage} detail={formatRatio(activeOnPage, pageTotal)} tone={activeOnPage ? "success" : "neutral"} />
+          <StatCard label="Com rastreio" value={withTraceOnPage} detail="serial, MAC ou legado" tone={withTraceOnPage ? "success" : "attention"} />
+          <StatCard label="Starlinks" value={starlinkOnPage} detail="subgrupo do inventário" tone={starlinkOnPage ? "attention" : "neutral"} />
+          <StatCard label="Monitorados" value={monitoredOnPage} detail={attentionOnPage ? `${attentionOnPage} em atenção` : "host da unidade"} tone={attentionOnPage ? "attention" : "success"} />
+        </div>
+
+        <Surface className="p-3">
+          <form method="GET" className="grid gap-2 md:grid-cols-2 xl:grid-cols-[minmax(260px,1fr)_210px_120px_120px_120px_auto_auto_auto] xl:items-end">
+            <div className="grid gap-1.5 md:col-span-2 xl:col-span-1">
+              <FieldLabel htmlFor="equipments-q" label="Busca" />
+              <input
+                id="equipments-q"
+                name="q"
+                defaultValue={q}
+                placeholder="Ativo, serial, MAC, unidade ou parceiro"
+                className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
+              />
+            </div>
+            <div className="grid gap-1.5">
+              <FieldLabel htmlFor="equipments-unit" label="Unidade" />
+              <select
+                id="equipments-unit"
+                name="unitId"
+                defaultValue={unitId}
+                className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
+              >
+                <option value="">Todas</option>
+                {unitOptions.map((unit) => (
+                  <option key={unit.id} value={unit.id}>
+                    {unit.code} - {unit.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="grid gap-1.5">
+              <FieldLabel htmlFor="equipments-status" label="Status" />
+              <select id="equipments-status" name="status" defaultValue={status} className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40">
+                <option value="all">Todos</option>
+                <option value="active">Ativo</option>
+                <option value="stock">Estoque</option>
+                <option value="repair">Reparo</option>
+                <option value="retired">Retirado</option>
+              </select>
+            </div>
+            <div className="grid gap-1.5">
+              <FieldLabel htmlFor="equipments-active" label="Cadastro" />
+              <select id="equipments-active" name="active" defaultValue={active} className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40">
+                <option value="true">Ativos</option>
+                <option value="all">Todos</option>
+                <option value="false">Excluídos</option>
+              </select>
+            </div>
+            <div className="grid gap-1.5">
+              <FieldLabel htmlFor="equipments-page-size" label="Linhas" />
+              <select id="equipments-page-size" name="pageSize" defaultValue={String(pageSize)} className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40">
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+              </select>
+            </div>
+            <input type="hidden" name="sortBy" value={sortBy} />
+            <input type="hidden" name="sortDir" value={sortDir} />
+            <button className="nova-primary-action inline-flex items-center justify-center px-4 py-3 text-sm font-black">
+              Filtrar
+            </button>
+            <Link href="/equipamentos/starlinks" className="inline-flex items-center justify-center border border-white/10 bg-white/[0.035] px-4 py-3 text-sm font-bold text-slate-100 hover:bg-white/[0.07]">
               Starlinks
-            </Link><Link
-              href="/export/equipments"
-              className="inline-flex h-11 items-center justify-center rounded-[14px] border border-white/10 bg-white/[0.05] px-4 text-sm font-semibold text-slate-100 transition hover:bg-white/[0.09]"
-            >
-              Exportar CSV
             </Link>
             {isAdmin ? (
-            <Link
-              href="/equipamentos/nova"
-              className="inline-flex h-11 items-center justify-center rounded-[14px] border border-sky-500/28 bg-sky-500/14 px-4 text-sm font-semibold text-sky-50 transition hover:bg-sky-500/18"
-            >
-              Novo equipamento
-            </Link>
-            ) : null}
-          </div>
-        }
-      /><RegistrySummaryStrip
-        items={[
-          {
-            label: "Equipamentos",
-            value: response.meta.total,
-            meta: "resultado filtrado",
-            tone: "info",
-          },
-          {
-            label: "Ativos",
-            value: activeOnPage,
-            meta: "nesta página",
-            tone: activeOnPage ? "success" : "neutral",
-          },
-          {
-            label: "Com rastreio",
-            value: withTraceOnPage,
-            meta: "serial ou pista legada disponível",
-            tone: withTraceOnPage ? "success" : "attention",
-          },
-          {
-            label: "Monitoramento",
-            value: monitoredOnPage,
-            meta: attentionOnPage
-              ? `${attentionOnPage} em atenção no host da unidade`
-              : `${starlinkOnPage} com origem Starlink`,
-            tone: attentionOnPage ? "attention" : "neutral",
-          },
-        ]}
-        noteTitle="Tabela primeiro"
-        noteCopy="O ativo não precisa abrir outra tela para fazer sentido. Unidade, parceiro, serial, origem e pulso do host ficam juntos para reduzir clique de triagem."
-      /><Surface className="p-5 sm:p-6"><SectionIntro
-          eyebrow="Filtros"
-          title="Refine vínculo, rede e recorte"
-          description="Busca por tag, nome, tipo, serial, unidade e parceiro. O objetivo aqui é chegar rápido ao ativo certo sem perder o contexto da unidade."
-          actions={
-            <Link
-              href="/equipamentos"
-              className="rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/[0.06] hover:text-white"
-            >
-              Limpar filtros
-            </Link>
-          }
-          compact
-        /><form method="GET" className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-6"><div className="grid gap-2 xl:col-span-2"><FieldLabel htmlFor="equipments-q" label="Busca" /><input
-              id="equipments-q"
-              name="q"
-              defaultValue={q}
-              placeholder="Tag, serial, MAC salvo, unidade ou parceiro"
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
-            /></div><div className="grid gap-2"><FieldLabel htmlFor="equipments-unit" label="Unidade" /><select
-              id="equipments-unit"
-              name="unitId"
-              defaultValue={unitId}
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            ><option value="">Todas as unidades</option>
-              {unitOptions.map((unit) => (
-                <option key={unit.id} value={unit.id}>
-                  {unit.code} - {unit.name}
-                </option>
-              ))}
-            </select></div><div className="grid gap-2"><FieldLabel htmlFor="equipments-status" label="Status" /><select
-              id="equipments-status"
-              name="status"
-              defaultValue={status}
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            ><option value="all">Todos</option><option value="active">Ativo</option><option value="stock">Estoque</option><option value="repair">Reparo</option><option value="retired">Retirado</option></select></div><div className="grid gap-2"><FieldLabel htmlFor="equipments-active" label="Cadastro" /><select
-              id="equipments-active"
-              name="active"
-              defaultValue={active}
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            ><option value="all">Todos</option><option value="true">Ativos</option><option value="false">Excluídos</option></select></div><div className="grid gap-2"><FieldLabel htmlFor="equipments-sort" label="Ordenar por" /><select
-              id="equipments-sort"
-              name="sortBy"
-              defaultValue={sortBy}
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            ><option value="createdAt">Cadastro</option><option value="tag">Tag</option><option value="name">Nome</option><option value="type">Tipo</option><option value="status">Status</option></select></div><div className="grid gap-2"><FieldLabel htmlFor="equipments-dir" label="Direção" /><select
-              id="equipments-dir"
-              name="sortDir"
-              defaultValue={sortDir}
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            ><option value="desc">Descendente</option><option value="asc">Ascendente</option></select></div><div className="grid gap-2 md:col-span-1 xl:col-span-2"><FieldLabel htmlFor="equipments-page-size" label="Página" /><select
-              id="equipments-page-size"
-              name="pageSize"
-              defaultValue={String(pageSize)}
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            ><option value="10">10 por página</option><option value="20">20 por página</option><option value="50">50 por página</option></select></div><button className="rounded-[14px] bg-white px-4 py-3 text-sm font-semibold text-black transition hover:opacity-95 md:col-span-1 xl:col-span-4 xl:self-end">
-            Aplicar filtros
-          </button></form></Surface><Surface className="p-5 sm:p-6"><SectionIntro
-          eyebrow="Asset Registry"
-          title="Base técnica"
-          description={`${response.meta.total} equipamento(s) encontrados nesta visão.`}
-          actions={<TonePill tone="neutral">{response.items.length} linhas</TonePill>}
-          compact
-        /><div className="mt-5">
+              <Link href="/equipamentos/nova" className="nova-primary-action inline-flex items-center justify-center px-4 py-3 text-sm font-black">
+                Novo ativo
+              </Link>
+            ) : (
+              <Link href="/export/equipments" className="inline-flex items-center justify-center border border-white/10 bg-white/[0.035] px-4 py-3 text-sm font-bold text-slate-100 hover:bg-white/[0.07]">
+                Exportar
+              </Link>
+            )}
+          </form>
+        </Surface>
+
+        <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_292px]">
+          <Surface className="p-3">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <div className="text-[9px] font-black uppercase tracking-[0.18em] text-slate-500">Inventário</div>
+                <h2 className="mt-1 text-base font-black tracking-[-0.02em] text-white">Base técnica</h2>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <TonePill tone="neutral">{response.items.length} linhas</TonePill>
+                <Link href="/export/equipments" className="inline-flex items-center justify-center border border-white/10 bg-white/[0.035] px-3 py-2 text-xs font-bold text-slate-200 hover:bg-white/[0.07]">
+                  CSV
+                </Link>
+                <Link href="/equipamentos" className="inline-flex items-center justify-center border border-white/10 bg-white/[0.035] px-3 py-2 text-xs font-bold text-slate-200 hover:bg-white/[0.07]">
+                  Limpar
+                </Link>
+              </div>
+            </div>
+            <div>
           {response.items.length ? (
             <TableShell><DenseTable><TableHead><tr><th className="px-4 py-3">Equipamento</th><th className="px-4 py-3">Unidade</th><th className="px-4 py-3">Parceiro</th><th className="px-4 py-3">Rede / origem</th><th className="px-4 py-3">Monitoramento</th><th className="px-4 py-3">Qualidade</th><TableActionHeader /></tr></TableHead><tbody>
                   {response.items.map((equipment) => (
@@ -482,6 +488,32 @@ export default async function EquipamentosPage({
               }
             />
           )}
-        </div></Surface><ListPagination pathname="/equipamentos" searchParams={params} meta={response.meta} /></AppShell>
+            </div>
+          </Surface>
+
+          <RightPanel title="Ciclo de vida" description="Qualidade do recorte atual">
+            <ProgressLine label="Ativos operando" value={pageTotal ? Math.round((activeOnPage / pageTotal) * 100) : 0} tone="bg-emerald-400" />
+            <ProgressLine label="Rastreabilidade" value={pageTotal ? Math.round((withTraceOnPage / pageTotal) * 100) : 0} tone="bg-sky-400" />
+            <ProgressLine label="Monitoramento" value={pageTotal ? Math.round((monitoredOnPage / pageTotal) * 100) : 0} tone="bg-orange-500" />
+            <ProgressLine label="Starlinks" value={pageTotal ? Math.round((starlinkOnPage / pageTotal) * 100) : 0} tone="bg-amber-400" />
+            <div className="rounded-md border border-white/[0.08] bg-[#070b10] p-3">
+              <div className="text-[9px] font-black uppercase tracking-[0.16em] text-slate-500">Atalhos</div>
+              <div className="mt-3 grid gap-2">
+                <Link href="/equipamentos/starlinks" className="inline-flex items-center justify-between rounded-md border border-white/10 bg-white/[0.035] px-3 py-2 text-xs font-bold text-slate-200 hover:bg-white/[0.07]">
+                  Starlinks <span>{starlinkOnPage}</span>
+                </Link>
+                <Link href="/monitoramento?view=units" className="inline-flex items-center justify-between rounded-md border border-white/10 bg-white/[0.035] px-3 py-2 text-xs font-bold text-slate-200 hover:bg-white/[0.07]">
+                  Sensores <span>{monitoredOnPage}</span>
+                </Link>
+                <Link href="/operacao/importacao?resource=equipments" className="inline-flex items-center justify-between rounded-md border border-orange-400/35 bg-orange-500/[0.12] px-3 py-2 text-xs font-bold text-orange-100 hover:bg-orange-500/[0.18]">
+                  Importar <span>abrir</span>
+                </Link>
+              </div>
+            </div>
+          </RightPanel>
+        </div>
+
+        <ListPagination pathname="/equipamentos" searchParams={params} meta={response.meta} />
+      </div></AppShell>
   );
 }
