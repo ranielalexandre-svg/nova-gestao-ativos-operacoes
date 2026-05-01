@@ -382,6 +382,7 @@ export default async function ParceiroDetailPage({
     <AppShell
       title="Detalhes do parceiro"
       subtitle="Ficha operacional com unidades atendidas, contatos legados e edição controlada."
+      hidePageHeader
     >
       {created ? <CreatedNotice from={from} /> : null}
 

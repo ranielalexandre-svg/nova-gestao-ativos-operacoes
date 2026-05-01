@@ -2180,6 +2180,7 @@ export default async function UnidadeDetailPage({
       <AppShell
         title={`Monitoramento · ${unit.name}`}
         subtitle={`${locationLabel(unit)} · ${unit.partner.name}${showUnitCode ? ` · ${unit.code}` : ""}.`}
+        hidePageHeader
       ><Surface className="border-sky-500/15 bg-sky-500/[0.04] p-4 sm:p-5"><div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between"><div><div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-sky-300">Modo foco</div><div className="mt-1 text-sm text-slate-300">
                 Monitoramento da unidade.
               </div></div><div className="flex flex-wrap gap-2"><Link
@@ -2233,6 +2234,7 @@ export default async function UnidadeDetailPage({
     <AppShell
       title={unit.name}
       subtitle={`${locationLabel(unit)} · ${unit.partner.name}${showUnitCode ? ` · ${unit.code}` : ""}.`}
+      hidePageHeader
     >
       {created ? (
         <Surface className="border-emerald-500/20 bg-emerald-500/10 p-5 sm:p-6"><div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between"><SectionIntro
@@ -2307,20 +2309,6 @@ export default async function UnidadeDetailPage({
         unit={unit}
         report={monitoringReport}
         snapshot={zabbixSnapshot}
-        editControl={
-          isAdmin ? (
-            <EntityEditModal
-              triggerLabel="Editar unidade"
-              title="Editar unidade"
-              kicker="Cadastro"
-              description="Cadastro, vínculos e inventário."
-              submitLabel="Salvar unidade"
-              pendingLabel="Salvando..."
-              steps={unitEditSteps}
-              action={updateUnit}
-            />
-          ) : null
-        }
         windowPreset={monitoringWindow}
         focusMode={focusMode}
         syncControl={

@@ -51,7 +51,7 @@ export function OperationalDeletePanel({
     <><button
         type="button"
         onClick={() => setOpen(true)}
-        className="rounded-full border border-rose-400/25 bg-rose-500/[0.08] px-4 py-2.5 text-sm font-semibold text-rose-100 transition hover:bg-rose-500/[0.14] hover:text-white"
+        className="rounded-full border border-white/10 bg-white/[0.035] px-3.5 py-2 text-xs font-semibold text-slate-300 transition hover:border-rose-400/35 hover:bg-rose-500/[0.10] hover:text-rose-100"
       >
         Excluir
       </button>

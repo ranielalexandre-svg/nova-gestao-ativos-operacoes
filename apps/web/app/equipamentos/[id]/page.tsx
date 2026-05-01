@@ -510,6 +510,7 @@ export default async function EquipamentoDetailPage({
     <AppShell
       title="Detalhes do equipamento"
       subtitle="Ativo vinculado a uma unidade; use a unidade para contexto operacional e monitoramento."
+      hidePageHeader
     >
       {created ? <CreatedNotice from={from} /> : null}
 
