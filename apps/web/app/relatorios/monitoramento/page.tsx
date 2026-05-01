@@ -531,167 +531,498 @@ export default async function MonitoringReportsPage({
   );
 
   return (
-    <AppShell title="Relatórios" subtitle="Monte o lote, revise as unidades e exporte o arquivo final."><div className="nova-reports-page grid gap-5"><div className="space-y-5">
+    <AppShell
+      title="Gerar relatório de consumo"
+      subtitle="Selecione o período, as unidades e revise os dados antes de exportar."
+      hidePageHeader
+    >
+      <div className="nova-monitoring-report-page grid gap-5">
+        <header className="nova-report-hero flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div className="min-w-0">
+            <div className="text-sm text-slate-500">
+              Relatórios <span className="mx-1 text-slate-700">/</span>
+              <span className="text-slate-300">Monitoramento</span>
+            </div>
+            <h1 className="mt-3 text-[28px] font-black tracking-[-0.04em] text-white">
+              Gerar relatório de consumo
+            </h1>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">
+              Selecione o período, as unidades e revise os dados antes de exportar.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href={returnTo}
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-[8px] border border-white/10 bg-white/[0.055] px-4 text-sm font-bold text-slate-100 transition hover:bg-white/[0.09]"
+            >
+              ↻ Atualizar dados
+            </Link>
+            <Link
+              href="/relatorios/monitoramento"
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-[8px] bg-orange-500 px-5 text-sm font-black text-white shadow-[0_18px_42px_rgba(249,115,22,0.24)] transition hover:bg-orange-400"
+            >
+              ⧉ Novo relatório
+            </Link>
+          </div>
+        </header>
+
         {highlightedRun?.status === "success" && highlightedAttachment ? (
-          <ReportNotice tone="success"><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><span>Relatório pronto.</span><Link href={webAttachmentUrl(highlightedAttachment.url)} className="font-semibold text-emerald-100 hover:text-white">
+          <ReportNotice tone="success">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <span>Relatório pronto.</span>
+              <Link href={webAttachmentUrl(highlightedAttachment.url)} className="font-semibold text-emerald-100 hover:text-white">
                 Baixar arquivo
-              </Link></div></ReportNotice>
+              </Link>
+            </div>
+          </ReportNotice>
         ) : exportStatus === "queued" || highlightedRun?.status === "queued" || highlightedRun?.status === "running" ? (
-          <ReportNotice tone="info">Relatório em processamento. O arquivo aparecerá em Arquivos recentes.</ReportNotice>
+          <ReportNotice tone="info">Relatório em processamento. O arquivo aparecerá em Últimas exportações.</ReportNotice>
         ) : null}
+
         {exportStatus === "error" || highlightedRun?.status === "error" ? (
           <ReportNotice tone="error">
             {exportMessage || highlightedRun?.errorMessage || "Não foi possível iniciar a exportação."}
           </ReportNotice>
         ) : null}
 
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_430px] xl:items-start"><Surface className="p-5 sm:p-6"><form action="/relatorios/monitoramento" method="GET" className="space-y-6"><input type="hidden" name="source" value={activeSource} /><div className="flex flex-col gap-3 border-b border-white/[0.08] pb-5 lg:flex-row lg:items-start lg:justify-between"><div><div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Montar relatório</div><h2 className="mt-1 text-lg font-semibold tracking-tight text-slate-50">Escolha a origem e o período</h2><div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-500"><span>{sourceLabel(activeSource)}</span><span>{formatDate(from)} até {formatDate(to)}</span><span>{resultUnits.length} unidade(s) no lote</span></div></div><div className="flex flex-wrap gap-2"><Link
-                    href="/relatorios/monitoramento"
-                    className="inline-flex h-10 items-center rounded-[12px] border border-white/10 bg-white/[0.04] px-4 text-sm font-semibold text-slate-100 transition hover:bg-white/[0.08]"
-                  >
-                    Limpar
-                  </Link><button
-                    type="submit"
-                    className="inline-flex h-10 items-center rounded-[12px] border border-sky-400/30 bg-sky-500/16 px-4 text-sm font-semibold text-sky-50 transition hover:bg-sky-500/22"
-                  >
-                    Aplicar filtros
-                  </button></div></div><div className="grid gap-3 md:grid-cols-3">
-                {sourceTabs.map((tab) => (
-                  <SourceModeLink key={tab.mode} tab={tab} active={activeSource === tab.mode} href={sourceHref(tab.mode)} />
-                ))}
-              </div><div className="grid gap-3 md:grid-cols-[160px_160px_minmax(0,1fr)] md:items-end"><label className="grid gap-2 text-sm font-semibold text-slate-200"><FieldLabel>Início</FieldLabel><input name="from" type="date" defaultValue={from} className="px-3" /></label><label className="grid gap-2 text-sm font-semibold text-slate-200"><FieldLabel>Fim</FieldLabel><input name="to" type="date" defaultValue={to} className="px-3" /></label><div className="flex flex-wrap gap-2"><QuickLink href={quickTodayHref}>Hoje</QuickLink><QuickLink href={quickWeekHref}>7 dias</QuickLink><QuickLink href={quickMonthHref}>Este mês</QuickLink><QuickLink href={quickPrevMonthHref}>Mês passado</QuickLink></div></div>
+        <div className="nova-report-stepper grid gap-4 rounded-[8px] border border-white/[0.08] bg-white/[0.035] px-4 py-4 md:grid-cols-3">
+          <div className="flex items-center gap-4">
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-orange-500 text-base font-black text-white shadow-[0_12px_28px_rgba(249,115,22,0.28)]">1</span>
+            <div>
+              <div className="text-sm font-black text-slate-50">Filtros</div>
+              <div className="mt-1 text-xs text-slate-400">Seleção do período e unidades</div>
+            </div>
+          </div>
 
-              {activeSource === "unit" ? (
-                <div className="grid gap-4 lg:grid-cols-[minmax(220px,0.8fr)_minmax(280px,1.2fr)]"><label className="grid gap-2 text-sm font-semibold text-slate-200"><FieldLabel>Buscar unidade</FieldLabel><input
-                      name="unitQ"
-                      defaultValue={requestedUnitQ}
-                      placeholder="Código, nome, parceiro ou cidade"
-                      className="px-3"
-                    /></label><label className="grid gap-2 text-sm font-semibold text-slate-200"><FieldLabel>Unidade</FieldLabel><select name="unitId" defaultValue={requestedUnitId} className="px-3"><option value="">Selecione uma unidade</option>
-                      {unitOptions.map((unit) => (
-                        <option key={unit.id} value={unit.id}>{unit.code} - {unit.name}</option>
-                      ))}
-                    </select><span className="text-xs font-medium text-slate-500">
-                      {requestedUnitQ ? `${unitOptions.length} encontrada(s)` : `Mostrando ${unitOptions.length} de ${catalog.total}. Use a busca para filtrar.`}
-                    </span></label></div>
-              ) : null}
+          <div className="flex items-center gap-4">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-white/10 bg-white/[0.08] text-sm font-black text-slate-100">2</span>
+            <div>
+              <div className="text-sm font-black text-slate-50">Revisão</div>
+              <div className="mt-1 text-xs text-slate-400">Confira os dados e resumo</div>
+            </div>
+          </div>
 
-              {activeSource === "template" ? (
-                <div className="grid gap-4 lg:grid-cols-[minmax(280px,1fr)_minmax(240px,0.7fr)]"><label className="grid gap-2 text-sm font-semibold text-slate-200"><FieldLabel>Template</FieldLabel><select name="templateId" defaultValue={selectedTemplate?.id || ""} className="px-3"><option value="">Selecione um template</option>
-                      {templates.map((template) => (
-                        <option key={template.id} value={template.id}>{template.code} - {template.name}</option>
-                      ))}
-                    </select></label><div className="rounded-[16px] border border-white/10 bg-white/[0.03] p-4"><FieldLabel>Resumo do template</FieldLabel>
-                    {selectedTemplate ? (
-                      <div className="mt-3 grid gap-2 text-sm text-slate-300"><div>{selectedTemplate.sourceType === "zabbix_group" ? "Origem por grupo Zabbix" : "Origem por unidades salvas"}</div><div>{selectedTemplate.outputFormat.toUpperCase()} · {selectedTemplate.includeCharts ? "com gráficos" : "sem gráficos"}</div></div>
-                    ) : (
-                      <div className="mt-3 text-sm text-slate-500">Nenhum template selecionado.</div>
-                    )}
-                  </div></div>
-              ) : null}
+          <div className="flex items-center gap-4">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-white/10 bg-white/[0.08] text-sm font-black text-slate-100">3</span>
+            <div>
+              <div className="text-sm font-black text-slate-50">Exportação</div>
+              <div className="mt-1 text-xs text-slate-400">Gere o relatório</div>
+            </div>
+          </div>
+        </div>
 
-              {activeSource === "group" ? (
-                <div className="space-y-4"><label className="grid max-w-xl gap-2 text-sm font-semibold text-slate-200"><FieldLabel>Integração Zabbix</FieldLabel><select name="groupIntegrationId" defaultValue={selectedGroupSource?.id || ""} className="px-3"><option value="">Selecione uma integração</option>
-                      {reportSources.map((source) => (
-                        <option key={source.id} value={source.id}>{source.code} - {source.name}</option>
-                      ))}
-                    </select></label><div className="rounded-[16px] border border-white/10 bg-black/10 p-4"><div className="flex items-center justify-between gap-3"><FieldLabel>Host groups</FieldLabel>
-                      {effectiveGroupIds.length ? <Link href={clearGroupsHref} className="text-sm font-semibold text-sky-200 hover:text-white">Limpar grupos</Link> : null}
-                    </div>
-                    {selectedGroupSource && groupCatalog?.items.length ? (
-                      <div className="mt-3 grid max-h-[360px] gap-2 overflow-auto pr-1 sm:grid-cols-2 xl:grid-cols-3">
-                        {groupCatalog.items.map((group) => (
-                          <label key={group.id} className="flex cursor-pointer items-start gap-3 rounded-[12px] border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-slate-200 hover:bg-white/[0.06]"><input type="checkbox" name="groupIds" value={group.id} defaultChecked={effectiveGroupIds.includes(group.id)} className="mt-0.5 h-4 w-4" /><span className="min-w-0"><span className="block truncate font-medium text-slate-100">{group.name}</span><span className="text-xs text-slate-500">{group.hostCount} host(s)</span></span></label>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="mt-3 rounded-[12px] border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-slate-500">
-                        {selectedGroupSource ? "Sem grupos retornados." : "Selecione uma integração e aplique os filtros."}
-                      </div>
-                    )}
-                  </div></div>
-              ) : null}
-            </form></Surface><form action="/relatorios/monitoramento/export-jobs" method="POST" className="xl:sticky xl:top-5"><input type="hidden" name="from" value={from} /><input type="hidden" name="to" value={to} /><input type="hidden" name="returnTo" value={returnTo} /><Surface className="p-5 sm:p-6"><div className="border-b border-white/[0.08] pb-4"><div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Lote e saída</div><h2 className="mt-1 text-lg font-semibold tracking-tight text-slate-50">Revisar e exportar</h2><div className="mt-3 flex flex-wrap gap-2"><TonePill tone={resultUnits.length ? "success" : "attention"}>{resultUnits.length} unidade(s)</TonePill>
-                  {groupPreview ? <TonePill tone="info">{groupPreview.counts.hosts} host(s)</TonePill> : null}
-                  {unresolvedCount ? <TonePill tone="attention">{unresolvedCount} pendência(s)</TonePill> : null}
-                </div></div>
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,990px)_320px] xl:items-start">
+          <div className="grid gap-5">
+            <Surface className="p-4 sm:p-5">
+              <form action="/relatorios/monitoramento" method="GET" className="grid gap-4">
+                <input type="hidden" name="source" value={activeSource} />
 
-              {groupPreviewError ? (
-                <div className="mt-4 rounded-[16px] border border-rose-500/25 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
-                  {groupPreviewError}
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h2 className="text-base font-black text-slate-50">Período do relatório</h2>
+                    <p className="mt-1 text-xs text-slate-500">
+                      {sourceLabel(activeSource)} · {formatDate(from)} até {formatDate(to)} · {resultUnits.length} unidade(s)
+                    </p>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Link
+                      href="/relatorios/monitoramento"
+                      className="inline-flex h-10 items-center rounded-[12px] border border-white/10 bg-white/[0.04] px-4 text-sm font-bold text-slate-100 transition hover:bg-white/[0.08]"
+                    >
+                      Limpar
+                    </Link>
+                    <button
+                      type="submit"
+                      className="inline-flex h-10 items-center rounded-[12px] border border-orange-400/35 bg-orange-500/18 px-4 text-sm font-bold text-orange-50 transition hover:bg-orange-500/25"
+                    >
+                      Aplicar filtros
+                    </button>
+                  </div>
                 </div>
-              ) : null}
 
-              <div className="mt-4"><FieldLabel>Unidades que sairão no arquivo</FieldLabel>
+                <div className="grid gap-3 md:grid-cols-3">
+                  {sourceTabs.map((tab) => (
+                    <SourceModeLink key={tab.mode} tab={tab} active={activeSource === tab.mode} href={sourceHref(tab.mode)} />
+                  ))}
+                </div>
+
+                <div className="grid gap-3 lg:grid-cols-[1fr_1fr_1.4fr]">
+                  <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                    <FieldLabel>Mês / início</FieldLabel>
+                    <input name="from" type="date" defaultValue={from} className="px-3" />
+                  </label>
+
+                  <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                    <FieldLabel>Fim</FieldLabel>
+                    <input name="to" type="date" defaultValue={to} className="px-3" />
+                  </label>
+
+                  <div className="grid gap-2">
+                    <FieldLabel>Atalhos</FieldLabel>
+                    <div className="flex flex-wrap gap-2">
+                      <QuickLink href={quickTodayHref}>Hoje</QuickLink>
+                      <QuickLink href={quickWeekHref}>7 dias</QuickLink>
+                      <QuickLink href={quickMonthHref}>Este mês</QuickLink>
+                      <QuickLink href={quickPrevMonthHref}>Mês passado</QuickLink>
+                    </div>
+                  </div>
+                </div>
+
+                {activeSource === "unit" ? (
+                  <div className="grid gap-3 lg:grid-cols-[minmax(220px,0.75fr)_minmax(280px,1.25fr)]">
+                    <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                      <FieldLabel>Buscar unidade</FieldLabel>
+                      <input
+                        name="unitQ"
+                        defaultValue={requestedUnitQ}
+                        placeholder="Buscar unidade..."
+                        className="px-3"
+                      />
+                    </label>
+
+                    <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                      <FieldLabel>Unidade</FieldLabel>
+                      <select name="unitId" defaultValue={requestedUnitId} className="px-3">
+                        <option value="">Selecione uma unidade</option>
+                        {unitOptions.map((unit) => (
+                          <option key={unit.id} value={unit.id}>{unit.code} - {unit.name}</option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                ) : null}
+
+                {activeSource === "template" ? (
+                  <div className="grid gap-3 lg:grid-cols-[minmax(280px,1fr)_minmax(240px,0.7fr)]">
+                    <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                      <FieldLabel>Template</FieldLabel>
+                      <select name="templateId" defaultValue={selectedTemplate?.id || ""} className="px-3">
+                        <option value="">Selecione um template</option>
+                        {templates.map((template) => (
+                          <option key={template.id} value={template.id}>{template.code} - {template.name}</option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <div className="rounded-[12px] border border-white/10 bg-white/[0.035] p-4">
+                      <FieldLabel>Resumo do template</FieldLabel>
+                      {selectedTemplate ? (
+                        <div className="mt-3 grid gap-2 text-sm text-slate-300">
+                          <div>{selectedTemplate.sourceType === "zabbix_group" ? "Origem por grupo Zabbix" : "Origem por unidades salvas"}</div>
+                          <div>{selectedTemplate.outputFormat.toUpperCase()} · {selectedTemplate.includeCharts ? "com gráficos" : "sem gráficos"}</div>
+                        </div>
+                      ) : (
+                        <div className="mt-3 text-sm text-slate-500">Nenhum template selecionado.</div>
+                      )}
+                    </div>
+                  </div>
+                ) : null}
+
+                {activeSource === "group" ? (
+                  <div className="grid gap-3">
+                    <label className="grid max-w-xl gap-2 text-sm font-semibold text-slate-200">
+                      <FieldLabel>Fonte dos dados</FieldLabel>
+                      <select name="groupIntegrationId" defaultValue={selectedGroupSource?.id || ""} className="px-3">
+                        <option value="">Selecione uma integração</option>
+                        {reportSources.map((source) => (
+                          <option key={source.id} value={source.id}>{source.code} - {source.name}</option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <div className="rounded-[12px] border border-white/10 bg-black/10 p-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <FieldLabel>Host groups</FieldLabel>
+                        {effectiveGroupIds.length ? <Link href={clearGroupsHref} className="text-sm font-semibold text-orange-200 hover:text-white">Limpar grupos</Link> : null}
+                      </div>
+
+                      {selectedGroupSource && groupCatalog?.items.length ? (
+                        <div className="mt-3 grid max-h-[300px] gap-2 overflow-auto pr-1 sm:grid-cols-2 xl:grid-cols-3">
+                          {groupCatalog.items.map((group) => (
+                            <label key={group.id} className="flex cursor-pointer items-start gap-3 rounded-[12px] border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-slate-200 hover:bg-white/[0.06]">
+                              <input type="checkbox" name="groupIds" value={group.id} defaultChecked={effectiveGroupIds.includes(group.id)} className="mt-0.5 h-4 w-4" />
+                              <span className="min-w-0">
+                                <span className="block truncate font-medium text-slate-100">{group.name}</span>
+                                <span className="text-xs text-slate-500">{group.hostCount} host(s)</span>
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="mt-3 rounded-[12px] border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-slate-500">
+                          {selectedGroupSource ? "Sem grupos retornados." : "Selecione uma integração e aplique os filtros."}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : null}
+              </form>
+            </Surface>
+
+            <div className="grid gap-5 lg:grid-cols-[0.92fr_1.08fr]">
+              <Surface className="p-4 sm:p-5">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <h2 className="text-base font-black text-slate-50">Seleção de unidades</h2>
+                    <p className="mt-1 text-xs text-slate-500">Unidades que entrarão no lote do relatório.</p>
+                  </div>
+                  <TonePill tone={resultUnits.length ? "success" : "attention"}>{resultUnits.length}</TonePill>
+                </div>
+
                 {resultUnits.length ? (
-                  <div className="mt-3 max-h-72 space-y-2 overflow-auto pr-1">
-                    {resultUnits.map((unit) => {
-                      const matched = groupPreview?.matchedUnits.find((item) => item.unit.id === unit.id) || null;
-                      const origin = matched
-                        ? matched.primaryHost.hostName || matched.primaryHost.host || matched.primaryHost.hostId
-                        : activeSource === "unit"
-                          ? "Seleção manual"
-                          : selectedTemplate?.code || sourceLabel(activeSource);
-
-                      return (
-                        <label key={unit.id} className="flex cursor-pointer gap-3 rounded-[14px] border border-white/10 bg-white/[0.03] p-3 hover:bg-white/[0.06]"><input type="checkbox" name="unitIds" value={unit.id} defaultChecked className="mt-1 h-4 w-4 shrink-0" /><span className="min-w-0"><span className="block truncate text-sm font-semibold text-slate-100">{unit.code}</span><span className="mt-1 block truncate text-xs text-slate-400">{unit.name}</span><span className="mt-1 block truncate text-xs text-slate-500">{formatUnitMeta(unit) || origin}</span></span></label>
-                      );
-                    })}
+                  <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                    {resultUnits.slice(0, 8).map((unit) => (
+                      <div key={`selected-card-${unit.id}`} className="relative rounded-[12px] border border-white/10 bg-white/[0.035] p-3">
+                        <div className="pr-7 text-sm font-black leading-5 text-slate-100">{unit.code} - {unit.name}</div>
+                        <div className="mt-2 text-xs text-slate-500">Contrato: {configuredMetadataForUnit(unit).contractLabel || unit.reportContractLabel || defaultContractLabel || "preencher"}</div>
+                        <span className="absolute right-3 top-3 grid h-5 w-5 place-items-center rounded bg-orange-500 text-xs font-black text-white">✓</span>
+                      </div>
+                    ))}
                   </div>
                 ) : (
-                  <div className="mt-3 rounded-[14px] border border-dashed border-white/12 bg-black/10 p-5 text-sm text-slate-500">
-                    Aplique os filtros para carregar o lote antes de exportar.
+                  <div className="mt-4 rounded-[12px] border border-dashed border-white/12 bg-black/10 p-5 text-sm text-slate-500">
+                    Aplique os filtros para carregar unidades.
                   </div>
                 )}
+              </Surface>
+
+              <Surface className="p-4 sm:p-5">
+                <h2 className="text-base font-black text-slate-50">Prévia do relatório (DOCX)</h2>
+                <div className="mt-4 rounded-[8px] border border-white/10 bg-[#f4efe9] p-2.5">
+                  <div className="relative mx-auto aspect-[0.72] max-h-[430px] overflow-hidden rounded-[3px] bg-white shadow-[0_24px_70px_rgba(0,0,0,0.35)]">
+                    <div className="absolute left-0 top-0 h-20 w-full bg-slate-300" />
+                    <div className="absolute left-0 top-12 h-8 w-full bg-orange-300" />
+                    <div className="absolute left-[17%] top-[38%] text-center">
+                      <div className="text-4xl font-black tracking-[-0.12em] text-slate-400">
+                        NOV<span className="text-orange-500">A</span>
+                      </div>
+                      <div className="mt-1 text-xs tracking-[0.55em] text-slate-400">TELECOM</div>
+                    </div>
+                    <div className="absolute left-[53%] top-[31%] h-[45%] w-px bg-orange-500" />
+                    <div className="absolute left-[58%] top-[45%] text-left text-slate-950">
+                      <div className="text-xs text-slate-700">{defaultCompetenceLabel}</div>
+                      <div className="mt-5 text-xs font-medium uppercase text-orange-500">INTERESSADO</div>
+                      <div className="text-sm font-black">{defaultInterestedParty || "NOVA TELECOM"}</div>
+                      <div className="mt-5 text-xs">{defaultIssueDateLabel}</div>
+                    </div>
+                    <div className="absolute bottom-0 left-0 h-16 w-full bg-slate-300" />
+                    <div className="absolute bottom-10 left-0 h-6 w-full bg-orange-300" />
+                  </div>
+                  <div className="mt-2 flex items-center justify-between rounded-[7px] bg-slate-950 px-3 py-2 text-sm text-slate-300">
+                    <span>‹</span>
+                    <span>1 / {Math.max(1, resultUnits.length * 9 + 1)}</span>
+                    <span>100%</span>
+                    <span>⛶</span>
+                  </div>
+                </div>
+              </Surface>
+            </div>
+
+            <Surface className="p-4 sm:p-5">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-base font-black text-slate-50">Dados das unidades selecionadas</h2>
+                  <p className="mt-1 text-xs text-slate-500">Contrato, endereço e banda que aparecerão antes dos sensores.</p>
+                </div>
+                <span className="text-slate-400">⌃</span>
               </div>
 
-              {groupPreview?.unresolvedHosts.length ? (
-                <details className="mt-4 rounded-[14px] border border-amber-500/20 bg-amber-500/10 p-3 text-sm text-amber-50"><summary className="cursor-pointer font-semibold">Hosts sem unidade ({groupPreview.unresolvedHosts.length})</summary><div className="mt-3 grid gap-1 text-xs text-amber-100/90">
-                    {groupPreview.unresolvedHosts.slice(0, 12).map((item) => (
-                      <div key={item.host.hostId} className="truncate">{compactHostName(item)}</div>
-                    ))}
-                  </div></details>
-              ) : null}
+              {resultUnits.length ? (
+                <div className="mt-4 overflow-hidden rounded-[12px] border border-white/10">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-white/[0.04] text-[10px] uppercase tracking-[0.12em] text-slate-500">
+                      <tr>
+                        <th className="px-3 py-3">Unidade</th>
+                        <th className="px-3 py-3">Contrato</th>
+                        <th className="px-3 py-3">Endereço</th>
+                        <th className="px-3 py-3">Banda contratada</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/[0.06] text-slate-200">
+                      {resultUnits.map((unit) => {
+                        const meta = configuredMetadataForUnit(unit);
 
-              <div className="mt-5 grid gap-3"><div className="grid grid-cols-2 gap-3 xl:grid-cols-3"><label className="grid gap-2 text-sm font-semibold text-slate-200"><FieldLabel>Formato</FieldLabel><select name="format" defaultValue={defaultFormat} className="px-3"><option value="pdf">PDF completo</option><option value="docx">DOCX completo editável</option></select></label><input type="hidden" name="reportStyle" value="complete" /><div className="rounded-[14px] border border-cyan-400/20 bg-cyan-500/10 px-4 py-3 text-sm font-semibold text-slate-100"><FieldLabel>Saída</FieldLabel><div>PDF completo / DOCX completo editável</div><p className="mt-1 text-xs font-medium text-slate-400">PDF e DOCX geram o relatório completo. No DOCX, textos e tabelas são editáveis; os gráficos entram como imagem.</p></div><label className="flex items-center gap-3 self-end rounded-[14px] border border-white/10 bg-black/10 px-4 py-3 text-sm font-semibold text-slate-100"><input type="checkbox" name="includeCharts" defaultChecked={defaultIncludeCharts} className="h-4 w-4" />
-                    Gráficos
-                  </label></div><label className="grid gap-2 text-sm font-semibold text-slate-200"><FieldLabel>Título</FieldLabel><input name="title" defaultValue={defaultTitle} className="px-3" /></label><label className="grid gap-2 text-sm font-semibold text-slate-200"><FieldLabel>Competência do relatório</FieldLabel><input name="competenceLabel" defaultValue={defaultCompetenceLabel} placeholder="Ex.: Abril/2026" className="px-3" /></label><label className="grid gap-2 text-sm font-semibold text-slate-200"><FieldLabel>Data de emissão</FieldLabel><input name="issueDateLabel" defaultValue={defaultIssueDateLabel} placeholder="Ex.: Palmas, 28 de abril de 2026" className="px-3" /></label><label className="grid gap-2 text-sm font-semibold text-slate-200"><FieldLabel>Interessado</FieldLabel><input name="interestedParty" defaultValue={defaultInterestedParty} className="px-3" /></label><div className="grid gap-3 sm:grid-cols-2"><label className="grid gap-2 text-sm font-semibold text-slate-200"><FieldLabel>Contrato</FieldLabel><input name="contractLabel" defaultValue={defaultContractLabel} className="px-3" /></label><label className="grid gap-2 text-sm font-semibold text-slate-200"><FieldLabel>Banda</FieldLabel><input name="contractedBandwidth" defaultValue={defaultBandwidth} className="px-3" /></label></div><label className="grid gap-2 text-sm font-semibold text-slate-200"><FieldLabel>Endereço / observação</FieldLabel><input name="addressLine" defaultValue={defaultAddressLine} className="px-3" /></label><div className="grid gap-3"><FieldLabel>Dados por unidade</FieldLabel>{resultUnits.length ? (<div className="grid gap-3">{resultUnits.map((unit) => (<div key={`metadata-${unit.id}`} className="rounded-[14px] border border-white/10 bg-black/15 p-3"><div className="mb-3 min-w-0"><div className="truncate text-sm font-semibold text-slate-100">{unit.code} - {unit.name}</div><div className="mt-1 truncate text-xs text-slate-500">{formatUnitMeta(unit) || origin}</div></div><div className="grid gap-3 sm:grid-cols-2"><label className="grid gap-2 text-xs font-semibold text-slate-300"><span className="text-[10px] uppercase tracking-[0.14em] text-slate-500">Contrato específico</span><input name={`unitMetadata.${unit.id}.contractLabel`} defaultValue={configuredMetadataForUnit(unit).contractLabel || unit.reportContractLabel || defaultContractLabel} placeholder={defaultContractLabel || "Usar contrato geral"} className="px-3" /></label><label className="grid gap-2 text-xs font-semibold text-slate-300"><span className="text-[10px] uppercase tracking-[0.14em] text-slate-500">Banda específica</span><input name={`unitMetadata.${unit.id}.contractedBandwidth`} defaultValue={configuredMetadataForUnit(unit).contractedBandwidth || unit.reportContractedBandwidth || defaultBandwidth} placeholder={defaultBandwidth || "Usar banda geral"} className="px-3" /></label></div><label className="mt-3 grid gap-2 text-xs font-semibold text-slate-300"><span className="text-[10px] uppercase tracking-[0.14em] text-slate-500">Endereço específico / observação</span><input name={`unitMetadata.${unit.id}.addressLine`} defaultValue={configuredMetadataForUnit(unit).addressLine || unit.reportAddressLine || formatUnitAddressFallback(unit) || defaultAddressLine} placeholder={defaultAddressLine || "Usar endereço geral"} className="px-3" /></label><label className="mt-3 grid gap-2 text-xs font-semibold text-slate-300"><span className="text-[10px] uppercase tracking-[0.14em] text-slate-500">Nota da unidade</span><input name={`unitMetadata.${unit.id}.notes`} defaultValue={configuredMetadataForUnit(unit).notes || unit.reportNotes || ""} placeholder="Ex.: unidade em reforma, sem consumo no período..." className="px-3" /></label></div>))}</div>) : (<div className="rounded-[14px] border border-white/10 bg-black/15 p-3 text-sm text-slate-500">Aplique os filtros para editar dados por unidade.</div>)}</div></div><div className="mt-5 grid gap-2"><button
-                  type="submit"
-                  formAction="/relatorios/monitoramento/export"
-                  formTarget="_blank"
-                  disabled={!resultUnits.length}
-                  className="inline-flex h-11 items-center justify-center rounded-[14px] border border-sky-400/35 bg-sky-500/18 px-4 text-sm font-semibold text-sky-50 transition hover:bg-sky-500/24 disabled:cursor-not-allowed disabled:opacity-45"
-                >
-                  Baixar agora
-                </button><button
-                  type="submit"
-                  disabled={!resultUnits.length}
-                  className="inline-flex h-11 items-center justify-center rounded-[14px] border border-white/10 bg-white/[0.04] px-4 text-sm font-semibold text-slate-100 transition hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-45"
-                >
-                  Gerar em segundo plano
-                </button></div></Surface></form></div><Surface className="p-5 sm:p-6"><div className="flex flex-wrap items-center justify-between gap-3"><div><div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Histórico</div><h2 className="mt-1 text-lg font-semibold tracking-tight text-slate-50">Arquivos recentes</h2></div><TonePill tone="neutral">{recentRuns.length}</TonePill></div>
+                        return (
+                          <tr key={`review-row-${unit.id}`}>
+                            <td className="px-3 py-3 font-semibold">{unit.code} - {unit.name}</td>
+                            <td className="px-3 py-3">{meta.contractLabel || unit.reportContractLabel || defaultContractLabel || "preencher"}</td>
+                            <td className="px-3 py-3">{meta.addressLine || unit.reportAddressLine || formatUnitAddressFallback(unit) || defaultAddressLine || "preencher"}</td>
+                            <td className="px-3 py-3">{meta.contractedBandwidth || unit.reportContractedBandwidth || defaultBandwidth || "preencher"}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="mt-4 rounded-[12px] border border-dashed border-white/12 bg-black/10 p-5 text-sm text-slate-500">
+                  Nenhuma unidade selecionada.
+                </div>
+              )}
+            </Surface>
+          </div>
 
-          {recentRuns.length ? (
-            <TableShell className="mt-4"><DenseTable><TableHead><tr><th className="px-4 py-3">Início</th><th className="px-4 py-3">Origem</th><th className="w-32 px-4 py-3">Status</th><th className="w-28 px-4 py-3">Unidades</th><th className="w-44 px-4 py-3">Arquivo</th></tr></TableHead><tbody className="divide-y divide-white/[0.06] text-sm text-slate-200">
-                  {recentRuns.slice(0, 10).map((run) => {
+          <aside className="grid gap-4 xl:sticky xl:top-5">
+            <Surface className="p-4 sm:p-5">
+              <h2 className="text-base font-black text-slate-50">Resumo do relatório</h2>
+
+              <div className="mt-4 divide-y divide-white/[0.08] rounded-[12px] border border-white/10 bg-black/10 text-sm">
+                <div className="flex items-center justify-between gap-3 px-3 py-3">
+                  <span className="text-slate-400">Período</span>
+                  <span className="font-bold text-slate-100">{defaultCompetenceLabel}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3 px-3 py-3">
+                  <span className="text-slate-400">Unidades selecionadas</span>
+                  <span className="font-bold text-slate-100">{resultUnits.length}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3 px-3 py-3">
+                  <span className="text-slate-400">Sensores por unidade</span>
+                  <span className="font-bold text-slate-100">3</span>
+                </div>
+                <div className="flex items-center justify-between gap-3 px-3 py-3">
+                  <span className="text-slate-400">Páginas estimadas</span>
+                  <span className="font-bold text-slate-100">{Math.max(1, resultUnits.length * 9 + 1)}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3 px-3 py-3">
+                  <span className="text-slate-400">Status dos dados</span>
+                  <TonePill tone={resultUnits.length ? "success" : "attention"}>{resultUnits.length ? "Pronto para exportar" : "Aguardando filtros"}</TonePill>
+                </div>
+              </div>
+            </Surface>
+
+            <form id="monitoring-export-form" action="/relatorios/monitoramento/export-jobs" method="POST">
+              <input type="hidden" name="from" value={from} />
+              <input type="hidden" name="to" value={to} />
+              <input type="hidden" name="returnTo" value={returnTo} />
+              <input type="hidden" name="reportStyle" value="complete" />
+              <input type="hidden" name="title" value={defaultTitle} />
+              <input type="hidden" name="competenceLabel" value={defaultCompetenceLabel} />
+              <input type="hidden" name="issueDateLabel" value={defaultIssueDateLabel} />
+              <input type="hidden" name="interestedParty" value={defaultInterestedParty} />
+              <input type="hidden" name="contractLabel" value={defaultContractLabel} />
+              <input type="hidden" name="contractedBandwidth" value={defaultBandwidth} />
+              <input type="hidden" name="addressLine" value={defaultAddressLine} />
+              <input type="hidden" name="unitMetadataJson" value={defaultUnitMetadataJson} />
+
+              {resultUnits.map((unit) => {
+                const meta = configuredMetadataForUnit(unit);
+
+                return (
+                  <div key={`export-hidden-${unit.id}`}>
+                    <input type="hidden" name="unitIds" value={unit.id} />
+                    <input type="hidden" name={`unitMetadata.${unit.id}.contractLabel`} value={meta.contractLabel || unit.reportContractLabel || defaultContractLabel} />
+                    <input type="hidden" name={`unitMetadata.${unit.id}.contractedBandwidth`} value={meta.contractedBandwidth || unit.reportContractedBandwidth || defaultBandwidth} />
+                    <input type="hidden" name={`unitMetadata.${unit.id}.addressLine`} value={meta.addressLine || unit.reportAddressLine || formatUnitAddressFallback(unit) || defaultAddressLine} />
+                    <input type="hidden" name={`unitMetadata.${unit.id}.notes`} value={meta.notes || unit.reportNotes || ""} />
+                  </div>
+                );
+              })}
+
+              <Surface className="p-4 sm:p-5">
+                <h2 className="text-base font-black text-slate-50">Ações de exportação</h2>
+
+                {groupPreviewError ? (
+                  <div className="mt-4 rounded-[12px] border border-rose-500/25 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
+                    {groupPreviewError}
+                  </div>
+                ) : null}
+
+                {groupPreview?.unresolvedHosts.length ? (
+                  <details className="mt-4 rounded-[12px] border border-amber-500/20 bg-amber-500/10 p-3 text-sm text-amber-50">
+                    <summary className="cursor-pointer font-semibold">Hosts sem unidade ({groupPreview.unresolvedHosts.length})</summary>
+                    <div className="mt-3 grid gap-1 text-xs text-amber-100/90">
+                      {groupPreview.unresolvedHosts.slice(0, 12).map((item) => (
+                        <div key={item.host.hostId} className="truncate">{compactHostName(item)}</div>
+                      ))}
+                    </div>
+                  </details>
+                ) : null}
+
+                <label className="mt-4 flex items-center gap-3 rounded-[12px] border border-white/10 bg-white/[0.035] px-4 py-3 text-sm font-bold text-slate-100">
+                  <input type="checkbox" name="includeCharts" defaultChecked={defaultIncludeCharts} className="h-4 w-4" />
+                  Gráficos
+                </label>
+
+                <div className="mt-4 grid gap-2">
+                  <button
+                    type="submit"
+                    name="format"
+                    value="docx"
+                    formAction="/relatorios/monitoramento/export"
+                    formTarget="_blank"
+                    disabled={!resultUnits.length}
+                    className="inline-flex h-11 items-center justify-center rounded-[12px] bg-orange-500 px-4 text-sm font-black text-white shadow-[0_18px_42px_rgba(249,115,22,0.22)] transition hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-45"
+                  >
+                    ⧉ Exportar DOCX
+                  </button>
+
+                  <button
+                    type="submit"
+                    name="format"
+                    value="pdf"
+                    formAction="/relatorios/monitoramento/export"
+                    formTarget="_blank"
+                    disabled={!resultUnits.length}
+                    className="inline-flex h-11 items-center justify-center rounded-[12px] border border-white/10 bg-white/[0.035] px-4 text-sm font-bold text-slate-100 transition hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-45"
+                  >
+                    ⇩ Exportar PDF
+                  </button>
+
+                  <button
+                    type="submit"
+                    name="format"
+                    value={defaultFormat}
+                    disabled={!resultUnits.length}
+                    className="inline-flex h-11 items-center justify-center rounded-[12px] border border-white/10 bg-white/[0.035] px-4 text-sm font-bold text-slate-100 transition hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-45"
+                  >
+                    ✉ Gerar em segundo plano
+                  </button>
+                </div>
+              </Surface>
+            </form>
+
+            <Surface className="p-4 sm:p-5">
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-base font-black text-slate-50">Últimas exportações</h2>
+                <span className="text-xs font-bold text-orange-300">Ver todas</span>
+              </div>
+
+              {recentRuns.length ? (
+                <div className="mt-4 grid gap-3">
+                  {recentRuns.slice(0, 5).map((run) => {
                     const attachment = run.attachments[0] || null;
                     const origin = run.rule.reportTemplate ? `${run.rule.reportTemplate.code} - ${run.rule.reportTemplate.name}` : "Exportação manual";
+
                     return (
-                      <tr key={run.id} className="hover:bg-white/[0.03]"><TableCell>{formatDateTime(run.startedAt)}</TableCell><TableCell><div className="font-medium text-slate-100">{origin}</div>
-                          {run.errorMessage ? <div className="mt-1 text-xs text-rose-200">{run.errorMessage}</div> : null}
-                        </TableCell><TableCell><TonePill tone={runStatusTone(run.status)}>{runStatusLabel(run.status)}</TonePill></TableCell><TableCell className="text-slate-400">{run.hitsCount}</TableCell><TableCell>
-                          {attachment ? (
-                            <Link href={webAttachmentUrl(attachment.url)} className="text-sm font-semibold text-cyan-200 hover:text-cyan-100">Baixar</Link>
-                          ) : (
-                            <span className="text-xs text-slate-500">{run.status === "queued" || run.status === "running" ? "Gerando" : "-"}</span>
-                          )}
-                        </TableCell></tr>
+                      <div key={run.id} className="rounded-[12px] border border-white/10 bg-white/[0.035] p-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <div className="truncate text-sm font-bold text-slate-100">{origin}</div>
+                            <div className="mt-1 text-xs text-slate-500">{formatDateTime(run.startedAt)}</div>
+                          </div>
+                          <TonePill tone={runStatusTone(run.status)}>{runStatusLabel(run.status)}</TonePill>
+                        </div>
+
+                        {attachment ? (
+                          <Link href={webAttachmentUrl(attachment.url)} className="mt-2 inline-flex text-xs font-bold text-orange-200 hover:text-white">
+                            Baixar arquivo
+                          </Link>
+                        ) : null}
+                      </div>
                     );
                   })}
-                </tbody></DenseTable></TableShell>
-          ) : (
-            <EmptyState title="Sem arquivos" description="Nenhuma exportação gerada ainda." />
-          )}
-        </Surface></div></div></AppShell>
+                </div>
+              ) : (
+                <div className="mt-4 rounded-[12px] border border-dashed border-white/12 bg-black/10 p-5 text-sm text-slate-500">
+                  Nenhuma exportação gerada ainda.
+                </div>
+              )}
+            </Surface>
+          </aside>
+        </div>
+      </div>
+    </AppShell>
   );
 }
