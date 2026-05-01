@@ -803,6 +803,19 @@ body {
   box-shadow: 0 8px 20px color-mix(in srgb, var(--nova-primary) 16%, transparent);
 }
 
+.nds-shell :where(button[class*="bg-white"], a[class*="bg-white"], button[class*="bg-sky"], a[class*="bg-sky"], button[class*="border-sky"], a[class*="border-sky"]) {
+  border-color: color-mix(in srgb, var(--nova-primary) 55%, transparent);
+  background: linear-gradient(180deg, var(--nova-primary), var(--nova-primary-2));
+  color: #fff;
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--nova-primary) 16%, transparent);
+}
+
+.nds-shell :where(a[class*="bg-black"], a[class*="bg-["], button[class*="bg-black"], button[class*="bg-["]) {
+  border-color: var(--nova-border);
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--nova-text);
+}
+
 .nds-shell .nova-surface,
 .nds-shell .nova-stat-card,
 .nds-shell .nova-chart-card,

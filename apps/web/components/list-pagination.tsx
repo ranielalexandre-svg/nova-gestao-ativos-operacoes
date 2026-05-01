@@ -13,7 +13,7 @@ export function ListPagination({
   if (meta.totalPages <= 1) return null;
 
   return (
-    <div className="flex flex-col gap-3 rounded-[16px] border border-white/[0.08] bg-[#0f141b] px-4 py-3 text-sm text-slate-400 sm:flex-row sm:items-center sm:justify-between"><div>
+    <div className="nds-card flex flex-col gap-2 text-[11px] text-slate-400 sm:flex-row sm:items-center sm:justify-between"><div>
         Página <span className="font-semibold text-slate-100">{meta.page}</span> de{" "}
         <span className="font-semibold text-slate-100">{meta.totalPages}</span> ·{" "}
         <span className="font-semibold text-slate-100">{meta.total}</span> registros
@@ -22,11 +22,12 @@ export function ListPagination({
             page: meta.page > 1 ? meta.page - 1 : 1,
           })}
           aria-disabled={!meta.hasPrev}
-          className={`rounded-[12px] border px-3 py-2 font-semibold ${
+          className={`nds-button ${
             meta.hasPrev
-              ? "border-white/10 bg-white/[0.04] text-slate-100 hover:bg-white/[0.08]"
-              : "pointer-events-none border-white/[0.05] bg-white/[0.02] text-slate-600"
+              ? "text-slate-100"
+              : "pointer-events-none text-slate-600 opacity-45"
           }`}
+          data-variant="secondary"
         >
           Anterior
         </Link><Link
@@ -34,11 +35,12 @@ export function ListPagination({
             page: meta.page < meta.totalPages ? meta.page + 1 : meta.totalPages,
           })}
           aria-disabled={!meta.hasNext}
-          className={`rounded-[12px] border px-3 py-2 font-semibold ${
+          className={`nds-button ${
             meta.hasNext
-              ? "border-white/10 bg-white/[0.04] text-slate-100 hover:bg-white/[0.08]"
-              : "pointer-events-none border-white/[0.05] bg-white/[0.02] text-slate-600"
+              ? "text-slate-100"
+              : "pointer-events-none text-slate-600 opacity-45"
           }`}
+          data-variant="secondary"
         >
           Próxima
         </Link></div></div>

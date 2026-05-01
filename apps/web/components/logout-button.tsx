@@ -27,7 +27,8 @@ export function LogoutButton() {
     <button
       type="button"
       onClick={handleLogout}
-      className="inline-flex h-10 items-center justify-center rounded-[14px] border border-white/10 bg-white/[0.04] px-4 text-sm font-semibold text-slate-100 transition hover:bg-white/[0.08] disabled:opacity-60"
+      className="nds-button"
+      data-variant="secondary"
       disabled={loading}
     >
       {loading ? "Saindo..." : "Sair"}
