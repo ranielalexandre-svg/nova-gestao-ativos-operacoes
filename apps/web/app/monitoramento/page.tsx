@@ -2,9 +2,12 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import {
+  ChartCard,
   DenseTable,
   EmptyState,
   FieldLabel,
+  RightPanel,
+  StatCard,
   Surface,
   TableCell,
   TableHead,
@@ -525,20 +528,21 @@ function metricMarkerClass(tone: string) {
 
 function MetricCard({ label, value, tone = "neutral" }: { label: string; value: string | number; tone?: string }) {
   return (
-    <div className="rounded-[16px] border border-white/[0.08] bg-[#10161d] p-4"><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">{label}</div><div className="mt-3 flex items-end justify-between gap-3"><div className="text-2xl font-semibold tracking-tight text-slate-50">{value}</div><span className={cx("h-2.5 w-2.5 rounded-full", metricMarkerClass(tone))} aria-hidden="true" /></div></div>
+    <div className="nova-stat-card rounded-[14px] border border-white/[0.08] bg-[#10161d] p-3"><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">{label}</div><div className="mt-2 flex items-end justify-between gap-3"><div className="text-xl font-black tracking-tight text-slate-50">{value}</div><span className={cx("h-2.5 w-2.5 rounded-full", metricMarkerClass(tone))} aria-hidden="true" /></div></div>
   );
 }
 
 function Summary({ telemetry, commandCenter }: { telemetry: UnitHostTelemetry; commandCenter: CommandCenter }) {
   const sourceFailures = telemetry.sources.filter((source) => !source.ok).length;
   return (
-    <Surface className="p-5 sm:p-6"><div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between"><div><div className="flex flex-wrap gap-2"><TonePill tone={telemetry.counts.down ? "critical" : telemetry.counts.degraded ? "attention" : "success"}>
-              {telemetry.counts.down ? "incidente" : telemetry.counts.degraded ? "atenção" : "operacional"}
-            </TonePill><TonePill tone={sourceFailures ? "attention" : "success"}>{sourceFailures ? `${sourceFailures} fonte(s) alerta` : "fontes ok"}</TonePill><TonePill tone="neutral">{formatDateTime(telemetry.generatedAt)}</TonePill></div><h2 className="mt-4 text-2xl font-semibold tracking-tight text-slate-50">Status operacional</h2></div><div className="flex flex-wrap gap-2"><Link className="inline-flex h-10 items-center rounded-[12px] border border-white/10 bg-white/[0.04] px-4 text-sm font-semibold text-slate-100 transition hover:bg-white/[0.08]" href="/operacao/fila">
-            Fila
-          </Link><Link className="inline-flex h-10 items-center rounded-[12px] border border-white/10 bg-white/[0.04] px-4 text-sm font-semibold text-slate-100 transition hover:bg-white/[0.08]" href="/relatorios/monitoramento">
-            Relatórios
-          </Link></div></div><div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-6"><MetricCard label="Unidades" value={telemetry.counts.units} /><MetricCard label="Online" value={telemetry.counts.online} tone="success" /><MetricCard label="Atenção" value={telemetry.counts.degraded} tone={telemetry.counts.degraded ? "attention" : "neutral"} /><MetricCard label="Offline" value={telemetry.counts.down} tone={telemetry.counts.down ? "critical" : "neutral"} /><MetricCard label="Eventos" value={telemetry.counts.withProblems + commandCenter.metrics.criticalOpenOccurrences} tone={telemetry.counts.withProblems ? "attention" : "neutral"} /><MetricCard label="Vínculo" value={`${telemetry.counts.matched}/${telemetry.counts.units}`} tone={telemetry.counts.unmapped || telemetry.counts.ambiguous ? "attention" : "success"} /></div></Surface>
+    <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
+      <StatCard label="Unidades" value={telemetry.counts.units} detail={formatDateTime(telemetry.generatedAt)} tone="info" />
+      <StatCard label="Online" value={telemetry.counts.online} detail="hosts respondendo" tone="success" />
+      <StatCard label="Atenção" value={telemetry.counts.degraded} detail="degradação detectada" tone={telemetry.counts.degraded ? "attention" : "neutral"} />
+      <StatCard label="Offline" value={telemetry.counts.down} detail="sem resposta" tone={telemetry.counts.down ? "critical" : "neutral"} />
+      <StatCard label="Eventos" value={telemetry.counts.withProblems + commandCenter.metrics.criticalOpenOccurrences} detail={`${commandCenter.metrics.openOccurrences} ocorrências`} tone={telemetry.counts.withProblems ? "attention" : "neutral"} />
+      <StatCard label="Vínculo" value={`${telemetry.counts.matched}/${telemetry.counts.units}`} detail={sourceFailures ? `${sourceFailures} fonte(s) alerta` : "fontes ok"} tone={telemetry.counts.unmapped || telemetry.counts.ambiguous || sourceFailures ? "attention" : "success"} />
+    </section>
   );
 }
 
@@ -625,7 +629,25 @@ function UnitsTable({ telemetry, limit }: { telemetry: UnitHostTelemetry; limit?
 function Overview({ telemetry }: { telemetry: UnitHostTelemetry }) {
   const priority = telemetry.items.slice(0, 6);
   return (
-    <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]"><UnitsTable telemetry={{ ...telemetry, items: priority, counts: countsFromItems(priority) }} /><Surface className="p-5 sm:p-6"><h2 className="text-lg font-semibold tracking-tight text-slate-50">Sensores</h2><div className="mt-4 grid gap-3"><MetricCard label="Disponibilidade" value={`${telemetry.counts.online}/${telemetry.counts.units}`} tone={telemetry.counts.down ? "critical" : telemetry.counts.degraded ? "attention" : "success"} /><MetricCard label="Perda média" value={formatPercent(telemetry.counts.avgLossPct)} tone={metricTone(telemetry.counts.avgLossPct, 3, 10)} /><MetricCard label="Latência média" value={formatMs(telemetry.counts.avgLatencyMs)} tone={metricTone(telemetry.counts.avgLatencyMs, 150, 700)} /><MetricCard label="Temperatura máx." value={formatTemperature(telemetry.counts.maxTemperatureC)} tone={metricTone(telemetry.counts.maxTemperatureC, 55, 70)} /></div></Surface></section>
+    <section className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_300px]">
+      <div className="grid gap-3">
+        <div className="grid gap-3 lg:grid-cols-3">
+          <ChartCard title="Ping / disponibilidade" subtitle={`${telemetry.counts.online}/${telemetry.counts.units} online`} tone={telemetry.counts.down ? "critical" : "success"} />
+          <ChartCard title="Latência média" subtitle={formatMs(telemetry.counts.avgLatencyMs)} tone={metricTone(telemetry.counts.avgLatencyMs, 150, 700)} />
+          <ChartCard title="Perda de pacote" subtitle={formatPercent(telemetry.counts.avgLossPct)} tone={metricTone(telemetry.counts.avgLossPct, 3, 10)} />
+        </div>
+        <UnitsTable telemetry={{ ...telemetry, items: priority, counts: countsFromItems(priority) }} />
+      </div>
+      <RightPanel title="Telemetria" description="Resumo do filtro atual">
+        <MetricCard label="Disponibilidade" value={`${telemetry.counts.online}/${telemetry.counts.units}`} tone={telemetry.counts.down ? "critical" : telemetry.counts.degraded ? "attention" : "success"} />
+        <MetricCard label="Perda média" value={formatPercent(telemetry.counts.avgLossPct)} tone={metricTone(telemetry.counts.avgLossPct, 3, 10)} />
+        <MetricCard label="Latência média" value={formatMs(telemetry.counts.avgLatencyMs)} tone={metricTone(telemetry.counts.avgLatencyMs, 150, 700)} />
+        <MetricCard label="Temperatura máx." value={formatTemperature(telemetry.counts.maxTemperatureC)} tone={metricTone(telemetry.counts.maxTemperatureC, 55, 70)} />
+        <Link href="/relatorios/monitoramento" className="nova-primary-action inline-flex items-center justify-center px-3 py-2 text-xs font-black">
+          Gerar relatório
+        </Link>
+      </RightPanel>
+    </section>
   );
 }
 
@@ -647,7 +669,15 @@ function PartnersTable({ rows }: { rows: PartnerRow[] }) {
 
 function SensorsView({ telemetry }: { telemetry: UnitHostTelemetry }) {
   return (
-    <div className="space-y-5"><section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4"><MetricCard label="Ping online" value={`${telemetry.counts.online}/${telemetry.counts.units}`} tone={telemetry.counts.down ? "critical" : telemetry.counts.degraded ? "attention" : "success"} /><MetricCard label="Perda média" value={formatPercent(telemetry.counts.avgLossPct)} tone={metricTone(telemetry.counts.avgLossPct, 3, 10)} /><MetricCard label="Latência média" value={formatMs(telemetry.counts.avgLatencyMs)} tone={metricTone(telemetry.counts.avgLatencyMs, 150, 700)} /><MetricCard label="Temperatura máx." value={formatTemperature(telemetry.counts.maxTemperatureC)} tone={metricTone(telemetry.counts.maxTemperatureC, 55, 70)} /></section><UnitsTable telemetry={telemetry} /></div>
+    <div className="grid gap-3">
+      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <ChartCard title="Ping" subtitle={`${telemetry.counts.online}/${telemetry.counts.units} online`} tone={telemetry.counts.down ? "critical" : "success"} />
+        <ChartCard title="Loss" subtitle={formatPercent(telemetry.counts.avgLossPct)} tone={metricTone(telemetry.counts.avgLossPct, 3, 10)} />
+        <ChartCard title="Latência" subtitle={formatMs(telemetry.counts.avgLatencyMs)} tone={metricTone(telemetry.counts.avgLatencyMs, 150, 700)} />
+        <ChartCard title="Temperatura" subtitle={formatTemperature(telemetry.counts.maxTemperatureC)} tone={metricTone(telemetry.counts.maxTemperatureC, 55, 70)} />
+      </section>
+      <UnitsTable telemetry={telemetry} />
+    </div>
   );
 }
 
@@ -730,7 +760,7 @@ export default async function MonitoramentoPage({
   const partnerRows = partnerRowsFromTelemetry(filteredTelemetry);
 
   return (
-    <AppShell title="Monitoramento" subtitle="Hosts Zabbix, unidades e eventos ativos."><div className="nova-monitoring-page grid gap-5"><Summary telemetry={filteredTelemetry} commandCenter={commandCenter} /><Sources telemetry={telemetry} isAdmin={isAdmin} /><Tabs filters={filters} telemetry={filteredTelemetry} /><Filters filters={filters} partners={partners} count={filteredTelemetry.counts.units} />
+    <AppShell title="Sensores" subtitle="Telemetria Zabbix por unidade, parceiro e ativo."><div className="nova-monitoring-page grid gap-3"><Summary telemetry={filteredTelemetry} commandCenter={commandCenter} /><Sources telemetry={telemetry} isAdmin={isAdmin} /><Tabs filters={filters} telemetry={filteredTelemetry} /><Filters filters={filters} partners={partners} count={filteredTelemetry.counts.units} />
 
       {filters.view === "overview" ? <Overview telemetry={filteredTelemetry} /> : null}
       {filters.view === "units" ? <UnitsTable telemetry={filteredTelemetry} /> : null}

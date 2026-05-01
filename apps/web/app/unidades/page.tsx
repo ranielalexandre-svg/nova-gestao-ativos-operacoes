@@ -5,8 +5,9 @@ import { ListPagination } from "@/components/list-pagination";
 import {
   DenseTable,
   EmptyState,
-  SectionIntro,
+  RightPanel,
   Surface,
+  StatCard,
   TableActionCell,
   TableActionLink,
   TableCell,
@@ -14,10 +15,6 @@ import {
   TableShell,
   TonePill,
 } from "@/components/ops-ui";
-import {
-  RegistryHero,
-  RegistrySummaryStrip,
-} from "@/components/registry-shell";
 import { apiJson } from "@/lib/server-api";
 import {
   getLegacyMonitorContextForUnits,
@@ -187,6 +184,45 @@ function contextBadges(item?: LegacyMonitorContextItem) {
   ].filter((entry): entry is { label: string; tone: string } => Boolean(entry));
 }
 
+function formatRatio(value: number, total: number) {
+  if (!total) return "0%";
+  return `${Math.round((value / total) * 100)}%`;
+}
+
+function completionScore(unit: UnitRow, monitor?: UnitMonitorSnapshot, legacy?: LegacyMonitorContextItem) {
+  const checks = [
+    Boolean(unit.code && unit.name && unit.city && unit.state),
+    Boolean(unit.partner?.id),
+    Boolean(unitEquipmentCount(unit)),
+    monitor?.match.status === "matched",
+    Boolean(legacy?.phones.length),
+  ];
+  return Math.round((checks.filter(Boolean).length / checks.length) * 100);
+}
+
+function ProgressLine({
+  label,
+  value,
+  tone = "bg-orange-500",
+}: {
+  label: string;
+  value: number;
+  tone?: string;
+}) {
+  const safeValue = Math.max(0, Math.min(100, value));
+  return (
+    <div>
+      <div className="flex items-center justify-between gap-3 text-[11px]">
+        <span className="font-semibold text-slate-300">{label}</span>
+        <span className="font-black text-white">{safeValue}%</span>
+      </div>
+      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/[0.07]">
+        <div className={`h-full rounded-full ${tone}`} style={{ width: `${safeValue}%` }} />
+      </div>
+    </div>
+  );
+}
+
 async function readMonitorSnapshots() {
   try {
     return await apiJson<UnitMonitorResponse>("/monitoring/unit-hosts");
@@ -266,109 +302,128 @@ export default async function UnidadesPage({
         (monitor.health === "down" ||
           monitor.health === "degraded" ||
           monitor.health === "ambiguous" ||
-          monitor.problems.length),
+        monitor.problems.length),
     );
   }).length;
+  const pageTotal = response.items.length;
+  const equipmentOnPage = response.items.reduce((sum, unit) => sum + unitEquipmentCount(unit), 0);
+  const completionValues = response.items.map((unit) =>
+    completionScore(unit, monitorByUnitId.get(unit.id), legacyByUnitId[unit.id]),
+  );
+  const averageCompletion = completionValues.length
+    ? Math.round(completionValues.reduce((sum, value) => sum + value, 0) / completionValues.length)
+    : 0;
 
   return (
     <AppShell
       title="Unidades"
-      subtitle="Cadastro operacional de unidades."
-    ><RegistryHero
-        eyebrow="Unit Registry"
-        title="Base operacional com contato e monitoramento na mesma leitura"
-        description="Cadastro, parceiro, contato e saúde do host."
-        actions={
-          <Link
-            href="/unidades/nova"
-            className="inline-flex h-11 items-center justify-center rounded-[14px] border border-sky-500/28 bg-sky-500/14 px-4 text-sm font-semibold text-sky-50 transition hover:bg-sky-500/18"
-          >
-            Nova unidade
-          </Link>
-        }
-      /><RegistrySummaryStrip
-        items={[
-          {
-            label: "Locais",
-            value: response.meta.total,
-            meta: "resultado filtrado",
-            tone: "info",
-          },
-          {
-            label: "Monitorados",
-            value: monitoredOnPage,
-            meta: "host confiável nesta página",
-            tone: monitoredOnPage ? "success" : "neutral",
-          },
-          {
-            label: "Com contato",
-            value: withContactOnPage,
-            meta: "telefone legado disponível",
-            tone: withContactOnPage ? "success" : "attention",
-          },
-          {
-            label: "Contingência",
-            value: withBackupOnPage,
-            meta: `${attentionOnPage} exigem atenção`,
-            tone: attentionOnPage ? "attention" : "neutral",
-          },
-        ]}
-        noteTitle="Tabela primeiro"
-        noteCopy="Criação completa pelo cadastro guiado."
-      /><Surface className="p-5 sm:p-6"><SectionIntro
-          eyebrow="Filtros"
-          title="Busque base, parceiro, cidade ou contato"
-          description="Filtros, vínculo, contato e host."
-          actions={
+      subtitle="Cadastro, vínculo e cobertura por unidade."
+    ><div className="nova-units-page grid gap-3">
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+          <StatCard label="Unidades" value={response.meta.total} detail="resultado filtrado" tone="info" />
+          <StatCard label="Monitoradas" value={monitoredOnPage} detail={formatRatio(monitoredOnPage, pageTotal)} tone={monitoredOnPage ? "success" : "neutral"} />
+          <StatCard label="Com contato" value={withContactOnPage} detail={formatRatio(withContactOnPage, pageTotal)} tone={withContactOnPage ? "success" : "attention"} />
+          <StatCard label="Ativos" value={equipmentOnPage} detail={`${pageTotal} linha(s)`} tone={equipmentOnPage ? "info" : "neutral"} />
+          <StatCard label="Atenção" value={attentionOnPage} detail="evento, queda ou ambiguidade" tone={attentionOnPage ? "attention" : "success"} />
+        </div>
+
+        <Surface className="p-3">
+          <form method="GET" className="grid gap-2 md:grid-cols-2 xl:grid-cols-[minmax(260px,1fr)_190px_120px_120px_112px_auto_auto] xl:items-end">
+            <div className="grid gap-1.5 md:col-span-2 xl:col-span-1">
+              <FieldLabel htmlFor="units-q" label="Busca" />
+              <input
+                id="units-q"
+                name="q"
+                defaultValue={q}
+                placeholder="Unidade, cidade, parceiro, telefone ou serial"
+                className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
+              />
+            </div>
+            <div className="grid gap-1.5">
+              <FieldLabel htmlFor="units-partner" label="Parceiro" />
+              <select
+                id="units-partner"
+                name="partnerId"
+                defaultValue={partnerId}
+                className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
+              >
+                <option value="">Todos</option>
+                {partnerOptions.map((partner) => (
+                  <option key={partner.id} value={partner.id}>
+                    {partner.code} - {partner.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="grid gap-1.5">
+              <FieldLabel htmlFor="units-active" label="Status" />
+              <select
+                id="units-active"
+                name="active"
+                defaultValue={active}
+                className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
+              >
+                <option value="true">Ativos</option>
+                <option value="all">Todos</option>
+                <option value="false">Excluídas</option>
+              </select>
+            </div>
+            <div className="grid gap-1.5">
+              <FieldLabel htmlFor="units-sort-by" label="Ordem" />
+              <select
+                id="units-sort-by"
+                name="sortBy"
+                defaultValue={sortBy}
+                className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
+              >
+                <option value="createdAt">Cadastro</option>
+                <option value="code">Código</option>
+                <option value="name">Nome</option>
+                <option value="city">Cidade</option>
+                <option value="state">UF</option>
+              </select>
+            </div>
+            <div className="grid gap-1.5">
+              <FieldLabel htmlFor="units-page-size" label="Linhas" />
+              <select
+                id="units-page-size"
+                name="pageSize"
+                defaultValue={String(pageSize)}
+                className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
+              >
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+              </select>
+            </div>
+            <input type="hidden" name="sortDir" value={sortDir} />
+            <button className="nova-primary-action inline-flex items-center justify-center rounded-[14px] px-4 py-3 text-sm font-black">
+              Filtrar
+            </button>
             <Link
-              href="/unidades"
-              className="rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/[0.06] hover:text-white"
+              href="/unidades/nova"
+              className="nova-primary-action inline-flex items-center justify-center rounded-[14px] px-4 py-3 text-sm font-black"
             >
-              Limpar filtros
+              Nova unidade
             </Link>
-          }
-          compact
-        /><form method="GET" className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-6"><div className="grid gap-2 xl:col-span-2"><FieldLabel htmlFor="units-q" label="Busca" /><input
-              id="units-q"
-              name="q"
-              defaultValue={q}
-              placeholder="Código, nome, cidade, parceiro, telefone ou serial"
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
-            /></div><div className="grid gap-2"><FieldLabel htmlFor="units-partner" label="Parceiro" /><select
-              id="units-partner"
-              name="partnerId"
-              defaultValue={partnerId}
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            ><option value="">Todos os parceiros</option>
-              {partnerOptions.map((partner) => (
-                <option key={partner.id} value={partner.id}>
-                  {partner.code} - {partner.name}
-                </option>
-              ))}
-            </select></div><div className="grid gap-2"><FieldLabel htmlFor="units-active" label="Status" /><select
-              id="units-active"
-              name="active"
-              defaultValue={active}
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            ><option value="all">Todos</option><option value="true">Ativos</option><option value="false">Excluídas</option></select></div><div className="grid gap-2"><FieldLabel htmlFor="units-sort-by" label="Ordenar por" /><select
-              id="units-sort-by"
-              name="sortBy"
-              defaultValue={sortBy}
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            ><option value="createdAt">Cadastro</option><option value="code">Código</option><option value="name">Nome</option><option value="city">Cidade</option><option value="state">UF</option></select></div><div className="grid gap-2"><FieldLabel htmlFor="units-page-size" label="Página" /><select
-              id="units-page-size"
-              name="pageSize"
-              defaultValue={String(pageSize)}
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            ><option value="10">10 por página</option><option value="20">20 por página</option><option value="50">50 por página</option></select></div><input type="hidden" name="sortDir" value={sortDir} /><button className="rounded-[14px] bg-white px-4 py-3 text-sm font-medium text-black transition hover:opacity-95 md:col-span-2 xl:col-span-6">
-            Aplicar filtros
-          </button></form></Surface><Surface className="p-5 sm:p-6"><SectionIntro
-          eyebrow="Base operacional"
-          title="Unidades por vínculo, contato e cobertura"
-          description={`${response.meta.total} unidade(s) encontradas nesta visão.`}
-          actions={<TonePill tone="neutral">{response.items.length} linhas</TonePill>}
-          compact
-        /><div className="mt-4">
+          </form>
+        </Surface>
+
+        <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_292px]">
+          <Surface className="p-3">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <div className="text-[9px] font-black uppercase tracking-[0.18em] text-slate-500">Base técnica</div>
+                <h2 className="mt-1 text-base font-black tracking-[-0.02em] text-white">Unidades cadastradas</h2>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <TonePill tone="neutral">{response.items.length} linhas</TonePill>
+                <Link href="/unidades" className="inline-flex items-center justify-center border border-white/10 bg-white/[0.035] px-3 py-2 text-xs font-bold text-slate-200 transition hover:bg-white/[0.07]">
+                  Limpar
+                </Link>
+              </div>
+            </div>
+            <div>
           {response.items.length ? (
             <TableShell><DenseTable><TableHead><tr><th className="px-4 py-3">Unidade</th><th className="px-4 py-3">Localização</th><th className="px-4 py-3">Parceiro</th><th className="px-4 py-3">Monitoramento</th><th className="px-4 py-3">Contato</th><th className="px-4 py-3 text-right">Ações</th></tr></TableHead><tbody>
                   {response.items.map((unit) => {
@@ -456,6 +511,33 @@ export default async function UnidadesPage({
               }
             />
           )}
-        </div></Surface><ListPagination pathname="/unidades" searchParams={params} meta={response.meta} /></AppShell>
+            </div>
+          </Surface>
+
+          <RightPanel title="Completude" description={`${averageCompletion}% médio nesta página`}>
+            <ProgressLine label="Host Zabbix" value={pageTotal ? Math.round((monitoredOnPage / pageTotal) * 100) : 0} tone="bg-emerald-400" />
+            <ProgressLine label="Contato" value={pageTotal ? Math.round((withContactOnPage / pageTotal) * 100) : 0} tone="bg-sky-400" />
+            <ProgressLine label="Ativos vinculados" value={pageTotal ? Math.round((response.items.filter((unit) => unitEquipmentCount(unit) > 0).length / pageTotal) * 100) : 0} tone="bg-orange-500" />
+            <ProgressLine label="Contingência" value={pageTotal ? Math.round((withBackupOnPage / pageTotal) * 100) : 0} tone="bg-violet-400" />
+            <ProgressLine label="Cadastro completo" value={averageCompletion} tone="bg-amber-400" />
+            <div className="rounded-md border border-white/[0.08] bg-[#070b10] p-3">
+              <div className="text-[9px] font-black uppercase tracking-[0.16em] text-slate-500">Ação rápida</div>
+              <div className="mt-3 grid gap-2">
+                <Link href="/monitoramento?view=units&health=unmapped" className="inline-flex items-center justify-between rounded-md border border-white/10 bg-white/[0.035] px-3 py-2 text-xs font-bold text-slate-200 hover:bg-white/[0.07]">
+                  Sem vínculo <span>{pageTotal - monitoredOnPage}</span>
+                </Link>
+                <Link href="/equipamentos" className="inline-flex items-center justify-between rounded-md border border-white/10 bg-white/[0.035] px-3 py-2 text-xs font-bold text-slate-200 hover:bg-white/[0.07]">
+                  Ativos <span>{equipmentOnPage}</span>
+                </Link>
+                <Link href="/relatorios/monitoramento" className="inline-flex items-center justify-between rounded-md border border-orange-400/35 bg-orange-500/[0.12] px-3 py-2 text-xs font-bold text-orange-100 hover:bg-orange-500/[0.18]">
+                  Relatório <span>abrir</span>
+                </Link>
+              </div>
+            </div>
+          </RightPanel>
+        </div>
+
+        <ListPagination pathname="/unidades" searchParams={params} meta={response.meta} />
+      </div></AppShell>
   );
 }
