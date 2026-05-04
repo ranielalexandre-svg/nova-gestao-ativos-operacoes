@@ -28,8 +28,19 @@ import {
   safeApiJson,
   type CommandCenter,
 } from "@/lib/noc-overview";
+import { canEditAttachmentsForRole } from "@/lib/role-policy";
+import { formatDateTime } from "@/lib/formatters";
+import {
+  maintenanceStatusLabel,
+  maintenanceStatusTone,
+  maintenanceTypeLabel,
+  occurrenceSeverityLabel as severityLabel,
+  occurrenceSeverityTone as severityTone,
+  occurrenceStatusLabel as statusLabel,
+  occurrenceStatusTone as statusTone,
+} from "@/lib/status-ui";
 import { apiJson } from "@/lib/server-api";
-import { getServerWebSession, normalizeRole } from "@/lib/web-session";
+import { getServerWebSession } from "@/lib/web-session";
 
 type OccurrenceDetail = {
   id: string;
@@ -59,77 +70,6 @@ type OccurrenceDetail = {
   };
 };
 
-function severityLabel(value: string) {
-  const labels: Record<string, string> = {
-    low: "Baixa",
-    medium: "Média",
-    high: "Alta",
-    critical: "Crítica",
-  };
-  return labels[value] || value;
-}
-
-function statusLabel(value: string) {
-  const labels: Record<string, string> = {
-    open: "Aberta",
-    investigating: "Em análise",
-    resolved: "Resolvida",
-    cancelled: "Cancelada",
-  };
-  return labels[value] || value;
-}
-
-function severityTone(value: string) {
-  if (value === "critical") return "critical";
-  if (value === "high") return "attention";
-  if (value === "medium") return "info";
-  return "neutral";
-}
-
-function statusTone(value: string) {
-  if (value === "resolved") return "success";
-  if (value === "cancelled") return "subtle";
-  if (value === "investigating") return "info";
-  return "attention";
-}
-
-function maintenanceStatusTone(value: string) {
-  if (value === "done") return "success";
-  if (value === "cancelled") return "subtle";
-  if (value === "in_progress") return "info";
-  return "attention";
-}
-
-function maintenanceStatusLabel(value: string) {
-  const labels: Record<string, string> = {
-    planned: "Planejada",
-    in_progress: "Em execução",
-    done: "Concluída",
-    cancelled: "Cancelada",
-  };
-  return labels[value] || value;
-}
-
-function maintenanceTypeLabel(value: string) {
-  const labels: Record<string, string> = {
-    preventive: "Preventiva",
-    corrective: "Corretiva",
-    inspection: "Inspeção",
-  };
-  return labels[value] || value;
-}
-
-function formatDateTime(value: string | null) {
-  if (!value) return "-";
-  return new Date(value).toLocaleString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
 function RelatedLink({
   href,
   label,
@@ -142,10 +82,10 @@ function RelatedLink({
   return (
     <Link
       href={href}
-      className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4 transition hover:border-white/14 hover:bg-[#10161d]"
-    ><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+      className="nds-card block transition"
+    ><div className="nds-label">
         {label}
-      </div><div className="mt-2 text-sm font-semibold text-slate-50">{value}</div></Link>
+      </div><div className="mt-1 text-[12px] font-semibold text-slate-50">{value}</div></Link>
   );
 }
 
@@ -157,7 +97,7 @@ export default async function OcorrenciaDetailPage({
   const session = await getServerWebSession();
 
   if (!session.authenticated) {
-    redirect("/login?next=/ocorrencias");
+    redirect("/login?next=/alertas");
   }
 
   const resolved = await params;
@@ -179,24 +119,22 @@ export default async function OcorrenciaDetailPage({
   const scheduledMaintenances = occurrence.maintenances.filter(
     (item) => Boolean(item.scheduledAt),
   ).length;
-  const canEditAttachments = ["admin", "editor"].includes(
-    normalizeRole(session.user?.role || ""),
-  );
+  const canEditAttachments = canEditAttachmentsForRole(session.user?.role || "");
   const connectedRoutes = [
     {
       href: "/operacao/fila?view=pending",
       title: "Voltar para a fila",
-      description: "Se a ocorrência ainda pede triagem ou despacho, a ordem do turno continua na fila operacional.",
+      description: "Se o alerta ainda pede triagem ou despacho, a ordem do turno continua na fila operacional.",
       badge: <TonePill tone="info">fila</TonePill>,
     },
     {
-      href: "/manutencoes",
+      href: "/chamados",
       title: "Abrir agenda técnica",
       description: "Use a agenda quando o incidente já virou ação planejada, execução ou acompanhamento em campo.",
       badge: <TonePill tone="success">agenda</TonePill>,
     },
     {
-      href: "/monitoramento",
+      href: "/sensores",
       title: "Cruzar com host e eventos",
       description: "Veja o estado real do host da unidade antes de decidir acionamento, escalada ou fechamento.",
       badge: <TonePill tone="attention">NOC</TonePill>,
@@ -206,9 +144,9 @@ export default async function OcorrenciaDetailPage({
   return (
     <AppShell
       title={`${occurrence.code} · ${occurrence.title}`}
-      subtitle="Ficha operacional da ocorrência, vínculos e ações relacionadas."
+      subtitle="Ficha operacional do alerta, vínculos e ações relacionadas."
     ><RegistryDetailHero
-        eyebrow="Ocorrência"
+        eyebrow="Alerta"
         title={occurrence.title}
         description={occurrence.description || "Sem descrição complementar registrada."}
         badges={
@@ -225,13 +163,15 @@ export default async function OcorrenciaDetailPage({
         }
         actions={
           <div className="flex flex-wrap gap-2"><Link
-              href="/ocorrencias"
-              className="rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/[0.06] hover:text-white"
+              href="/alertas"
+              className="nds-button"
+              data-variant="secondary"
             >
               Voltar
             </Link><Link
               href="/operacao/fila?view=pending"
-              className="rounded-full border border-blue-400/30 bg-[#17213a] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1b2946]"
+              className="nds-button"
+              data-variant="primary"
             >
               Abrir fila
             </Link></div>
@@ -239,7 +179,7 @@ export default async function OcorrenciaDetailPage({
       /><RegistryMetricGrid
         items={[
           {
-            label: "Manutenções",
+            label: "Chamados",
             value: occurrence._count.maintenances,
             detail: `${openMaintenances} ainda abertas`,
             tone: openMaintenances ? "attention" : occurrence._count.maintenances ? "info" : "neutral",
@@ -270,12 +210,12 @@ export default async function OcorrenciaDetailPage({
           },
         ]}
         columnsClassName="md:grid-cols-2 xl:grid-cols-5"
-      /><section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]"><Surface className="p-5 sm:p-6"><SectionIntro
+      /><section className="nova-side-grid nova-side-grid--380"><Surface><SectionIntro
             eyebrow="Resumo"
-            title="Contexto do incidente"
+            title="Contexto do alerta"
             description="Entidade afetada, código e vínculo operacional em uma ficha mais direta."
             compact
-          /><div className="mt-5"><RegistryInfoGrid
+          /><div className="mt-2"><RegistryInfoGrid
               columnsClassName="md:grid-cols-2 xl:grid-cols-3"
               items={[
                 { label: "Código", value: occurrence.code },
@@ -290,14 +230,14 @@ export default async function OcorrenciaDetailPage({
                   value: occurrence.unit ? `${occurrence.unit.code} - ${occurrence.unit.name}` : "-",
                 },
                 {
-                  label: "Equipamento",
+                  label: "Ativo",
                   value: occurrence.equipment
                     ? `${occurrence.equipment.tag} - ${occurrence.equipment.name}`
                     : "-",
                   span: "full",
                 },
               ]}
-            /></div></Surface><div className="nova-page-stack grid gap-5"><LinkedHostPanel
+            /></div></Surface><div className="nova-page-stack grid gap-2"><LinkedHostPanel
             item={linkedHost}
             title="Host da unidade afetada"
             description="Quando existe correspondência entre cadastro e host, a ficha já mostra o sinal técnico que ajuda a decidir o próximo passo."
@@ -307,12 +247,12 @@ export default async function OcorrenciaDetailPage({
             description="O ponto aqui é saber se o caso pede fila, agenda técnica ou monitoramento antes de abrir mais telas."
             stats={[
               {
-                label: "Manutenções abertas",
+                label: "Chamados abertos",
                 value: openMaintenances,
                 tone: openMaintenances ? "attention" : "neutral",
               },
               {
-                label: "Manutenções agendadas",
+                label: "Chamados agendados",
                 value: scheduledMaintenances,
                 tone: scheduledMaintenances ? "info" : "neutral",
               },
@@ -322,7 +262,7 @@ export default async function OcorrenciaDetailPage({
                 tone: commandCenter.metrics.criticalOpenOccurrences ? "critical" : "neutral",
               },
               {
-                label: "Manutenções vencidas",
+                label: "Chamados vencidos",
                 value: commandCenter.metrics.overdueMaintenances,
                 tone: commandCenter.metrics.overdueMaintenances ? "attention" : "neutral",
               },
@@ -332,12 +272,12 @@ export default async function OcorrenciaDetailPage({
             title="Rotas que completam o caso"
             description="Essas rotas continuam a operação sem repetir navegação de enfeite."
             routes={connectedRoutes}
-          /><Surface className="p-5 sm:p-6"><SectionIntro
+          /><Surface><SectionIntro
               eyebrow="Vínculos"
               title="Abrir relacionados"
-              description="Use estes atalhos quando o trabalho exigir contexto de parceiro, unidade ou equipamento."
+              description="Use estes atalhos quando o trabalho exigir contexto de parceiro, unidade ou ativo."
               compact
-            /><div className="mt-5 grid gap-3">
+            /><div className="mt-2 grid gap-2">
               {occurrence.partner ? (
                 <RelatedLink
                   href={`/parceiros/${occurrence.partner.id}`}
@@ -354,46 +294,47 @@ export default async function OcorrenciaDetailPage({
               ) : null}
               {occurrence.equipment ? (
                 <RelatedLink
-                  href={`/equipamentos/${occurrence.equipment.id}`}
-                  label="Equipamento"
+                  href={`/ativos/${occurrence.equipment.id}`}
+                  label="Ativo"
                   value={`${occurrence.equipment.tag} · ${occurrence.equipment.name}`}
                 />
               ) : null}
               {!occurrence.partner && !occurrence.unit && !occurrence.equipment ? (
                 <EmptyState
                   title="Sem vínculos"
-                  description="A ocorrência ainda não aponta para parceiro, unidade ou equipamento."
+                  description="O alerta ainda não aponta para parceiro, unidade ou ativo."
                 />
               ) : null}
             </div></Surface></div></section><AttachmentPanel
         entityPath="occurrences"
         entityId={occurrence.id}
-        entityLabel="ocorrência"
-        returnPath={`/ocorrencias/${occurrence.id}`}
+        entityLabel="alerta"
+        returnPath={`/alertas/${occurrence.id}`}
         canEdit={canEditAttachments}
-      /><Surface className="p-5 sm:p-6"><SectionIntro
+      /><Surface><SectionIntro
           eyebrow="Agenda"
-          title="Manutenções"
+          title="Chamados"
           description="Ações do incidente."
           actions={
             <Link
-              href="/manutencoes"
-              className="rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/[0.06] hover:text-white"
+              href="/chamados"
+              className="nds-button"
+              data-variant="secondary"
             >
               Abrir agenda
             </Link>
           }
           compact
-        /><div className="mt-5">
+        /><div className="mt-2">
           {occurrence.maintenances.length ? (
-            <TableShell><DenseTable><TableHead><tr><th className="px-4 py-3">Manutenção</th><th className="px-4 py-3">Tipo</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Agendada</th><th className="px-4 py-3">Concluída</th></tr></TableHead><tbody>
+            <TableShell><DenseTable><TableHead><tr><th className="px-3 py-2">Chamado</th><th className="px-3 py-2">Tipo</th><th className="px-3 py-2">Status</th><th className="px-3 py-2">Agendada</th><th className="px-3 py-2">Concluída</th></tr></TableHead><tbody>
                   {occurrence.maintenances.map((item) => (
                     <tr key={item.id} className="border-b border-white/6 last:border-b-0 hover:bg-white/[0.025]"><TableCell><Link
-                          href={`/manutencoes/${item.id}`}
-                          className="font-medium text-white transition hover:text-sky-200"
+                          href={`/chamados/${item.id}`}
+                          className="font-medium text-white transition hover:text-white"
                         >
                           {item.code}
-                        </Link><div className="mt-1 max-w-[360px] truncate text-xs text-slate-500">
+                        </Link><div className="mt-1 max-w-[360px] truncate text-[10px] text-slate-500">
                           {item.title}
                         </div></TableCell><TableCell className="text-slate-300">{maintenanceTypeLabel(item.type)}</TableCell><TableCell><TonePill tone={maintenanceStatusTone(item.status)}>
                           {maintenanceStatusLabel(item.status)}
@@ -402,8 +343,8 @@ export default async function OcorrenciaDetailPage({
                 </tbody></DenseTable></TableShell>
           ) : (
             <EmptyState
-              title="Nenhuma manutenção vinculada"
-              description="Manutenções vinculadas à ocorrência."
+              title="Nenhum chamado vinculado"
+              description="Chamados vinculados ao alerta."
             />
           )}
         </div></Surface></AppShell>

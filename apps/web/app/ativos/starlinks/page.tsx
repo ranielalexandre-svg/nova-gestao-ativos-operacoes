@@ -1,5 +1,1 @@
-import { redirect } from "next/navigation";
-
-export default function StarlinksAliasPage() {
-  redirect("/equipamentos/starlinks");
-}
+export { default } from "../../equipamentos/starlinks/page";

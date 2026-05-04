@@ -6,29 +6,43 @@ function cx(...parts: Array<string | false | null | undefined>) {
 }
 
 const toneMap: Record<string, string> = {
-  neutral: "border-slate-700/70 bg-slate-900/70 text-slate-300",
-  subtle: "border-white/10 bg-white/[0.04] text-slate-300",
-  info: "border-sky-500/25 bg-sky-500/12 text-sky-200",
-  attention: "border-amber-500/28 bg-amber-500/12 text-amber-200",
-  critical: "border-rose-500/28 bg-rose-500/12 text-rose-200",
-  success: "border-emerald-500/28 bg-emerald-500/12 text-emerald-200",
-  violet: "border-indigo-500/28 bg-indigo-500/12 text-indigo-200",
-  low: "border-slate-700/70 bg-slate-900/70 text-slate-300",
-  medium: "border-sky-500/25 bg-sky-500/12 text-sky-200",
-  high: "border-amber-500/28 bg-amber-500/12 text-amber-200",
+  neutral: "neutral",
+  subtle: "neutral",
+  primary: "primary",
+  info: "info",
+  attention: "attention",
+  warning: "warning",
+  critical: "critical",
+  danger: "danger",
+  success: "success",
+  violet: "primary",
+  low: "neutral",
+  medium: "info",
+  high: "attention",
 };
 
-const toneDotMap: Record<string, string> = {
-  neutral: "bg-slate-500",
-  subtle: "bg-slate-600",
-  info: "bg-sky-400",
-  attention: "bg-amber-400",
-  critical: "bg-rose-400",
-  success: "bg-emerald-400",
-  violet: "bg-indigo-400",
-  low: "bg-slate-500",
-  medium: "bg-sky-400",
-  high: "bg-amber-400",
+function normalizeTone(tone?: keyof typeof toneMap | string) {
+  return toneMap[tone || "neutral"] || "neutral";
+}
+
+function toneColor(tone?: keyof typeof toneMap | string) {
+  const normalized = normalizeTone(tone);
+
+  if (normalized === "primary") return "var(--nova-primary)";
+  if (normalized === "success") return "var(--nova-success)";
+  if (normalized === "attention" || normalized === "warning") return "var(--nova-warning)";
+  if (normalized === "critical" || normalized === "danger") return "var(--nova-danger)";
+  if (normalized === "info") return "var(--nova-info)";
+
+  return "var(--nova-text-dim)";
+}
+
+export type BarDatum = {
+  label: string;
+  value: number;
+  tone?: keyof typeof toneMap | string;
+  meta?: ReactNode;
+  href?: string;
 };
 
 export function Surface({
@@ -52,6 +66,136 @@ export function Surface({
   );
 }
 
+export function BarList({
+  data,
+  max,
+  emptyLabel = "Sem dados para exibir.",
+  valueFormatter = (value) => value.toLocaleString("pt-BR"),
+  className = "",
+}: {
+  data: BarDatum[];
+  max?: number;
+  emptyLabel?: string;
+  valueFormatter?: (value: number) => ReactNode;
+  className?: string;
+}) {
+  const visible = data.filter((item) => Number.isFinite(item.value));
+  const chartMax = Math.max(1, max ?? visible.reduce((largest, item) => Math.max(largest, item.value), 0));
+
+  if (!visible.length) {
+    return (
+      <div className={cx("grid min-h-[102px] place-items-center rounded-[6px] border border-white/[0.06] bg-black/10 px-3 text-center text-[11px] leading-5 text-slate-500", className)}>
+        {emptyLabel}
+      </div>
+    );
+  }
+
+  return (
+    <div className={cx("grid gap-2", className)}>
+      {visible.map((item) => {
+        const width = item.value > 0 ? Math.max(4, Math.min(100, (item.value / chartMax) * 100)) : 0;
+        const barColor = toneColor(item.tone);
+        const content = (
+          <div className="rounded-[6px] border border-white/[0.06] bg-black/10 px-2 py-2">
+            <div className="flex min-w-0 items-center justify-between gap-2 text-[11px]">
+              <span className="min-w-0 truncate font-bold text-slate-200">{item.label}</span>
+              <span className="shrink-0 font-black text-white">{valueFormatter(item.value)}</span>
+            </div>
+            <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/[0.06]">
+              <div className="h-full rounded-full" style={{ width: `${width}%`, backgroundColor: barColor }} />
+            </div>
+            {item.meta ? <div className="mt-1 truncate text-[10px] text-slate-500">{item.meta}</div> : null}
+          </div>
+        );
+
+        if (!item.href) return <div key={item.label}>{content}</div>;
+
+        return (
+          <Link key={item.label} href={item.href} className="block transition hover:opacity-90">
+            {content}
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
+
+export function ProgressLine({
+  label,
+  value,
+  tone = "primary",
+  className = "",
+}: {
+  label: string;
+  value: number;
+  tone?: keyof typeof toneMap | string;
+  className?: string;
+}) {
+  const safeValue = Math.max(0, Math.min(100, value));
+
+  return (
+    <div className={cx("nova-progress-line", className)} data-tone={normalizeTone(tone)}>
+      <div className="nova-progress-line__meta">
+        <span>{label}</span>
+        <strong>{safeValue}%</strong>
+      </div>
+      <div className="nds-progress-track">
+        <div className="nds-progress-bar" style={{ width: `${safeValue}%`, backgroundColor: toneColor(tone) }} />
+      </div>
+    </div>
+  );
+}
+
+export function StackedMeter({
+  segments,
+  total,
+  emptyLabel = "Sem dados para exibir.",
+  valueFormatter = (value) => value.toLocaleString("pt-BR"),
+}: {
+  segments: BarDatum[];
+  total?: number;
+  emptyLabel?: string;
+  valueFormatter?: (value: number) => ReactNode;
+}) {
+  const visible = segments.filter((item) => Number.isFinite(item.value) && item.value > 0);
+  const sum = total ?? visible.reduce((acc, item) => acc + item.value, 0);
+
+  if (!sum) {
+    return (
+      <div className="grid min-h-[102px] place-items-center rounded-[6px] border border-white/[0.06] bg-black/10 px-3 text-center text-[11px] leading-5 text-slate-500">
+        {emptyLabel}
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid gap-2">
+      <div className="flex h-3 overflow-hidden rounded-full bg-white/[0.06]">
+        {visible.map((item) => {
+          return (
+            <div
+              key={item.label}
+              style={{ width: `${Math.max(2, (item.value / sum) * 100)}%`, backgroundColor: toneColor(item.tone) }}
+              title={`${item.label}: ${valueFormatter(item.value)}`}
+            />
+          );
+        })}
+      </div>
+      <div className="grid gap-2">
+        {segments.map((item) => (
+          <div key={item.label} className="flex items-center justify-between gap-2 text-[11px] text-slate-400">
+            <span className="flex min-w-0 items-center gap-2">
+              <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: toneColor(item.tone) }} />
+              <span className="truncate">{item.label}</span>
+            </span>
+            <span className="shrink-0 font-bold text-slate-100">{valueFormatter(item.value)}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function SectionIntro({
   eyebrow,
   title,
@@ -70,7 +214,7 @@ export function SectionIntro({
         {eyebrow ? (
           <div className="nds-label">{eyebrow}</div>
         ) : null}
-        <h2 className={cx("font-black tracking-[-0.03em] text-slate-50", compact ? "mt-1 text-[14px]" : "mt-1 text-[16px]")}>
+        <h2 className={cx("font-black text-slate-50", compact ? "mt-1 text-[14px]" : "mt-1 text-[16px]")}>
           {title}
         </h2>
         {description ? <p className="mt-1 max-w-4xl text-[11px] leading-5 text-[var(--nova-text-muted)]">{description}</p> : null}
@@ -91,11 +235,8 @@ export function TonePill({
 }) {
   return (
     <span
-      className={cx(
-        "nds-badge nova-pill",
-        toneMap[tone] || toneMap.neutral,
-        className,
-      )}
+      className={cx("nds-badge nova-pill", className)}
+      data-tone={normalizeTone(tone)}
     >
       {children}
     </span>
@@ -117,9 +258,9 @@ export function FilterChip({
     <Link
       href={href}
       className={cx(
-        "nova-filter-chip inline-flex min-h-[30px] items-center gap-2 rounded-[4px] border px-2.5 py-1 text-[11px] font-black transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400/25",
+        "nova-filter-chip inline-flex min-h-[30px] items-center gap-2 rounded-[4px] border px-2 py-1 text-[11px] font-black transition focus-visible:outline-none",
         active
-          ? "border-orange-400/35 bg-orange-500/[0.16] text-orange-50 shadow-[0_10px_24px_rgba(249,115,22,0.12)]"
+          ? "border-[var(--nova-primary)] bg-[var(--nova-primary-soft)] text-white"
           : "border-white/10 bg-white/[0.035] text-slate-300 hover:border-white/16 hover:bg-white/[0.07] hover:text-white",
       )}
     ><span>{label}</span>
@@ -140,8 +281,8 @@ export function TableWrap({ children, className = "" }: { children: ReactNode; c
   return <TableShell className={className}>{children}</TableShell>;
 }
 
-export function DenseTable({ children }: { children: ReactNode }) {
-  return <table className="nds-table nova-table">{children}</table>;
+export function DenseTable({ children, className = "" }: { children: ReactNode; className?: string }) {
+  return <table className={cx("nds-table nova-table", className)}>{children}</table>;
 }
 
 export function TableHead({ children }: { children: ReactNode }) {
@@ -168,7 +309,7 @@ export function TableCell({
 }
 
 const tableActionClass =
-  "nds-button whitespace-nowrap";
+  "nds-button nova-table-action whitespace-nowrap";
 
 export function TableActionHeader({
   children = "Ação",
@@ -230,11 +371,11 @@ export function KpiTile({
   badgeLabel?: string;
 }) {
   const content = (
-    <div className="nova-kpi nds-stat-card transition hover:border-orange-300/25"><div className="nds-stat-top"><div className="nds-label">{label}</div>
+    <div className="nova-kpi nds-stat-card transition"><div className="nds-stat-top"><div className="nds-label">{label}</div>
         {badgeLabel ? (
           <TonePill tone={tone}>{badgeLabel}</TonePill>
         ) : (
-          <span aria-hidden="true" className="nds-dot" data-tone={tone} />
+          <span aria-hidden="true" className="nds-dot" data-tone={normalizeTone(tone)} />
         )}
       </div><div className="nds-stat-value">{value}</div>
       {meta ? <div className="nds-stat-detail">{meta}</div> : null}
@@ -259,8 +400,8 @@ export function ActionTile({
   return (
     <Link
       href={href}
-      className="nds-card block transition hover:border-orange-300/25"
-    ><div className="flex items-start justify-between gap-3"><div className="text-[12px] font-black tracking-[-0.01em] text-slate-50">{title}</div>
+      className="nds-card block transition"
+    ><div className="flex items-start justify-between gap-2"><div className="text-[12px] font-black text-slate-50">{title}</div>
         {badge}
       </div><div className="mt-1 text-[11px] leading-5 text-[var(--nova-text-muted)]">{description}</div></Link>
   );
@@ -276,7 +417,7 @@ export function InlineStat({
   tone?: keyof typeof toneMap | string;
 }) {
   return (
-    <div className="flex min-h-[34px] items-center justify-between gap-3 rounded-[6px] border border-white/[0.08] bg-[#07101a] px-3 py-2"><div className="text-[11px] text-slate-400">{label}</div><TonePill tone={tone}>{value}</TonePill></div>
+    <div className="nds-card flex min-h-[34px] items-center justify-between gap-2"><div className="text-[11px] text-[var(--nova-text-muted)]">{label}</div><TonePill tone={tone}>{value}</TonePill></div>
   );
 }
 
@@ -290,14 +431,40 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="nds-empty nova-empty"><div className="text-[13px] font-black tracking-[-0.01em] text-slate-50">{title}</div><div className="mt-2 text-[11px] leading-5 text-[var(--nova-text-muted)]">{description}</div>
-      {action ? <div className="mt-5">{action}</div> : null}
+    <div className="nds-empty nova-empty"><div className="text-[13px] font-black text-slate-50">{title}</div><div className="mt-2 text-[11px] leading-5 text-[var(--nova-text-muted)]">{description}</div>
+      {action ? <div className="mt-2">{action}</div> : null}
     </div>
   );
 }
 
-export function FieldLabel({ children }: { children: ReactNode }) {
-  return <div className="nds-label nova-field-label">{children}</div>;
+export function FieldLabel({
+  children,
+  htmlFor,
+  label,
+  hint,
+}: {
+  children?: ReactNode;
+  htmlFor?: string;
+  label?: ReactNode;
+  hint?: ReactNode;
+}) {
+  const content = label ?? children;
+
+  if (htmlFor) {
+    return (
+      <label htmlFor={htmlFor} className="block">
+        <span className="nds-label nova-field-label">{content}</span>
+        {hint ? <span className="mt-1 block text-[10px] text-slate-500">{hint}</span> : null}
+      </label>
+    );
+  }
+
+  return (
+    <div className="nds-label nova-field-label">
+      {content}
+      {hint ? <span className="mt-1 block text-[10px] text-slate-500 normal-case">{hint}</span> : null}
+    </div>
+  );
 }
 
 export function PageHeader({
@@ -356,7 +523,7 @@ export function StatCard({
     <div className="nds-stat-card nova-stat-card">
       <div className="nds-stat-top">
         <div className="nds-label">{label}</div>
-        <span className="nds-dot" data-tone={tone} />
+        <span className="nds-dot" data-tone={normalizeTone(tone)} />
       </div>
       <div className="nds-stat-value">{value}</div>
       {detail ? <div className="nds-stat-detail">{detail}</div> : null}
@@ -374,8 +541,8 @@ export function FilterBar({
   className?: string;
 }) {
   return (
-    <Surface className={cx("nova-filter-bar p-4", className)}>
-      <div className="grid gap-2 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+    <Surface className={cx("nova-filter-bar", className)}>
+      <div className="nova-filter-toolbar">
         <div className="nds-filter-grid">{children}</div>
         {actions ? <div className="flex flex-wrap items-center justify-end gap-2">{actions}</div> : null}
       </div>
@@ -396,14 +563,14 @@ export function RightPanel({
 }) {
   return (
     <aside className="nds-panel nova-right-panel">
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start justify-between gap-2">
         <div>
-          <h2 className="text-[13px] font-black tracking-[-0.02em] text-white">{title}</h2>
+          <h2 className="text-[13px] font-black text-white">{title}</h2>
           {description ? <p className="mt-1 text-[11px] leading-5 text-[var(--nova-text-muted)]">{description}</p> : null}
         </div>
         {actions ? <div className="shrink-0">{actions}</div> : null}
       </div>
-      <div className="mt-4 grid gap-3">{children}</div>
+      <div className="mt-2 grid gap-2">{children}</div>
     </aside>
   );
 }
@@ -419,44 +586,46 @@ export function ChartCard({
   tone?: keyof typeof toneMap | string;
   children?: ReactNode;
 }) {
-  const dotClass = toneDotMap[tone] || toneDotMap.info;
-
   return (
     <div className="nds-chart-card nova-chart-card">
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start justify-between gap-2">
         <div>
           <h3 className="text-[13px] font-black text-white">{title}</h3>
           {subtitle ? <p className="mt-1 text-[10px] leading-4 text-[var(--nova-text-muted)]">{subtitle}</p> : null}
         </div>
-        <span className={cx("mt-1 h-2.5 w-2.5 rounded-full", dotClass)} />
+        <span className="mt-1 h-2.5 w-2.5 rounded-full" style={{ backgroundColor: toneColor(tone) }} />
       </div>
       <div className="nds-chart-area">
-        {children || <FakeChart tone={tone} />}
+        {children || (
+          <div className="grid min-h-[102px] place-items-center rounded-[6px] border border-white/[0.06] bg-black/10 px-3 text-center text-[11px] leading-5 text-slate-500">
+            Sem dados para exibir.
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
 function FakeChart({ tone = "info" }: { tone?: keyof typeof toneMap | string }) {
-  const stroke =
-    tone === "attention" ? "#fbbf24" : tone === "critical" ? "#fb7185" : tone === "success" ? "#34d399" : "#f97316";
+  const normalized = normalizeTone(tone);
+  const stroke = toneColor(tone);
 
   return (
-    <svg viewBox="0 0 640 170" className="h-full min-h-[160px] w-full" aria-hidden="true">
+    <svg viewBox="0 0 640 132" className="h-full min-h-[118px] w-full" aria-hidden="true">
       <defs>
-        <linearGradient id={`nova-chart-${stroke.replace("#", "")}`} x1="0" x2="0" y1="0" y2="1">
+        <linearGradient id={`nova-chart-${normalized}`} x1="0" x2="0" y1="0" y2="1">
           <stop offset="0%" stopColor={stroke} stopOpacity="0.26" />
           <stop offset="100%" stopColor={stroke} stopOpacity="0" />
         </linearGradient>
       </defs>
       {Array.from({ length: 5 }).map((_, index) => (
-        <line key={`h-${index}`} x1="0" x2="640" y1={20 + index * 30} y2={20 + index * 30} stroke="rgba(255,255,255,0.07)" />
+        <line key={`h-${index}`} x1="0" x2="640" y1={18 + index * 23} y2={18 + index * 23} stroke="rgba(255,255,255,0.07)" />
       ))}
       {Array.from({ length: 9 }).map((_, index) => (
-        <line key={`v-${index}`} x1={index * 80} x2={index * 80} y1="0" y2="160" stroke="rgba(255,255,255,0.045)" />
+        <line key={`v-${index}`} x1={index * 80} x2={index * 80} y1="0" y2="124" stroke="rgba(255,255,255,0.045)" />
       ))}
-      <path d="M0 126 C75 118 95 58 160 72 C240 91 240 132 320 94 C392 60 422 112 480 84 C555 48 585 68 640 38 L640 170 L0 170 Z" fill={`url(#nova-chart-${stroke.replace("#", "")})`} />
-      <path d="M0 126 C75 118 95 58 160 72 C240 91 240 132 320 94 C392 60 422 112 480 84 C555 48 585 68 640 38" fill="none" stroke={stroke} strokeWidth="4" strokeLinecap="round" />
+      <path d="M0 98 C75 92 95 45 160 56 C240 70 240 104 320 74 C392 47 422 87 480 65 C555 37 585 52 640 30 L640 132 L0 132 Z" fill={`url(#nova-chart-${normalized})`} />
+      <path d="M0 98 C75 92 95 45 160 56 C240 70 240 104 320 74 C392 47 422 87 480 65 C555 37 585 52 640 30" fill="none" stroke={stroke} strokeWidth="3" strokeLinecap="round" />
     </svg>
   );
 }
@@ -507,30 +676,30 @@ export function ReportPreviewCard({
 }) {
   return (
     <div className="nds-report-preview nova-report-preview-card">
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start justify-between gap-2">
         <div>
-          <div className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">Prévia</div>
-          <div className="mt-2 text-base font-black text-white">{title}</div>
+          <div className="nds-label">Prévia</div>
+          <div className="mt-1 text-[13px] font-black text-white">{title}</div>
         </div>
         <TonePill tone="attention">{format}</TonePill>
       </div>
-      <div className="nds-report-preview-page mt-3">
-        <div className="h-4 rounded-sm bg-orange-500" />
-        <div className="mt-4 h-3 w-2/3 rounded-sm bg-slate-300" />
-        <div className="mt-2 h-2 w-full rounded-sm bg-slate-200" />
-        <div className="mt-1 h-2 w-5/6 rounded-sm bg-slate-200" />
+      <div className="nds-report-preview-page mt-2">
+        <div className="h-3 rounded-sm bg-[var(--nova-primary)]" />
+        <div className="mt-2 h-2.5 w-2/3 rounded-sm bg-white/[0.16]" />
+        <div className="mt-2 h-2 w-full rounded-sm bg-white/[0.10]" />
+        <div className="mt-1 h-2 w-5/6 rounded-sm bg-white/[0.10]" />
         {includeCharts ? (
-          <div className="mt-4 h-20 rounded-sm border border-slate-200 bg-white">
+          <div className="mt-2 h-20 rounded-sm border border-white/[0.08] bg-black/20">
             <FakeChart tone="attention" />
           </div>
         ) : (
-          <div className="mt-4 grid gap-2">
-            <div className="h-5 rounded-sm bg-slate-200" />
-            <div className="h-5 rounded-sm bg-slate-200" />
+          <div className="mt-2 grid gap-2">
+            <div className="h-5 rounded-sm bg-white/[0.10]" />
+            <div className="h-5 rounded-sm bg-white/[0.10]" />
           </div>
         )}
       </div>
-      <div className="mt-3 flex items-center justify-between text-[11px] text-slate-400">
+      <div className="mt-2 flex items-center justify-between text-[10px] text-slate-400">
         <span>{units} unidade(s)</span>
         <span>{includeCharts ? "com gráficos" : "somente indicadores"}</span>
       </div>

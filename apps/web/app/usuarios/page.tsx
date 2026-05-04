@@ -8,6 +8,7 @@ import { OperationalDeletePanel } from "@/components/operational-delete-panel";
 import {
   DenseTable,
   EmptyState,
+  FieldLabel,
   SectionIntro,
   Surface,
   TableActionAnchor,
@@ -35,7 +36,9 @@ import {
   type PaginatedResponse,
   type RawSearchParams,
 } from "@/lib/list-query";
-import { getServerWebSession, normalizeRole } from "@/lib/web-session";
+import { formatDateTime } from "@/lib/formatters";
+import { isAdminRole, ROLE_OPTIONS, roleLabel, roleTone } from "@/lib/role-policy";
+import { getServerWebSession } from "@/lib/web-session";
 
 type UserRow = {
   id: string;
@@ -45,46 +48,6 @@ type UserRow = {
   isActive: boolean;
   createdAt: string;
 };
-
-const roleOptions = [
-  { value: "admin", label: "Administrador" },
-  { value: "operator", label: "Operador" },
-  { value: "viewer", label: "Leitor" },
-];
-
-function FieldLabel({
-  htmlFor,
-  label,
-}: {
-  htmlFor: string;
-  label: string;
-}) {
-  return (
-    <label htmlFor={htmlFor} className="text-[10px] uppercase tracking-[0.16em] text-slate-500">
-      {label}
-    </label>
-  );
-}
-
-function roleLabel(role: string) {
-  return roleOptions.find((option) => option.value === role)?.label || role;
-}
-
-function roleTone(role: string) {
-  if (role === "admin") return "success";
-  if (role === "operator") return "info";
-  return "attention";
-}
-
-function formatDateTime(value: string) {
-  return new Date(value).toLocaleString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
 
 export default async function UsuariosPage({
   searchParams,
@@ -97,7 +60,7 @@ export default async function UsuariosPage({
     redirect("/login?next=/usuarios");
   }
 
-  if (normalizeRole(session.user?.role || "") !== "admin") {
+  if (!isAdminRole(session.user?.role || "")) {
     redirect("/dashboard?denied=usuarios");
   }
 
@@ -117,7 +80,7 @@ export default async function UsuariosPage({
     "use server";
 
     try {
-      if (normalizeRole((await getServerWebSession()).user?.role || "") !== "admin") {
+      if (!isAdminRole((await getServerWebSession()).user?.role || "")) {
         return { status: "error", message: "Acesso negado." };
       }
 
@@ -146,7 +109,7 @@ export default async function UsuariosPage({
     "use server";
 
     try {
-      if (normalizeRole((await getServerWebSession()).user?.role || "") !== "admin") {
+      if (!isAdminRole((await getServerWebSession()).user?.role || "")) {
         return { status: "error", message: "Acesso negado." };
       }
 
@@ -176,7 +139,7 @@ export default async function UsuariosPage({
 
     try {
       const actionSession = await getServerWebSession();
-      if (normalizeRole(actionSession.user?.role || "") !== "admin") {
+      if (!isAdminRole(actionSession.user?.role || "")) {
         return { status: "error", message: "Acesso negado." };
       }
 
@@ -215,6 +178,7 @@ export default async function UsuariosPage({
   const activeOnPage = response.items.filter((user) => user.isActive).length;
   const currentUserId = session.user?.id || "";
   const adminOnPage = response.items.filter((user) => user.role === "admin").length;
+  const editorOnPage = response.items.filter((user) => user.role === "editor").length;
   const operatorOnPage = response.items.filter((user) => user.role === "operator").length;
   const viewerOnPage = response.items.filter((user) => user.role === "viewer").length;
 
@@ -243,7 +207,7 @@ export default async function UsuariosPage({
           {
             label: "Admins",
             value: adminOnPage,
-            meta: `${operatorOnPage} operador(es)`,
+            meta: `${editorOnPage} editor(es), ${operatorOnPage} operador(es)`,
             tone: adminOnPage ? "success" : "attention",
           },
           {
@@ -255,72 +219,67 @@ export default async function UsuariosPage({
         ]}
         noteTitle="Menos formulário aberto"
         noteCopy="A lista é o centro da tela; criação, edição e senha ficam no mesmo contexto para não disputar atenção com a revisão dos usuários."
-      /><Surface className="p-5 sm:p-6"><SectionIntro
+      /><Surface><SectionIntro
           eyebrow="Filtros"
           title="Refine pessoa, papel e estado"
           description="Busca por nome ou e-mail, com role, status e ordenação preservados na URL."
           actions={
             <Link
               href="/usuarios"
-              className="rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/[0.06] hover:text-white"
+              className="nds-button"
+              data-variant="secondary"
             >
               Limpar filtros
             </Link>
           }
           compact
-        /><form method="GET" className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-6"><div className="grid gap-2 xl:col-span-2"><FieldLabel htmlFor="users-q" label="Busca" /><input
+        /><form method="GET" className="nova-filter-grid nova-filter-grid--users mt-2"><div className="grid gap-1.5"><FieldLabel htmlFor="users-q" label="Busca" /><input
               id="users-q"
               name="q"
               defaultValue={q}
               placeholder="Nome ou e-mail"
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
-            /></div><div className="grid gap-2"><FieldLabel htmlFor="users-role" label="Papel" /><select
+            /></div><div className="grid gap-1.5"><FieldLabel htmlFor="users-role" label="Papel" /><select
               id="users-role"
               name="role"
               defaultValue={role}
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
             ><option value="all">Todos os papéis</option>
-              {roleOptions.map((option) => (
+                    {ROLE_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
               ))}
-            </select></div><div className="grid gap-2"><FieldLabel htmlFor="users-active" label="Status" /><select
+            </select></div><div className="grid gap-1.5"><FieldLabel htmlFor="users-active" label="Status" /><select
               id="users-active"
               name="active"
               defaultValue={active}
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            ><option value="all">Todos</option><option value="true">Ativos</option><option value="false">Excluídos</option></select></div><div className="grid gap-2"><FieldLabel htmlFor="users-sort-by" label="Ordenar por" /><select
+            ><option value="all">Todos</option><option value="true">Ativos</option><option value="false">Excluídos</option></select></div><div className="grid gap-1.5"><FieldLabel htmlFor="users-sort-by" label="Ordenar por" /><select
               id="users-sort-by"
               name="sortBy"
               defaultValue={sortBy}
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            ><option value="createdAt">Cadastro</option><option value="name">Nome</option><option value="email">E-mail</option><option value="role">Papel</option></select></div><div className="grid gap-2"><FieldLabel htmlFor="users-sort-dir" label="Direção" /><select
+            ><option value="createdAt">Cadastro</option><option value="name">Nome</option><option value="email">E-mail</option><option value="role">Papel</option></select></div><div className="grid gap-1.5"><FieldLabel htmlFor="users-sort-dir" label="Direção" /><select
               id="users-sort-dir"
               name="sortDir"
               defaultValue={sortDir}
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            ><option value="desc">Descendente</option><option value="asc">Ascendente</option></select></div><div className="grid gap-2 md:col-span-2 xl:col-span-2"><FieldLabel htmlFor="users-page-size" label="Página" /><select
+            ><option value="desc">Descendente</option><option value="asc">Ascendente</option></select></div><div className="grid gap-1.5"><FieldLabel htmlFor="users-page-size" label="Página" /><select
               id="users-page-size"
               name="pageSize"
               defaultValue={String(pageSize)}
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            ><option value="10">10 por página</option><option value="20">20 por página</option><option value="50">50 por página</option></select></div><button className="rounded-[14px] bg-white px-4 py-3 text-sm font-semibold text-black transition hover:opacity-95 md:col-span-2 xl:col-span-4">
+            ><option value="10">10 por página</option><option value="20">20 por página</option><option value="50">50 por página</option></select></div><button className="nds-button xl:self-end" data-variant="primary">
             Aplicar filtros
-          </button></form></Surface><Surface className="p-5 sm:p-6"><SectionIntro
+          </button></form></Surface><Surface><SectionIntro
           eyebrow="Acessos"
           title="Usuários cadastrados"
           description={`${response.meta.total} usuário(s) encontrados nesta visão.`}
           actions={<TonePill tone="neutral">{response.items.length} linhas</TonePill>}
           compact
-        /><div className="mt-5">
+        /><div className="mt-2">
           {response.items.length ? (
-            <TableShell><DenseTable><TableHead><tr><th className="px-4 py-3">Usuário</th><th className="px-4 py-3">Papel</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Criado em</th><TableActionHeader>Ajuste</TableActionHeader></tr></TableHead><tbody>
+            <TableShell><DenseTable><TableHead><tr><th className="px-3 py-2">Usuário</th><th className="px-3 py-2">Papel</th><th className="px-3 py-2">Status</th><th className="px-3 py-2">Criado em</th><TableActionHeader>Ajuste</TableActionHeader></tr></TableHead><tbody>
                   {response.items.map((user) => (
                     <tr
                       key={user.id}
                       className="border-b border-white/6 last:border-b-0 hover:bg-white/[0.025]"
-                    ><TableCell><div className="font-medium text-white">{user.name}</div><div className="mt-1 text-xs text-slate-500">{user.email}</div></TableCell><TableCell><TonePill tone={roleTone(user.role)}>{roleLabel(user.role)}</TonePill></TableCell><TableCell><TonePill tone={user.isActive ? "success" : "critical"}>
+                    ><TableCell><div className="font-medium text-white">{user.name}</div><div className="mt-1 text-[10px] text-slate-500">{user.email}</div></TableCell><TableCell><TonePill tone={roleTone(user.role)}>{roleLabel(user.role)}</TonePill></TableCell><TableCell><TonePill tone={user.isActive ? "success" : "critical"}>
                           {user.isActive ? "ativo" : "inativo"}
                         </TonePill></TableCell><TableCell className="text-slate-400">{formatDateTime(user.createdAt)}</TableCell><TableActionCell><TableActionAnchor href={`#user-${user.id}`}>
                           Ajustar acesso
@@ -334,7 +293,8 @@ export default async function UsuariosPage({
               action={
                 <Link
                   href="/usuarios"
-                  className="rounded-full bg-white px-4 py-2 text-sm font-medium text-black"
+                  className="nds-button"
+                  data-variant="secondary"
                 >
                   Limpar filtros
                 </Link>
@@ -344,20 +304,20 @@ export default async function UsuariosPage({
         </div></Surface><ListPagination pathname="/usuarios" searchParams={params} meta={response.meta} />
 
       {response.items.length ? (
-        <Surface className="p-5 sm:p-6"><SectionIntro
+        <Surface><SectionIntro
             eyebrow="Administração"
             title="Editar acesso e senha"
             description="Edição e revisão de acesso."
             compact
-          /><div className="mt-5 grid gap-4">
+          /><div className="mt-2 grid gap-2">
             {response.items.map((user) => (
-              <article
+              <details
                 key={user.id}
                 id={`user-${user.id}`}
-                className="rounded-[18px] border border-white/[0.08] bg-[#0a0f15] p-4"
-              ><div className="flex flex-col gap-3 border-b border-white/[0.08] pb-4 md:flex-row md:items-start md:justify-between"><div><div className="text-base font-semibold text-white">{user.name}</div><div className="mt-1 text-sm text-slate-400">{user.email}</div></div><div className="flex flex-wrap gap-2"><TonePill tone={roleTone(user.role)}>{roleLabel(user.role)}</TonePill><TonePill tone={user.isActive ? "success" : "critical"}>
+                className="nds-card nova-user-admin-card"
+              ><summary className="flex cursor-pointer list-none flex-col gap-2 md:flex-row md:items-center md:justify-between"><div><div className="text-[13px] font-black text-white">{user.name}</div><div className="mt-1 text-[11px] text-slate-400">{user.email}</div></div><div className="flex flex-wrap gap-2"><TonePill tone={roleTone(user.role)}>{roleLabel(user.role)}</TonePill><TonePill tone={user.isActive ? "success" : "critical"}>
                       {user.isActive ? "ativo" : "inativo"}
-                    </TonePill><OperationalDeletePanel
+                    </TonePill><TonePill tone="neutral">editar</TonePill></div></summary><div className="mt-2 flex justify-end border-t border-white/[0.08] pt-2"><OperationalDeletePanel
                       action={deleteUser}
                       entityId={user.id}
                       entityLabel="usuário"
@@ -369,50 +329,47 @@ export default async function UsuariosPage({
                             ? "Este usuário já está inativo."
                             : undefined
                       }
-                    /></div></div><div className="mt-4 grid gap-4 xl:grid-cols-2"><ActionForm
+                    /></div><div className="mt-2 grid gap-2 xl:grid-cols-2"><ActionForm
                     action={updateUser}
-                    className="grid gap-3 rounded-[16px] border border-white/[0.08] bg-black/20 p-4"
+                    className="nds-card grid gap-2"
                     submitLabel="Salvar usuário"
                     pendingLabel="Salvando..."
                     variant="secondary"
-                  ><div className="text-sm font-semibold text-white">Dados de acesso</div><input type="hidden" name="id" value={user.id} /><div className="grid gap-2"><FieldLabel htmlFor={`edit-name-${user.id}`} label="Nome" /><input
+                  ><div className="text-[12px] font-black text-white">Dados de acesso</div><input type="hidden" name="id" value={user.id} /><div className="grid gap-1.5"><FieldLabel htmlFor={`edit-name-${user.id}`} label="Nome" /><input
                         id={`edit-name-${user.id}`}
                         name="name"
                         defaultValue={user.name}
-                        className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-                      /></div><div className="grid gap-2"><FieldLabel htmlFor={`edit-role-${user.id}`} label="Papel" /><select
+                      /></div><div className="grid gap-1.5"><FieldLabel htmlFor={`edit-role-${user.id}`} label="Papel" /><select
                         id={`edit-role-${user.id}`}
                         name="role"
                         defaultValue={user.role}
-                        className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
                       >
-                        {roleOptions.map((option) => (
+                              {ROLE_OPTIONS.map((option) => (
                           <option key={option.value} value={option.value}>
                             {option.label}
                           </option>
                         ))}
-                      </select></div><label className="flex items-center gap-2 text-sm text-slate-300"><input
+                      </select></div><label className="flex items-center gap-2 text-[11px] text-slate-300"><input
                         type="checkbox"
                         name="isActive"
                         defaultChecked={user.isActive}
-                        className="h-4 w-4 rounded border-white/20 bg-[#111318]"
+                        className="h-4 w-4 rounded border-white/20 bg-[var(--nova-surface-3)]"
                       />
                       Usuário ativo
                     </label></ActionForm><ActionForm
                     action={resetPassword}
-                    className="grid gap-3 rounded-[16px] border border-white/[0.08] bg-black/20 p-4"
+                    className="nds-card grid gap-2"
                     submitLabel="Redefinir senha"
                     pendingLabel="Salvando..."
                     variant="secondary"
-                  ><div className="text-sm font-semibold text-white">Senha</div><input type="hidden" name="id" value={user.id} /><div className="grid gap-2"><FieldLabel htmlFor={`reset-password-${user.id}`} label="Nova senha" /><input
+                  ><div className="text-[12px] font-black text-white">Senha</div><input type="hidden" name="id" value={user.id} /><div className="grid gap-1.5"><FieldLabel htmlFor={`reset-password-${user.id}`} label="Nova senha" /><input
                         id={`reset-password-${user.id}`}
                         name="password"
                         type="password"
                         placeholder="Nova senha"
-                        className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
-                      /></div><div className="text-xs text-slate-500">
+                      /></div><div className="text-[10px] text-slate-500">
                       Criado em {formatDateTime(user.createdAt)}
-                    </div></ActionForm></div></article>
+                    </div></ActionForm></div></details>
             ))}
           </div></Surface>
       ) : null}

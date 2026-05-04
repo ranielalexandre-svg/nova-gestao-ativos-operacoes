@@ -42,19 +42,20 @@ export function UnitWatchlistPanel({
   const rows = buildWatchlist(telemetry, limit);
 
   return (
-    <Surface className="p-5 sm:p-6"><SectionIntro eyebrow="Watchlist" title={title} description={description} compact /><div className="mt-4">
+    <Surface><SectionIntro eyebrow="Watchlist" title={title} description={description} compact /><div className="mt-2">
         {rows.length ? (
-          <TableShell><DenseTable><TableHead><tr><th className="px-4 py-3">Unidade</th><th className="px-4 py-3">Parceiro</th><th className="px-4 py-3">Estado</th><th className="px-4 py-3">Sinais</th><th className="px-4 py-3 text-right">Acesso</th></tr></TableHead><tbody>
+          <TableShell><DenseTable><TableHead><tr><th className="px-3 py-2">Unidade</th><th className="px-3 py-2">Parceiro</th><th className="px-3 py-2">Estado</th><th className="px-3 py-2">Sinais</th><th className="px-3 py-2 text-right">Acesso</th></tr></TableHead><tbody>
                 {rows.map((item) => (
                   <tr key={item.unit.id} className="border-b border-white/[0.06] last:border-b-0 hover:bg-white/[0.025]"><TableCell><div className="font-semibold text-slate-50">
                         {item.unit.code} · {item.unit.name}
-                      </div><div className="mt-1 text-xs text-slate-500">
+                      </div><div className="mt-1 text-[10px] text-slate-500">
                         {[item.unit.city, item.unit.state].filter(Boolean).join(" / ") || "Local não informado"}
-                      </div></TableCell><TableCell><div className="font-medium text-slate-200">{item.partner.name}</div><div className="mt-1 text-xs text-slate-500">{item.partner.code}</div></TableCell><TableCell><TonePill tone={healthTone(item.health)}>{healthLabel(item.health)}</TonePill></TableCell><TableCell className="text-slate-400">{signalLine(item)}</TableCell><TableCell className="text-right"><Link
+                      </div></TableCell><TableCell><div className="font-medium text-slate-200">{item.partner.name}</div><div className="mt-1 text-[10px] text-slate-500">{item.partner.code}</div></TableCell><TableCell><TonePill tone={healthTone(item.health)}>{healthLabel(item.health)}</TonePill></TableCell><TableCell className="text-slate-400">{signalLine(item)}</TableCell><TableCell className="text-right"><Link
                         href={`/unidades/${item.unit.id}`}
-                        className="inline-flex rounded-[12px] border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-semibold text-slate-100 transition hover:border-white/18 hover:bg-white/[0.08]"
+                        className="nds-button"
+                        data-variant="secondary"
                       >
-                        Abrir unidade
+                        Abrir
                       </Link></TableCell></tr>
                 ))}
               </tbody></DenseTable></TableShell>

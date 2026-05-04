@@ -1,10 +1,11 @@
 import { IsIn, IsOptional, IsString } from "class-validator";
 import { PaginationQueryDto } from "../../common/dto/pagination-query.dto";
+import { USER_ROLES } from "../user-roles";
 
 export class ListUsersQueryDto extends PaginationQueryDto {
   @IsOptional()
   @IsString()
-  @IsIn(["admin", "operator", "viewer"])
+  @IsIn(USER_ROLES)
   role?: string;
 
   @IsOptional()

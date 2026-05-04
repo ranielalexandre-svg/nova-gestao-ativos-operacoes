@@ -1,5 +1,1 @@
-import { redirect } from "next/navigation";
-
-export default function SensoresAliasPage() {
-  redirect("/monitoramento");
-}
+export { default } from "../monitoramento/page";

@@ -36,25 +36,42 @@ export class StarlinksService {
         },
       },
     });
+    const attachmentCounts = items.length
+      ? await this.prisma.documentAttachment.groupBy({
+          by: ['entityId'],
+          where: {
+            entityType: 'equipment',
+            entityId: { in: items.map((item) => item.id) },
+          },
+          _count: { _all: true },
+        })
+      : [];
+    const attachmentsByEquipmentId = new Map(
+      attachmentCounts.map((item) => [item.entityId, item._count._all]),
+    );
 
     return items.map((item) => ({
       id: item.id,
       type: item.type,
-      manufacturer: 'Starlink',
+      manufacturer: item.name.toLowerCase().includes('starlink')
+        ? 'Starlink'
+        : null,
       model: item.name,
-      technology: 'satellite',
+      technology: item.type,
       assetTag: item.tag,
       serial: item.serialNumber,
       unitId: item.unit.id,
+      unitCode: item.unit.code,
       partnerId: item.unit.partner.id,
+      partnerCode: item.unit.partner.code,
       status: item.isActive ? item.status : 'retired',
-      criticality: 'Média',
-      installedAt: null,
+      inventoryStatus: item.isActive ? 'active' : 'inactive',
       createdAt: item.createdAt,
       city: item.unit.city,
+      state: item.unit.state,
       unitName: item.unit.name,
       partnerName: item.unit.partner.name,
-      documents: [],
+      documentsCount: attachmentsByEquipmentId.get(item.id) || 0,
     }));
   }
 }

@@ -22,94 +22,17 @@ import {
   getLegacyReconciliationForCurrent,
   getLegacySummary,
 } from "@/lib/legacy-catalog";
+import { formatDateTime } from "@/lib/formatters";
+import {
+  formatPercent,
+  healthTone,
+  readUnitHostTelemetry,
+  type UnitHostTelemetry,
+  type UnitHostTelemetryItem,
+} from "@/lib/noc-overview";
 import { apiJson } from "@/lib/server-api";
 import type { PaginatedResponse } from "@/lib/list-query";
 import { getServerWebSession, normalizeRole } from "@/lib/web-session";
-
-type UnitHostTelemetry = {
-  generatedAt: string;
-  sources: Array<{
-    id: string;
-    code: string;
-    name: string;
-    ok: boolean;
-    message: string;
-    targetUrl: string;
-    version?: string;
-    totalHosts: number;
-    matchedUnits: number;
-  }>;
-  counts: {
-    units: number;
-    matched: number;
-    ambiguous: number;
-    unmapped: number;
-    online: number;
-    degraded: number;
-    down: number;
-    withProblems: number;
-    syncReady: number;
-    avgLatencyMs: number | null;
-    avgLossPct: number | null;
-    maxTemperatureC: number | null;
-  };
-  items: UnitHostTelemetryItem[];
-};
-
-type UnitHostTelemetryItem = {
-  unit: {
-    id: string;
-    code: string;
-    name: string;
-    city: string | null;
-    state: string | null;
-    isActive: boolean;
-  };
-  partner: {
-    id: string;
-    code: string;
-    name: string;
-  };
-  equipments: Array<{
-    id: string;
-    tag: string;
-    name: string;
-    type: string;
-    serialNumber: string | null;
-    status: string;
-    isActive: boolean;
-  }>;
-  match: {
-    status: "matched" | "ambiguous" | "unmatched";
-    score: number;
-    confidence: number;
-    integrationId?: string;
-    integrationCode?: string;
-    integrationName?: string;
-    targetUrl?: string;
-    hostId?: string;
-    host?: string;
-    hostName?: string;
-    hostStatus?: string;
-    matchedBy: string[];
-    candidates: number;
-    syncReady: boolean;
-  };
-  health: "online" | "degraded" | "down" | "unmapped" | "unknown" | "ambiguous";
-  metrics: {
-    ping: { ok: boolean | null } | null;
-    lossPct: number | null;
-    latencyMs: number | null;
-    temperatureC: number | null;
-  };
-  problems: Array<{
-    eventid: string;
-    name: string;
-    severity: string;
-    acknowledged: string;
-    clock: string;
-  }>;
-};
 
 type SyncReadyResult = {
   ok: boolean;
@@ -274,8 +197,8 @@ async function syncReadyZabbixAction(
       method: "POST",
     });
 
-    revalidatePath("/reconciliacao-central");
-    revalidatePath("/monitoramento");
+    revalidatePath("/reconciliacao");
+    revalidatePath("/sensores");
     revalidatePath("/unidades");
 
     const message =
@@ -292,47 +215,6 @@ async function syncReadyZabbixAction(
       status: "error",
       message: getActionErrorMessage(error),
     };
-  }
-}
-
-function emptyTelemetry(message = "Telemetria Zabbix indisponível para reconciliação.") {
-  return {
-    generatedAt: new Date().toISOString(),
-    sources: [
-      {
-        id: "zabbix",
-        code: "ZBX",
-        name: "Zabbix",
-        ok: false,
-        message,
-        targetUrl: "",
-        totalHosts: 0,
-        matchedUnits: 0,
-      },
-    ],
-    counts: {
-      units: 0,
-      matched: 0,
-      ambiguous: 0,
-      unmapped: 0,
-      online: 0,
-      degraded: 0,
-      down: 0,
-      withProblems: 0,
-      syncReady: 0,
-      avgLatencyMs: null,
-      avgLossPct: null,
-      maxTemperatureC: null,
-    },
-    items: [],
-  } satisfies UnitHostTelemetry;
-}
-
-async function readTelemetry() {
-  try {
-    return await apiJson<UnitHostTelemetry>("/monitoring/unit-hosts");
-  } catch (error) {
-    return emptyTelemetry(error instanceof Error ? error.message : undefined);
   }
 }
 
@@ -406,24 +288,8 @@ async function readLegacyReconciliation() {
   }
 }
 
-function formatDateTime(value: string) {
-  return new Date(value).toLocaleString("pt-BR");
-}
-
-function formatPercent(value: number | null) {
-  if (typeof value !== "number" || !Number.isFinite(value)) return "-";
-  return `${value.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`;
-}
-
 function cityLine(item: UnitHostTelemetryItem) {
   return [item.unit.city, item.unit.state].filter(Boolean).join(" / ") || "Local não informado";
-}
-
-function healthTone(value: UnitHostTelemetryItem["health"]) {
-  if (value === "online") return "success";
-  if (value === "degraded" || value === "ambiguous") return "attention";
-  if (value === "down") return "critical";
-  return "neutral";
 }
 
 function matchTone(value: UnitHostTelemetryItem["match"]) {
@@ -496,7 +362,7 @@ function LegacySignalPills({ signal }: { signal: LegacySignal }) {
     signal.phones ? { label: `${signal.phones} fone`, tone: "subtle" } : null,
   ].filter((item): item is { label: string; tone: string } => Boolean(item));
 
-  if (!items.length) return <span className="text-xs text-slate-500">sem sinal operacional</span>;
+  if (!items.length) return <span className="text-[10px] text-slate-500">sem sinal operacional</span>;
 
   return (
     <div className="flex max-w-[360px] flex-wrap gap-1">
@@ -522,16 +388,16 @@ function ReconciliationHero({
   const failures = sourceFailures(telemetry);
 
   return (
-    <Surface className="p-5 sm:p-6"><div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px] xl:items-stretch"><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><TonePill tone={failures ? "attention" : "success"}>
+    <Surface><div className="nova-side-grid nova-side-grid--360 xl:items-stretch"><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><TonePill tone={failures ? "attention" : "success"}>
               {failures ? "fonte com alerta" : "fontes ok"}
-            </TonePill><TonePill tone="neutral">leitura {formatDateTime(telemetry.generatedAt)}</TonePill></div><h2 className="mt-4 max-w-5xl text-[28px] font-semibold leading-tight tracking-tight text-slate-50 sm:text-[36px]">
+            </TonePill><TonePill tone="neutral">leitura {formatDateTime(telemetry.generatedAt)}</TonePill></div><h2 className="mt-2 max-w-5xl text-[18px] font-black leading-tight text-slate-50">
             Reconcilie cadastro, host Zabbix e inventário antes de automatizar.
-          </h2><p className="mt-3 max-w-4xl text-sm leading-7 text-slate-400">
+          </h2><p className="mt-2 max-w-4xl text-[11px] leading-5 text-slate-400">
             Esta tela separa o trabalho de saneamento do dashboard NOC. A escrita no Zabbix só acontece
             quando a unidade tem host único e tag explícita; os demais casos ficam em fila de ajuste.
-          </p></div><div className="rounded-[18px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="flex items-start justify-between gap-4"><div><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+          </p></div><div className="nds-card"><div className="flex items-start justify-between gap-2"><div><div className="nds-label">
                 Cobertura reconciliada
-              </div><div className="mt-2 text-4xl font-semibold tracking-tight text-slate-50">{coverage}%</div><div className="mt-1 text-sm text-slate-400">
+              </div><div className="mt-1 text-[22px] font-black text-slate-50">{coverage}%</div><div className="mt-1 text-[11px] text-slate-400">
                 {telemetry.counts.matched} de {telemetry.counts.units} unidade(s) com host
               </div></div><TonePill tone={telemetry.counts.syncReady ? "success" : "attention"}>
               {telemetry.counts.syncReady} pronto(s)
@@ -543,13 +409,13 @@ function ReconciliationHero({
               submitLabel="Sincronizar prontos"
               pendingLabel="Sincronizando..."
               variant="secondary"
-              className="mt-4"
+              className="mt-2"
               submitClassName="justify-start"
-            ><div className="rounded-[14px] border border-white/[0.08] bg-white/[0.035] p-3 text-xs leading-5 text-slate-400">
+            ><div className="nds-card text-[11px] leading-5 text-slate-400">
                 Atualiza apenas hosts com vínculo explícito. Casos ambíguos ou sem tag continuam bloqueados.
               </div></ActionForm>
           ) : (
-            <div className="mt-4 rounded-[14px] border border-white/[0.08] bg-white/[0.035] p-3 text-xs leading-5 text-slate-400">
+            <div className="nds-card mt-2 text-[11px] leading-5 text-slate-400">
               {isAdmin
                 ? "Nenhum host está pronto para sincronização automática nesta leitura."
                 : "A sincronização é restrita a administradores."}
@@ -561,19 +427,19 @@ function ReconciliationHero({
 
 function ReadyTable({ rows }: { rows: UnitHostTelemetryItem[] }) {
   return (
-    <Surface className="p-5 sm:p-6"><SectionIntro
+    <Surface><SectionIntro
         eyebrow="Execução segura"
         title="Prontos para sincronizar"
         description="Unidades com host único e tag explícita. O sync atualiza tags e inventário do host, preservando a regra de não criar hosts automaticamente."
         actions={<TonePill tone={rows.length ? "success" : "neutral"}>{rows.length} unidade(s)</TonePill>}
         compact
-      /><div className="mt-4">
+      /><div className="mt-2">
         {rows.length ? (
-          <TableShell><DenseTable><TableHead><tr><th className="px-4 py-3">Unidade</th><th className="px-4 py-3">Parceiro</th><th className="px-4 py-3">Host Zabbix</th><th className="px-4 py-3">Saúde</th><th className="px-4 py-3">Loss</th><th className="px-4 py-3">Itens de vínculo</th></tr></TableHead><tbody>
+          <TableShell><DenseTable><TableHead><tr><th className="px-3 py-2">Unidade</th><th className="px-3 py-2">Parceiro</th><th className="px-3 py-2">Host Zabbix</th><th className="px-3 py-2">Saúde</th><th className="px-3 py-2">Loss</th><th className="px-3 py-2">Itens de vínculo</th></tr></TableHead><tbody>
                 {rows.map((item) => (
-                  <tr key={item.unit.id} className="border-b border-white/6 last:border-b-0"><TableCell><Link href={`/unidades/${item.unit.id}`} className="font-semibold text-slate-50 hover:text-sky-100">
+                  <tr key={item.unit.id} className="border-b border-white/6 last:border-b-0"><TableCell><Link href={`/unidades/${item.unit.id}`} className="font-semibold text-slate-50 hover:text-white">
                         {item.unit.code}
-                      </Link><div className="mt-1 max-w-[260px] text-sm text-slate-300">{item.unit.name}</div><div className="mt-1 text-xs text-slate-500">{cityLine(item)}</div></TableCell><TableCell><div className="font-medium text-slate-100">{item.partner.code}</div><div className="mt-1 max-w-[220px] text-xs text-slate-500">{item.partner.name}</div></TableCell><TableCell><div className="font-medium text-slate-50">{item.match.hostName || item.match.host}</div><div className="mt-1 text-xs text-slate-500">
+                      </Link><div className="mt-1 max-w-[260px] text-[11px] text-slate-300">{item.unit.name}</div><div className="mt-1 text-[10px] text-slate-500">{cityLine(item)}</div></TableCell><TableCell><div className="font-medium text-slate-100">{item.partner.code}</div><div className="mt-1 max-w-[220px] text-[10px] text-slate-500">{item.partner.name}</div></TableCell><TableCell><div className="font-medium text-slate-50">{item.match.hostName || item.match.host}</div><div className="mt-1 text-[10px] text-slate-500">
                         {item.match.integrationCode} · {item.match.confidence}% confiança
                       </div></TableCell><TableCell><TonePill tone={healthTone(item.health)}>{item.health}</TonePill></TableCell><TableCell><TonePill tone={(item.metrics.lossPct ?? 0) >= 5 ? "attention" : "success"}>
                         {formatPercent(item.metrics.lossPct)}
@@ -601,35 +467,35 @@ function ReadyTable({ rows }: { rows: UnitHostTelemetryItem[] }) {
 
 function BacklogTable({ rows }: { rows: UnitHostTelemetryItem[] }) {
   return (
-    <Surface className="p-5 sm:p-6"><SectionIntro
+    <Surface><SectionIntro
         eyebrow="Backlog"
         title="Pendências de vínculo"
         description="Casos que não devem receber escrita automática: sem host, mais de um candidato ou host encontrado sem a tag de unidade."
         actions={<TonePill tone={rows.length ? "attention" : "success"}>{rows.length} pendente(s)</TonePill>}
         compact
-      /><div className="mt-4">
+      /><div className="mt-2">
         {rows.length ? (
-          <TableShell><DenseTable><TableHead><tr><th className="px-4 py-3">Unidade</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Candidatos</th><th className="px-4 py-3">Ajuste recomendado</th><th className="px-4 py-3">Equipamentos</th></tr></TableHead><tbody>
+          <TableShell><DenseTable><TableHead><tr><th className="px-3 py-2">Unidade</th><th className="px-3 py-2">Status</th><th className="px-3 py-2">Candidatos</th><th className="px-3 py-2">Ajuste recomendado</th><th className="px-3 py-2">Ativos</th></tr></TableHead><tbody>
                 {rows.map((item) => (
-                  <tr key={item.unit.id} className="border-b border-white/6 last:border-b-0"><TableCell><Link href={`/unidades/${item.unit.id}`} className="font-semibold text-slate-50 hover:text-sky-100">
+                  <tr key={item.unit.id} className="border-b border-white/6 last:border-b-0"><TableCell><Link href={`/unidades/${item.unit.id}`} className="font-semibold text-slate-50 hover:text-white">
                         {item.unit.code}
-                      </Link><div className="mt-1 max-w-[280px] text-sm text-slate-300">{item.unit.name}</div><div className="mt-1 text-xs text-slate-500">{item.partner.code} · {cityLine(item)}</div></TableCell><TableCell><TonePill tone={matchTone(item.match)}>{matchLabel(item.match)}</TonePill>
+                      </Link><div className="mt-1 max-w-[280px] text-[11px] text-slate-300">{item.unit.name}</div><div className="mt-1 text-[10px] text-slate-500">{item.partner.code} · {cityLine(item)}</div></TableCell><TableCell><TonePill tone={matchTone(item.match)}>{matchLabel(item.match)}</TonePill>
                       {item.match.hostName || item.match.host ? (
-                        <div className="mt-2 max-w-[260px] truncate text-xs text-slate-500">
+                        <div className="mt-2 max-w-[260px] truncate text-[10px] text-slate-500">
                           {item.match.hostName || item.match.host}
                         </div>
                       ) : null}
-                    </TableCell><TableCell className="text-slate-400">{item.match.candidates}</TableCell><TableCell><code className="rounded-[10px] border border-white/[0.08] bg-black/30 px-2 py-1 text-xs text-slate-200">
+                    </TableCell><TableCell className="text-slate-400">{item.match.candidates}</TableCell><TableCell><code className="rounded-[6px] border border-white/[0.08] bg-black/30 px-2 py-1 text-[10px] text-slate-200">
                         {suggestedTag(item)}
-                      </code><div className="mt-2 max-w-[420px] text-xs leading-5 text-slate-500">
+                      </code><div className="mt-2 max-w-[420px] text-[10px] leading-5 text-slate-500">
                         Use esta tag no host da unidade. Serial/MAC no inventário do host ajuda a reduzir ambiguidade.
-                      </div></TableCell><TableCell><div className="max-w-[280px] text-xs leading-5 text-slate-400">
+                      </div></TableCell><TableCell><div className="max-w-[280px] text-[10px] leading-5 text-slate-400">
                         {item.equipments.length
                           ? item.equipments
                               .slice(0, 4)
                               .map((equipment) => equipment.serialNumber || equipment.tag)
                               .join(", ")
-                          : "Sem equipamento cadastrado"}
+                          : "Sem ativo cadastrado"}
                       </div></TableCell></tr>
                 ))}
               </tbody></DenseTable></TableShell>
@@ -645,18 +511,18 @@ function BacklogTable({ rows }: { rows: UnitHostTelemetryItem[] }) {
 
 function SourcePanel({ telemetry }: { telemetry: UnitHostTelemetry }) {
   return (
-    <Surface className="p-5 sm:p-6"><SectionIntro
+    <Surface><SectionIntro
         eyebrow="Conectores"
         title="Fontes Zabbix usadas na reconciliação"
         description="Integração e host da unidade."
         compact
-      /><div className="mt-4 grid gap-3">
+      /><div className="mt-2 grid gap-2">
         {telemetry.sources.map((source) => (
-          <div key={source.id} className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="flex flex-wrap items-start justify-between gap-3"><div className="min-w-0"><div className="font-semibold text-slate-50">{source.code} · {source.name}</div><div className="mt-1 max-w-[620px] truncate text-xs text-slate-500">
+          <div key={source.id} className="nds-card"><div className="flex flex-wrap items-start justify-between gap-2"><div className="min-w-0"><div className="text-[12px] font-black text-slate-50">{source.code} · {source.name}</div><div className="mt-1 max-w-[620px] truncate text-[10px] text-slate-500">
                   {source.targetUrl || "URL não exposta"}
                 </div></div><TonePill tone={source.ok ? "success" : "attention"}>
                 {source.ok ? "operante" : "atenção"}
-              </TonePill></div><div className="mt-3 grid gap-2 sm:grid-cols-3"><div className="rounded-[12px] border border-white/[0.08] bg-white/[0.035] px-3 py-2"><div className="text-[10px] uppercase tracking-[0.12em] text-slate-500">Versão</div><div className="mt-1 font-semibold text-slate-50">{source.version || "-"}</div></div><div className="rounded-[12px] border border-white/[0.08] bg-white/[0.035] px-3 py-2"><div className="text-[10px] uppercase tracking-[0.12em] text-slate-500">Hosts lidos</div><div className="mt-1 font-semibold text-slate-50">{source.totalHosts}</div></div><div className="rounded-[12px] border border-white/[0.08] bg-white/[0.035] px-3 py-2"><div className="text-[10px] uppercase tracking-[0.12em] text-slate-500">Unidades vinculadas</div><div className="mt-1 font-semibold text-slate-50">{source.matchedUnits}</div></div></div><div className="mt-3 text-sm leading-6 text-slate-400">{source.message}</div></div>
+              </TonePill></div><div className="mt-2 grid gap-2 sm:grid-cols-3"><div className="nova-micro-card px-2 py-2"><div className="nds-label">Versão</div><div className="mt-1 font-semibold text-slate-50">{source.version || "-"}</div></div><div className="nova-micro-card px-2 py-2"><div className="nds-label">Hosts lidos</div><div className="mt-1 font-semibold text-slate-50">{source.totalHosts}</div></div><div className="nova-micro-card px-2 py-2"><div className="nds-label">Unidades vinculadas</div><div className="mt-1 font-semibold text-slate-50">{source.matchedUnits}</div></div></div><div className="mt-2 text-[11px] leading-5 text-slate-400">{source.message}</div></div>
         ))}
       </div></Surface>
   );
@@ -671,15 +537,15 @@ function LegacyImportPanel({
 }) {
   if (!legacy.sourceAvailable) {
     return (
-      <Surface className="p-5 sm:p-6"><SectionIntro
+      <Surface><SectionIntro
           eyebrow="Legado"
           title="Bases SQLite ainda não carregadas nesta execução"
-          description={legacy.message || "Gere o pacote legado para cruzar contatos, parceiros, Starlinks e equipamentos antigos com o cadastro atual."}
+          description={legacy.message || "Gere o pacote legado para cruzar contatos, parceiros, Starlinks e ativos antigos com o cadastro atual."}
           actions={<TonePill tone="attention">pendente</TonePill>}
           compact
         />
         {legacy.expectedPath ? (
-          <div className="mt-4 rounded-[14px] border border-white/[0.08] bg-[#0a0f15] px-4 py-3 text-sm text-slate-400">
+          <div className="nds-card mt-2 text-[11px] text-slate-400">
             Caminho esperado: <span className="font-medium text-slate-200">{legacy.expectedPath}</span></div>
         ) : null}
       </Surface>
@@ -696,7 +562,7 @@ function LegacyImportPanel({
   const sources = Object.entries(legacy.sources || {});
 
   return (
-    <Surface className="p-5 sm:p-6"><div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]"><div className="min-w-0"><SectionIntro
+    <Surface><div className="nova-side-grid nova-side-grid--360"><div className="min-w-0"><SectionIntro
             eyebrow="Legado importado"
             title="SQLite virou fonte de reconciliação operacional"
             description="Contatos, parceiros, Starlinks e ativos antigos ficam disponíveis para consulta e saneamento sem aumentar o Prisma nesta etapa."
@@ -708,18 +574,18 @@ function LegacyImportPanel({
               </div>
             }
             compact
-          /><div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4"><div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Unidades legadas</div><div className="mt-2 text-2xl font-semibold text-slate-50">{legacyUnits}</div><div className="mt-1 text-sm text-slate-400">{telemetry.counts.units} no cadastro atual</div></div><div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Parceiros</div><div className="mt-2 text-2xl font-semibold text-slate-50">{legacyPartners}</div><div className="mt-1 text-sm text-slate-400">{legacyCount(legacy, "raw", "parceiros")} linha(s) na origem</div></div><div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Ativos legados</div><div className="mt-2 text-2xl font-semibold text-slate-50">{legacyEquipments}</div><div className="mt-1 text-sm text-slate-400">{contactsWithMacOnu} com MAC/ONU</div></div><div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Starlinks</div><div className="mt-2 text-2xl font-semibold text-slate-50">{starlinksInstalled}</div><div className="mt-1 text-sm text-slate-400">{legacyCount(legacy, "raw", "starlinks")} registro(s) brutos</div></div></div><div className="mt-4 grid gap-2 md:grid-cols-3"><div className="rounded-[14px] border border-white/[0.08] bg-white/[0.035] px-4 py-3"><div className="text-sm font-semibold text-slate-50">{adoption}% migrado para leitura atual</div><div className="mt-1 text-xs leading-5 text-slate-500">Comparação simples entre unidades ativas lidas e unidades normalizadas do legado.</div></div><div className="rounded-[14px] border border-white/[0.08] bg-white/[0.035] px-4 py-3"><div className="text-sm font-semibold text-slate-50">{contactsWithBackup} com contingência</div><div className="mt-1 text-xs leading-5 text-slate-500">Registros que já trazem parceiro/rota de backup para orientar operação.</div></div><div className="rounded-[14px] border border-white/[0.08] bg-white/[0.035] px-4 py-3"><div className="text-sm font-semibold text-slate-50">{legacyCount(legacy, "raw", "starlinkHistory")} histórico(s)</div><div className="mt-1 text-xs leading-5 text-slate-500">Movimentações de Starlink preservadas para consulta nos detalhes.</div></div></div></div><div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="text-sm font-semibold text-slate-50">Arquivos coletados</div><div className="mt-3 grid gap-2">
+          /><div className="mt-2 grid gap-2 md:grid-cols-2 xl:grid-cols-4"><KpiTile label="Unidades legadas" value={legacyUnits} meta={`${telemetry.counts.units} no cadastro atual`} tone="info" /><KpiTile label="Parceiros" value={legacyPartners} meta={`${legacyCount(legacy, "raw", "parceiros")} linha(s) na origem`} tone="info" /><KpiTile label="Ativos legados" value={legacyEquipments} meta={`${contactsWithMacOnu} com MAC/ONU`} tone="success" /><KpiTile label="Starlinks" value={starlinksInstalled} meta={`${legacyCount(legacy, "raw", "starlinks")} registro(s) brutos`} tone="attention" /></div><div className="mt-2 grid gap-2 md:grid-cols-3"><div className="nds-card"><div className="text-[12px] font-black text-slate-50">{adoption}% migrado para leitura atual</div><div className="mt-1 text-[10px] leading-5 text-[var(--nova-text-muted)]">Comparação simples entre unidades ativas lidas e unidades normalizadas do legado.</div></div><div className="nds-card"><div className="text-[12px] font-black text-slate-50">{contactsWithBackup} com contingência</div><div className="mt-1 text-[10px] leading-5 text-[var(--nova-text-muted)]">Registros que já trazem parceiro/rota de backup para orientar operação.</div></div><div className="nds-card"><div className="text-[12px] font-black text-slate-50">{legacyCount(legacy, "raw", "starlinkHistory")} histórico(s)</div><div className="mt-1 text-[10px] leading-5 text-[var(--nova-text-muted)]">Movimentações de Starlink preservadas para consulta nos detalhes.</div></div></div></div><div className="nds-card"><div className="text-[12px] font-black text-slate-50">Arquivos coletados</div><div className="mt-2 grid gap-2">
             {sources.length ? (
               sources.map(([key, path]) => (
-                <div key={key} className="rounded-[12px] border border-white/[0.08] bg-white/[0.035] px-3 py-2"><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">{key}</div><div className="mt-1 truncate text-sm font-medium text-slate-100" title={path}>
+                <div key={key} className="nds-card"><div className="nds-label">{key}</div><div className="mt-1 truncate text-[11px] font-medium text-slate-100" title={path}>
                     {sourceName(path)}
                   </div></div>
               ))
             ) : (
-              <div className="text-sm text-slate-500">Sem lista de origem no pacote.</div>
+              <div className="text-[11px] text-slate-500">Sem lista de origem no pacote.</div>
             )}
-          </div><div className="mt-4 rounded-[12px] border border-sky-500/16 bg-sky-500/[0.08] px-3 py-2 text-xs leading-5 text-sky-100">
-            A conversão atual é consultiva: blocos de unidade, parceiro e equipamento exibem dados legados quando há correspondência segura.
+          </div><div className="nds-card mt-2 border-[color-mix(in_srgb,var(--nova-primary)_28%,transparent)] bg-[var(--nova-primary-soft)] text-[11px] leading-5 text-slate-100">
+            A conversão atual é consultiva: blocos de unidade, parceiro e ativo exibem dados legados quando há correspondência segura.
           </div></div></div></Surface>
   );
 }
@@ -731,7 +597,7 @@ function LegacyReconciliationPanel({
 }) {
   if (!reconciliation.sourceAvailable) {
     return (
-      <Surface className="p-5 sm:p-6"><SectionIntro
+      <Surface><SectionIntro
           eyebrow="Fila de migração"
           title="Reconciliação legada indisponível"
           description={reconciliation.message || "A fila será exibida quando o pacote legado puder ser lido pela API."}
@@ -752,9 +618,15 @@ function LegacyReconciliationPanel({
     .slice(0, 12);
   const weakMatches = reconciliation.weakUnitMatches.slice(0, 6);
   const unmatchedCurrent = reconciliation.unmatchedCurrentUnits.slice(0, 6);
+  const totalDivergences =
+    counts.unmatchedLegacyUnits +
+    counts.weakUnitMatches +
+    reconciliation.unmatchedLegacyPartners.length +
+    reconciliation.unmatchedLegacyEquipments.length +
+    reconciliation.unmatchedCurrentUnits.length;
 
   return (
-    <Surface className="p-5 sm:p-6"><SectionIntro
+    <Surface><SectionIntro
         eyebrow="Fila de migração"
         title="O legado agora mostra o que precisa entrar no cadastro atual"
         description="A prioridade fica nas unidades com backup, Starlink, MAC/ONU ou ativo, porque esses sinais afetam acionamento e monitoramento dos hosts."
@@ -766,39 +638,33 @@ function LegacyReconciliationPanel({
             </TonePill></div>
         }
         compact
-      /><div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4"><div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Unidades cruzadas</div><div className="mt-2 text-2xl font-semibold text-slate-50">{unitCoverage}%</div><div className="mt-1 text-sm text-slate-400">
-            {counts.matchedUnits} de {counts.legacyUnits} legado(s)
-          </div></div><div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Ativos cruzados</div><div className="mt-2 text-2xl font-semibold text-slate-50">{equipmentCoverage}%</div><div className="mt-1 text-sm text-slate-400">
-            {counts.matchedEquipments} de {counts.legacyEquipments} ativo(s)
-          </div></div><div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Parceiros cruzados</div><div className="mt-2 text-2xl font-semibold text-slate-50">{counts.matchedPartners}</div><div className="mt-1 text-sm text-slate-400">
-            {counts.legacyPartners - counts.matchedPartners} sem cadastro atual
-          </div></div><div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Starlinks legados</div><div className="mt-2 text-2xl font-semibold text-slate-50">{counts.starlinks}</div><div className="mt-1 text-sm text-slate-400">consultivos nesta fase</div></div></div><div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]"><div><SectionIntro
+      /><div className="mt-2 grid gap-2 md:grid-cols-2 xl:grid-cols-4"><KpiTile label="Unidades cruzadas" value={`${unitCoverage}%`} meta={`${counts.matchedUnits} de ${counts.legacyUnits} legado(s)`} tone={counts.unmatchedLegacyUnits ? "attention" : "success"} /><KpiTile label="Ativos cruzados" value={`${equipmentCoverage}%`} meta={`${counts.matchedEquipments} de ${counts.legacyEquipments} ativo(s)`} tone={counts.legacyEquipments - counts.matchedEquipments ? "attention" : "success"} /><KpiTile label="Parceiros cruzados" value={counts.matchedPartners} meta={`${counts.legacyPartners - counts.matchedPartners} sem cadastro atual`} tone={counts.legacyPartners - counts.matchedPartners ? "attention" : "success"} /><KpiTile label="Starlinks legados" value={counts.starlinks} meta="consultivos nesta fase" tone="info" /></div><div className="nova-reconcile-action-panel mt-2"><div className="min-w-0"><div className="nds-label">Ações de reconciliação</div><div className="mt-1 text-[13px] font-black text-white">{totalDivergences} divergência(s) priorizadas</div><div className="mt-1 text-[11px] text-[var(--nova-text-muted)]">Resolver unidade sem match, revisar match fraco, criar parceiro ou vincular ativo legado.</div></div><div className="nova-reconcile-action-list"><TonePill tone={counts.unmatchedLegacyUnits ? "attention" : "success"}>{counts.unmatchedLegacyUnits} unidades</TonePill><TonePill tone={counts.weakUnitMatches ? "attention" : "neutral"}>{counts.weakUnitMatches} fracos</TonePill><TonePill tone={reconciliation.unmatchedLegacyEquipments.length ? "attention" : "success"}>{reconciliation.unmatchedLegacyEquipments.length} ativos</TonePill></div></div><div className="mt-2 nova-side-grid nova-side-grid--380"><div><SectionIntro
             eyebrow="Saneamento prioritário"
             title="Unidades legadas sem cadastro seguro"
             description="Lista limitada aos sinais mais úteis para decidir o próximo cadastro ou ajuste de vínculo."
             compact
-          /><div className="mt-4">
+          /><div className="mt-2">
             {prioritizedUnits.length ? (
-              <TableShell><DenseTable><TableHead><tr><th className="px-4 py-3">Unidade legada</th><th className="px-4 py-3">Parceiro</th><th className="px-4 py-3">Sinais</th><th className="px-4 py-3">Possível match</th><TableActionHeader className="min-w-[11rem]" /></tr></TableHead><tbody>
+              <TableShell><DenseTable><TableHead><tr><th className="px-3 py-2">Unidade legada</th><th className="px-3 py-2">Parceiro</th><th className="px-3 py-2">Sinais</th><th className="px-3 py-2">Possível match</th><TableActionHeader className="min-w-[11rem]" /></tr></TableHead><tbody>
                     {prioritizedUnits.map((unit) => (
-                      <tr key={`${unit.partnerCode}:${unit.code}:${unit.name}`} className="border-b border-white/6 last:border-b-0"><TableCell><div className="font-semibold text-slate-50">{unit.code || "sem código"}</div><div className="mt-1 max-w-[320px] text-sm text-slate-300">{unit.name}</div><div className="mt-1 text-xs text-slate-500">
+                      <tr key={`${unit.partnerCode}:${unit.code}:${unit.name}`} className="border-b border-white/6 last:border-b-0"><TableCell><div className="font-semibold text-slate-50">{unit.code || "sem código"}</div><div className="mt-1 max-w-[320px] text-[11px] text-slate-300">{unit.name}</div><div className="mt-1 text-[10px] text-slate-500">
                             {[unit.city, unit.state].filter(Boolean).join(" / ") || "Local não informado"}
                           </div></TableCell><TableCell><TonePill tone={unit.partnerCode ? "info" : "neutral"}>{unit.partnerCode || "sem parceiro"}</TonePill></TableCell><TableCell><LegacySignalPills signal={unit.signal} /></TableCell><TableCell>
                           {unit.bestCurrentUnit ? (
                             <><Link
                                 href={`/unidades/${unit.bestCurrentUnit.id}`}
-                                className="font-semibold text-sky-100 hover:text-white"
+                                className="font-semibold text-slate-50 hover:text-white"
                               >
                                 {unit.bestCurrentUnit.code}
-                              </Link><div className="mt-1 max-w-[260px] text-xs text-slate-500">
+                              </Link><div className="mt-1 max-w-[260px] text-[10px] text-slate-500">
                                 {unit.bestCurrentUnit.name} · score {unit.bestScore}
                               </div></>
                           ) : (
-                            <span className="text-sm text-slate-500">Sem candidato</span>
+                            <span className="text-[11px] text-slate-500">Sem candidato</span>
                           )}
                         </TableCell><TableActionCell className="min-w-[11rem]"><TableActionLink
                             href={legacyUnitWizardHref(unit)}
-                            className="border-sky-400/20 bg-sky-500/[0.08] text-sky-100 hover:border-sky-300/40 hover:bg-sky-500/[0.14]"
+                            className="border-[var(--nova-primary)]/25 bg-[var(--nova-primary-soft)] text-slate-50 hover:border-[var(--nova-primary)]/45"
                           >
                             Abrir cadastro guiado
                           </TableActionLink></TableActionCell></tr>
@@ -810,51 +676,51 @@ function LegacyReconciliationPanel({
                 description="As unidades do pacote legado encontraram correspondência segura no cadastro atual."
               />
             )}
-          </div></div><div className="grid gap-4"><div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="flex items-start justify-between gap-3"><div><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Matches fracos</div><div className="mt-1 text-sm font-semibold text-slate-50">Revisar antes de importar</div></div><TonePill tone={weakMatches.length ? "attention" : "success"}>{weakMatches.length}</TonePill></div><div className="mt-3 grid gap-2">
+          </div></div><div className="grid gap-2"><div className="nds-card"><div className="flex items-start justify-between gap-2"><div><div className="nds-label">Matches fracos</div><div className="mt-1 text-[12px] font-black text-slate-50">Revisar antes de importar</div></div><TonePill tone={weakMatches.length ? "attention" : "success"}>{weakMatches.length}</TonePill></div><div className="mt-2 grid gap-2">
               {weakMatches.length ? (
                 weakMatches.map((unit) => (
-                  <div key={`${unit.partnerCode}:${unit.code}:${unit.score}`} className="rounded-[12px] border border-white/[0.08] bg-white/[0.035] p-3"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><div className="truncate text-sm font-semibold text-slate-50">{unit.code || unit.name}</div><div className="mt-1 truncate text-xs text-slate-500">
+                  <div key={`${unit.partnerCode}:${unit.code}:${unit.score}`} className="nds-card"><div className="flex items-start justify-between gap-2"><div className="min-w-0"><div className="truncate text-[12px] font-black text-slate-50">{unit.code || unit.name}</div><div className="mt-1 truncate text-[10px] text-[var(--nova-text-muted)]">
                           {unit.currentUnit ? `${unit.currentUnit.code} · ${unit.currentUnit.name}` : "Sem candidato atual"}
                         </div></div><TonePill tone="attention">{unit.score}</TonePill></div></div>
                 ))
               ) : (
-                <div className="text-sm leading-6 text-slate-500">Nenhum match fraco nesta leitura.</div>
+                <div className="text-[11px] leading-5 text-slate-500">Nenhum match fraco nesta leitura.</div>
               )}
-            </div></div><div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="flex items-start justify-between gap-3"><div><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Parceiros</div><div className="mt-1 text-sm font-semibold text-slate-50">Legado sem cadastro atual</div></div><TonePill tone={reconciliation.unmatchedLegacyPartners.length ? "attention" : "success"}>
+            </div></div><div className="nds-card"><div className="flex items-start justify-between gap-2"><div><div className="nds-label">Parceiros</div><div className="mt-1 text-[12px] font-black text-slate-50">Legado sem cadastro atual</div></div><TonePill tone={reconciliation.unmatchedLegacyPartners.length ? "attention" : "success"}>
                 {reconciliation.unmatchedLegacyPartners.length}
-              </TonePill></div><div className="mt-3 grid gap-2">
+              </TonePill></div><div className="mt-2 grid gap-2">
               {reconciliation.unmatchedLegacyPartners.slice(0, 5).map((partner) => (
-                <div key={`${partner.code}:${partner.name}`} className="rounded-[12px] border border-white/[0.08] bg-white/[0.035] p-3"><div className="text-sm font-semibold text-slate-50">{partner.code || partner.name}</div><div className="mt-1 text-xs leading-5 text-slate-500">
+                <div key={`${partner.code}:${partner.name}`} className="nds-card"><div className="text-[12px] font-black text-slate-50">{partner.code || partner.name}</div><div className="mt-1 text-[10px] leading-5 text-[var(--nova-text-muted)]">
                     {partner.name} · {partner.contacts} contato(s) · {partner.primaryUnitCount + partner.backupUnitCount} vínculo(s)
                   </div></div>
               ))}
               {!reconciliation.unmatchedLegacyPartners.length ? (
-                <div className="text-sm leading-6 text-slate-500">Todos os parceiros legados encontraram match.</div>
+                <div className="text-[11px] leading-5 text-slate-500">Todos os parceiros legados encontraram match.</div>
               ) : null}
-            </div></div><div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="flex items-start justify-between gap-3"><div><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Ativos</div><div className="mt-1 text-sm font-semibold text-slate-50">Legado sem match por tag/serial</div></div><TonePill tone={reconciliation.unmatchedLegacyEquipments.length ? "attention" : "success"}>
+            </div></div><div className="nds-card"><div className="flex items-start justify-between gap-2"><div><div className="nds-label">Ativos</div><div className="mt-1 text-[12px] font-black text-slate-50">Legado sem match por tag/serial</div></div><TonePill tone={reconciliation.unmatchedLegacyEquipments.length ? "attention" : "success"}>
                 {reconciliation.unmatchedLegacyEquipments.length}
-              </TonePill></div><div className="mt-3 grid gap-2">
+              </TonePill></div><div className="mt-2 grid gap-2">
               {reconciliation.unmatchedLegacyEquipments.slice(0, 5).map((equipment) => (
-                <div key={`${equipment.source}:${equipment.tag}:${equipment.serialNumber || ""}`} className="rounded-[12px] border border-white/[0.08] bg-white/[0.035] p-3"><div className="text-sm font-semibold text-slate-50">{equipment.tag || equipment.name}</div><div className="mt-1 text-xs leading-5 text-slate-500">
+                <div key={`${equipment.source}:${equipment.tag}:${equipment.serialNumber || ""}`} className="nds-card"><div className="text-[12px] font-black text-slate-50">{equipment.tag || equipment.name}</div><div className="mt-1 text-[10px] leading-5 text-[var(--nova-text-muted)]">
                     {equipment.type || "tipo não informado"} · {equipment.serialNumber || "sem serial"} · {equipment.unitCode || "sem unidade"}
                   </div></div>
               ))}
               {!reconciliation.unmatchedLegacyEquipments.length ? (
-                <div className="text-sm leading-6 text-slate-500">Todos os ativos legados bateram por tag ou serial.</div>
+                <div className="text-[11px] leading-5 text-slate-500">Todos os ativos legados bateram por tag ou serial.</div>
               ) : null}
-            </div></div><div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="flex items-start justify-between gap-3"><div><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Cadastro atual</div><div className="mt-1 text-sm font-semibold text-slate-50">Unidades sem rastro legado</div></div><TonePill tone={unmatchedCurrent.length ? "neutral" : "success"}>{unmatchedCurrent.length}</TonePill></div><div className="mt-3 grid gap-2">
+            </div></div><div className="nds-card"><div className="flex items-start justify-between gap-2"><div><div className="nds-label">Cadastro atual</div><div className="mt-1 text-[12px] font-black text-slate-50">Unidades sem rastro legado</div></div><TonePill tone={unmatchedCurrent.length ? "neutral" : "success"}>{unmatchedCurrent.length}</TonePill></div><div className="mt-2 grid gap-2">
               {unmatchedCurrent.length ? (
                 unmatchedCurrent.map((unit) => (
                   <Link
                     key={unit.id}
                     href={`/unidades/${unit.id}`}
-                    className="rounded-[12px] border border-white/[0.08] bg-white/[0.035] p-3 transition hover:border-white/14 hover:bg-white/[0.06]"
-                  ><div className="text-sm font-semibold text-slate-50">{unit.code}</div><div className="mt-1 truncate text-xs text-slate-500">
+                    className="nds-card block transition hover:border-white/14 hover:bg-white/[0.06]"
+                  ><div className="text-[12px] font-black text-slate-50">{unit.code}</div><div className="mt-1 truncate text-[10px] text-[var(--nova-text-muted)]">
                       {unit.name} · {unit.partnerCode}
                     </div></Link>
                 ))
               ) : (
-                <div className="text-sm leading-6 text-slate-500">Sem cadastro atual órfão do legado.</div>
+                <div className="text-[11px] leading-5 text-slate-500">Sem cadastro atual órfão do legado.</div>
               )}
             </div></div></div></div></Surface>
   );
@@ -869,14 +735,14 @@ function ContractPanel() {
   ];
 
   return (
-    <Surface className="p-5 sm:p-6"><SectionIntro
+    <Surface><SectionIntro
         eyebrow="Contrato operacional"
         title="Como preparar o host para automação"
         description="Um contrato pequeno evita o erro caro: atualizar o host errado."
         compact
-      /><div className="mt-4 grid gap-2">
+      /><div className="mt-2 grid gap-2">
         {rules.map((rule) => (
-          <div key={rule} className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] px-4 py-3 text-sm leading-6 text-slate-300">
+          <div key={rule} className="nds-card text-[11px] leading-5 text-slate-300">
             {rule}
           </div>
         ))}
@@ -888,11 +754,11 @@ export default async function ReconciliacaoCentralPage() {
   const session = await getServerWebSession();
 
   if (!session.authenticated) {
-    redirect("/login?next=/reconciliacao-central");
+    redirect("/login?next=/reconciliacao");
   }
 
   const [telemetry, legacySummary, legacyReconciliation] = await Promise.all([
-    readTelemetry(),
+    readUnitHostTelemetry({ timeoutMs: 2_500 }),
     readLegacySummary(),
     readLegacyReconciliation(),
   ]);
@@ -910,8 +776,8 @@ export default async function ReconciliacaoCentralPage() {
   return (
     <AppShell
       title="Reconciliação"
-      subtitle="Vínculo entre unidades, parceiros, equipamentos e hosts Zabbix antes da automação."
-    ><ReconciliationHero telemetry={telemetry} isAdmin={isAdmin} /><section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4"><KpiTile
+      subtitle="Vínculo entre unidades, parceiros, ativos e hosts Zabbix antes da automação."
+    ><ReconciliationHero telemetry={telemetry} isAdmin={isAdmin} /><section className="grid gap-2 md:grid-cols-2 xl:grid-cols-4"><KpiTile
           label="Unidades lidas"
           value={telemetry.counts.units}
           meta={`${telemetry.counts.matched} com host identificado`}
@@ -931,6 +797,6 @@ export default async function ReconciliacaoCentralPage() {
           value={formatPercent(telemetry.counts.avgLossPct)}
           meta={`${telemetry.counts.withProblems} unidade(s) com problema Zabbix`}
           tone={telemetry.counts.withProblems ? "attention" : "success"}
-        /></section><LegacyImportPanel legacy={legacySummary} telemetry={telemetry} /><LegacyReconciliationPanel reconciliation={legacyReconciliation} /><section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]"><ReadyTable rows={readyRows} /><ContractPanel /></section><BacklogTable rows={backlogRows} /><SourcePanel telemetry={telemetry} /></AppShell>
+        /></section><LegacyImportPanel legacy={legacySummary} telemetry={telemetry} /><LegacyReconciliationPanel reconciliation={legacyReconciliation} /><section className="nova-side-grid nova-side-grid--420"><ReadyTable rows={readyRows} /><ContractPanel /></section><BacklogTable rows={backlogRows} /><SourcePanel telemetry={telemetry} /></AppShell>
   );
 }

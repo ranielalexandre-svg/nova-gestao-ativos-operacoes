@@ -61,7 +61,7 @@ const iconPaths: Record<IconName, string[]> = {
 
 function NavIcon({ name, fallback }: { name?: IconName; fallback: string }) {
   if (!name) {
-    return <span className="text-[10px] font-bold tracking-[0.08em]">{fallback}</span>;
+    return <span className="text-[10px] font-bold">{fallback}</span>;
   }
 
   return (
@@ -95,8 +95,33 @@ function groupItems(items: NavItem[]) {
   return groups;
 }
 
+function canonicalPath(pathname: string) {
+  const aliases: Array<[string, string]> = [
+    ["/monitoramento", "/sensores"],
+    ["/ocorrencias", "/alertas"],
+    ["/equipamentos/starlinks", "/ativos/starlinks"],
+    ["/equipamentos", "/ativos"],
+    ["/manutencoes", "/chamados"],
+    ["/operacao/excecoes", "/excecoes"],
+    ["/operacao/automacoes", "/automacao"],
+    ["/operacao/importacao", "/importacao"],
+    ["/reconciliacao-central", "/reconciliacao"],
+    ["/relatorios", "/relatorios/consumo"],
+  ];
+
+  for (const [legacy, canonical] of aliases) {
+    if (legacy === "/relatorios" && pathname !== legacy) continue;
+
+    if (pathname === legacy || pathname.startsWith(`${legacy}/`)) {
+      return `${canonical}${pathname.slice(legacy.length)}`;
+    }
+  }
+
+  return pathname;
+}
+
 export function AppSidebarNav({ items }: { items: NavItem[] }) {
-  const pathname = usePathname();
+  const pathname = canonicalPath(usePathname());
   const groups = groupItems(items);
   const isExact = (href: string) => pathname === href;
   const isBranch = (href: string) => {

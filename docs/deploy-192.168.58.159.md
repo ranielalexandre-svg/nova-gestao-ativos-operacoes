@@ -158,6 +158,11 @@ curl -fsS http://127.0.0.1:4000/api/health
 curl -I http://127.0.0.1:3010/login
 ```
 
+O `/health/ready` retorna um bloco `checks` com banco, pasta de anexos e
+segredos essenciais. Para a troca final, `summary.failed` deve ser `0`; avisos
+em `JWT_SECRET` ou `INTEGRATION_SECRET_KEY` indicam segredo ausente/curto e
+devem ser resolvidos antes de rodar com `NODE_ENV=production`.
+
 ## Proxy HTTP
 
 Exemplo de Nginx para publicar o Next em `192.168.58.159`:
@@ -222,7 +227,8 @@ Nao remova o legado ate validar login, cadastros, operacao, reconciliacao e rela
 ## Checklist antes da troca final
 
 - `corepack pnpm check:deploy` passou no repositorio.
-- `curl http://127.0.0.1:4000/health/ready` retorna `ok: true` no servidor.
+- `curl http://127.0.0.1:4000/health/ready` retorna `ok: true` e
+  `summary.failed: 0` no servidor.
 - Login com usuario administrador funciona em `http://192.168.58.159/login`.
 - Endpoints de compatibilidade `/api/health`, `/api/dashboard`, `/api/audits`,
   `/api/starlinks`, `/api/import/templates/units` e `/api/export/partners`

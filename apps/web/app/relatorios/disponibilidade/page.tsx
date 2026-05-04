@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
-import { ChartCard, DenseTable, RightPanel, StatCard, Surface, TableActionCell, TableActionHeader, TableActionLink, TableCell, TableHead, TableShell, TonePill } from "@/components/ops-ui";
+import { BarList, ChartCard, DenseTable, RightPanel, StackedMeter, StatCard, Surface, TableActionCell, TableActionHeader, TableActionLink, TableCell, TableHead, TableShell, TonePill } from "@/components/ops-ui";
 import { formatMs, formatPercent, healthLabel, healthTone, readUnitHostTelemetry, telemetryCoveragePct } from "@/lib/noc-overview";
 import { getServerWebSession } from "@/lib/web-session";
 
@@ -17,40 +17,57 @@ export default async function RelatorioDisponibilidadePage() {
   const telemetry = await readUnitHostTelemetry({ timeoutMs: 1500 });
   const availability = availabilityPct(telemetry.counts.units, telemetry.counts.down);
   const coverage = telemetryCoveragePct(telemetry);
-  const risky = telemetry.items.filter((item) => item.health !== "online").slice(0, 12);
+  const attentionRows = telemetry.items.filter((item) => item.health !== "online").slice(0, 12);
+  const attention = telemetry.counts.degraded + telemetry.counts.ambiguous;
+  const healthSegments = [
+    { label: "online", value: telemetry.counts.online, tone: "success" },
+    { label: "atenção", value: attention, tone: "attention" },
+    { label: "offline", value: telemetry.counts.down, tone: "critical" },
+    { label: "sem vínculo", value: telemetry.counts.unmapped, tone: "subtle" },
+  ];
+  const interruptionBars = [
+    { label: "Offline", value: telemetry.counts.down, tone: "critical", href: "/sensores?health=down" },
+    { label: "Degradado", value: telemetry.counts.degraded, tone: "attention", href: "/sensores?health=degraded" },
+    { label: "Ambíguo", value: telemetry.counts.ambiguous, tone: "attention", href: "/sensores?health=ambiguous" },
+    { label: "Sem vínculo", value: telemetry.counts.unmapped, tone: "subtle", href: "/sensores?health=unmapped" },
+  ];
 
   return (
     <AppShell title="Relatórios / Disponibilidade" subtitle="SLA por unidade, vínculo Zabbix e indisponibilidade operacional.">
-      <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="grid gap-5">
-          <div className="grid gap-3 md:grid-cols-4">
+      <section className="nova-side-grid nova-side-grid--360">
+        <div className="grid gap-2">
+          <div className="grid gap-2 md:grid-cols-4">
             <StatCard label="SLA estimado" value={`${availability.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`} detail="baseado em hosts online/offline" tone={availability >= 99 ? "success" : availability >= 95 ? "attention" : "critical"} />
             <StatCard label="Cobertura" value={`${coverage}%`} detail="unidades com host confiável" tone={coverage >= 90 ? "success" : "attention"} />
             <StatCard label="Offline" value={telemetry.counts.down} detail="unidades indisponíveis" tone={telemetry.counts.down ? "critical" : "success"} />
             <StatCard label="Atenção" value={telemetry.counts.degraded + telemetry.counts.ambiguous} detail="degradado ou ambíguo" tone="attention" />
           </div>
 
-          <div className="grid gap-5 lg:grid-cols-2">
-            <ChartCard title="SLA consolidado" subtitle="Curva visual para o relatório final" tone="success" />
-            <ChartCard title="Indisponibilidade por período" subtitle="Janelas críticas e eventos de queda" tone={telemetry.counts.down ? "critical" : "info"} />
+          <div className="grid gap-2 lg:grid-cols-2">
+            <ChartCard title="SLA consolidado" subtitle="estado atual das unidades monitoradas" tone={availability >= 99 ? "success" : availability >= 95 ? "attention" : "critical"}>
+              <StackedMeter segments={healthSegments} total={telemetry.counts.units} emptyLabel="Sem telemetria carregada." />
+            </ChartCard>
+            <ChartCard title="Indisponibilidade" subtitle="unidades por condição de risco" tone={telemetry.counts.down ? "critical" : "info"}>
+              <BarList data={interruptionBars} max={Math.max(1, telemetry.counts.units)} emptyLabel="Nenhuma unidade fora da normalidade." />
+            </ChartCard>
           </div>
 
-          <Surface className="p-5">
-            <div className="flex flex-wrap items-center justify-between gap-3">
+          <Surface>
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
-                <div className="text-[10px] font-black uppercase tracking-[0.18em] text-orange-300/80">SLA por unidade</div>
-                <h2 className="mt-2 text-xl font-black text-white">Disponibilidade operacional</h2>
+                <div className="nds-label">SLA por unidade</div>
+                <h2 className="mt-1 text-[15px] font-black text-white">Disponibilidade operacional</h2>
               </div>
-              <Link href="/relatorios/monitoramento" className="nova-primary-action rounded-[10px] px-4 py-2.5 text-sm font-black">Gerar relatório</Link>
+              <Link href="/relatorios/monitoramento" className="nds-button" data-variant="primary">Gerar relatório</Link>
             </div>
-            <div className="mt-5">
+            <div className="mt-2">
               <TableShell>
                 <DenseTable>
-                  <TableHead><tr><th className="px-4 py-3">Unidade</th><th className="px-4 py-3">Parceiro</th><th className="px-4 py-3">Host</th><th className="px-4 py-3">Latência</th><th className="px-4 py-3">Perda</th><th className="px-4 py-3">Status</th><TableActionHeader /></tr></TableHead>
+                  <TableHead><tr><th className="px-3 py-2">Unidade</th><th className="px-3 py-2">Parceiro</th><th className="px-3 py-2">Host</th><th className="px-3 py-2">Latência</th><th className="px-3 py-2">Perda</th><th className="px-3 py-2">Status</th><TableActionHeader /></tr></TableHead>
                   <tbody>
                     {telemetry.items.slice(0, 20).map((item) => (
                       <tr key={item.unit.id} className="border-b border-white/6 last:border-b-0 hover:bg-white/[0.025]">
-                        <TableCell><div className="font-bold text-white">{item.unit.name}</div><div className="mt-1 text-xs text-slate-500">{item.unit.code}</div></TableCell>
+                        <TableCell><div className="font-bold text-white">{item.unit.name}</div><div className="mt-1 text-[10px] text-[var(--nova-text-muted)]">{item.unit.code}</div></TableCell>
                         <TableCell className="text-slate-300">{item.partner.name}</TableCell>
                         <TableCell className="text-slate-300">{item.match.hostName || item.match.host || "sem host"}</TableCell>
                         <TableCell className="text-slate-300">{formatMs(item.metrics.latencyMs)}</TableCell>
@@ -67,20 +84,20 @@ export default async function RelatorioDisponibilidadePage() {
         </div>
 
         <RightPanel title="Resumo SLA" description="Pontos que entram no relatório.">
-          <div className="rounded-[12px] border border-white/[0.08] bg-[#070b10] p-4 text-sm text-slate-400">
-            <div className="flex justify-between gap-3"><span>Unidades avaliadas</span><span className="font-bold text-white">{telemetry.counts.units}</span></div>
-            <div className="mt-2 flex justify-between gap-3"><span>Com host vinculado</span><span className="font-bold text-white">{telemetry.counts.matched}</span></div>
-            <div className="mt-2 flex justify-between gap-3"><span>Com problema</span><span className="font-bold text-white">{telemetry.counts.withProblems}</span></div>
+          <div className="nds-card text-[11px] text-slate-400">
+            <div className="flex justify-between gap-2"><span>Unidades avaliadas</span><span className="font-bold text-white">{telemetry.counts.units}</span></div>
+            <div className="mt-2 flex justify-between gap-2"><span>Com host vinculado</span><span className="font-bold text-white">{telemetry.counts.matched}</span></div>
+            <div className="mt-2 flex justify-between gap-2"><span>Com problema</span><span className="font-bold text-white">{telemetry.counts.withProblems}</span></div>
           </div>
-          <div className="rounded-[12px] border border-white/[0.08] bg-[#070b10] p-4">
-            <div className="text-sm font-black text-white">Fila de atenção</div>
-            <div className="mt-3 grid gap-2">
-              {risky.length ? risky.map((item) => (
-                <Link key={item.unit.id} href={`/unidades/${item.unit.id}`} className="rounded-[10px] border border-white/[0.06] bg-white/[0.03] p-3 text-sm hover:border-orange-300/30">
+          <div className="nds-card">
+            <div className="text-[12px] font-black text-white">Fila de atenção</div>
+            <div className="mt-2 grid gap-2">
+              {attentionRows.length ? attentionRows.map((item) => (
+                <Link key={item.unit.id} href={`/unidades/${item.unit.id}`} className="nds-card block text-[11px] hover:border-[var(--nova-primary)]/30">
                   <div className="font-bold text-white">{item.unit.name}</div>
                   <div className="mt-2"><TonePill tone={healthTone(item.health)}>{healthLabel(item.health)}</TonePill></div>
                 </Link>
-              )) : <div className="text-sm text-slate-500">Nenhuma unidade fora da normalidade.</div>}
+              )) : <div className="text-[11px] text-slate-500">Nenhuma unidade fora da normalidade.</div>}
             </div>
           </div>
         </RightPanel>

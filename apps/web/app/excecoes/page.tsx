@@ -1,5 +1,1 @@
-import { redirect } from "next/navigation";
-
-export default function ExcecoesAliasPage() {
-  redirect("/operacao/excecoes");
-}
+export { default } from "../operacao/excecoes/page";

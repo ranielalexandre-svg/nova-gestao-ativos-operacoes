@@ -223,17 +223,18 @@ async function withTimeout<T>(request: Promise<T>, ms: number) {
   }
 }
 
-export async function readUnitHostTelemetry(options: { timeoutMs?: number } = {}) {
+export async function readUnitHostTelemetry(options: { timeoutMs?: number; fast?: boolean } = {}) {
   const controller = options.timeoutMs ? new AbortController() : null;
   const timeout = controller
     ? setTimeout(() => {
         controller.abort();
       }, options.timeoutMs)
     : null;
+  const query = options.fast ? "?mode=fast" : "";
 
   try {
     const request = apiJson<UnitHostTelemetry>(
-      "/monitoring/unit-hosts",
+      `/monitoring/unit-hosts${query}`,
       controller ? { signal: controller.signal } : {},
     );
 
@@ -244,7 +245,9 @@ export async function readUnitHostTelemetry(options: { timeoutMs?: number } = {}
       (error.name === "AbortError" || error.message === "telemetry_timeout");
     return emptyTelemetry(
       aborted
-        ? "Telemetria ainda carregando. Abra Monitoramento para a leitura completa."
+        ? options.fast
+          ? "Telemetria Zabbix ainda carregando. Recarregue em alguns segundos."
+          : "Telemetria ainda carregando. Abra Monitoramento para a leitura completa."
         : error instanceof Error
           ? error.message
           : "Falha ao carregar telemetria.",
@@ -266,7 +269,14 @@ export function formatMs(value: number | null) {
 
 export function formatTemperature(value: number | null) {
   if (typeof value !== "number" || !Number.isFinite(value)) return "-";
-  return `${value.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} C`;
+  return `${value.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} °C`;
+}
+
+export function metricTone(value: number | null, warning: number, critical: number) {
+  if (typeof value !== "number" || !Number.isFinite(value)) return "neutral";
+  if (value >= critical) return "critical";
+  if (value >= warning) return "attention";
+  return "success";
 }
 
 export function telemetryCoveragePct(telemetry: UnitHostTelemetry) {

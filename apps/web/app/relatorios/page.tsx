@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
-import { ChartCard, DenseTable, ReportPreviewCard, RightPanel, StatCard, Surface, TableActionCell, TableActionHeader, TableActionLink, TableCell, TableHead, TableShell, TonePill } from "@/components/ops-ui";
+import { BarList, ChartCard, DenseTable, ReportPreviewCard, RightPanel, StatCard, Surface, TableActionCell, TableActionHeader, TableActionLink, TableCell, TableHead, TableShell, TonePill } from "@/components/ops-ui";
+import { formatShortDateTime } from "@/lib/formatters";
 import { safeApiJson } from "@/lib/noc-overview";
 import { getServerWebSession } from "@/lib/web-session";
 
@@ -12,6 +13,7 @@ type ReportUnit = {
   city: string | null;
   state: string | null;
   reportContractLabel: string | null;
+  reportAddressLine: string | null;
   reportContractedBandwidth: string | null;
   partner: { id: string; code: string; name: string };
 };
@@ -43,16 +45,15 @@ type ReportRun = {
   rule: { code: string; name: string; cadence: string; reportTemplate: { id: string; code: string; name: string } | null };
 };
 
-function formatDate(value: string | null) {
-  if (!value) return "-";
-  return new Date(value).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
-}
-
 function statusTone(status: string) {
   if (["success", "completed", "done"].includes(status)) return "success";
   if (["failed", "error"].includes(status)) return "critical";
   if (["running", "queued"].includes(status)) return "attention";
   return "neutral";
+}
+
+function hasText(value: string | null | undefined) {
+  return Boolean(value?.trim());
 }
 
 export default async function RelatoriosPage() {
@@ -68,37 +69,53 @@ export default async function RelatoriosPage() {
   const enabledTemplates = templates.filter((item) => item.enabled).length;
   const withCharts = templates.filter((item) => item.includeCharts).length;
   const lastRun = runs[0] || null;
+  const metadataBars = [
+    { label: "Contrato", value: units.items.filter((unit) => hasText(unit.reportContractLabel)).length, tone: "info" },
+    { label: "Banda", value: units.items.filter((unit) => hasText(unit.reportContractedBandwidth)).length, tone: "success" },
+    { label: "Endereço", value: units.items.filter((unit) => hasText(unit.reportAddressLine)).length, tone: "attention" },
+  ];
+  const runStatusMap = new Map<string, number>();
+
+  for (const run of runs) {
+    runStatusMap.set(run.status, (runStatusMap.get(run.status) || 0) + 1);
+  }
+
+  const runStatusBars = Array.from(runStatusMap.entries()).map(([status, value]) => ({
+    label: status,
+    value,
+    tone: statusTone(status),
+  }));
 
   return (
     <AppShell title="Relatórios / Consumo" subtitle="Biblioteca de relatórios, filtros rápidos e exportações de consumo por unidade ou grupo.">
-      <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="grid gap-5">
-          <div className="grid gap-3 md:grid-cols-4">
+      <section className="nova-side-grid nova-side-grid--360">
+        <div className="grid gap-2">
+          <div className="grid gap-2 md:grid-cols-4">
             <StatCard label="Unidades" value={units.total} detail="aptas para exportação" tone="info" />
             <StatCard label="Modelos" value={templates.length} detail={`${enabledTemplates} ativo(s)`} tone="attention" />
             <StatCard label="Com gráficos" value={withCharts} detail="incluem séries Zabbix" tone="success" />
-            <StatCard label="Última geração" value={lastRun ? formatDate(lastRun.startedAt) : "-"} detail={lastRun?.status || "sem execução"} tone={lastRun ? statusTone(lastRun.status) : "neutral"} />
+            <StatCard label="Última geração" value={lastRun ? formatShortDateTime(lastRun.startedAt) : "-"} detail={lastRun?.status || "sem execução"} tone={lastRun ? statusTone(lastRun.status) : "neutral"} />
           </div>
 
-          <Surface className="p-5">
-            <div className="flex flex-wrap items-center justify-between gap-3">
+          <Surface>
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
-                <div className="text-[10px] font-black uppercase tracking-[0.18em] text-orange-300/80">Biblioteca</div>
-                <h2 className="mt-2 text-xl font-black text-white">Modelos de relatório</h2>
+                <div className="nds-label">Biblioteca</div>
+                <h2 className="mt-1 text-[15px] font-black text-white">Modelos de relatório</h2>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Link href="/relatorios/monitoramento" className="nova-primary-action rounded-[10px] px-4 py-2.5 text-sm font-black">Novo relatório</Link>
-                <Link href="/relatorios/monitoramento?tab=templates" className="rounded-[10px] border border-white/10 bg-[#070b10] px-4 py-2.5 text-sm font-bold text-white hover:border-orange-300/30">Automações</Link>
+                <Link href="/relatorios/monitoramento" className="nds-button" data-variant="primary">Novo relatório</Link>
+                <Link href="/relatorios/monitoramento?source=template" className="nds-button" data-variant="secondary">Usar modelo</Link>
               </div>
             </div>
-            <div className="mt-5">
+            <div className="mt-2">
               <TableShell>
                 <DenseTable>
-                  <TableHead><tr><th className="px-4 py-3">Modelo</th><th className="px-4 py-3">Origem</th><th className="px-4 py-3">Período</th><th className="px-4 py-3">Formato</th><th className="px-4 py-3">Escopo</th><th className="px-4 py-3">Status</th><TableActionHeader /></tr></TableHead>
+                  <TableHead><tr><th className="px-3 py-2">Modelo</th><th className="px-3 py-2">Origem</th><th className="px-3 py-2">Período</th><th className="px-3 py-2">Formato</th><th className="px-3 py-2">Escopo</th><th className="px-3 py-2">Status</th><TableActionHeader /></tr></TableHead>
                   <tbody>
                     {templates.length ? templates.map((template) => (
                       <tr key={template.id} className="border-b border-white/6 last:border-b-0 hover:bg-white/[0.025]">
-                        <TableCell><div className="font-bold text-white">{template.name}</div><div className="mt-1 text-xs text-slate-500">{template.code}</div></TableCell>
+                        <TableCell><div className="font-bold text-white">{template.name}</div><div className="mt-1 text-[10px] text-slate-500">{template.code}</div></TableCell>
                         <TableCell className="text-slate-300">{template.integration?.name || "manual"}</TableCell>
                         <TableCell className="text-slate-300">{template.periodPreset}</TableCell>
                         <TableCell><TonePill tone="info">{template.outputFormat}</TonePill></TableCell>
@@ -115,16 +132,18 @@ export default async function RelatoriosPage() {
             </div>
           </Surface>
 
-          <div className="grid gap-5 lg:grid-cols-2">
-            <ChartCard title="Consumo por período" subtitle="prévia visual do relatório de consumo" tone="success" />
-            <Surface className="p-5">
-              <div className="text-[10px] font-black uppercase tracking-[0.18em] text-orange-300/80">Unidades recentes</div>
-              <h2 className="mt-2 text-xl font-black text-white">Prontas para exportar</h2>
-              <div className="mt-4 grid gap-2">
+          <div className="grid gap-2 lg:grid-cols-2">
+            <ChartCard title="Cobertura do relatório" subtitle="campos preenchidos nas unidades ativas" tone={metadataBars.every((item) => item.value === units.total) ? "success" : "attention"}>
+              <BarList data={metadataBars} max={Math.max(1, units.total)} emptyLabel="Nenhuma unidade ativa para exportação." />
+            </ChartCard>
+            <Surface>
+              <div className="nds-label">Unidades recentes</div>
+              <h2 className="mt-1 text-[15px] font-black text-white">Prontas para exportar</h2>
+              <div className="mt-2 grid gap-2">
                 {units.items.slice(0, 8).map((unit) => (
-                  <Link key={unit.id} href={`/relatorios/monitoramento?unitId=${unit.id}`} className="rounded-[12px] border border-white/[0.08] bg-[#070b10] p-3 text-sm hover:border-orange-300/30">
+                  <Link key={unit.id} href={`/relatorios/monitoramento?unitId=${unit.id}`} className="nds-card block text-[11px] hover:border-[var(--nova-primary)]/30">
                     <div className="font-bold text-white">{unit.name}</div>
-                    <div className="mt-1 text-xs text-slate-500">{unit.partner.name} · {[unit.city, unit.state].filter(Boolean).join("/") || "sem cidade"} · {unit.reportContractedBandwidth || "banda não informada"}</div>
+                    <div className="mt-1 text-[10px] text-[var(--nova-text-muted)]">{unit.partner.name} · {[unit.city, unit.state].filter(Boolean).join("/") || "sem cidade"} · {unit.reportContractedBandwidth || "banda não informada"}</div>
                   </Link>
                 ))}
               </div>
@@ -134,17 +153,23 @@ export default async function RelatoriosPage() {
 
         <RightPanel title="Exportação" description="Resumo da próxima saída.">
           <ReportPreviewCard title="Relatório de Consumo" format="PDF/DOCX" includeCharts units={Math.min(units.total, 12)} />
-          <div className="rounded-[12px] border border-white/[0.08] bg-[#070b10] p-4">
-            <div className="text-sm font-black text-white">Últimos arquivos</div>
-            <div className="mt-3 grid gap-2">
+          <div className="nds-card">
+            <div className="text-[12px] font-black text-white">Execuções por status</div>
+            <div className="mt-2">
+              <BarList data={runStatusBars} emptyLabel="Nenhuma execução registrada." />
+            </div>
+          </div>
+          <div className="nds-card">
+            <div className="text-[12px] font-black text-white">Últimos arquivos</div>
+            <div className="mt-2 grid gap-2">
               {runs.slice(0, 4).map((run) => (
-                <div key={run.id} className="rounded-[10px] border border-white/[0.06] bg-white/[0.03] p-3 text-sm">
-                  <div className="flex items-center justify-between gap-3"><span className="font-bold text-white">{run.rule.reportTemplate?.name || run.rule.name}</span><TonePill tone={statusTone(run.status)}>{run.status}</TonePill></div>
-                  <div className="mt-1 text-xs text-slate-500">{formatDate(run.startedAt)}</div>
-                  {run.attachments[0] ? <a href={run.attachments[0].url} className="mt-2 inline-flex text-xs font-bold text-orange-200 hover:text-orange-100">Baixar arquivo</a> : null}
+                <div key={run.id} className="nds-card text-[11px]">
+                  <div className="flex items-center justify-between gap-2"><span className="font-bold text-white">{run.rule.reportTemplate?.name || run.rule.name}</span><TonePill tone={statusTone(run.status)}>{run.status}</TonePill></div>
+                  <div className="mt-1 text-[10px] text-[var(--nova-text-muted)]">{formatShortDateTime(run.startedAt)}</div>
+                  {run.attachments[0] ? <a href={run.attachments[0].url} className="nds-button mt-2" data-variant="secondary">Baixar arquivo</a> : null}
                 </div>
               ))}
-              {!runs.length ? <div className="text-sm text-slate-500">Nenhuma exportação encontrada.</div> : null}
+              {!runs.length ? <div className="text-[11px] text-slate-500">Nenhuma exportação encontrada.</div> : null}
             </div>
           </div>
         </RightPanel>

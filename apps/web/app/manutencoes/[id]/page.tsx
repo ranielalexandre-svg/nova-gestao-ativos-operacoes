@@ -24,6 +24,16 @@ import {
   type CommandCenter,
 } from "@/lib/noc-overview";
 import { apiJson } from "@/lib/server-api";
+import { formatDateTime } from "@/lib/formatters";
+import {
+  maintenanceStatusLabel as statusLabel,
+  maintenanceStatusTone as statusTone,
+  maintenanceTypeLabel as typeLabel,
+  maintenanceTypeTone as typeTone,
+  occurrenceSeverityLabel,
+  occurrenceSeverityTone,
+  occurrenceStatusLabel,
+} from "@/lib/status-ui";
 import { getServerWebSession } from "@/lib/web-session";
 
 type MaintenanceDetail = {
@@ -43,76 +53,6 @@ type MaintenanceDetail = {
   occurrence: { id: string; code: string; title: string; severity: string; status: string } | null;
 };
 
-function typeLabel(value: string) {
-  const labels: Record<string, string> = {
-    preventive: "Preventiva",
-    corrective: "Corretiva",
-    inspection: "Inspeção",
-  };
-  return labels[value] || value;
-}
-
-function statusLabel(value: string) {
-  const labels: Record<string, string> = {
-    planned: "Planejada",
-    in_progress: "Em execução",
-    done: "Concluída",
-    cancelled: "Cancelada",
-  };
-  return labels[value] || value;
-}
-
-function typeTone(value: string) {
-  if (value === "corrective") return "attention";
-  if (value === "inspection") return "info";
-  return "success";
-}
-
-function statusTone(value: string) {
-  if (value === "done") return "success";
-  if (value === "cancelled") return "subtle";
-  if (value === "in_progress") return "info";
-  return "attention";
-}
-
-function occurrenceTone(value: string) {
-  if (value === "critical") return "critical";
-  if (value === "high") return "attention";
-  if (value === "medium") return "info";
-  return "neutral";
-}
-
-function occurrenceSeverityLabel(value: string) {
-  const labels: Record<string, string> = {
-    low: "Baixa",
-    medium: "Média",
-    high: "Alta",
-    critical: "Crítica",
-  };
-  return labels[value] || value;
-}
-
-function occurrenceStatusLabel(value: string) {
-  const labels: Record<string, string> = {
-    open: "Aberta",
-    investigating: "Em análise",
-    resolved: "Resolvida",
-    cancelled: "Cancelada",
-  };
-  return labels[value] || value;
-}
-
-function formatDateTime(value: string | null) {
-  if (!value) return "-";
-  return new Date(value).toLocaleString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
 function isOverdue(maintenance: MaintenanceDetail) {
   if (!maintenance.scheduledAt) return false;
   if (["done", "cancelled"].includes(maintenance.status)) return false;
@@ -131,10 +71,10 @@ function RelatedLink({
   return (
     <Link
       href={href}
-      className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4 transition hover:border-white/14 hover:bg-[#10161d]"
-    ><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+      className="nds-card block transition"
+    ><div className="nds-label">
         {label}
-      </div><div className="mt-2 text-sm font-semibold text-slate-50">{value}</div></Link>
+      </div><div className="mt-1 text-[12px] font-semibold text-slate-50">{value}</div></Link>
   );
 }
 
@@ -146,7 +86,7 @@ export default async function ManutencaoDetailPage({
   const session = await getServerWebSession();
 
   if (!session.authenticated) {
-    redirect("/login?next=/manutencoes");
+    redirect("/login?next=/chamados");
   }
 
   const resolved = await params;
@@ -167,17 +107,17 @@ export default async function ManutencaoDetailPage({
     {
       href: "/operacao/fila?view=dueSoon",
       title: "Voltar para a fila",
-      description: "Se a manutenção já pressiona o turno, a ordem de execução e despacho continua na fila operacional.",
+      description: "Se o chamado já pressiona o turno, a ordem de execução e despacho continua na fila operacional.",
       badge: <TonePill tone="attention">prazo</TonePill>,
     },
     {
-      href: "/ocorrencias",
+      href: "/alertas",
       title: "Abrir incidente relacionado",
       description: "Evento originador e vínculos.",
       badge: <TonePill tone="info">incidente</TonePill>,
     },
     {
-      href: "/monitoramento",
+      href: "/sensores",
       title: "Cruzar com host e telemetria",
       description: "Use o estado do host da unidade para confirmar impacto, recuperação ou necessidade de escalada.",
       badge: <TonePill tone="attention">NOC</TonePill>,
@@ -187,9 +127,9 @@ export default async function ManutencaoDetailPage({
   return (
     <AppShell
       title={`${maintenance.code} · ${maintenance.title}`}
-      subtitle="Ficha operacional da manutenção, vínculo técnico e janela de execução."
+      subtitle="Ficha operacional do chamado, vínculo técnico e janela de execução."
     ><RegistryDetailHero
-        eyebrow="Manutenção"
+        eyebrow="Chamado"
         title={maintenance.title}
         description={maintenance.description || "Sem descrição complementar registrada."}
         badges={
@@ -202,13 +142,15 @@ export default async function ManutencaoDetailPage({
         }
         actions={
           <div className="flex flex-wrap gap-2"><Link
-              href="/manutencoes"
-              className="rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/[0.06] hover:text-white"
+              href="/chamados"
+              className="nds-button"
+              data-variant="secondary"
             >
               Voltar
             </Link><Link
               href="/operacao/fila?view=dueSoon"
-              className="rounded-full border border-blue-400/30 bg-[#17213a] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1b2946]"
+              className="nds-button"
+              data-variant="primary"
             >
               Abrir fila
             </Link></div>
@@ -247,12 +189,12 @@ export default async function ManutencaoDetailPage({
           },
         ]}
         columnsClassName="md:grid-cols-2 xl:grid-cols-5"
-      /><section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]"><Surface className="p-5 sm:p-6"><SectionIntro
+      /><section className="nova-side-grid nova-side-grid--380"><Surface><SectionIntro
             eyebrow="Resumo"
-            title="Contexto da manutenção"
+            title="Contexto do chamado"
             description="Código, agenda e entidade relacionada em uma ficha mais direta."
             compact
-          /><div className="mt-5"><RegistryInfoGrid
+          /><div className="mt-2"><RegistryInfoGrid
               columnsClassName="md:grid-cols-2 xl:grid-cols-3"
               items={[
                 { label: "Código", value: maintenance.code },
@@ -269,13 +211,13 @@ export default async function ManutencaoDetailPage({
                     : "-",
                 },
                 {
-                  label: "Equipamento",
+                  label: "Ativo",
                   value: maintenance.equipment
                     ? `${maintenance.equipment.tag} - ${maintenance.equipment.name}`
                     : "-",
                 },
                 {
-                  label: "Ocorrência",
+                  label: "Alerta",
                   value: maintenance.occurrence
                     ? `${maintenance.occurrence.code} - ${maintenance.occurrence.title}`
                     : "-",
@@ -287,14 +229,14 @@ export default async function ManutencaoDetailPage({
                   )}`,
                 },
               ]}
-            /></div></Surface><div className="nova-page-stack grid gap-5"><LinkedHostPanel
+            /></div></Surface><div className="nova-page-stack grid gap-2"><LinkedHostPanel
             item={linkedHost}
-            title="Host da unidade em manutenção"
+            title="Host da unidade no chamado"
             description="A ficha já mostra o estado do host correspondente quando o cadastro consegue bater com a unidade monitorada."
           /><WorkflowStatsPanel
             eyebrow="Turno"
             title="Execução"
-            description="Esses sinais ajudam a decidir se a manutenção continua na agenda, volta ao incidente ou já pressiona a fila."
+            description="Esses sinais ajudam a decidir se o chamado continua na agenda, volta ao alerta ou já pressiona a fila."
             stats={[
               {
                 label: "Está vencida",
@@ -302,7 +244,7 @@ export default async function ManutencaoDetailPage({
                 tone: overdue ? "critical" : "success",
               },
               {
-                label: "Com ocorrência",
+                label: "Com alerta",
                 value: maintenance.occurrence ? "sim" : "não",
                 tone: maintenance.occurrence ? "attention" : "neutral",
               },
@@ -312,7 +254,7 @@ export default async function ManutencaoDetailPage({
                 tone: commandCenter.metrics.overdueMaintenances ? "critical" : "neutral",
               },
               {
-                label: "Ocorrências abertas",
+                label: "Alertas abertos",
                 value: commandCenter.metrics.openOccurrences,
                 tone: commandCenter.metrics.openOccurrences ? "info" : "neutral",
               },
@@ -320,14 +262,14 @@ export default async function ManutencaoDetailPage({
           /><ConnectedRoutesPanel
             eyebrow="Histórico"
             title="Rotas que completam a execução"
-            description="A manutenção conversa com fila, incidente e host. Essas são as rotas úteis da operação."
+            description="O chamado conversa com fila, alerta e host. Essas são as rotas úteis da operação."
             routes={connectedRoutes}
-          /><Surface className="p-5 sm:p-6"><SectionIntro
+          /><Surface><SectionIntro
               eyebrow="Vínculos"
               title="Abrir relacionados"
               description="Use estes atalhos quando a execução depender de contexto adicional."
               compact
-            /><div className="mt-5 grid gap-3">
+            /><div className="mt-2 grid gap-2">
               {maintenance.partner ? (
                 <RelatedLink
                   href={`/parceiros/${maintenance.partner.id}`}
@@ -344,22 +286,22 @@ export default async function ManutencaoDetailPage({
               ) : null}
               {maintenance.equipment ? (
                 <RelatedLink
-                  href={`/equipamentos/${maintenance.equipment.id}`}
-                  label="Equipamento"
+                  href={`/ativos/${maintenance.equipment.id}`}
+                  label="Ativo"
                   value={`${maintenance.equipment.tag} · ${maintenance.equipment.name}`}
                 />
               ) : null}
               {maintenance.occurrence ? (
                 <Link
-                  href={`/ocorrencias/${maintenance.occurrence.id}`}
-                  className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4 transition hover:border-white/14 hover:bg-[#10161d]"
-                ><div className="flex items-start justify-between gap-3"><div><div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
-                        Ocorrência
-                      </div><div className="mt-2 text-sm font-semibold text-slate-50">
+                  href={`/alertas/${maintenance.occurrence.id}`}
+                  className="nds-card block transition"
+                ><div className="flex items-start justify-between gap-2"><div><div className="nds-label">
+                        Alerta
+                      </div><div className="mt-1 text-[12px] font-semibold text-slate-50">
                         {maintenance.occurrence.code} · {maintenance.occurrence.title}
-                      </div><div className="mt-1 text-xs text-slate-500">
+                      </div><div className="mt-1 text-[10px] text-slate-500">
                         {occurrenceStatusLabel(maintenance.occurrence.status)}
-                      </div></div><TonePill tone={occurrenceTone(maintenance.occurrence.severity)}>
+                      </div></div><TonePill tone={occurrenceSeverityTone(maintenance.occurrence.severity)}>
                       {occurrenceSeverityLabel(maintenance.occurrence.severity)}
                     </TonePill></div></Link>
               ) : null}
@@ -369,7 +311,7 @@ export default async function ManutencaoDetailPage({
               !maintenance.occurrence ? (
                 <EmptyState
                   title="Sem vínculos"
-                  description="A manutenção ainda não aponta para parceiro, unidade, equipamento ou ocorrência."
+                  description="O chamado ainda não aponta para parceiro, unidade, ativo ou alerta."
                 />
               ) : null}
             </div></Surface></div></section></AppShell>

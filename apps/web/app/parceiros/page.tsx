@@ -5,6 +5,7 @@ import { ListPagination } from "@/components/list-pagination";
 import {
   DenseTable,
   EmptyState,
+  FieldLabel,
   SectionIntro,
   Surface,
   TableActionCell,
@@ -41,20 +42,6 @@ type PartnerRow = {
   createdAt: string;
   _count: { units: number };
 };
-
-function FieldLabel({
-  htmlFor,
-  label,
-}: {
-  htmlFor: string;
-  label: string;
-}) {
-  return (
-    <label htmlFor={htmlFor} className="text-[10px] uppercase tracking-[0.16em] text-slate-500">
-      {label}
-    </label>
-  );
-}
 
 function firstPhones(item?: LegacyPartnerDeskItem) {
   if (!item?.phones.length) return "Sem telefone legado";
@@ -129,7 +116,8 @@ export default async function ParceirosPage({
           isAdmin ? (
             <Link
               href="/parceiros/nova"
-              className="inline-flex h-11 items-center justify-center rounded-[14px] border border-sky-500/28 bg-sky-500/14 px-4 text-sm font-semibold text-sky-50 transition hover:bg-sky-500/18"
+              className="nds-button"
+              data-variant="primary"
             >
               Novo parceiro
             </Link>
@@ -164,50 +152,47 @@ export default async function ParceirosPage({
         ]}
         noteTitle="Tabela primeiro"
         noteCopy="Lista de parceiros e novo cadastro."
-      /><Surface className="p-5 sm:p-6"><SectionIntro
+      /><Surface><SectionIntro
           eyebrow="Filtros"
           title="Consulta"
           actions={
             <Link
               href="/parceiros"
-              className="rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/[0.06] hover:text-white"
+              className="nds-button"
+              data-variant="secondary"
             >
               Limpar filtros
             </Link>
           }
           compact
-        /><form method="GET" className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-5"><div className="grid gap-2 xl:col-span-2"><FieldLabel htmlFor="partners-q" label="Busca" /><input
+        /><form method="GET" className="nova-filter-grid nova-filter-grid--five mt-2"><div className="grid gap-1.5 xl:col-span-2"><FieldLabel htmlFor="partners-q" label="Busca" /><input
               id="partners-q"
               name="q"
               defaultValue={q}
               placeholder="Nome, código, cidade base ou contato"
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
-            /></div><div className="grid gap-2"><FieldLabel htmlFor="partners-active" label="Status" /><select
+            /></div><div className="grid gap-1.5"><FieldLabel htmlFor="partners-active" label="Status" /><select
               id="partners-active"
               name="active"
               defaultValue={active}
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            ><option value="all">Todos</option><option value="true">Ativos</option><option value="false">Excluídos</option></select></div><div className="grid gap-2"><FieldLabel htmlFor="partners-sort-by" label="Ordenar por" /><select
+            ><option value="all">Todos</option><option value="true">Ativos</option><option value="false">Excluídos</option></select></div><div className="grid gap-1.5"><FieldLabel htmlFor="partners-sort-by" label="Ordenar por" /><select
               id="partners-sort-by"
               name="sortBy"
               defaultValue={sortBy}
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            ><option value="createdAt">Cadastro</option><option value="code">Código</option><option value="name">Nome</option></select></div><div className="grid gap-2"><FieldLabel htmlFor="partners-page-size" label="Página" /><select
+            ><option value="createdAt">Cadastro</option><option value="code">Código</option><option value="name">Nome</option></select></div><div className="grid gap-1.5"><FieldLabel htmlFor="partners-page-size" label="Página" /><select
               id="partners-page-size"
               name="pageSize"
               defaultValue={String(pageSize)}
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            ><option value="10">10 por página</option><option value="20">20 por página</option><option value="50">50 por página</option></select></div><input type="hidden" name="sortDir" value={sortDir} /><button className="rounded-[14px] bg-white px-4 py-3 text-sm font-medium text-black transition hover:opacity-95 md:col-span-2 xl:col-span-5">
+            ><option value="10">10 por página</option><option value="20">20 por página</option><option value="50">50 por página</option></select></div><input type="hidden" name="sortDir" value={sortDir} /><button className="nds-button md:col-span-2 xl:col-span-5" data-variant="primary">
             Aplicar filtros
-          </button></form></Surface><Surface className="p-5 sm:p-6"><SectionIntro
+          </button></form></Surface><Surface><SectionIntro
           eyebrow="Partner Desk"
           title="Contatos e cobertura"
           description={`${response.meta.total} parceiro(s) encontrados nesta visão.`}
           actions={<TonePill tone="neutral">{response.items.length} linhas</TonePill>}
           compact
-        /><div className="mt-4">
+        /><div className="mt-2">
           {response.items.length ? (
-            <TableShell><DenseTable><TableHead><tr><th className="px-4 py-3">Parceiro</th><th className="px-4 py-3">Cidade base</th><th className="px-4 py-3">Contato</th><th className="px-4 py-3">Cobertura</th><th className="px-4 py-3">Locais</th><th className="px-4 py-3 text-right">Ações</th></tr></TableHead><tbody>
+            <TableShell><DenseTable><TableHead><tr><th className="px-3 py-2">Parceiro</th><th className="px-3 py-2">Cidade base</th><th className="px-3 py-2">Contato</th><th className="px-3 py-2">Cobertura</th><th className="px-3 py-2">Locais</th><th className="px-3 py-2 text-right">Ações</th></tr></TableHead><tbody>
                   {response.items.map((partner) => {
                     const legacy = legacyByPartnerId[partner.id];
 
@@ -217,22 +202,22 @@ export default async function ParceirosPage({
                         className="border-b border-white/6 last:border-b-0 hover:bg-white/[0.025]"
                       ><TableCell><Link
                             href={`/parceiros/${partner.id}`}
-                            className="font-medium text-white transition hover:text-sky-200"
+                            className="font-medium text-white transition hover:text-white"
                           >
                             {partner.name}
-                          </Link><div className="mt-1 text-xs text-slate-500">{partner.code}</div></TableCell><TableCell className="text-slate-300">
+                          </Link><div className="mt-1 text-[10px] text-slate-500">{partner.code}</div></TableCell><TableCell className="text-slate-300">
                           {legacy?.cityBase || "-"}
-                        </TableCell><TableCell><div className="max-w-[280px] text-sm text-slate-200">
+                        </TableCell><TableCell><div className="max-w-[280px] text-[11px] text-slate-200">
                             {contactCaption(legacy)}
-                          </div><div className="mt-1 max-w-[280px] text-xs text-slate-500">
+                          </div><div className="mt-1 max-w-[280px] text-[10px] text-slate-500">
                             {firstPhones(legacy)}
-                          </div></TableCell><TableCell><div className="max-w-[260px] text-sm text-slate-200">
+                          </div></TableCell><TableCell><div className="max-w-[260px] text-[11px] text-slate-200">
                             {legacy?.coverage || "Cobertura não importada"}
-                          </div><div className="mt-1 text-xs text-slate-500">
+                          </div><div className="mt-1 text-[10px] text-slate-500">
                             {legacy?.matched ? "base legada vinculada" : "sem match legado"}
-                          </div></TableCell><TableCell><div className="text-sm font-medium text-slate-100">
+                          </div></TableCell><TableCell><div className="text-[11px] font-medium text-slate-100">
                             {partner._count.units}
-                          </div><div className="mt-1 text-xs text-slate-500">
+                          </div><div className="mt-1 text-[10px] text-slate-500">
                             {legacy?.backupUnitCount
                               ? `${legacy.backupUnitCount} em contingência`
                               : "sem contingência registrada"}
@@ -249,7 +234,8 @@ export default async function ParceirosPage({
               action={
                 <Link
                   href="/parceiros"
-                  className="rounded-full bg-white px-4 py-2 text-sm font-medium text-black"
+                  className="nds-button"
+                  data-variant="secondary"
                 >
                   Limpar filtros
                 </Link>

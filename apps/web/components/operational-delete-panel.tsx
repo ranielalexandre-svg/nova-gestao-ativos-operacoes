@@ -51,31 +51,31 @@ export function OperationalDeletePanel({
     <><button
         type="button"
         onClick={() => setOpen(true)}
-        className="nds-button hover:border-rose-400/35 hover:bg-rose-500/[0.10] hover:text-rose-100"
-        data-variant="secondary"
+        className="nds-button"
+        data-variant="danger"
       >
         Excluir
       </button>
 
       {open ? (
-        <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 sm:p-6"><button
+        <div className="fixed inset-0 z-[130] flex items-center justify-center p-2 sm:p-2"><button
             type="button"
             aria-label="Cancelar exclusão"
             onClick={() => setOpen(false)}
-            className="absolute inset-0 bg-[rgba(3,6,11,0.78)] backdrop-blur-[10px]"
+            className="absolute inset-0 bg-[rgba(3,6,11,0.78)]"
           /><div
             role="dialog"
             aria-modal="true"
             aria-labelledby="delete-dialog-title"
             className="nds-panel relative z-[131] w-full max-w-lg overflow-hidden"
-          ><div className="border-b border-white/[0.08] px-5 py-5 sm:px-6"><div className="flex items-start justify-between gap-4"><div className="min-w-0"><div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-rose-300/80">
+          ><div className="border-b border-white/[0.08] px-3 py-2 sm:px-3"><div className="flex items-start justify-between gap-2"><div className="min-w-0"><div className="nds-label">
                     Exclusão
                   </div><h2
                     id="delete-dialog-title"
-                    className="mt-2 text-[18px] font-black tracking-tight text-slate-50"
+                    className="mt-2 text-[16px] font-black text-slate-50"
                   >
                     Excluir {entityLabel}?
-                  </h2><p className="mt-2 text-sm leading-6 text-slate-400">
+                  </h2><p className="mt-2 text-[11px] leading-5 text-slate-400">
                     O cadastro sairá das telas operacionais, mas o histórico continuará preservado.
                   </p></div><button
                   type="button"
@@ -86,23 +86,23 @@ export function OperationalDeletePanel({
                 </button></div></div><form action={formAction}><input type="hidden" name="id" value={entityId} /><input type="hidden" name="confirmDelete" value="yes" />
               {children}
 
-              <div className="px-5 py-5 sm:px-6">
+              <div className="px-3 py-2 sm:px-3">
                 {state.status !== "idle" ? (
                   <div
                     role={state.status === "error" ? "alert" : "status"}
-                    className={`mb-4 rounded-[14px] border px-4 py-3 text-sm ${
+                    className={`mb-2 rounded-[6px] border px-3 py-2 text-[11px] ${
                       state.status === "success"
-                        ? "border-emerald-500/25 bg-emerald-500/12 text-emerald-100"
-                        : "border-rose-500/25 bg-rose-500/12 text-rose-100"
+                        ? "nds-notice-success"
+                        : "nds-notice-error"
                     }`}
                   >
                     {state.message}
                   </div>
                 ) : null}
 
-                <div className="rounded-[6px] border border-white/[0.08] bg-black/20 px-3 py-2 text-[12px] font-semibold text-slate-100">
+                <div className="rounded-[6px] border border-white/[0.08] bg-black/20 px-3 py-2 text-[11px] font-semibold text-slate-100">
                   {entityName}
-                </div></div><div className="flex flex-wrap items-center justify-end gap-2 border-t border-white/[0.08] px-5 py-4 sm:px-6"><button
+                </div></div><div className="flex flex-wrap items-center justify-end gap-2 border-t border-white/[0.08] px-3 py-2 sm:px-3"><button
                   type="button"
                   onClick={() => setOpen(false)}
                   className="nds-button"

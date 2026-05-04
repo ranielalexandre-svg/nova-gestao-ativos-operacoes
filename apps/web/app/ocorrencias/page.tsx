@@ -5,6 +5,7 @@ import { ListPagination } from "@/components/list-pagination";
 import {
   DenseTable,
   EmptyState,
+  FieldLabel,
   RightPanel,
   StatCard,
   Surface,
@@ -31,6 +32,13 @@ import {
   type CommandCenter,
 } from "@/lib/noc-overview";
 import { apiJson } from "@/lib/server-api";
+import { formatDate, optionLabel } from "@/lib/formatters";
+import {
+  occurrenceSeverityOptions as severityOptions,
+  occurrenceSeverityTone as severityTone,
+  occurrenceStatusOptions as statusOptions,
+  occurrenceStatusTone as statusTone,
+} from "@/lib/status-ui";
 
 type PartnerOption = {
   id: string;
@@ -66,55 +74,6 @@ type OccurrenceRow = {
   _count: { maintenances: number };
 };
 
-const severityOptions = [
-  { value: "low", label: "Baixa" },
-  { value: "medium", label: "Média" },
-  { value: "high", label: "Alta" },
-  { value: "critical", label: "Crítica" },
-];
-
-const statusOptions = [
-  { value: "open", label: "Aberta" },
-  { value: "investigating", label: "Em análise" },
-  { value: "resolved", label: "Resolvida" },
-  { value: "cancelled", label: "Cancelada" },
-];
-
-function FieldLabel({
-  htmlFor,
-  label,
-}: {
-  htmlFor: string;
-  label: string;
-}) {
-  return (
-    <label htmlFor={htmlFor} className="nds-label">
-      {label}
-    </label>
-  );
-}
-
-function optionLabel(
-  options: Array<{ value: string; label: string }>,
-  value: string,
-) {
-  return options.find((option) => option.value === value)?.label || value;
-}
-
-function severityTone(value: string) {
-  if (value === "critical") return "critical";
-  if (value === "high") return "attention";
-  if (value === "medium") return "info";
-  return "subtle";
-}
-
-function statusTone(value: string) {
-  if (value === "resolved") return "success";
-  if (value === "cancelled") return "subtle";
-  if (value === "investigating") return "info";
-  return "attention";
-}
-
 function occurrenceEntity(occurrence: OccurrenceRow) {
   if (occurrence.equipment) {
     return `${occurrence.equipment.tag} - ${occurrence.equipment.name}`;
@@ -131,10 +90,6 @@ function occurrenceEntity(occurrence: OccurrenceRow) {
   return "Sem vínculo";
 }
 
-function formatDate(value: string) {
-  return new Date(value).toLocaleDateString("pt-BR");
-}
-
 export default async function OcorrenciasPage({
   searchParams,
 }: {
@@ -143,7 +98,7 @@ export default async function OcorrenciasPage({
   const session = await getServerWebSession();
 
   if (!session.authenticated) {
-    redirect("/login?next=/ocorrencias");
+    redirect("/login?next=/alertas");
   }
 
   const params = await resolveSearchParams(searchParams);
@@ -210,8 +165,8 @@ export default async function OcorrenciasPage({
       title="Alertas"
       subtitle="Kanban de incidentes, filtros e tabela operacional."
     >
-      <section className="grid gap-3">
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+      <section className="grid gap-2">
+        <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-5">
           <StatCard
             label="Alertas"
             value={response.meta.total}
@@ -237,7 +192,7 @@ export default async function OcorrenciasPage({
             tone={investigatingOnPage ? "info" : "neutral"}
           />
           <StatCard
-            label="Com manutenção"
+            label="Com chamado"
             value={withMaintenanceOnPage}
             detail={`${linkedOnPage} vinculados`}
             tone={withMaintenanceOnPage ? "success" : "neutral"}
@@ -247,7 +202,7 @@ export default async function OcorrenciasPage({
         <Surface>
           <form
             method="GET"
-            className="grid gap-2 md:grid-cols-2 xl:grid-cols-[minmax(240px,1fr)_140px_140px_120px_100px_auto_auto] xl:items-end"
+            className="nova-filter-grid nova-filter-grid--occurrences"
           >
             <label
               className="grid gap-1.5 md:col-span-2 xl:col-span-1"
@@ -313,17 +268,17 @@ export default async function OcorrenciasPage({
             <button className="nds-button" data-variant="primary">
               Filtrar
             </button>
-            <Link href="/ocorrencias" className="nds-button" data-variant="secondary">
+            <Link href="/alertas" className="nds-button" data-variant="secondary">
               Limpar
             </Link>
           </form>
         </Surface>
 
-        <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_300px]">
-          <div className="grid gap-3">
-            <div className="grid gap-3 lg:grid-cols-4">
+        <div className="nova-side-grid nova-side-grid--300">
+          <div className="grid gap-2">
+            <div className="nova-kanban-board">
               {kanban.map((column) => (
-                <Surface key={column.title} className="p-3">
+                <Surface key={column.title} className="nova-kanban-column p-2">
                   <div className="flex items-center justify-between gap-2">
                     <h2 className="text-[13px] font-black text-white">
                       {column.title}
@@ -332,12 +287,12 @@ export default async function OcorrenciasPage({
                       {column.items.length}
                     </TonePill>
                   </div>
-                  <div className="mt-3 grid gap-2">
+                  <div className="mt-2 grid gap-2">
                     {column.items.slice(0, 4).map((item) => (
                       <Link
                         key={item.id}
-                        href={`/ocorrencias/${item.id}`}
-                        className="rounded-md border border-white/[0.08] bg-[#07101a] p-2 hover:border-orange-300/30"
+                        href={`/alertas/${item.id}`}
+                        className="nova-kanban-ticket"
                       >
                         <div className="flex items-center justify-between gap-2">
                           <span className="truncate text-[11px] font-black text-white">
@@ -350,6 +305,24 @@ export default async function OcorrenciasPage({
                         <div className="mt-2 truncate text-[10px] text-slate-400">
                           {item.title}
                         </div>
+                        <div className="mt-2 grid gap-1 border-t border-white/[0.07] pt-2 text-[10px] text-[var(--nova-text-muted)]">
+                          <div className="flex items-center justify-between gap-2">
+                            <span>Alvo</span>
+                            <span className="min-w-0 max-w-[150px] truncate text-right text-slate-300">
+                              {occurrenceEntity(item)}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between gap-2">
+                            <span>Chamados</span>
+                            <TonePill tone={item._count.maintenances ? "success" : "neutral"}>
+                              {item._count.maintenances}
+                            </TonePill>
+                          </div>
+                          <div className="flex items-center justify-between gap-2">
+                            <span>Atualização</span>
+                            <span className="text-slate-400">{formatDate(item.updatedAt)}</span>
+                          </div>
+                        </div>
                       </Link>
                     ))}
                     {!column.items.length ? (
@@ -361,11 +334,11 @@ export default async function OcorrenciasPage({
             </div>
 
             <Surface>
-              <div className="mb-3 flex items-center justify-between gap-2">
+              <div className="mb-2 flex items-center justify-between gap-2">
                 <div>
                   <div className="nds-label">Incidentes</div>
                   <h2 className="mt-1 text-[14px] font-black text-white">
-                    Ocorrências cadastradas
+                    Alertas cadastrados
                   </h2>
                 </div>
                 <TonePill tone="neutral">{response.items.length} linhas</TonePill>
@@ -375,11 +348,11 @@ export default async function OcorrenciasPage({
                   <DenseTable>
                     <TableHead>
                       <tr>
-                        <th>Ocorrência</th>
+                        <th>Alerta</th>
                         <th>Severidade</th>
                         <th>Status</th>
                         <th>Vínculo</th>
-                        <th>Manut.</th>
+                        <th>Chamados</th>
                         <th>Atualização</th>
                         <TableActionHeader />
                       </tr>
@@ -389,8 +362,8 @@ export default async function OcorrenciasPage({
                         <tr key={occurrence.id}>
                           <TableCell>
                             <Link
-                              href={`/ocorrencias/${occurrence.id}`}
-                              className="font-bold text-white hover:text-orange-100"
+                              href={`/alertas/${occurrence.id}`}
+                              className="font-bold text-white hover:text-white"
                             >
                               {occurrence.code}
                             </Link>
@@ -425,7 +398,7 @@ export default async function OcorrenciasPage({
                             {formatDate(occurrence.updatedAt)}
                           </TableCell>
                           <TableActionCell>
-                            <TableActionLink href={`/ocorrencias/${occurrence.id}`}>
+                            <TableActionLink href={`/alertas/${occurrence.id}`}>
                               Abrir
                             </TableActionLink>
                           </TableActionCell>
@@ -436,11 +409,11 @@ export default async function OcorrenciasPage({
                 </TableShell>
               ) : (
                 <EmptyState
-                  title="Nenhuma ocorrência encontrada"
+                  title="Nenhum alerta encontrado"
                   description="Ajuste a busca ou limpe os filtros para voltar à base completa."
                   action={
                     <Link
-                      href="/ocorrencias"
+                      href="/alertas"
                       className="nds-button"
                       data-variant="secondary"
                     >
@@ -454,13 +427,13 @@ export default async function OcorrenciasPage({
 
           <RightPanel title="Resumo" description="Indicadores do turno e atalhos.">
             <div className="grid gap-2">
-              <div className="flex items-center justify-between text-xs text-slate-300">
+              <div className="flex items-center justify-between text-[10px] text-slate-300">
                 <span>Com origem</span>
                 <TonePill tone={sourceOnPage ? "info" : "neutral"}>
                   {sourceOnPage}
                 </TonePill>
               </div>
-              <div className="flex items-center justify-between text-xs text-slate-300">
+              <div className="flex items-center justify-between text-[10px] text-slate-300">
                 <span>Críticas no turno</span>
                 <TonePill
                   tone={
@@ -472,8 +445,8 @@ export default async function OcorrenciasPage({
                   {commandCenter.metrics.criticalOpenOccurrences}
                 </TonePill>
               </div>
-              <div className="flex items-center justify-between text-xs text-slate-300">
-                <span>Manutenções vencidas</span>
+              <div className="flex items-center justify-between text-[10px] text-slate-300">
+                <span>Chamados vencidos</span>
                 <TonePill
                   tone={
                     commandCenter.metrics.overdueMaintenances
@@ -488,13 +461,13 @@ export default async function OcorrenciasPage({
             <Link href="/operacao/fila?view=pending" className="nds-button" data-variant="primary">
               Abrir fila
             </Link>
-            <Link href="/monitoramento?view=events" className="nds-button" data-variant="secondary">
+            <Link href="/sensores?view=events" className="nds-button" data-variant="secondary">
               Ver eventos NOC
             </Link>
           </RightPanel>
         </div>
 
-        <ListPagination pathname="/ocorrencias" searchParams={params} meta={response.meta} />
+        <ListPagination pathname="/alertas" searchParams={params} meta={response.meta} />
       </section>
     </AppShell>
   );

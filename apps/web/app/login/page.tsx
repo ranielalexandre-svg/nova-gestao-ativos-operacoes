@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/login-form";
+import { getNovaLayoutVariant } from "@/lib/nova-layout";
 import { getServerWebSession } from "@/lib/web-session";
 
 export default async function LoginPage() {
@@ -9,13 +10,38 @@ export default async function LoginPage() {
     redirect("/dashboard");
   }
 
+  const layoutVariant = getNovaLayoutVariant();
+
   return (
-    <main className="nova-login-page min-h-dvh overflow-hidden bg-[#070b10] px-5 py-8 text-slate-100"><div className="relative z-10 mx-auto grid min-h-[calc(100dvh-4rem)] w-full max-w-6xl items-center gap-10 lg:grid-cols-[minmax(0,1.05fr)_440px]"><section className="hidden lg:block"><div className="inline-flex rounded-full border border-sky-400/25 bg-sky-500/12 px-4 py-1.5 text-[11px] font-black uppercase tracking-[0.16em] text-sky-100 shadow-[0_12px_34px_rgba(14,165,233,0.12)]">
-            NOVA · Plataforma operacional
-          </div><h1 className="mt-5 max-w-2xl text-[40px] font-black leading-[1.02] tracking-[-0.055em] text-slate-50 xl:text-[48px]">
-            NOVA Gestão de Ativos e Operações
-          </h1><p className="mt-4 max-w-3xl text-sm leading-7 text-slate-400">
-            Inventário operacional, parceiros, unidades, ocorrências e monitoramento em uma experiência local pronta para a operação.
-          </p><div className="mt-8 grid gap-4 xl:grid-cols-3"><div className="nova-login-feature rounded-[22px] border border-white/[0.09] bg-white/[0.045] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur"><div className="text-sm font-semibold text-slate-50">Inventário centralizado</div><p className="mt-2 text-sm leading-6 text-slate-400">Unidades, parceiros e ativos.</p></div><div className="nova-login-feature rounded-[22px] border border-white/[0.09] bg-white/[0.045] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur"><div className="text-sm font-semibold text-slate-50">Governança e auditoria</div><p className="mt-2 text-sm leading-6 text-slate-400">Perfis, auditoria e rastreabilidade.</p></div><div className="nova-login-feature rounded-[22px] border border-white/[0.09] bg-white/[0.045] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur"><div className="text-sm font-semibold text-slate-50">Fluxo NOC</div><p className="mt-2 text-sm leading-6 text-slate-400">Ocorrências, manutenções e monitoramento.</p></div></div></section><LoginForm /></div></main>
+    <main data-nova-layout={layoutVariant} className="nova-login-page min-h-dvh overflow-hidden px-3 py-2 text-slate-100">
+      <div className="nova-login-grid relative z-10 mx-auto min-h-[calc(100dvh-1.5rem)] w-full max-w-5xl items-center">
+        <section className="hidden lg:grid lg:gap-2">
+          <div className="flex items-end justify-between gap-2 border-b border-[var(--nova-border-soft)] pb-2">
+            <div>
+              <div className="text-[20px] font-black leading-none text-slate-50">
+                NOV<span className="text-[var(--nova-primary)]">A</span>
+              </div>
+              <div className="mt-1 text-[7px] font-black uppercase text-[var(--nova-text-muted)]">Telecom</div>
+            </div>
+            <div className="nds-badge" data-tone="primary">Layout A</div>
+          </div>
+          <div>
+            <div className="nds-label">Site de gestão</div>
+            <h1 className="mt-2 text-[18px] font-black leading-tight text-slate-50">
+              Gestão de Ativos e Operações
+            </h1>
+            <p className="mt-2 max-w-xl text-[11px] leading-5 text-[var(--nova-text-muted)]">
+              Entrada operacional compacta para inventário, monitoramento, alertas e relatórios.
+            </p>
+          </div>
+          <div className="grid gap-2 xl:grid-cols-3">
+            <div className="nova-login-feature"><div className="nds-label">Inventário</div><div className="mt-2 text-[13px] font-black text-slate-50">Ativos</div><p className="mt-1 text-[11px] leading-5 text-[var(--nova-text-muted)]">Unidades, parceiros e ativos.</p></div>
+            <div className="nova-login-feature"><div className="nds-label">Operação</div><div className="mt-2 text-[13px] font-black text-slate-50">NOC</div><p className="mt-1 text-[11px] leading-5 text-[var(--nova-text-muted)]">Alertas, chamados e exceções.</p></div>
+            <div className="nova-login-feature"><div className="nds-label">Governança</div><div className="mt-2 text-[13px] font-black text-slate-50">Auditoria</div><p className="mt-1 text-[11px] leading-5 text-[var(--nova-text-muted)]">Perfis, acessos e trilhas.</p></div>
+          </div>
+        </section>
+        <LoginForm />
+      </div>
+    </main>
   );
 }

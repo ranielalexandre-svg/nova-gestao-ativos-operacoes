@@ -4,11 +4,9 @@ import type { ReactNode } from "react";
 import { AppShell } from "@/components/app-shell";
 import {
   DenseTable,
-  EmptyState,
   FieldLabel,
+  PageHeader,
   Surface,
-  TableCell,
-  TableHead,
   TableShell,
   TonePill,
 } from "@/components/ops-ui";
@@ -18,6 +16,7 @@ import {
   resolveSearchParams,
   type RawSearchParams,
 } from "@/lib/list-query";
+import { formatDate, formatDateTime } from "@/lib/formatters";
 import { apiJson } from "@/lib/server-api";
 import { getServerWebSession } from "@/lib/web-session";
 
@@ -239,24 +238,6 @@ function readSourceMode(params: RawSearchParams, selectedTemplate: ReportTemplat
   return "unit";
 }
 
-function formatDate(value: string) {
-  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    const [year, month, day] = value.split("-");
-    return `${day}/${month}/${year}`;
-  }
-
-  return new Date(value).toLocaleDateString("pt-BR");
-}
-
-function formatDateTime(value: string | null) {
-  if (!value) return "-";
-  return new Date(value).toLocaleString("pt-BR");
-}
-
-function formatUnitMeta(unit: ReportUnitCatalog["items"][number]) {
-  return [unit.partner.code, [unit.city, unit.state].filter(Boolean).join("/")].filter(Boolean).join(" · ");
-}
-
 function unitSearchText(unit: ReportUnitCatalog["items"][number]) {
   return [unit.code, unit.name, unit.city, unit.state, unit.partner.code, unit.partner.name]
     .filter(Boolean)
@@ -366,24 +347,23 @@ function SourceModeLink({ tab, active, href }: { tab: SourceTab; active: boolean
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
-      className={[
-        "block rounded-[8px] border px-3 py-2 transition",
-        active
-          ? "border-orange-400/35 bg-orange-500/14 text-orange-50"
-          : "border-white/10 bg-white/[0.03] text-slate-300 hover:bg-white/[0.07] hover:text-white",
-      ].join(" ")}
-    ><span className="block text-[11px] font-black">{tab.label}</span><span className="mt-1 block text-[10px] leading-4 text-slate-400">{tab.description}</span></Link>
+      className="nova-source-mode-card"
+      data-active={active ? "true" : "false"}
+    >
+      <span className="nova-source-mode-label">{tab.label}</span>
+      <span className="nova-source-mode-copy">{tab.description}</span>
+    </Link>
   );
 }
 
 function ReportNotice({ tone, children }: { tone: "success" | "info" | "error"; children: ReactNode }) {
   const toneClass = {
-    success: "border-emerald-400/20 bg-emerald-400/10 text-emerald-50",
-    info: "border-cyan-400/20 bg-cyan-400/10 text-cyan-50",
-    error: "border-rose-500/25 bg-rose-500/10 text-rose-100",
+    success: "nds-notice-success",
+    info: "nds-notice-info",
+    error: "nds-notice-error",
   }[tone];
 
-  return <div className={`rounded-[8px] border px-3 py-2 text-[11px] ${toneClass}`}>{children}</div>;
+  return <div className={`rounded-[var(--nova-radius-card)] border px-3 py-2 text-[11px] ${toneClass}`}>{children}</div>;
 }
 
 export default async function MonitoringReportsPage({
@@ -452,8 +432,6 @@ export default async function MonitoringReportsPage({
     .map((unitId) => catalog.items.find((item) => item.id === unitId))
     .filter((item): item is ReportUnitCatalog["items"][number] => Boolean(item));
   const primaryUnit = resultUnits[0] || null;
-  const unresolvedCount = groupPreview ? groupPreview.counts.ambiguousHosts + groupPreview.counts.unmatchedHosts : 0;
-
   const currentFilters: FilterQuery = {
     source: activeSource,
     templateId: activeSource === "template" ? selectedTemplate?.id || undefined : undefined,
@@ -537,42 +515,28 @@ export default async function MonitoringReportsPage({
       subtitle="Selecione o período, as unidades e revise os dados antes de exportar."
       hidePageHeader
     >
-      <div className="nova-monitoring-report-page grid gap-5">
-        <header className="nova-report-hero flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div className="min-w-0">
-            <div className="text-sm text-slate-500">
-              Relatórios <span className="mx-1 text-slate-700">/</span>
-              <span className="text-slate-300">Monitoramento</span>
-            </div>
-            <h1 className="mt-3 text-[28px] font-black tracking-[-0.04em] text-white">
-              Gerar relatório de consumo
-            </h1>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">
-              Selecione o período, as unidades e revise os dados antes de exportar.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            <Link
-              href={returnTo}
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-[8px] border border-white/10 bg-white/[0.055] px-4 text-sm font-bold text-slate-100 transition hover:bg-white/[0.09]"
-            >
-              ↻ Atualizar dados
-            </Link>
-            <Link
-              href="/relatorios/monitoramento"
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-[8px] bg-orange-500 px-5 text-sm font-black text-white shadow-[0_18px_42px_rgba(249,115,22,0.24)] transition hover:bg-orange-400"
-            >
-              ⧉ Novo relatório
-            </Link>
-          </div>
-        </header>
+      <div className="nova-monitoring-report-page grid gap-2">
+        <PageHeader
+          eyebrow="Relatórios / Monitoramento"
+          title="Gerar relatório de consumo"
+          subtitle="Selecione o período, as unidades e revise os dados antes de exportar."
+          actions={(
+            <>
+              <Link href={returnTo} className="nds-button" data-variant="secondary">
+                Atualizar dados
+              </Link>
+              <Link href="/relatorios/monitoramento" className="nds-button" data-variant="primary">
+                Novo relatório
+              </Link>
+            </>
+          )}
+        />
 
         {highlightedRun?.status === "success" && highlightedAttachment ? (
           <ReportNotice tone="success">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <span>Relatório pronto.</span>
-              <Link href={webAttachmentUrl(highlightedAttachment.url)} className="font-semibold text-emerald-100 hover:text-white">
+              <Link href={webAttachmentUrl(highlightedAttachment.url)} className="font-black text-white hover:text-[var(--nova-primary)]">
                 Baixar arquivo
               </Link>
             </div>
@@ -587,42 +551,42 @@ export default async function MonitoringReportsPage({
           </ReportNotice>
         ) : null}
 
-        <div className="nova-report-stepper grid gap-4 rounded-[8px] border border-white/[0.08] bg-white/[0.035] px-4 py-4 md:grid-cols-3">
-          <div className="flex items-center gap-4">
-            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-orange-500 text-base font-black text-white shadow-[0_12px_28px_rgba(249,115,22,0.28)]">1</span>
+        <div className="nova-report-stepper nds-card grid gap-2 md:grid-cols-3">
+          <div className="flex items-center gap-2">
+            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[var(--nova-primary)] text-[12px] font-black text-white">1</span>
             <div>
-              <div className="text-sm font-black text-slate-50">Filtros</div>
-              <div className="mt-1 text-xs text-slate-400">Seleção do período e unidades</div>
+              <div className="text-[12px] font-black text-slate-50">Filtros</div>
+              <div className="mt-1 text-[10px] text-[var(--nova-text-muted)]">Seleção do período e unidades</div>
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-white/10 bg-white/[0.08] text-sm font-black text-slate-100">2</span>
+          <div className="flex items-center gap-2">
+            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-white/10 bg-white/[0.08] text-[11px] font-black text-slate-100">2</span>
             <div>
-              <div className="text-sm font-black text-slate-50">Revisão</div>
-              <div className="mt-1 text-xs text-slate-400">Confira os dados e resumo</div>
+              <div className="text-[12px] font-black text-slate-50">Revisão</div>
+              <div className="mt-1 text-[10px] text-[var(--nova-text-muted)]">Confira os dados e resumo</div>
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-white/10 bg-white/[0.08] text-sm font-black text-slate-100">3</span>
+          <div className="flex items-center gap-2">
+            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-white/10 bg-white/[0.08] text-[11px] font-black text-slate-100">3</span>
             <div>
-              <div className="text-sm font-black text-slate-50">Exportação</div>
-              <div className="mt-1 text-xs text-slate-400">Gere o relatório</div>
+              <div className="text-[12px] font-black text-slate-50">Exportação</div>
+              <div className="mt-1 text-[10px] text-[var(--nova-text-muted)]">Gere o relatório</div>
             </div>
           </div>
         </div>
 
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,990px)_320px] xl:items-start">
-          <div className="grid gap-5">
-            <Surface className="p-4 sm:p-5">
-              <form action="/relatorios/monitoramento" method="GET" className="grid gap-4">
+        <div className="nova-report-workbench">
+          <div className="grid gap-2">
+            <Surface>
+              <form action="/relatorios/monitoramento" method="GET" className="grid gap-2">
                 <input type="hidden" name="source" value={activeSource} />
 
-                <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="flex flex-wrap items-start justify-between gap-2">
                   <div>
-                    <h2 className="text-base font-black text-slate-50">Período do relatório</h2>
-                    <p className="mt-1 text-xs text-slate-500">
+                    <h2 className="text-[13px] font-black text-slate-50">Período do relatório</h2>
+                    <p className="mt-1 text-[11px] text-[var(--nova-text-muted)]">
                       {sourceLabel(activeSource)} · {formatDate(from)} até {formatDate(to)} · {resultUnits.length} unidade(s)
                     </p>
                   </div>
@@ -630,37 +594,39 @@ export default async function MonitoringReportsPage({
                   <div className="flex gap-2">
                     <Link
                       href="/relatorios/monitoramento"
-                      className="inline-flex h-10 items-center rounded-[12px] border border-white/10 bg-white/[0.04] px-4 text-sm font-bold text-slate-100 transition hover:bg-white/[0.08]"
+                      className="nds-button"
+                      data-variant="secondary"
                     >
                       Limpar
                     </Link>
                     <button
                       type="submit"
-                      className="inline-flex h-10 items-center rounded-[12px] border border-orange-400/35 bg-orange-500/18 px-4 text-sm font-bold text-orange-50 transition hover:bg-orange-500/25"
+                      className="nds-button"
+                      data-variant="primary"
                     >
                       Aplicar filtros
                     </button>
                   </div>
                 </div>
 
-                <div className="grid gap-3 md:grid-cols-3">
+                <div className="grid gap-2 md:grid-cols-3">
                   {sourceTabs.map((tab) => (
                     <SourceModeLink key={tab.mode} tab={tab} active={activeSource === tab.mode} href={sourceHref(tab.mode)} />
                   ))}
                 </div>
 
-                <div className="grid gap-3 lg:grid-cols-[1fr_1fr_1.4fr]">
-                  <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                <div className="nova-report-date-grid">
+                  <label className="grid gap-1.5">
                     <FieldLabel>Mês / início</FieldLabel>
                     <input name="from" type="date" defaultValue={from} className="px-3" />
                   </label>
 
-                  <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                  <label className="grid gap-1.5">
                     <FieldLabel>Fim</FieldLabel>
                     <input name="to" type="date" defaultValue={to} className="px-3" />
                   </label>
 
-                  <div className="grid gap-2">
+                  <div className="grid gap-1.5">
                     <FieldLabel>Atalhos</FieldLabel>
                     <div className="flex flex-wrap gap-2">
                       <QuickLink href={quickTodayHref}>Hoje</QuickLink>
@@ -672,8 +638,8 @@ export default async function MonitoringReportsPage({
                 </div>
 
                 {activeSource === "unit" ? (
-                  <div className="grid gap-3 lg:grid-cols-[minmax(220px,0.75fr)_minmax(280px,1.25fr)]">
-                    <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                  <div className="nova-report-choice-grid nova-report-choice-grid--unit">
+                    <label className="grid gap-1.5">
                       <FieldLabel>Buscar unidade</FieldLabel>
                       <input
                         name="unitQ"
@@ -683,7 +649,7 @@ export default async function MonitoringReportsPage({
                       />
                     </label>
 
-                    <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                    <label className="grid gap-1.5">
                       <FieldLabel>Unidade</FieldLabel>
                       <select name="unitId" defaultValue={requestedUnitId} className="px-3">
                         <option value="">Selecione uma unidade</option>
@@ -696,8 +662,8 @@ export default async function MonitoringReportsPage({
                 ) : null}
 
                 {activeSource === "template" ? (
-                  <div className="grid gap-3 lg:grid-cols-[minmax(280px,1fr)_minmax(240px,0.7fr)]">
-                    <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                  <div className="nova-report-choice-grid nova-report-choice-grid--template">
+                    <label className="grid gap-1.5">
                       <FieldLabel>Template</FieldLabel>
                       <select name="templateId" defaultValue={selectedTemplate?.id || ""} className="px-3">
                         <option value="">Selecione um template</option>
@@ -707,23 +673,23 @@ export default async function MonitoringReportsPage({
                       </select>
                     </label>
 
-                    <div className="rounded-[12px] border border-white/10 bg-white/[0.035] p-4">
+                    <div className="nds-card">
                       <FieldLabel>Resumo do template</FieldLabel>
                       {selectedTemplate ? (
-                        <div className="mt-3 grid gap-2 text-sm text-slate-300">
+                        <div className="mt-2 grid gap-1 text-[11px] text-slate-300">
                           <div>{selectedTemplate.sourceType === "zabbix_group" ? "Origem por grupo Zabbix" : "Origem por unidades salvas"}</div>
                           <div>{selectedTemplate.outputFormat.toUpperCase()} · {selectedTemplate.includeCharts ? "com gráficos" : "sem gráficos"}</div>
                         </div>
                       ) : (
-                        <div className="mt-3 text-sm text-slate-500">Nenhum template selecionado.</div>
+                        <div className="mt-2 text-[11px] text-[var(--nova-text-muted)]">Nenhum template selecionado.</div>
                       )}
                     </div>
                   </div>
                 ) : null}
 
                 {activeSource === "group" ? (
-                  <div className="grid gap-3">
-                    <label className="grid max-w-xl gap-2 text-sm font-semibold text-slate-200">
+                  <div className="grid gap-2">
+                    <label className="grid max-w-xl gap-1.5">
                       <FieldLabel>Fonte dos dados</FieldLabel>
                       <select name="groupIntegrationId" defaultValue={selectedGroupSource?.id || ""} className="px-3">
                         <option value="">Selecione uma integração</option>
@@ -733,26 +699,26 @@ export default async function MonitoringReportsPage({
                       </select>
                     </label>
 
-                    <div className="rounded-[12px] border border-white/10 bg-black/10 p-4">
-                      <div className="flex items-center justify-between gap-3">
+                    <div className="nds-card">
+                      <div className="flex items-center justify-between gap-2">
                         <FieldLabel>Host groups</FieldLabel>
-                        {effectiveGroupIds.length ? <Link href={clearGroupsHref} className="text-sm font-semibold text-orange-200 hover:text-white">Limpar grupos</Link> : null}
+                        {effectiveGroupIds.length ? <Link href={clearGroupsHref} className="nds-button" data-variant="ghost">Limpar grupos</Link> : null}
                       </div>
 
                       {selectedGroupSource && groupCatalog?.items.length ? (
-                        <div className="mt-3 grid max-h-[300px] gap-2 overflow-auto pr-1 sm:grid-cols-2 xl:grid-cols-3">
+                        <div className="mt-2 grid max-h-[300px] gap-2 overflow-auto pr-1 sm:grid-cols-2 xl:grid-cols-3">
                           {groupCatalog.items.map((group) => (
-                            <label key={group.id} className="flex cursor-pointer items-start gap-3 rounded-[12px] border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-slate-200 hover:bg-white/[0.06]">
+                            <label key={group.id} className="nds-card flex cursor-pointer items-start gap-2 text-[11px] text-slate-200 transition hover:border-[color-mix(in_srgb,var(--nova-primary)_24%,transparent)] hover:bg-white/[0.06]">
                               <input type="checkbox" name="groupIds" value={group.id} defaultChecked={effectiveGroupIds.includes(group.id)} className="mt-0.5 h-4 w-4" />
                               <span className="min-w-0">
                                 <span className="block truncate font-medium text-slate-100">{group.name}</span>
-                                <span className="text-xs text-slate-500">{group.hostCount} host(s)</span>
+                                <span className="text-[10px] text-[var(--nova-text-muted)]">{group.hostCount} host(s)</span>
                               </span>
                             </label>
                           ))}
                         </div>
                       ) : (
-                        <div className="mt-3 rounded-[12px] border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-slate-500">
+                        <div className="nds-empty mt-2 px-3 py-2 text-[11px] text-[var(--nova-text-muted)]">
                           {selectedGroupSource ? "Sem grupos retornados." : "Selecione uma integração e aplique os filtros."}
                         </div>
                       )}
@@ -762,56 +728,56 @@ export default async function MonitoringReportsPage({
               </form>
             </Surface>
 
-            <div className="grid gap-5 lg:grid-cols-[0.92fr_1.08fr]">
-              <Surface className="p-4 sm:p-5">
-                <div className="flex items-center justify-between gap-3">
+            <div className="nova-report-split-grid">
+              <Surface>
+                <div className="flex items-center justify-between gap-2">
                   <div>
-                    <h2 className="text-base font-black text-slate-50">Seleção de unidades</h2>
-                    <p className="mt-1 text-xs text-slate-500">Unidades que entrarão no lote do relatório.</p>
+                    <h2 className="text-[13px] font-black text-slate-50">Seleção de unidades</h2>
+                    <p className="mt-1 text-[11px] text-[var(--nova-text-muted)]">Unidades que entrarão no lote do relatório.</p>
                   </div>
                   <TonePill tone={resultUnits.length ? "success" : "attention"}>{resultUnits.length}</TonePill>
                 </div>
 
                 {resultUnits.length ? (
-                  <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                  <div className="mt-2 grid gap-2 sm:grid-cols-2">
                     {resultUnits.slice(0, 8).map((unit) => (
-                      <div key={`selected-card-${unit.id}`} className="relative rounded-[12px] border border-white/10 bg-white/[0.035] p-3">
-                        <div className="pr-7 text-sm font-black leading-5 text-slate-100">{unit.code} - {unit.name}</div>
-                        <div className="mt-2 text-xs text-slate-500">Contrato: {configuredMetadataForUnit(unit).contractLabel || unit.reportContractLabel || defaultContractLabel || "preencher"}</div>
-                        <span className="absolute right-3 top-3 grid h-5 w-5 place-items-center rounded bg-orange-500 text-xs font-black text-white">✓</span>
+                      <div key={`selected-card-${unit.id}`} className="nds-card relative">
+                        <div className="pr-7 text-[12px] font-black leading-5 text-slate-100">{unit.code} - {unit.name}</div>
+                        <div className="mt-2 text-[10px] text-[var(--nova-text-muted)]">Contrato: {configuredMetadataForUnit(unit).contractLabel || unit.reportContractLabel || defaultContractLabel || "preencher"}</div>
+                        <span className="absolute right-3 top-3 grid h-5 w-5 place-items-center rounded-[var(--nova-radius-control)] bg-[var(--nova-primary)] text-[10px] font-black text-white">✓</span>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="mt-4 rounded-[12px] border border-dashed border-white/12 bg-black/10 p-5 text-sm text-slate-500">
+                  <div className="nds-empty mt-2 text-[11px] text-[var(--nova-text-muted)]">
                     Aplique os filtros para carregar unidades.
                   </div>
                 )}
               </Surface>
 
-              <Surface className="p-4 sm:p-5">
-                <h2 className="text-base font-black text-slate-50">Prévia do relatório (DOCX)</h2>
-                <div className="mt-4 rounded-[8px] border border-white/10 bg-[#f4efe9] p-2.5">
-                  <div className="relative mx-auto aspect-[0.72] max-h-[430px] overflow-hidden rounded-[3px] bg-white shadow-[0_24px_70px_rgba(0,0,0,0.35)]">
-                    <div className="absolute left-0 top-0 h-20 w-full bg-slate-300" />
-                    <div className="absolute left-0 top-12 h-8 w-full bg-orange-300" />
+              <Surface>
+                <h2 className="text-[13px] font-black text-slate-50">Prévia do relatório (DOCX)</h2>
+                <div className="nds-report-preview mt-2 p-2">
+                  <div className="relative mx-auto aspect-[0.72] max-h-[430px] overflow-hidden rounded-[3px] border border-white/[0.08] bg-[var(--nova-surface-3)]">
+                    <div className="absolute left-0 top-0 h-20 w-full bg-white/[0.08]" />
+                    <div className="absolute left-0 top-12 h-8 w-full bg-[color-mix(in_srgb,var(--nova-primary)_42%,transparent)]" />
                     <div className="absolute left-[17%] top-[38%] text-center">
-                      <div className="text-4xl font-black tracking-[-0.12em] text-slate-400">
-                        NOV<span className="text-orange-500">A</span>
+                      <div className="text-[30px] font-black text-slate-300">
+                        NOV<span className="text-[var(--nova-primary)]">A</span>
                       </div>
-                      <div className="mt-1 text-xs tracking-[0.55em] text-slate-400">TELECOM</div>
+                      <div className="mt-1 text-[10px] font-black text-slate-500">TELECOM</div>
                     </div>
-                    <div className="absolute left-[53%] top-[31%] h-[45%] w-px bg-orange-500" />
-                    <div className="absolute left-[58%] top-[45%] text-left text-slate-950">
-                      <div className="text-xs text-slate-700">{defaultCompetenceLabel}</div>
-                      <div className="mt-5 text-xs font-medium uppercase text-orange-500">INTERESSADO</div>
-                      <div className="text-sm font-black">{defaultInterestedParty || "NOVA TELECOM"}</div>
-                      <div className="mt-5 text-xs">{defaultIssueDateLabel}</div>
+                    <div className="absolute left-[53%] top-[31%] h-[45%] w-px bg-[var(--nova-primary)]" />
+                    <div className="absolute left-[58%] top-[45%] text-left text-slate-200">
+                      <div className="text-[12px] text-slate-500">{defaultCompetenceLabel}</div>
+                      <div className="mt-2 text-[12px] font-medium uppercase text-[var(--nova-primary)]">INTERESSADO</div>
+                      <div className="text-[13px] font-black">{defaultInterestedParty || "NOVA TELECOM"}</div>
+                      <div className="mt-2 text-[12px]">{defaultIssueDateLabel}</div>
                     </div>
-                    <div className="absolute bottom-0 left-0 h-16 w-full bg-slate-300" />
-                    <div className="absolute bottom-10 left-0 h-6 w-full bg-orange-300" />
+                    <div className="absolute bottom-0 left-0 h-16 w-full bg-white/[0.08]" />
+                    <div className="absolute bottom-10 left-0 h-6 w-full bg-[color-mix(in_srgb,var(--nova-primary)_42%,transparent)]" />
                   </div>
-                  <div className="mt-2 flex items-center justify-between rounded-[7px] bg-slate-950 px-3 py-2 text-sm text-slate-300">
+                  <div className="mt-2 flex items-center justify-between rounded-[var(--nova-radius-control)] bg-[var(--nova-surface-3)] px-3 py-2 text-[11px] text-slate-300">
                     <span>‹</span>
                     <span>1 / {Math.max(1, resultUnits.length * 9 + 1)}</span>
                     <span>100%</span>
@@ -821,73 +787,73 @@ export default async function MonitoringReportsPage({
               </Surface>
             </div>
 
-            <Surface className="p-4 sm:p-5">
-              <div className="flex items-center justify-between gap-3">
+            <Surface>
+              <div className="flex items-center justify-between gap-2">
                 <div>
-                  <h2 className="text-base font-black text-slate-50">Dados das unidades selecionadas</h2>
-                  <p className="mt-1 text-xs text-slate-500">Contrato, endereço e banda que aparecerão antes dos sensores.</p>
+                  <h2 className="text-[13px] font-black text-slate-50">Dados das unidades selecionadas</h2>
+                  <p className="mt-1 text-[11px] text-[var(--nova-text-muted)]">Contrato, endereço e banda que aparecerão antes dos sensores.</p>
                 </div>
                 <span className="text-slate-400">⌃</span>
               </div>
 
               {resultUnits.length ? (
-                <div className="mt-4 overflow-hidden rounded-[12px] border border-white/10">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-white/[0.04] text-[10px] uppercase tracking-[0.12em] text-slate-500">
+                <TableShell className="mt-2">
+                  <DenseTable>
+                    <thead>
                       <tr>
-                        <th className="px-3 py-3">Unidade</th>
-                        <th className="px-3 py-3">Contrato</th>
-                        <th className="px-3 py-3">Endereço</th>
-                        <th className="px-3 py-3">Banda contratada</th>
+                        <th>Unidade</th>
+                        <th>Contrato</th>
+                        <th>Endereço</th>
+                        <th>Banda contratada</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-white/[0.06] text-slate-200">
+                    <tbody>
                       {resultUnits.map((unit) => {
                         const meta = configuredMetadataForUnit(unit);
 
                         return (
                           <tr key={`review-row-${unit.id}`}>
-                            <td className="px-3 py-3 font-semibold">{unit.code} - {unit.name}</td>
-                            <td className="px-3 py-3">{meta.contractLabel || unit.reportContractLabel || defaultContractLabel || "preencher"}</td>
-                            <td className="px-3 py-3">{meta.addressLine || unit.reportAddressLine || formatUnitAddressFallback(unit) || defaultAddressLine || "preencher"}</td>
-                            <td className="px-3 py-3">{meta.contractedBandwidth || unit.reportContractedBandwidth || defaultBandwidth || "preencher"}</td>
+                            <td className="font-semibold text-slate-100">{unit.code} - {unit.name}</td>
+                            <td>{meta.contractLabel || unit.reportContractLabel || defaultContractLabel || "preencher"}</td>
+                            <td>{meta.addressLine || unit.reportAddressLine || formatUnitAddressFallback(unit) || defaultAddressLine || "preencher"}</td>
+                            <td>{meta.contractedBandwidth || unit.reportContractedBandwidth || defaultBandwidth || "preencher"}</td>
                           </tr>
                         );
                       })}
                     </tbody>
-                  </table>
-                </div>
+                  </DenseTable>
+                </TableShell>
               ) : (
-                <div className="mt-4 rounded-[12px] border border-dashed border-white/12 bg-black/10 p-5 text-sm text-slate-500">
+                <div className="nds-empty mt-2 text-[11px] text-[var(--nova-text-muted)]">
                   Nenhuma unidade selecionada.
                 </div>
               )}
             </Surface>
           </div>
 
-          <aside className="grid gap-4 xl:sticky xl:top-5">
-            <Surface className="p-4 sm:p-5">
-              <h2 className="text-base font-black text-slate-50">Resumo do relatório</h2>
+          <aside className="grid gap-2 xl:sticky xl:top-3">
+            <Surface>
+              <h2 className="text-[13px] font-black text-slate-50">Resumo do relatório</h2>
 
-              <div className="mt-4 divide-y divide-white/[0.08] rounded-[12px] border border-white/10 bg-black/10 text-sm">
-                <div className="flex items-center justify-between gap-3 px-3 py-3">
-                  <span className="text-slate-400">Período</span>
+              <div className="nds-card mt-2 divide-y divide-white/[0.08] p-0 text-[11px]">
+                <div className="flex items-center justify-between gap-2 px-3 py-2">
+                  <span className="text-[var(--nova-text-muted)]">Período</span>
                   <span className="font-bold text-slate-100">{defaultCompetenceLabel}</span>
                 </div>
-                <div className="flex items-center justify-between gap-3 px-3 py-3">
-                  <span className="text-slate-400">Unidades selecionadas</span>
+                <div className="flex items-center justify-between gap-2 px-3 py-2">
+                  <span className="text-[var(--nova-text-muted)]">Unidades selecionadas</span>
                   <span className="font-bold text-slate-100">{resultUnits.length}</span>
                 </div>
-                <div className="flex items-center justify-between gap-3 px-3 py-3">
-                  <span className="text-slate-400">Sensores por unidade</span>
+                <div className="flex items-center justify-between gap-2 px-3 py-2">
+                  <span className="text-[var(--nova-text-muted)]">Sensores por unidade</span>
                   <span className="font-bold text-slate-100">3</span>
                 </div>
-                <div className="flex items-center justify-between gap-3 px-3 py-3">
-                  <span className="text-slate-400">Páginas estimadas</span>
+                <div className="flex items-center justify-between gap-2 px-3 py-2">
+                  <span className="text-[var(--nova-text-muted)]">Páginas estimadas</span>
                   <span className="font-bold text-slate-100">{Math.max(1, resultUnits.length * 9 + 1)}</span>
                 </div>
-                <div className="flex items-center justify-between gap-3 px-3 py-3">
-                  <span className="text-slate-400">Status dos dados</span>
+                <div className="flex items-center justify-between gap-2 px-3 py-2">
+                  <span className="text-[var(--nova-text-muted)]">Status dos dados</span>
                   <TonePill tone={resultUnits.length ? "success" : "attention"}>{resultUnits.length ? "Pronto para exportar" : "Aguardando filtros"}</TonePill>
                 </div>
               </div>
@@ -921,19 +887,19 @@ export default async function MonitoringReportsPage({
                 );
               })}
 
-              <Surface className="p-4 sm:p-5">
-                <h2 className="text-base font-black text-slate-50">Ações de exportação</h2>
+              <Surface>
+                <h2 className="text-[13px] font-black text-slate-50">Ações de exportação</h2>
 
                 {groupPreviewError ? (
-                  <div className="mt-4 rounded-[12px] border border-rose-500/25 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
+                  <div className="nds-notice-error mt-2 rounded-[var(--nova-radius-card)] border px-3 py-2 text-[11px]">
                     {groupPreviewError}
                   </div>
                 ) : null}
 
                 {groupPreview?.unresolvedHosts.length ? (
-                  <details className="mt-4 rounded-[12px] border border-amber-500/20 bg-amber-500/10 p-3 text-sm text-amber-50">
+                  <details className="nds-notice-warning mt-2 rounded-[var(--nova-radius-card)] border p-2 text-[11px]">
                     <summary className="cursor-pointer font-semibold">Hosts sem unidade ({groupPreview.unresolvedHosts.length})</summary>
-                    <div className="mt-3 grid gap-1 text-xs text-amber-100/90">
+                    <div className="mt-2 grid gap-1 text-[10px]">
                       {groupPreview.unresolvedHosts.slice(0, 12).map((item) => (
                         <div key={item.host.hostId} className="truncate">{compactHostName(item)}</div>
                       ))}
@@ -941,12 +907,12 @@ export default async function MonitoringReportsPage({
                   </details>
                 ) : null}
 
-                <label className="mt-4 flex items-center gap-3 rounded-[12px] border border-white/10 bg-white/[0.035] px-4 py-3 text-sm font-bold text-slate-100">
+                <label className="nds-card mt-2 flex items-center gap-2 text-[11px] font-bold text-slate-100">
                   <input type="checkbox" name="includeCharts" defaultChecked={defaultIncludeCharts} className="h-4 w-4" />
                   Gráficos
                 </label>
 
-                <div className="mt-4 grid gap-2">
+                <div className="mt-2 grid gap-2">
                   <button
                     type="submit"
                     name="format"
@@ -954,9 +920,10 @@ export default async function MonitoringReportsPage({
                     formAction="/relatorios/monitoramento/export"
                     formTarget="_blank"
                     disabled={!resultUnits.length}
-                    className="inline-flex h-11 items-center justify-center rounded-[12px] bg-orange-500 px-4 text-sm font-black text-white shadow-[0_18px_42px_rgba(249,115,22,0.22)] transition hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-45"
+                    className="nds-button w-full"
+                    data-variant="primary"
                   >
-                    ⧉ Exportar DOCX
+                    Exportar DOCX
                   </button>
 
                   <button
@@ -966,9 +933,10 @@ export default async function MonitoringReportsPage({
                     formAction="/relatorios/monitoramento/export"
                     formTarget="_blank"
                     disabled={!resultUnits.length}
-                    className="inline-flex h-11 items-center justify-center rounded-[12px] border border-white/10 bg-white/[0.035] px-4 text-sm font-bold text-slate-100 transition hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-45"
+                    className="nds-button w-full"
+                    data-variant="secondary"
                   >
-                    ⇩ Exportar PDF
+                    Exportar PDF
                   </button>
 
                   <button
@@ -976,38 +944,39 @@ export default async function MonitoringReportsPage({
                     name="format"
                     value={defaultFormat}
                     disabled={!resultUnits.length}
-                    className="inline-flex h-11 items-center justify-center rounded-[12px] border border-white/10 bg-white/[0.035] px-4 text-sm font-bold text-slate-100 transition hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-45"
+                    className="nds-button w-full"
+                    data-variant="secondary"
                   >
-                    ✉ Gerar em segundo plano
+                    Gerar em segundo plano
                   </button>
                 </div>
               </Surface>
             </form>
 
-            <Surface className="p-4 sm:p-5">
-              <div className="flex items-center justify-between gap-3">
-                <h2 className="text-base font-black text-slate-50">Últimas exportações</h2>
-                <span className="text-xs font-bold text-orange-300">Ver todas</span>
+            <Surface>
+              <div className="flex items-center justify-between gap-2">
+                <h2 className="text-[13px] font-black text-slate-50">Últimas exportações</h2>
+                <span className="text-[10px] font-black text-[var(--nova-primary)]">Ver todas</span>
               </div>
 
               {recentRuns.length ? (
-                <div className="mt-4 grid gap-3">
+                <div className="mt-2 grid gap-2">
                   {recentRuns.slice(0, 5).map((run) => {
                     const attachment = run.attachments[0] || null;
                     const origin = run.rule.reportTemplate ? `${run.rule.reportTemplate.code} - ${run.rule.reportTemplate.name}` : "Exportação manual";
 
                     return (
-                      <div key={run.id} className="rounded-[12px] border border-white/10 bg-white/[0.035] p-3">
-                        <div className="flex items-start justify-between gap-3">
+                      <div key={run.id} className="nds-card">
+                        <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0">
-                            <div className="truncate text-sm font-bold text-slate-100">{origin}</div>
-                            <div className="mt-1 text-xs text-slate-500">{formatDateTime(run.startedAt)}</div>
+                            <div className="truncate text-[11px] font-bold text-slate-100">{origin}</div>
+                            <div className="mt-1 text-[10px] text-[var(--nova-text-muted)]">{formatDateTime(run.startedAt)}</div>
                           </div>
                           <TonePill tone={runStatusTone(run.status)}>{runStatusLabel(run.status)}</TonePill>
                         </div>
 
                         {attachment ? (
-                          <Link href={webAttachmentUrl(attachment.url)} className="mt-2 inline-flex text-xs font-bold text-orange-200 hover:text-white">
+                          <Link href={webAttachmentUrl(attachment.url)} className="nds-button mt-2" data-variant="secondary">
                             Baixar arquivo
                           </Link>
                         ) : null}
@@ -1016,7 +985,7 @@ export default async function MonitoringReportsPage({
                   })}
                 </div>
               ) : (
-                <div className="mt-4 rounded-[12px] border border-dashed border-white/12 bg-black/10 p-5 text-sm text-slate-500">
+                <div className="nds-empty mt-2 text-[11px] text-[var(--nova-text-muted)]">
                   Nenhuma exportação gerada ainda.
                 </div>
               )}

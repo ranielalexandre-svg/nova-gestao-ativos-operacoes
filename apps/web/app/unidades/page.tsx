@@ -5,6 +5,8 @@ import { ListPagination } from "@/components/list-pagination";
 import {
   DenseTable,
   EmptyState,
+  FieldLabel,
+  ProgressLine,
   RightPanel,
   Surface,
   StatCard,
@@ -28,6 +30,14 @@ import {
   type PaginatedResponse,
   type RawSearchParams,
 } from "@/lib/list-query";
+import {
+  formatMs,
+  formatPercent,
+  healthLabel,
+  healthTone,
+  readUnitHostTelemetry,
+  type UnitHostTelemetryItem,
+} from "@/lib/noc-overview";
 import { getServerWebSession } from "@/lib/web-session";
 
 type PartnerOption = {
@@ -66,57 +76,6 @@ type UnitRow = {
   _count?: { equipments: number };
 };
 
-type UnitMonitorSnapshot = {
-  unit: { id: string };
-  match: {
-    status: "matched" | "ambiguous" | "unmatched";
-    confidence: number;
-    host?: string;
-    hostName?: string;
-    syncReady: boolean;
-  };
-  health: "online" | "degraded" | "down" | "unmapped" | "unknown" | "ambiguous";
-  metrics: {
-    ping: { ok: boolean | null } | null;
-    lossPct: number | null;
-    latencyMs: number | null;
-    temperatureC: number | null;
-  };
-  problems: Array<{ eventid: string; name: string; severity: string }>;
-};
-
-type UnitMonitorResponse = {
-  items: UnitMonitorSnapshot[];
-};
-
-function FieldLabel({
-  htmlFor,
-  label,
-  hint,
-}: {
-  htmlFor: string;
-  label: string;
-  hint?: string;
-}) {
-  return (
-    <label htmlFor={htmlFor} className="block"><span className="text-[10px] uppercase tracking-[0.16em] text-slate-500">
-        {label}
-      </span>
-      {hint ? <span className="mt-1 block text-xs text-slate-500">{hint}</span> : null}
-    </label>
-  );
-}
-
-function formatPercent(value: number | null) {
-  if (typeof value !== "number" || !Number.isFinite(value)) return "-";
-  return `${value.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`;
-}
-
-function formatMs(value: number | null) {
-  if (typeof value !== "number" || !Number.isFinite(value)) return "-";
-  return `${value.toLocaleString("pt-BR", { maximumFractionDigits: 0 })} ms`;
-}
-
 function locationLabel(unit: Pick<UnitRow, "city" | "state">) {
   return [unit.city, unit.state].filter(Boolean).join("/") || "Sem cidade/UF";
 }
@@ -140,7 +99,7 @@ function isRedundantLabel(primary: string, secondary: string) {
   return Boolean(a && b && (a === b || a.includes(b) || b.includes(a)));
 }
 
-function hasMonitorMetrics(monitor?: UnitMonitorSnapshot) {
+function hasMonitorMetrics(monitor?: UnitHostTelemetryItem) {
   return Boolean(
     monitor &&
       (monitor.metrics.ping ||
@@ -148,25 +107,6 @@ function hasMonitorMetrics(monitor?: UnitMonitorSnapshot) {
         monitor.metrics.latencyMs !== null ||
         monitor.metrics.temperatureC !== null),
   );
-}
-
-function healthLabel(value: UnitMonitorSnapshot["health"]) {
-  const labels: Record<UnitMonitorSnapshot["health"], string> = {
-    online: "online",
-    degraded: "atenção",
-    down: "offline",
-    unmapped: "sem host",
-    unknown: "sem item",
-    ambiguous: "ambíguo",
-  };
-  return labels[value];
-}
-
-function healthTone(value: UnitMonitorSnapshot["health"]) {
-  if (value === "online") return "success";
-  if (value === "degraded" || value === "ambiguous") return "attention";
-  if (value === "down") return "critical";
-  return "neutral";
 }
 
 function contactPhones(item?: LegacyMonitorContextItem) {
@@ -189,7 +129,7 @@ function formatRatio(value: number, total: number) {
   return `${Math.round((value / total) * 100)}%`;
 }
 
-function completionScore(unit: UnitRow, monitor?: UnitMonitorSnapshot, legacy?: LegacyMonitorContextItem) {
+function completionScore(unit: UnitRow, monitor?: UnitHostTelemetryItem, legacy?: LegacyMonitorContextItem) {
   const checks = [
     Boolean(unit.code && unit.name && unit.city && unit.state),
     Boolean(unit.partner?.id),
@@ -200,35 +140,8 @@ function completionScore(unit: UnitRow, monitor?: UnitMonitorSnapshot, legacy?: 
   return Math.round((checks.filter(Boolean).length / checks.length) * 100);
 }
 
-function ProgressLine({
-  label,
-  value,
-  tone = "bg-orange-500",
-}: {
-  label: string;
-  value: number;
-  tone?: string;
-}) {
-  const safeValue = Math.max(0, Math.min(100, value));
-  return (
-    <div>
-      <div className="flex items-center justify-between gap-3 text-[11px]">
-        <span className="font-semibold text-slate-300">{label}</span>
-        <span className="font-black text-white">{safeValue}%</span>
-      </div>
-      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/[0.07]">
-        <div className={`h-full rounded-full ${tone}`} style={{ width: `${safeValue}%` }} />
-      </div>
-    </div>
-  );
-}
-
 async function readMonitorSnapshots() {
-  try {
-    return await apiJson<UnitMonitorResponse>("/monitoring/unit-hosts");
-  } catch {
-    return { items: [] } satisfies UnitMonitorResponse;
-  }
+  return readUnitHostTelemetry({ timeoutMs: 1_200, fast: true });
 }
 
 export default async function UnidadesPage({
@@ -318,8 +231,8 @@ export default async function UnidadesPage({
     <AppShell
       title="Unidades"
       subtitle="Cadastro, vínculo e cobertura por unidade."
-    ><div className="nova-units-page grid gap-3">
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+    ><div className="nova-units-page grid gap-2">
+        <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-5">
           <StatCard label="Unidades" value={response.meta.total} detail="resultado filtrado" tone="info" />
           <StatCard label="Monitoradas" value={monitoredOnPage} detail={formatRatio(monitoredOnPage, pageTotal)} tone={monitoredOnPage ? "success" : "neutral"} />
           <StatCard label="Com contato" value={withContactOnPage} detail={formatRatio(withContactOnPage, pageTotal)} tone={withContactOnPage ? "success" : "attention"} />
@@ -327,8 +240,8 @@ export default async function UnidadesPage({
           <StatCard label="Atenção" value={attentionOnPage} detail="evento, queda ou ambiguidade" tone={attentionOnPage ? "attention" : "success"} />
         </div>
 
-        <Surface className="p-3">
-          <form method="GET" className="grid gap-2 md:grid-cols-2 xl:grid-cols-[minmax(260px,1fr)_190px_120px_120px_112px_auto_auto] xl:items-end">
+        <Surface className="p-2">
+          <form method="GET" className="nova-filter-grid nova-filter-grid--units">
             <div className="grid gap-1.5 md:col-span-2 xl:col-span-1">
               <FieldLabel htmlFor="units-q" label="Busca" />
               <input
@@ -336,7 +249,6 @@ export default async function UnidadesPage({
                 name="q"
                 defaultValue={q}
                 placeholder="Unidade, cidade, parceiro, telefone ou serial"
-                className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
               />
             </div>
             <div className="grid gap-1.5">
@@ -345,7 +257,6 @@ export default async function UnidadesPage({
                 id="units-partner"
                 name="partnerId"
                 defaultValue={partnerId}
-                className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
               >
                 <option value="">Todos</option>
                 {partnerOptions.map((partner) => (
@@ -361,7 +272,6 @@ export default async function UnidadesPage({
                 id="units-active"
                 name="active"
                 defaultValue={active}
-                className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
               >
                 <option value="true">Ativos</option>
                 <option value="all">Todos</option>
@@ -374,7 +284,6 @@ export default async function UnidadesPage({
                 id="units-sort-by"
                 name="sortBy"
                 defaultValue={sortBy}
-                className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
               >
                 <option value="createdAt">Cadastro</option>
                 <option value="code">Código</option>
@@ -389,7 +298,6 @@ export default async function UnidadesPage({
                 id="units-page-size"
                 name="pageSize"
                 defaultValue={String(pageSize)}
-                className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
               >
                 <option value="10">10</option>
                 <option value="20">20</option>
@@ -397,35 +305,36 @@ export default async function UnidadesPage({
               </select>
             </div>
             <input type="hidden" name="sortDir" value={sortDir} />
-            <button className="nova-primary-action inline-flex items-center justify-center rounded-[14px] px-4 py-3 text-sm font-black">
+            <button className="nds-button" data-variant="primary">
               Filtrar
             </button>
             <Link
               href="/unidades/nova"
-              className="nova-primary-action inline-flex items-center justify-center rounded-[14px] px-4 py-3 text-sm font-black"
+              className="nds-button"
+              data-variant="primary"
             >
               Nova unidade
             </Link>
           </form>
         </Surface>
 
-        <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_292px]">
-          <Surface className="p-3">
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <div className="nova-inventory-grid">
+          <Surface className="p-2">
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
               <div>
-                <div className="text-[9px] font-black uppercase tracking-[0.18em] text-slate-500">Base técnica</div>
-                <h2 className="mt-1 text-base font-black tracking-[-0.02em] text-white">Unidades cadastradas</h2>
+                <div className="nds-label">Base técnica</div>
+                <h2 className="mt-1 text-[15px] font-black text-white">Unidades cadastradas</h2>
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <TonePill tone="neutral">{response.items.length} linhas</TonePill>
-                <Link href="/unidades" className="inline-flex items-center justify-center border border-white/10 bg-white/[0.035] px-3 py-2 text-xs font-bold text-slate-200 transition hover:bg-white/[0.07]">
+                <Link href="/unidades" className="nds-button" data-variant="secondary">
                   Limpar
                 </Link>
               </div>
             </div>
             <div>
           {response.items.length ? (
-            <TableShell><DenseTable><TableHead><tr><th className="px-4 py-3">Unidade</th><th className="px-4 py-3">Localização</th><th className="px-4 py-3">Parceiro</th><th className="px-4 py-3">Monitoramento</th><th className="px-4 py-3">Contato</th><th className="px-4 py-3 text-right">Ações</th></tr></TableHead><tbody>
+            <TableShell><DenseTable><TableHead><tr><th className="px-3 py-2">Unidade</th><th className="px-3 py-2">Localização</th><th className="px-3 py-2">Parceiro</th><th className="px-3 py-2">Monitoramento</th><th className="px-3 py-2">Contato</th><th className="px-3 py-2 text-right">Ações</th></tr></TableHead><tbody>
                   {response.items.map((unit) => {
                     const monitor = monitorByUnitId.get(unit.id);
                     const legacy = legacyByUnitId[unit.id];
@@ -440,22 +349,22 @@ export default async function UnidadesPage({
                         className="border-b border-white/6 last:border-b-0 hover:bg-white/[0.025]"
                       ><TableCell><Link
                             href={`/unidades/${unit.id}`}
-                            className="font-medium text-white hover:text-sky-100"
+                            className="font-medium text-white hover:text-white"
                           >
                             {unit.name}
                           </Link>
                           {showUnitCode ? (
-                            <div className="mt-1 text-xs text-slate-500">{unit.code}</div>
+                            <div className="mt-1 text-[10px] text-slate-500">{unit.code}</div>
                           ) : null}
                         </TableCell><TableCell><div className="text-slate-200">{locationLabel(unit)}</div>
                           {equipmentCount > 0 ? (
-                            <div className="mt-1 text-xs text-slate-500">
+                            <div className="mt-1 text-[10px] text-slate-500">
                               {equipmentCount} ativo(s) vinculados
                             </div>
                           ) : null}
                         </TableCell><TableCell><div className="text-slate-200">{unit.partner.name}</div>
                           {showPartnerCode ? (
-                            <div className="mt-1 text-xs text-slate-500">{unit.partner.code}</div>
+                            <div className="mt-1 text-[10px] text-slate-500">{unit.partner.code}</div>
                           ) : null}
                         </TableCell><TableCell>
                           {monitor ? (
@@ -465,22 +374,22 @@ export default async function UnidadesPage({
                                 {monitor.match.syncReady ? (
                                   <TonePill tone="success">sync</TonePill>
                                 ) : null}
-                              </div><div className="mt-1 max-w-[260px] truncate text-xs text-slate-500">
+                              </div><div className="mt-1 max-w-[260px] truncate text-[10px] text-slate-500">
                                 {monitor.match.hostName || monitor.match.host || "Sem host confiável"}
                               </div>
                               {showMetrics ? (
-                                <div className="mt-1 text-xs text-slate-400">
+                                <div className="mt-1 text-[10px] text-slate-400">
                                   {formatMs(monitor.metrics.latencyMs)} · loss{" "}
                                   {formatPercent(monitor.metrics.lossPct)}
                                 </div>
                               ) : (
-                                <div className="mt-1 text-xs text-slate-500">sem sensores lidos</div>
+                                <div className="mt-1 text-[10px] text-slate-500">sem sensores lidos</div>
                               )}
                             </>
                           ) : (
                             <TonePill tone="neutral">sem leitura</TonePill>
                           )}
-                        </TableCell><TableCell><div className="max-w-[260px] text-sm text-slate-200">
+                        </TableCell><TableCell><div className="max-w-[260px] text-[11px] text-slate-200">
                             {contactPhones(legacy)}
                           </div><div className="mt-2 flex flex-wrap gap-1">
                             {contextBadges(legacy).map((badge) => (
@@ -489,7 +398,7 @@ export default async function UnidadesPage({
                               </TonePill>
                             ))}
                             {!legacy?.phones.length && !contextBadges(legacy).length ? (
-                              <span className="text-xs text-slate-600">sem contexto legado</span>
+                              <span className="text-[10px] text-[var(--nova-text-dim)]">sem contexto legado</span>
                             ) : null}
                           </div></TableCell><TableActionCell><TableActionLink href={`/unidades/${unit.id}`}>
                             Abrir
@@ -504,7 +413,8 @@ export default async function UnidadesPage({
               action={
                 <Link
                   href="/unidades"
-                  className="rounded-full bg-white px-4 py-2 text-sm font-medium text-black"
+                  className="nds-button"
+                  data-variant="secondary"
                 >
                   Limpar filtros
                 </Link>
@@ -515,22 +425,22 @@ export default async function UnidadesPage({
           </Surface>
 
           <RightPanel title="Completude" description={`${averageCompletion}% médio nesta página`}>
-            <ProgressLine label="Host Zabbix" value={pageTotal ? Math.round((monitoredOnPage / pageTotal) * 100) : 0} tone="bg-emerald-400" />
-            <ProgressLine label="Contato" value={pageTotal ? Math.round((withContactOnPage / pageTotal) * 100) : 0} tone="bg-sky-400" />
-            <ProgressLine label="Ativos vinculados" value={pageTotal ? Math.round((response.items.filter((unit) => unitEquipmentCount(unit) > 0).length / pageTotal) * 100) : 0} tone="bg-orange-500" />
-            <ProgressLine label="Contingência" value={pageTotal ? Math.round((withBackupOnPage / pageTotal) * 100) : 0} tone="bg-violet-400" />
-            <ProgressLine label="Cadastro completo" value={averageCompletion} tone="bg-amber-400" />
-            <div className="rounded-md border border-white/[0.08] bg-[#070b10] p-3">
-              <div className="text-[9px] font-black uppercase tracking-[0.16em] text-slate-500">Ação rápida</div>
-              <div className="mt-3 grid gap-2">
-                <Link href="/monitoramento?view=units&health=unmapped" className="inline-flex items-center justify-between rounded-md border border-white/10 bg-white/[0.035] px-3 py-2 text-xs font-bold text-slate-200 hover:bg-white/[0.07]">
+            <ProgressLine label="Host Zabbix" value={pageTotal ? Math.round((monitoredOnPage / pageTotal) * 100) : 0} tone="success" />
+            <ProgressLine label="Contato" value={pageTotal ? Math.round((withContactOnPage / pageTotal) * 100) : 0} tone="info" />
+            <ProgressLine label="Ativos vinculados" value={pageTotal ? Math.round((response.items.filter((unit) => unitEquipmentCount(unit) > 0).length / pageTotal) * 100) : 0} tone="primary" />
+            <ProgressLine label="Contingência" value={pageTotal ? Math.round((withBackupOnPage / pageTotal) * 100) : 0} tone="attention" />
+            <ProgressLine label="Cadastro completo" value={averageCompletion} tone="success" />
+            <div className="nds-card">
+              <div className="nds-label">Ação rápida</div>
+              <div className="mt-2 grid gap-2">
+                <Link href="/sensores?view=units&health=unmapped" className="nds-button justify-between" data-variant="secondary">
                   Sem vínculo <span>{pageTotal - monitoredOnPage}</span>
                 </Link>
-                <Link href="/equipamentos" className="inline-flex items-center justify-between rounded-md border border-white/10 bg-white/[0.035] px-3 py-2 text-xs font-bold text-slate-200 hover:bg-white/[0.07]">
+                <Link href="/ativos" className="nds-button justify-between" data-variant="secondary">
                   Ativos <span>{equipmentOnPage}</span>
                 </Link>
-                <Link href="/relatorios/monitoramento" className="inline-flex items-center justify-between rounded-md border border-orange-400/35 bg-orange-500/[0.12] px-3 py-2 text-xs font-bold text-orange-100 hover:bg-orange-500/[0.18]">
-                  Relatório <span>abrir</span>
+                <Link href="/relatorios/monitoramento" className="nds-button justify-center" data-variant="primary">
+                  Gerar relatório
                 </Link>
               </div>
             </div>

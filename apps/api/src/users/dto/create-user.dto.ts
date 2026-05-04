@@ -1,4 +1,5 @@
 import { IsEmail, IsIn, IsString, MinLength } from "class-validator";
+import { USER_ROLES } from "../user-roles";
 
 export class CreateUserDto {
   @IsEmail()
@@ -9,7 +10,7 @@ export class CreateUserDto {
   name!: string;
 
   @IsString()
-  @IsIn(["admin", "operator", "viewer"])
+  @IsIn(USER_ROLES)
   role!: string;
 
   @IsString()

@@ -17,12 +17,12 @@ export function WorkflowStatsPanel({
   }>;
 }) {
   return (
-    <Surface className="p-5 sm:p-6"><SectionIntro
+    <Surface><SectionIntro
         eyebrow={eyebrow}
         title={title}
         description={description}
         compact
-      /><div className="mt-4 grid gap-3">
+      /><div className="mt-2 grid gap-2">
         {stats.map((item) => (
           <InlineStat
             key={item.label}
@@ -52,12 +52,12 @@ export function ConnectedRoutesPanel({
   }>;
 }) {
   return (
-    <Surface className="p-5 sm:p-6"><SectionIntro
+    <Surface><SectionIntro
         eyebrow={eyebrow}
         title={title}
         description={description}
         compact
-      /><div className="mt-4 grid gap-3">
+      /><div className="mt-2 grid gap-2">
         {routes.map((route) => (
           <ActionTile
             key={route.href}

@@ -1,5 +1,1 @@
-import { redirect } from "next/navigation";
-
-export default function AlertasAliasPage() {
-  redirect("/ocorrencias");
-}
+export { default } from "../ocorrencias/page";

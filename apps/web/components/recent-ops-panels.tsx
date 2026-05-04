@@ -22,7 +22,7 @@ function maintenanceTone(item: RecentMaintenance) {
 
 export function RecentOccurrencesPanel({
   commandCenter,
-  title = "Ocorrências recentes",
+  title = "Alertas recentes",
   description = "Eventos internos mais novos para cruzar com a leitura do turno.",
 }: {
   commandCenter: CommandCenter;
@@ -30,31 +30,31 @@ export function RecentOccurrencesPanel({
   description?: string;
 }) {
   return (
-    <Surface className="p-5 sm:p-6"><SectionIntro
-        eyebrow="Ocorrências"
+    <Surface><SectionIntro
+        eyebrow="Alertas"
         title={title}
         description={description}
         actions={
-          <Link href="/ocorrencias" className="text-xs font-semibold text-sky-200 transition hover:text-white">
+          <Link href="/alertas" className="nds-button" data-variant="secondary">
             Ver todas
           </Link>
         }
         compact
-      /><div className="mt-4 grid gap-2">
+      /><div className="mt-2 grid gap-2">
         {commandCenter.recentOccurrences.length ? (
           commandCenter.recentOccurrences.slice(0, 5).map((item) => (
             <Link
               key={item.id}
-              href={`/ocorrencias/${item.id}`}
-              className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-3 transition hover:border-white/14 hover:bg-[#111820]"
-            ><div className="flex items-start justify-between gap-3"><div className="min-w-0"><div className="truncate text-sm font-semibold text-slate-50">
+              href={`/alertas/${item.id}`}
+              className="nds-card block transition"
+            ><div className="flex items-start justify-between gap-2"><div className="min-w-0"><div className="truncate text-[12px] font-bold text-slate-50">
                     {item.code} · {item.title}
-                  </div><div className="mt-1 truncate text-xs text-slate-500">{targetLabel(item)}</div></div><TonePill tone={occurrenceTone(item)}>{item.severity}</TonePill></div></Link>
+                  </div><div className="mt-1 truncate text-[10px] text-slate-500">{targetLabel(item)}</div></div><TonePill tone={occurrenceTone(item)}>{item.severity}</TonePill></div></Link>
           ))
         ) : (
           <EmptyState
-            title="Sem ocorrências recentes"
-            description="Nenhuma ocorrência foi retornada por este recorte."
+            title="Sem alertas recentes"
+            description="Nenhum alerta foi retornado por este recorte."
           />
         )}
       </div></Surface>
@@ -63,7 +63,7 @@ export function RecentOccurrencesPanel({
 
 export function RecentMaintenancesPanel({
   commandCenter,
-  title = "Manutenções recentes",
+  title = "Chamados recentes",
   description = "Ações em andamento ou concluídas há pouco para contextualizar a operação.",
 }: {
   commandCenter: CommandCenter;
@@ -71,31 +71,31 @@ export function RecentMaintenancesPanel({
   description?: string;
 }) {
   return (
-    <Surface className="p-5 sm:p-6"><SectionIntro
-        eyebrow="Manutenções"
+    <Surface><SectionIntro
+        eyebrow="Chamados"
         title={title}
         description={description}
         actions={
-          <Link href="/manutencoes" className="text-xs font-semibold text-sky-200 transition hover:text-white">
+          <Link href="/chamados" className="nds-button" data-variant="secondary">
             Ver todas
           </Link>
         }
         compact
-      /><div className="mt-4 grid gap-2">
+      /><div className="mt-2 grid gap-2">
         {commandCenter.recentMaintenances.length ? (
           commandCenter.recentMaintenances.slice(0, 5).map((item) => (
             <Link
               key={item.id}
-              href={`/manutencoes/${item.id}`}
-              className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-3 transition hover:border-white/14 hover:bg-[#111820]"
-            ><div className="flex items-start justify-between gap-3"><div className="min-w-0"><div className="truncate text-sm font-semibold text-slate-50">
+              href={`/chamados/${item.id}`}
+              className="nds-card block transition"
+            ><div className="flex items-start justify-between gap-2"><div className="min-w-0"><div className="truncate text-[12px] font-bold text-slate-50">
                     {item.code} · {item.title}
-                  </div><div className="mt-1 truncate text-xs text-slate-500">{targetLabel(item)}</div></div><TonePill tone={maintenanceTone(item)}>{item.status}</TonePill></div></Link>
+                  </div><div className="mt-1 truncate text-[10px] text-slate-500">{targetLabel(item)}</div></div><TonePill tone={maintenanceTone(item)}>{item.status}</TonePill></div></Link>
           ))
         ) : (
           <EmptyState
-            title="Sem manutenções recentes"
-            description="Nenhuma manutenção foi retornada por este recorte."
+            title="Sem chamados recentes"
+            description="Nenhum chamado foi retornado por este recorte."
           />
         )}
       </div></Surface>

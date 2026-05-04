@@ -32,6 +32,20 @@ import {
   type PaginatedResponse,
   type RawSearchParams,
 } from "@/lib/list-query";
+import { formatDate } from "@/lib/formatters";
+import {
+  equipmentStatusLabel as statusLabel,
+  equipmentStatusTone as statusTone,
+} from "@/lib/status-ui";
+import {
+  formatMs,
+  formatPercent,
+  formatTemperature,
+  healthLabel,
+  healthTone,
+  readUnitHostTelemetry,
+} from "@/lib/noc-overview";
+import { canEditAttachmentsForRole, isAdminRole } from "@/lib/role-policy";
 import { getServerWebSession, normalizeRole } from "@/lib/web-session";
 
 type EquipmentDetail = {
@@ -77,29 +91,6 @@ type EquipmentDetail = {
     occurrences: number;
     maintenances: number;
   };
-};
-
-type UnitMonitorSnapshot = {
-  unit: { id: string };
-  match: {
-    status: "matched" | "ambiguous" | "unmatched";
-    confidence: number;
-    host?: string;
-    hostName?: string;
-    syncReady: boolean;
-  };
-  health: "online" | "degraded" | "down" | "unmapped" | "unknown" | "ambiguous";
-  metrics: {
-    ping: { ok: boolean | null } | null;
-    lossPct: number | null;
-    latencyMs: number | null;
-    temperatureC: number | null;
-  };
-  problems: Array<{ eventid: string; name: string; severity: string }>;
-};
-
-type UnitMonitorResponse = {
-  items: UnitMonitorSnapshot[];
 };
 
 type UnitOption = {
@@ -154,82 +145,27 @@ type LegacyEquipmentProfile = {
   starlinkHistory: LegacyStarlinkHistory[];
 };
 
-function statusLabel(value: string) {
-  const labels: Record<string, string> = {
-    active: "ativo",
-    stock: "estoque",
-    repair: "reparo",
-    retired: "retirado",
-  };
-
-  return labels[value] || value || "sem status";
-}
-
-function statusTone(value: string, isActive: boolean) {
-  if (!isActive || value === "retired") return "subtle";
-  if (value === "repair") return "attention";
-  if (value === "active") return "success";
-  return "neutral";
-}
-
-function healthLabel(value: UnitMonitorSnapshot["health"]) {
-  const labels: Record<UnitMonitorSnapshot["health"], string> = {
-    online: "online",
-    degraded: "atenção",
-    down: "offline",
-    unmapped: "sem host",
-    unknown: "sem item",
-    ambiguous: "ambíguo",
-  };
-  return labels[value];
-}
-
-function healthTone(value: UnitMonitorSnapshot["health"]) {
-  if (value === "online") return "success";
-  if (value === "degraded" || value === "ambiguous") return "attention";
-  if (value === "down") return "critical";
-  return "neutral";
-}
-
-function formatDate(value: string | null) {
-  if (!value) return "-";
-  return new Date(value).toLocaleDateString("pt-BR");
-}
-
-function formatPercent(value: number | null) {
-  if (typeof value !== "number" || !Number.isFinite(value)) return "-";
-  return `${value.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`;
-}
-
-function formatMs(value: number | null) {
-  if (typeof value !== "number" || !Number.isFinite(value)) return "-";
-  return `${value.toLocaleString("pt-BR", { maximumFractionDigits: 0 })} ms`;
-}
-
-function formatTemperature(value: number | null) {
-  if (typeof value !== "number" || !Number.isFinite(value)) return "-";
-  return `${value.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} °C`;
-}
-
 function locationLabel(equipment: EquipmentDetail) {
   return [equipment.unit.city, equipment.unit.state].filter(Boolean).join("/") || "Sem cidade/UF";
 }
 
 function CreatedNotice({ from }: { from: string }) {
   return (
-    <Surface className="border-emerald-500/18 bg-emerald-500/[0.06] p-4 sm:p-5"><div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between"><div><div className="text-sm font-semibold text-emerald-100">
-            Equipamento criado com sucesso
-          </div><div className="mt-1 text-sm text-slate-300">
+    <Surface><div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between"><div><div className="text-[12px] font-black text-slate-50">
+            Ativo criado com sucesso
+          </div><div className="mt-1 text-[11px] leading-5 text-slate-400">
             Origem: {from === "wizard" ? "cadastro guiado" : "cadastro direto"}.
             Revise serial, vínculo com a unidade e leitura de monitoramento herdada.
           </div></div><div className="flex flex-wrap gap-2"><Link
-            href="/equipamentos/nova"
-            className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-4 py-2 text-sm font-medium text-emerald-100 transition hover:bg-emerald-400/15"
+            href="/ativos/nova"
+            className="nds-button"
+            data-variant="primary"
           >
             Criar outro
           </Link><Link
-            href="/equipamentos"
-            className="rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/[0.06]"
+            href="/ativos"
+            className="nds-button"
+            data-variant="secondary"
           >
             Voltar para lista
           </Link></div></div></Surface>
@@ -237,11 +173,7 @@ function CreatedNotice({ from }: { from: string }) {
 }
 
 async function readMonitorSnapshots() {
-  try {
-    return await apiJson<UnitMonitorResponse>("/monitoring/unit-hosts");
-  } catch {
-    return { items: [] } satisfies UnitMonitorResponse;
-  }
+  return readUnitHostTelemetry({ timeoutMs: 1_500, fast: true });
 }
 
 function LegacyEquipmentBlock({ profile }: { profile: LegacyEquipmentProfile | null }) {
@@ -249,10 +181,10 @@ function LegacyEquipmentBlock({ profile }: { profile: LegacyEquipmentProfile | n
 
   if (!profile.sourceAvailable) {
     return (
-      <Surface className="p-5 sm:p-6"><SectionIntro
+      <Surface><SectionIntro
           eyebrow="Legado"
           title="Base legada pronta para conectar"
-          description={profile.message || "Gere o arquivo legado para exibir origem técnica e histórico Starlink deste equipamento."}
+          description={profile.message || "Gere o arquivo legado para exibir origem técnica e histórico Starlink deste ativo."}
           compact
         /></Surface>
     );
@@ -262,39 +194,39 @@ function LegacyEquipmentBlock({ profile }: { profile: LegacyEquipmentProfile | n
   if (!hasLegacy) return null;
 
   return (
-    <Surface className="p-5 sm:p-6"><SectionIntro
+    <Surface><SectionIntro
         eyebrow="Legado operacional"
         title="Origem técnica e Starlink"
         description="Leitura dos SQLite para preservar serial, IP VPN, kit e histórico sem gravar campos novos no Prisma."
         actions={profile.redactedSecrets ? <TonePill tone="attention">segredos ocultos</TonePill> : null}
         compact
-      /><div className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1fr)_380px]"><div className="grid gap-3 md:grid-cols-2">
+      /><div className="mt-2 nova-side-grid nova-side-grid--380"><div className="grid gap-2 md:grid-cols-2">
           {profile.equipment ? (
-            <><div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="text-[10px] uppercase tracking-[0.14em] text-slate-500">Origem</div><div className="mt-2 text-sm font-medium text-slate-100">{profile.equipment.source || "-"}</div></div><div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="text-[10px] uppercase tracking-[0.14em] text-slate-500">Parceiro legado</div><div className="mt-2 text-sm font-medium text-slate-100">{profile.equipment.partnerCode || "-"}</div></div><div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4 md:col-span-2"><div className="text-[10px] uppercase tracking-[0.14em] text-slate-500">Serial/MAC legado</div><div className="mt-2 break-all text-sm font-medium text-slate-100">{profile.equipment.serialNumber || "-"}</div></div></>
+            <><div className="nds-card"><div className="nds-label">Origem</div><div className="mt-1 text-[12px] font-medium text-slate-100">{profile.equipment.source || "-"}</div></div><div className="nds-card"><div className="nds-label">Parceiro legado</div><div className="mt-1 text-[12px] font-medium text-slate-100">{profile.equipment.partnerCode || "-"}</div></div><div className="nds-card md:col-span-2"><div className="nds-label">Serial/MAC legado</div><div className="mt-1 break-all text-[12px] font-medium text-slate-100">{profile.equipment.serialNumber || "-"}</div></div></>
           ) : null}
 
           {profile.starlinks.map((item) => (
-            <div key={item.legacyId} className="rounded-[14px] border border-sky-400/15 bg-sky-400/[0.04] p-4 md:col-span-2"><div className="flex flex-wrap items-center justify-between gap-2"><div className="text-sm font-semibold text-slate-50">
+            <div key={item.legacyId} className="nds-card md:col-span-2"><div className="flex flex-wrap items-center justify-between gap-2"><div className="text-[12px] font-black text-slate-50">
                   {item.antennaId || item.kitSerial || "Starlink legado"}
-                </div><TonePill tone="info">starlink</TonePill></div><div className="mt-3 grid gap-2 text-sm text-slate-400 md:grid-cols-2"><div>Local: <span className="text-slate-200">{item.localName || "-"}</span></div><div>Plano: <span className="text-slate-200">{item.plan || "-"}</span></div><div>IP VPN: <span className="text-slate-200">{item.ipvpn || "-"}</span></div><div>Instalador: <span className="text-slate-200">{item.installer || "-"}</span></div><div className="md:col-span-2">Kit: <span className="break-all text-slate-200">{item.kitSerial || "-"}</span></div><div className="md:col-span-2">Antena: <span className="break-all text-slate-200">{item.antennaSerial || "-"}</span></div>
+                </div><TonePill tone="info">starlink</TonePill></div><div className="mt-2 grid gap-2 text-[11px] leading-5 text-slate-400 md:grid-cols-2"><div>Local: <span className="text-slate-200">{item.localName || "-"}</span></div><div>Plano: <span className="text-slate-200">{item.plan || "-"}</span></div><div>IP VPN: <span className="text-slate-200">{item.ipvpn || "-"}</span></div><div>Instalador: <span className="text-slate-200">{item.installer || "-"}</span></div><div className="md:col-span-2">Kit: <span className="break-all text-slate-200">{item.kitSerial || "-"}</span></div><div className="md:col-span-2">Antena: <span className="break-all text-slate-200">{item.antennaSerial || "-"}</span></div>
                 {item.notes ? <div className="md:col-span-2 text-slate-300">{item.notes}</div> : null}
               </div></div>
           ))}
-        </div><div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="text-sm font-semibold text-slate-50">Histórico importado</div><div className="mt-3 grid gap-3">
+        </div><div className="nds-card"><div className="text-[12px] font-black text-slate-50">Histórico importado</div><div className="mt-2 grid gap-2">
             {profile.starlinkHistory.length ? (
               profile.starlinkHistory.map((item) => (
-                <div key={item.legacyId} className="rounded-[12px] border border-white/[0.08] bg-white/[0.03] p-3"><div className="text-sm font-medium text-slate-100">{item.action || "Registro"}</div><div className="mt-1 text-xs text-slate-500">{item.datetime || "-"}</div>
-                  {item.details ? <div className="mt-2 text-sm text-slate-400">{item.details}</div> : null}
+                <div key={item.legacyId} className="nova-micro-card"><div className="text-[12px] font-medium text-slate-100">{item.action || "Registro"}</div><div className="mt-1 text-[10px] text-slate-500">{item.datetime || "-"}</div>
+                  {item.details ? <div className="mt-2 text-[11px] leading-5 text-slate-400">{item.details}</div> : null}
                 </div>
               ))
             ) : (
-              <div className="text-sm text-slate-500">Nenhum histórico Starlink vinculado a este equipamento.</div>
+              <div className="text-[11px] leading-5 text-slate-500">Nenhum histórico Starlink vinculado a este ativo.</div>
             )}
           </div></div></div></Surface>
   );
 }
 
-export default async function EquipamentoDetailPage({
+export default async function AtivoDetailPage({
   params,
   searchParams,
 }: {
@@ -304,7 +236,7 @@ export default async function EquipamentoDetailPage({
   const session = await getServerWebSession();
 
   if (!session.authenticated) {
-    redirect("/login?next=/equipamentos");
+    redirect("/login?next=/ativos");
   }
 
   const resolved = await params;
@@ -312,8 +244,8 @@ export default async function EquipamentoDetailPage({
   const created = readStringParam(query, "created");
   const from = readStringParam(query, "from");
   const role = normalizeRole(session.user?.role || "");
-  const isAdmin = role === "admin";
-  const canEditAttachments = ["admin", "editor"].includes(role);
+  const isAdmin = isAdminRole(role);
+  const canEditAttachments = canEditAttachmentsForRole(role);
   const [equipment, monitorResponse, unitsResponse] = await Promise.all([
     apiJson<EquipmentDetail>(`/equipments/${resolved.id}`),
     readMonitorSnapshots(),
@@ -351,10 +283,10 @@ export default async function EquipamentoDetailPage({
         }),
       });
 
-      revalidatePath("/equipamentos");
-      revalidatePath(`/equipamentos/${id}`);
+      revalidatePath("/ativos");
+      revalidatePath(`/ativos/${id}`);
       revalidatePath(`/unidades/${String(formData.get("unitId") || "")}`);
-      return { status: "success", message: "Equipamento atualizado com sucesso." };
+      return { status: "success", message: "Ativo atualizado com sucesso." };
     } catch (error) {
       return { status: "error", message: getActionErrorMessage(error) };
     }
@@ -383,16 +315,16 @@ export default async function EquipamentoDetailPage({
         body: JSON.stringify({ isActive: false, status: "retired" }),
       });
 
-      revalidatePath("/equipamentos");
-      revalidatePath(`/equipamentos/${id}`);
-      revalidatePath("/monitoramento");
+      revalidatePath("/ativos");
+      revalidatePath(`/ativos/${id}`);
+      revalidatePath("/sensores");
       revalidatePath("/relatorios/monitoramento");
       if (unitId) revalidatePath(`/unidades/${unitId}`);
     } catch (error) {
       return { status: "error", message: getActionErrorMessage(error) };
     }
 
-    redirect("/equipamentos?active=true");
+    redirect("/ativos?active=true");
   }
 
   const equipmentEditSteps = [
@@ -400,63 +332,59 @@ export default async function EquipamentoDetailPage({
       title: "Inventário",
       description: "Tag, nome operacional e tipo do ativo.",
       body: (
-        <div className="grid gap-4 md:grid-cols-2"><input type="hidden" name="id" value={equipment.id} /><div className="grid gap-2"><label
+        <div className="grid gap-2 md:grid-cols-2"><input type="hidden" name="id" value={equipment.id} /><div className="grid gap-1.5"><label
               htmlFor="equipment-tag"
-              className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
+              className="nds-label"
             >
               Tag
             </label><input
               id="equipment-tag"
               name="tag"
               defaultValue={equipment.tag}
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm uppercase text-white outline-none transition focus:border-sky-400/40"
-            /></div><div className="grid gap-2"><label
+              className="uppercase"
+            /></div><div className="grid gap-1.5"><label
               htmlFor="equipment-name"
-              className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
+              className="nds-label"
             >
               Nome
             </label><input
               id="equipment-name"
               name="name"
               defaultValue={equipment.name}
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            /></div><div className="grid gap-2 md:col-span-2"><label
+            /></div><div className="grid gap-1.5 md:col-span-2"><label
               htmlFor="equipment-type"
-              className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
+              className="nds-label"
             >
               Tipo
             </label><input
               id="equipment-type"
               name="type"
               defaultValue={equipment.type}
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
             /></div></div>
       ),
     },
     {
       title: "Rede",
-      description: "Identificador técnico e situação do equipamento.",
+      description: "Identificador técnico e situação do ativo.",
       body: (
-        <div className="grid gap-4 md:grid-cols-2"><div className="grid gap-2"><label
+        <div className="grid gap-2 md:grid-cols-2"><div className="grid gap-1.5"><label
               htmlFor="equipment-serial"
-              className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
+              className="nds-label"
             >
               Serial / MAC
             </label><input
               id="equipment-serial"
               name="serialNumber"
               defaultValue={equipment.serialNumber || ""}
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            /></div><div className="grid gap-2"><label
+            /></div><div className="grid gap-1.5"><label
               htmlFor="equipment-status"
-              className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
+              className="nds-label"
             >
               Status
             </label><select
               id="equipment-status"
               name="status"
               defaultValue={equipment.status}
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
             ><option value="active">Ativo</option><option value="stock">Estoque</option><option value="repair">Reparo</option><option value="retired">Retirado</option></select></div></div>
       ),
     },
@@ -464,23 +392,22 @@ export default async function EquipamentoDetailPage({
       title: "Vínculos",
       description: "Unidade atendida e contexto operacional ligado ao ativo.",
       body: (
-        <div className="grid gap-4"><div className="grid gap-2"><label
+        <div className="grid gap-2"><div className="grid gap-1.5"><label
               htmlFor="equipment-unit"
-              className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
+              className="nds-label"
             >
               Unidade
             </label><select
               id="equipment-unit"
               name="unitId"
               defaultValue={equipment.unit.id}
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
             >
               {unitsResponse.items.map((unit) => (
                 <option key={unit.id} value={unit.id}>
                   {unit.code} - {unit.name}
                 </option>
               ))}
-            </select></div><div className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="text-sm font-semibold text-slate-100">Vínculo atual</div><div className="mt-3 grid gap-3 text-sm text-slate-400 md:grid-cols-2"><div>
+            </select></div><div className="nds-card"><div className="text-[12px] font-black text-slate-100">Vínculo atual</div><div className="mt-2 grid gap-2 text-[11px] leading-5 text-slate-400 md:grid-cols-2"><div>
                 Unidade: <span className="text-slate-200">{equipment.unit.code}</span></div><div>
                 Parceiro: <span className="text-slate-200">{equipment.unit.partner.name}</span></div><div>
                 Localização: <span className="text-slate-200">{locationLabel(equipment)}</span></div><div>
@@ -494,13 +421,13 @@ export default async function EquipamentoDetailPage({
       title: "Fechamento",
       description: "Status final do cadastro antes de persistir as mudanças.",
       body: (
-        <div className="grid gap-4"><label className="flex items-start gap-3 rounded-[16px] border border-white/[0.08] bg-black/20 px-4 py-4 text-sm text-slate-300"><input
+        <div className="grid gap-2"><label className="nds-card flex items-start gap-2 text-[11px] leading-5 text-slate-300"><input
               type="checkbox"
               name="isActive"
               defaultChecked={equipment.isActive}
               className="mt-1"
-            /><span><span className="block font-medium text-slate-100">Equipamento ativo</span><span className="mt-1 block text-slate-400">
-                Mantém o ativo disponível para operação, ocorrências e monitoramento.
+            /><span><span className="block font-medium text-slate-100">Ativo operacional</span><span className="mt-1 block text-slate-400">
+                Mantém o ativo disponível para operação, alertas e monitoramento.
               </span></span></label></div>
       ),
     },
@@ -508,14 +435,14 @@ export default async function EquipamentoDetailPage({
 
   return (
     <AppShell
-      title="Detalhes do equipamento"
+      title="Detalhes do ativo"
       subtitle="Ativo vinculado a uma unidade; use a unidade para contexto operacional e monitoramento."
       hidePageHeader
     >
       {created ? <CreatedNotice from={from} /> : null}
 
       <RegistryDetailHero
-        eyebrow="Equipamento"
+        eyebrow="Ativo"
         title={equipment.tag}
         description={`${equipment.name} · ${equipment.type} · ${equipment.unit.code} · ${equipment.unit.partner.name}`}
         badges={
@@ -530,13 +457,15 @@ export default async function EquipamentoDetailPage({
         }
         actions={
           <><Link
-              href="/equipamentos"
-              className="rounded-full border border-white/10 bg-black/20 px-4 py-2.5 text-sm text-slate-200 transition hover:bg-white/[0.06] hover:text-white"
+              href="/ativos"
+              className="nds-button"
+              data-variant="secondary"
             >
               Voltar
             </Link><Link
               href={`/unidades/${equipment.unit.id}`}
-              className="rounded-full border border-white/10 bg-black/20 px-4 py-2.5 text-sm text-slate-200 transition hover:bg-white/[0.06] hover:text-white"
+              className="nds-button"
+              data-variant="secondary"
             >
               Abrir unidade
             </Link>
@@ -556,9 +485,9 @@ export default async function EquipamentoDetailPage({
               <OperationalDeletePanel
                 action={deleteEquipment}
                 entityId={equipment.id}
-                entityLabel="equipamento"
+                entityLabel="ativo"
                 entityName={`${equipment.tag} - ${equipment.name}`}
-                blockedReason={!equipment.isActive ? "Este equipamento já está inativo." : undefined}
+                blockedReason={!equipment.isActive ? "Este ativo já está inativo." : undefined}
               ><input type="hidden" name="unitId" value={equipment.unit.id} /></OperationalDeletePanel>
             ) : null}
           </>
@@ -577,24 +506,24 @@ export default async function EquipamentoDetailPage({
             detail: equipment.unit.partner.name,
           },
           {
-            label: "Ocorrências",
+            label: "Alertas",
             value: equipment._count.occurrences,
             detail: "ligadas ao ativo",
             tone: equipment._count.occurrences ? "attention" : "neutral",
           },
           {
-            label: "Manutenções",
+            label: "Chamados",
             value: equipment._count.maintenances,
             detail: "planejadas ou executadas",
             tone: equipment._count.maintenances ? "info" : "neutral",
           },
         ]}
-      /><section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]"><Surface className="p-5 sm:p-6"><SectionIntro
+      /><section className="nova-side-grid nova-side-grid--420"><Surface><SectionIntro
             eyebrow="Cadastro"
             title="Identificação técnica"
             description="Dados mínimos do ativo e seu vínculo com a unidade atendida."
             compact
-          /><div className="mt-5"><RegistryInfoGrid
+          /><div className="mt-2"><RegistryInfoGrid
               items={[
                 {
                   label: "Serial / MAC",
@@ -614,7 +543,7 @@ export default async function EquipamentoDetailPage({
                   value: formatDate(equipment.updatedAt),
                 },
               ]}
-            /></div></Surface><Surface className="p-5 sm:p-6"><SectionIntro
+            /></div></Surface><Surface><SectionIntro
             eyebrow="Monitoramento"
             title="Leitura herdada da unidade"
             description="O host Zabbix é vinculado à unidade; o ativo aparece como contexto do atendimento."
@@ -622,19 +551,19 @@ export default async function EquipamentoDetailPage({
           />
 
           {monitor ? (
-            <div className="mt-5 grid gap-3"><div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="flex flex-wrap items-center gap-2"><TonePill tone={healthTone(monitor.health)}>{healthLabel(monitor.health)}</TonePill>
+            <div className="mt-2 grid gap-2"><div className="nds-card"><div className="flex flex-wrap items-center gap-2"><TonePill tone={healthTone(monitor.health)}>{healthLabel(monitor.health)}</TonePill>
                   {monitor.match.syncReady ? <TonePill tone="success">sync</TonePill> : null}
-                </div><div className="mt-3 truncate text-sm font-medium text-slate-100">
+                </div><div className="mt-2 truncate text-[12px] font-medium text-slate-100">
                   {monitor.match.hostName || monitor.match.host || "Sem host confiável"}
-                </div><div className="mt-1 text-xs text-slate-500">
+                </div><div className="mt-1 text-[10px] text-slate-500">
                   confiança {Math.round(monitor.match.confidence * 100)}%
-                </div></div><div className="grid grid-cols-2 gap-3"><div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="text-xs text-slate-500">Latência</div><div className="mt-2 text-lg font-semibold text-slate-50">
+                </div></div><div className="grid grid-cols-2 gap-2"><div className="nds-card"><div className="text-[10px] text-slate-500">Latência</div><div className="mt-2 text-[16px] font-semibold text-slate-50">
                     {formatMs(monitor.metrics.latencyMs)}
-                  </div></div><div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="text-xs text-slate-500">Perda</div><div className="mt-2 text-lg font-semibold text-slate-50">
+                  </div></div><div className="nds-card"><div className="text-[10px] text-slate-500">Perda</div><div className="mt-2 text-[16px] font-semibold text-slate-50">
                     {formatPercent(monitor.metrics.lossPct)}
-                  </div></div><div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="text-xs text-slate-500">Temperatura</div><div className="mt-2 text-lg font-semibold text-slate-50">
+                  </div></div><div className="nds-card"><div className="text-[10px] text-slate-500">Temperatura</div><div className="mt-2 text-[16px] font-semibold text-slate-50">
                     {formatTemperature(monitor.metrics.temperatureC)}
-                  </div></div><div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="text-xs text-slate-500">Problemas</div><div className="mt-2 text-lg font-semibold text-slate-50">
+                  </div></div><div className="nds-card"><div className="text-[10px] text-slate-500">Problemas</div><div className="mt-2 text-[16px] font-semibold text-slate-50">
                     {monitor.problems.length}
                   </div></div></div></div>
           ) : (
@@ -646,51 +575,51 @@ export default async function EquipamentoDetailPage({
         </Surface></section><LegacyEquipmentBlock profile={legacyProfile} /><AttachmentPanel
         entityPath="equipments"
         entityId={equipment.id}
-        entityLabel="equipamento"
-        returnPath={`/equipamentos/${equipment.id}`}
+        entityLabel="ativo"
+        returnPath={`/ativos/${equipment.id}`}
         canEdit={canEditAttachments}
-      /><section className="grid gap-5 xl:grid-cols-2"><Surface className="p-5 sm:p-6"><SectionIntro
+      /><section className="grid gap-2 xl:grid-cols-2"><Surface><SectionIntro
             eyebrow="Eventos"
-            title="Ocorrências recentes"
-            description={`${equipment._count.occurrences} ocorrência(s) vinculadas ao equipamento.`}
+            title="Alertas recentes"
+            description={`${equipment._count.occurrences} alerta(s) vinculados ao ativo.`}
             compact
-          /><div className="mt-5">
+          /><div className="mt-2">
             {equipment.occurrences.length ? (
-              <TableShell><DenseTable><TableHead><tr><th className="px-4 py-3">Caso</th><th className="px-4 py-3">Sev.</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Criado</th></tr></TableHead><tbody>
+              <TableShell><DenseTable><TableHead><tr><th className="px-3 py-2">Caso</th><th className="px-3 py-2">Sev.</th><th className="px-3 py-2">Status</th><th className="px-3 py-2">Criado</th></tr></TableHead><tbody>
                     {equipment.occurrences.map((item) => (
-                      <tr key={item.id} className="border-b border-white/6 last:border-b-0"><TableCell><Link href={`/ocorrencias/${item.id}`} className="font-medium text-white hover:text-sky-100">
+                      <tr key={item.id} className="border-b border-white/6 last:border-b-0"><TableCell><Link href={`/alertas/${item.id}`} className="font-medium text-white hover:text-white">
                             {item.code}
-                          </Link><div className="mt-1 max-w-[280px] truncate text-xs text-slate-500">
+                          </Link><div className="mt-1 max-w-[280px] truncate text-[10px] text-slate-500">
                             {item.title}
                           </div></TableCell><TableCell><TonePill tone={item.severity}>{item.severity}</TonePill></TableCell><TableCell className="text-slate-400">{item.status}</TableCell><TableCell className="text-slate-400">{formatDate(item.createdAt)}</TableCell></tr>
                     ))}
                   </tbody></DenseTable></TableShell>
             ) : (
               <EmptyState
-                title="Nenhuma ocorrência recente"
-                description="Incidentes vinculados a este equipamento aparecem aqui."
+                title="Nenhum alerta recente"
+                description="Incidentes vinculados a este ativo aparecem aqui."
               />
             )}
-          </div></Surface><Surface className="p-5 sm:p-6"><SectionIntro
+          </div></Surface><Surface><SectionIntro
             eyebrow="Rotina"
-            title="Manutenções recentes"
-            description={`${equipment._count.maintenances} manutenção(ões) vinculadas ao equipamento.`}
+            title="Chamados recentes"
+            description={`${equipment._count.maintenances} chamado(s) vinculados ao ativo.`}
             compact
-          /><div className="mt-5">
+          /><div className="mt-2">
             {equipment.maintenances.length ? (
-              <TableShell><DenseTable><TableHead><tr><th className="px-4 py-3">Manutenção</th><th className="px-4 py-3">Tipo</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Agenda</th></tr></TableHead><tbody>
+              <TableShell><DenseTable><TableHead><tr><th className="px-3 py-2">Chamado</th><th className="px-3 py-2">Tipo</th><th className="px-3 py-2">Status</th><th className="px-3 py-2">Agenda</th></tr></TableHead><tbody>
                     {equipment.maintenances.map((item) => (
-                      <tr key={item.id} className="border-b border-white/6 last:border-b-0"><TableCell><Link href={`/manutencoes/${item.id}`} className="font-medium text-white hover:text-sky-100">
+                      <tr key={item.id} className="border-b border-white/6 last:border-b-0"><TableCell><Link href={`/chamados/${item.id}`} className="font-medium text-white hover:text-white">
                             {item.code}
-                          </Link><div className="mt-1 max-w-[280px] truncate text-xs text-slate-500">
+                          </Link><div className="mt-1 max-w-[280px] truncate text-[10px] text-slate-500">
                             {item.title}
                           </div></TableCell><TableCell className="text-slate-400">{item.type}</TableCell><TableCell className="text-slate-400">{item.status}</TableCell><TableCell className="text-slate-400">{formatDate(item.scheduledAt)}</TableCell></tr>
                     ))}
                   </tbody></DenseTable></TableShell>
             ) : (
               <EmptyState
-                title="Nenhuma manutenção recente"
-                description="Ações preventivas ou corretivas vinculadas a este equipamento aparecem aqui."
+                title="Nenhum chamado recente"
+                description="Ações preventivas ou corretivas vinculadas a este ativo aparecem aqui."
               />
             )}
           </div></Surface></section></AppShell>

@@ -7,6 +7,7 @@ import { ListPagination } from "@/components/list-pagination";
 import {
   DenseTable,
   EmptyState,
+  FieldLabel,
   SectionIntro,
   Surface,
   TableActionAnchor,
@@ -35,6 +36,8 @@ import {
   type PaginatedResponse,
   type RawSearchParams,
 } from "@/lib/list-query";
+import { formatDateTime, optionLabel } from "@/lib/formatters";
+import { occurrenceSeverityTone as severityTone } from "@/lib/status-ui";
 import { getServerWebSession, normalizeRole } from "@/lib/web-session";
 
 type RuleRow = {
@@ -78,10 +81,10 @@ type RunRow = {
 };
 
 const detectorOptions = [
-  { value: "maintenance_overdue", label: "Manutenção vencida" },
-  { value: "critical_open_occurrence", label: "Ocorrência crítica aberta" },
+  { value: "maintenance_overdue", label: "Chamado vencido" },
+  { value: "critical_open_occurrence", label: "Alerta crítico aberto" },
   { value: "integration_failure", label: "Falha de integração" },
-  { value: "aged_open_occurrence", label: "Ocorrência antiga aberta" },
+  { value: "aged_open_occurrence", label: "Alerta antigo aberto" },
   { value: "monitoring_report_export", label: "Exportação de relatório" },
 ];
 
@@ -98,46 +101,69 @@ const cadenceOptions = [
   { value: "hourly", label: "Por hora" },
 ];
 
-function FieldLabel({
-  htmlFor,
-  label,
-}: {
-  htmlFor: string;
-  label: string;
-}) {
-  return (
-    <label htmlFor={htmlFor} className="text-[10px] uppercase tracking-[0.16em] text-slate-500">
-      {label}
-    </label>
-  );
-}
-
-function optionLabel(options: Array<{ value: string; label: string }>, value: string) {
-  return options.find((option) => option.value === value)?.label || value || "-";
-}
-
-function severityTone(value: string) {
-  if (value === "critical") return "critical";
-  if (value === "high") return "attention";
-  if (value === "medium") return "info";
-  return "neutral";
-}
-
 function runTone(value: string) {
   if (value === "success") return "success";
   if (value === "error") return "critical";
   return "attention";
 }
 
-function formatDateTime(value: string | null) {
-  if (!value) return "-";
-  return new Date(value).toLocaleString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+function routineProgress(item: RuleRow) {
+  if (!item.enabled) return 0;
+  const base = item._count.runs ? 56 : 28;
+  const effects = (item.createExceptions ? 18 : 0) + (item.createActivities ? 14 : 0) + (item.resolveOnRecovery ? 8 : 0);
+  const severityPenalty = item.severity === "critical" ? 0 : item.severity === "high" ? 4 : 10;
+  return Math.min(100, base + effects + severityPenalty);
+}
+
+function RoutineCard({ item }: { item: RuleRow }) {
+  const progress = routineProgress(item);
+  const statusTone = item.enabled ? (item.severity === "critical" ? "critical" : "success") : "subtle";
+
+  return (
+    <article className="nova-automation-routine">
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="truncate text-[13px] font-black text-white">{item.code}</span>
+          <TonePill tone={statusTone}>{item.enabled ? "ativa" : "pausada"}</TonePill>
+          <TonePill tone={severityTone(item.severity)}>{optionLabel(severityOptions, item.severity)}</TonePill>
+        </div>
+        <div className="mt-1 truncate text-[11px] text-[var(--nova-text-muted)]">{item.name}</div>
+        <div className="mt-2 text-[10px] text-slate-500">{optionLabel(detectorOptions, item.detector)}</div>
+      </div>
+
+      <div className="nova-automation-routine-center">
+        <div className="grid gap-1 text-[10px] text-[var(--nova-text-muted)] sm:grid-cols-2">
+          <div>
+            <span className="nds-label">Última execução</span>
+            <div className="mt-1 truncate text-slate-300">{formatDateTime(item.lastRunAt)}</div>
+          </div>
+          <div>
+            <span className="nds-label">Próxima</span>
+            <div className="mt-1 truncate text-slate-300">{formatDateTime(item.nextRunAt)}</div>
+          </div>
+        </div>
+        <div className="nova-automation-progress" aria-label={`Saúde ${progress}%`}>
+          <span style={{ width: `${progress}%` }} />
+        </div>
+      </div>
+
+      <div className="nova-automation-routine-side">
+        <div className="grid grid-cols-2 gap-2">
+          <div className="nova-automation-mini-stat">
+            <span>Runs</span>
+            <strong>{item._count.runs}</strong>
+          </div>
+          <div className="nova-automation-mini-stat">
+            <span>Casos</span>
+            <strong>{item._count.exceptionCases}</strong>
+          </div>
+        </div>
+        <TableActionAnchor href={`#rule-${item.id}`}>
+          Ajustar
+        </TableActionAnchor>
+      </div>
+    </article>
+  );
 }
 
 function RuleFields({
@@ -153,12 +179,10 @@ function RuleFields({
           name="name"
           defaultValue={defaults?.name || ""}
           placeholder="Regra operacional"
-          className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
         /></div><div className="grid gap-2 xl:col-span-2"><FieldLabel htmlFor={`${prefix}-detector`} label="Detector" /><select
           id={`${prefix}-detector`}
           name="detector"
           defaultValue={defaults?.detector || "maintenance_overdue"}
-          className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
         >
           {detectorOptions.map((option) => (
             <option key={option.value} value={option.value}>
@@ -169,7 +193,6 @@ function RuleFields({
           id={`${prefix}-severity`}
           name="severity"
           defaultValue={defaults?.severity || "high"}
-          className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
         >
           {severityOptions.map((option) => (
             <option key={option.value} value={option.value}>
@@ -180,7 +203,6 @@ function RuleFields({
           id={`${prefix}-cadence`}
           name="cadence"
           defaultValue={defaults?.cadence || "every_5_minutes"}
-          className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
         >
           {cadenceOptions.map((option) => (
             <option key={option.value} value={option.value}>
@@ -194,14 +216,13 @@ function RuleFields({
           min="1"
           defaultValue={defaults?.thresholdMinutes ?? ""}
           placeholder="30"
-          className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
-        /></div><div className="grid gap-2 md:col-span-2 xl:col-span-8"><FieldLabel htmlFor={`${prefix}-flags`} label="Efeitos" /><div id={`${prefix}-flags`} className="grid gap-3 rounded-[14px] border border-white/10 bg-black/20 p-4 sm:grid-cols-2 xl:grid-cols-4"><label className="flex items-center gap-2 text-sm text-slate-300"><input type="checkbox" name="enabled" defaultChecked={defaults?.enabled ?? true} className="h-4 w-4 rounded border-white/20 bg-[#111318]" />
+        /></div><div className="grid gap-2 md:col-span-2 xl:col-span-8"><FieldLabel htmlFor={`${prefix}-flags`} label="Efeitos" /><div id={`${prefix}-flags`} className="nds-card grid gap-2 sm:grid-cols-2 xl:grid-cols-4"><label className="flex items-center gap-2 text-[11px] text-slate-300"><input type="checkbox" name="enabled" defaultChecked={defaults?.enabled ?? true} className="h-4 w-4 rounded border-white/20 bg-[var(--nova-surface-3)]" />
             Regra ativa
-          </label><label className="flex items-center gap-2 text-sm text-slate-300"><input type="checkbox" name="createExceptions" defaultChecked={defaults?.createExceptions ?? true} className="h-4 w-4 rounded border-white/20 bg-[#111318]" />
+          </label><label className="flex items-center gap-2 text-[11px] text-slate-300"><input type="checkbox" name="createExceptions" defaultChecked={defaults?.createExceptions ?? true} className="h-4 w-4 rounded border-white/20 bg-[var(--nova-surface-3)]" />
             Criar exceções
-          </label><label className="flex items-center gap-2 text-sm text-slate-300"><input type="checkbox" name="createActivities" defaultChecked={defaults?.createActivities ?? true} className="h-4 w-4 rounded border-white/20 bg-[#111318]" />
+          </label><label className="flex items-center gap-2 text-[11px] text-slate-300"><input type="checkbox" name="createActivities" defaultChecked={defaults?.createActivities ?? true} className="h-4 w-4 rounded border-white/20 bg-[var(--nova-surface-3)]" />
             Criar atividades
-          </label><label className="flex items-center gap-2 text-sm text-slate-300"><input type="checkbox" name="resolveOnRecovery" defaultChecked={defaults?.resolveOnRecovery ?? true} className="h-4 w-4 rounded border-white/20 bg-[#111318]" />
+          </label><label className="flex items-center gap-2 text-[11px] text-slate-300"><input type="checkbox" name="resolveOnRecovery" defaultChecked={defaults?.resolveOnRecovery ?? true} className="h-4 w-4 rounded border-white/20 bg-[var(--nova-surface-3)]" />
             Resolver na recuperação
           </label></div></div></>
   );
@@ -215,7 +236,7 @@ export default async function AutomacoesPage({
   const session = await getServerWebSession();
 
   if (!session.authenticated) {
-    redirect("/login?next=/operacao/automacoes");
+    redirect("/login?next=/automacao");
   }
 
   const params = await resolveSearchParams(searchParams);
@@ -255,7 +276,7 @@ export default async function AutomacoesPage({
         }),
       });
 
-      revalidatePath("/operacao/automacoes");
+      revalidatePath("/automacao");
       revalidatePath("/operacao");
       return { status: "success", message: "Regra atualizada com sucesso." };
     } catch (error) {
@@ -325,7 +346,7 @@ export default async function AutomacoesPage({
         description="Backlog, atividade, monitoramento e integrações."
         links={[
           {
-            href: "/operacao/excecoes",
+            href: "/excecoes",
             title: "Exceções",
             description: "Casos por regra e detector.",
             badge: <TonePill tone={creatingExceptions ? "attention" : "neutral"}>{creatingExceptions} geram caso</TonePill>,
@@ -337,7 +358,7 @@ export default async function AutomacoesPage({
             badge: <TonePill tone="info">{hits} hits</TonePill>,
           },
           {
-            href: "/monitoramento",
+            href: "/sensores",
             title: "Monitoramento",
             description: "Host, sensor e unidade.",
             badge: <TonePill tone="success">host e sensor</TonePill>,
@@ -372,30 +393,29 @@ export default async function AutomacoesPage({
             tone: "success",
           },
         ]}
-      /><Surface className="p-5 sm:p-6"><SectionIntro
+      /><Surface><SectionIntro
           eyebrow="Filtros"
           title="Refine detector e estado"
           description="Busca por código, nome ou detector. A URL guarda o recorte para voltar rapidamente à mesma visão."
           actions={
             <Link
-              href="/operacao/automacoes"
-              className="rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/[0.06] hover:text-white"
+              href="/automacao"
+              className="nds-button"
+              data-variant="secondary"
             >
               Limpar filtros
             </Link>
           }
           compact
-        /><form method="GET" className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-6"><div className="grid gap-2 xl:col-span-2"><FieldLabel htmlFor="automation-q" label="Busca" /><input
+        /><form method="GET" className="nova-filter-grid nova-filter-grid--six mt-2"><div className="grid gap-2 xl:col-span-2"><FieldLabel htmlFor="automation-q" label="Busca" /><input
               id="automation-q"
               name="q"
               defaultValue={q}
               placeholder="Código, nome ou detector"
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
             /></div><div className="grid gap-2"><FieldLabel htmlFor="automation-detector" label="Detector" /><select
               id="automation-detector"
               name="detector"
               defaultValue={detector}
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
             ><option value="all">Todos os detectores</option>
               {detectorOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -406,38 +426,50 @@ export default async function AutomacoesPage({
               id="automation-enabled"
               name="enabled"
               defaultValue={enabled}
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
             ><option value="all">Todos</option><option value="true">Ativas</option><option value="false">Pausadas</option></select></div><div className="grid gap-2"><FieldLabel htmlFor="automation-sort-by" label="Ordenar por" /><select
               id="automation-sort-by"
               name="sortBy"
               defaultValue={sortBy}
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
             ><option value="createdAt">Cadastro</option><option value="code">Código</option><option value="name">Nome</option><option value="detector">Detector</option><option value="severity">Severidade</option></select></div><div className="grid gap-2"><FieldLabel htmlFor="automation-sort-dir" label="Direção" /><select
               id="automation-sort-dir"
               name="sortDir"
               defaultValue={sortDir}
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
             ><option value="desc">Descendente</option><option value="asc">Ascendente</option></select></div><div className="grid gap-2 md:col-span-2 xl:col-span-2"><FieldLabel htmlFor="automation-page-size" label="Página" /><select
               id="automation-page-size"
               name="pageSize"
               defaultValue={String(pageSize)}
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            ><option value="10">10 por página</option><option value="20">20 por página</option><option value="50">50 por página</option></select></div><button className="rounded-[14px] bg-white px-4 py-3 text-sm font-semibold text-black transition hover:opacity-95 md:col-span-2 xl:col-span-4">
+            ><option value="10">10 por página</option><option value="20">20 por página</option><option value="50">50 por página</option></select></div><button className="nds-button md:col-span-2 xl:col-span-4" data-variant="primary">
             Aplicar filtros
-          </button></form></Surface><Surface className="p-5 sm:p-6"><SectionIntro
+          </button></form></Surface><Surface><SectionIntro
+          eyebrow="Rotinas"
+          title="Saúde das automações"
+          description="Cards horizontais com estado de execução, agenda e volume gerado."
+          compact
+        /><div className="mt-2 grid gap-2">
+          {rulesResponse.items.length ? (
+            rulesResponse.items.slice(0, 6).map((item) => (
+              <RoutineCard key={item.id} item={item} />
+            ))
+          ) : (
+            <EmptyState
+              title="Nenhuma rotina no recorte"
+              description="Ajuste os filtros para exibir as regras cadastradas."
+            />
+          )}
+        </div></Surface><Surface><SectionIntro
           eyebrow="Regras"
           title="Automações cadastradas"
           description={`${rulesResponse.meta.total} regra(s) encontradas nesta visão.`}
           actions={<TonePill tone="neutral">{rulesResponse.items.length} linhas</TonePill>}
           compact
-        /><div className="mt-5">
+        /><div className="mt-2">
           {rulesResponse.items.length ? (
-            <TableShell><DenseTable><TableHead><tr><th className="px-4 py-3">Regra</th><th className="px-4 py-3">Detector</th><th className="px-4 py-3">Sev.</th><th className="px-4 py-3">Cadência</th><th className="px-4 py-3">Efeitos</th><th className="px-4 py-3">Próxima</th><TableActionHeader>Ajuste</TableActionHeader></tr></TableHead><tbody>
+            <TableShell><DenseTable><TableHead><tr><th className="px-3 py-2">Regra</th><th className="px-3 py-2">Detector</th><th className="px-3 py-2">Sev.</th><th className="px-3 py-2">Cadência</th><th className="px-3 py-2">Efeitos</th><th className="px-3 py-2">Próxima</th><TableActionHeader>Ajuste</TableActionHeader></tr></TableHead><tbody>
                   {rulesResponse.items.map((item) => (
                     <tr
                       key={item.id}
                       className="border-b border-white/6 last:border-b-0 hover:bg-white/[0.025]"
-                    ><TableCell><div className="font-medium text-white">{item.code} · {item.name}</div><div className="mt-1 text-xs text-slate-500">
+                    ><TableCell><div className="font-medium text-white">{item.code} · {item.name}</div><div className="mt-1 text-[10px] text-slate-500">
                           {item._count.runs} runs · {item._count.exceptionCases} exceções
                         </div></TableCell><TableCell className="text-slate-300">
                         {optionLabel(detectorOptions, item.detector)}
@@ -445,14 +477,14 @@ export default async function AutomacoesPage({
                           {optionLabel(severityOptions, item.severity)}
                         </TonePill></TableCell><TableCell className="text-slate-300">
                         {optionLabel(cadenceOptions, item.cadence)}
-                        <div className="mt-1 text-xs text-slate-500">
+                        <div className="mt-1 text-[10px] text-slate-500">
                           limite {item.thresholdMinutes ?? "-"} min
                         </div></TableCell><TableCell><div className="flex flex-wrap gap-2"><TonePill tone={item.enabled ? "success" : "subtle"}>
                             {item.enabled ? "ativa" : "pausada"}
                           </TonePill>
                           {item.createExceptions ? <TonePill tone="attention">exceções</TonePill> : null}
                           {item.createActivities ? <TonePill tone="info">atividades</TonePill> : null}
-                        </div></TableCell><TableCell><div className="text-slate-300">{formatDateTime(item.nextRunAt)}</div><div className="mt-1 text-xs text-slate-500">
+                        </div></TableCell><TableCell><div className="text-slate-300">{formatDateTime(item.nextRunAt)}</div><div className="mt-1 text-[10px] text-slate-500">
                           última {formatDateTime(item.lastRunAt)}
                         </div></TableCell><TableActionCell><TableActionAnchor href={`#rule-${item.id}`}>
                           Ajustar regra
@@ -465,8 +497,9 @@ export default async function AutomacoesPage({
               description="Ajuste os filtros ou limpe a busca para voltar à base completa."
               action={
                 <Link
-                  href="/operacao/automacoes"
-                  className="rounded-full bg-white px-4 py-2 text-sm font-medium text-black"
+                  href="/automacao"
+                  className="nds-button"
+                  data-variant="primary"
                 >
                   Limpar filtros
                 </Link>
@@ -474,23 +507,23 @@ export default async function AutomacoesPage({
             />
           )}
         </div></Surface><ListPagination
-        pathname="/operacao/automacoes"
+        pathname="/automacao"
         searchParams={params}
         meta={rulesResponse.meta}
       />
 
       {isAdmin && rulesResponse.items.length ? (
-        <Surface className="p-5 sm:p-6"><SectionIntro
+        <Surface><SectionIntro
             eyebrow="Administração"
             title="Editar regras"
             compact
-          /><div className="mt-5 grid gap-4">
+          /><div className="mt-2 grid gap-2">
             {rulesResponse.items.map((item) => (
               <article
                 key={item.id}
                 id={`rule-${item.id}`}
-                className="rounded-[18px] border border-white/[0.08] bg-[#0a0f15] p-4"
-              ><div className="flex flex-col gap-3 border-b border-white/[0.08] pb-4 md:flex-row md:items-start md:justify-between"><div><div className="text-base font-semibold text-white">{item.code} · {item.name}</div><div className="mt-1 text-sm text-slate-400">
+                className="nds-card"
+              ><div className="flex flex-col gap-2 border-b border-white/[0.08] pb-2 md:flex-row md:items-start md:justify-between"><div><div className="text-[12px] font-semibold text-white">{item.code} · {item.name}</div><div className="mt-1 text-[11px] text-slate-400">
                       {optionLabel(detectorOptions, item.detector)} · {optionLabel(cadenceOptions, item.cadence)}
                     </div></div><div className="flex flex-wrap gap-2"><TonePill tone={item.enabled ? "success" : "subtle"}>
                       {item.enabled ? "ativa" : "pausada"}
@@ -498,7 +531,7 @@ export default async function AutomacoesPage({
                       {optionLabel(severityOptions, item.severity)}
                     </TonePill></div></div><ActionForm
                   action={updateRule}
-                  className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-8"
+                  className="mt-2 grid gap-2 md:grid-cols-2 xl:grid-cols-8"
                   noticeClassName="md:col-span-2 xl:col-span-8"
                   submitClassName="md:col-span-2 xl:col-span-8"
                   submitLabel="Salvar regra"
@@ -509,18 +542,18 @@ export default async function AutomacoesPage({
           </div></Surface>
       ) : null}
 
-      <Surface className="p-5 sm:p-6"><SectionIntro
+      <Surface><SectionIntro
           eyebrow="Execuções"
           title="Últimos runs"
           description="Histórico de execução."
           actions={<TonePill tone={failedRuns ? "critical" : "success"}>{failedRuns ? "falhas" : "ok"}</TonePill>}
           compact
-        /><div className="mt-5 grid gap-3">
+        /><div className="mt-2 grid gap-2">
           {runsResponse.items.length ? (
             runsResponse.items.map((run) => (
-              <div key={run.id} className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="flex flex-wrap items-start justify-between gap-3"><div><div className="font-medium text-white">{run.rule.code} · {run.rule.name}</div><div className="mt-1 text-sm text-slate-400">
+              <div key={run.id} className="nds-card"><div className="flex flex-wrap items-start justify-between gap-2"><div><div className="font-medium text-white">{run.rule.code} · {run.rule.name}</div><div className="mt-1 text-[11px] text-slate-400">
                       {formatDateTime(run.startedAt)} · hits {run.hitsCount} · criadas {run.createdCount} · atualizadas {run.updatedCount}
-                    </div></div><TonePill tone={runTone(run.status)}>{run.status}</TonePill></div><div className="mt-3 text-sm leading-6 text-slate-300">
+                    </div></div><TonePill tone={runTone(run.status)}>{run.status}</TonePill></div><div className="mt-2 text-[11px] leading-5 text-slate-300">
                   {run.summary || run.errorMessage || "Sem resumo registrado."}
                 </div></div>
             ))

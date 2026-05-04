@@ -30,6 +30,15 @@ import {
   type PaginatedResponse,
   type RawSearchParams,
 } from "@/lib/list-query";
+import { formatDateTime } from "@/lib/formatters";
+import {
+  formatMs,
+  formatPercent,
+  formatTemperature,
+  readUnitHostTelemetry,
+  type UnitHostTelemetryItem,
+} from "@/lib/noc-overview";
+import { canEditAttachmentsForRole, isAdminRole } from "@/lib/role-policy";
 import { getServerWebSession, normalizeRole } from "@/lib/web-session";
 
 
@@ -69,11 +78,10 @@ function IconAlertList({ className = "h-4 w-4" }: { className?: string }) {
   );
 }
 
-function IconMoreVertical({ className = "h-4 w-4" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 20 20" fill="currentColor" className={className} aria-hidden="true"><circle cx="10" cy="5" r="1.3" /><circle cx="10" cy="10" r="1.3" /><circle cx="10" cy="15" r="1.3" /></svg>
-  );
-}
+const editLabelClass = "nds-label";
+const editInputClass = "nds-input";
+const editTextareaClass = "nds-textarea";
+const iconTileClass = "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--nova-radius-control)] border border-[color-mix(in_srgb,var(--nova-primary)_26%,transparent)] bg-[var(--nova-primary-soft)] text-[var(--nova-primary)]";
 
 type UnitDetail = {
   id: string;
@@ -136,39 +144,7 @@ type PartnerOption = {
   isActive: boolean;
 };
 
-type UnitZabbixSnapshot = {
-  unit: { id: string; code: string; name: string };
-  match: {
-    status: "matched" | "ambiguous" | "unmatched";
-    confidence: number;
-    integrationCode?: string;
-    hostId?: string;
-    host?: string;
-    hostName?: string;
-    matchedBy: string[];
-    syncReady: boolean;
-  };
-  health: "online" | "degraded" | "down" | "unmapped" | "unknown" | "ambiguous";
-  metrics: {
-    ping: { ok: boolean | null; name: string; key: string; lastClock: string | null } | null;
-    lossPct: number | null;
-    latencyMs: number | null;
-    temperatureC: number | null;
-    sources?: {
-      ping: { name: string; key: string; lastClock: string | null; units?: string } | null;
-      loss: { name: string; key: string; lastClock: string | null; units?: string } | null;
-      latency: { name: string; key: string; lastClock: string | null; units?: string } | null;
-      temperature: { name: string; key: string; lastClock: string | null; units?: string } | null;
-    };
-  };
-  problems: Array<{
-    eventid: string;
-    name: string;
-    severity: string;
-    acknowledged: string;
-    clock: string;
-  }>;
-};
+type UnitZabbixSnapshot = UnitHostTelemetryItem;
 
 type UnitZabbixSyncResult = {
   ok: boolean;
@@ -345,7 +321,7 @@ async function syncZabbixAction(
     });
 
     revalidatePath(`/unidades/${unitId}`);
-    revalidatePath("/monitoramento");
+    revalidatePath("/sensores");
 
     return {
       status: result.ok ? "success" : "error",
@@ -357,26 +333,6 @@ async function syncZabbixAction(
       message: getActionErrorMessage(error),
     };
   }
-}
-
-function formatDate(value: string | null) {
-  if (!value) return "-";
-  return new Date(value).toLocaleString("pt-BR");
-}
-
-function formatPercent(value: number | null) {
-  if (typeof value !== "number" || !Number.isFinite(value)) return "-";
-  return `${value.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`;
-}
-
-function formatMs(value: number | null) {
-  if (typeof value !== "number" || !Number.isFinite(value)) return "-";
-  return `${value.toLocaleString("pt-BR", { maximumFractionDigits: 0 })} ms`;
-}
-
-function formatTemperature(value: number | null) {
-  if (typeof value !== "number" || !Number.isFinite(value)) return "-";
-  return `${value.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} C`;
 }
 
 function formatBits(value: number | null) {
@@ -413,17 +369,6 @@ function formatBytes(value: number | null) {
   return `${signed.toLocaleString("pt-BR", {
     maximumFractionDigits: unitIndex <= 1 ? 0 : 2,
   })} ${units[unitIndex]}`;
-}
-
-function formatReportValue(value: number | null, unit: MonitoringReportSeries["unit"]) {
-  if (typeof value !== "number" || !Number.isFinite(value)) return "-";
-  if (unit === "bps") return formatBits(value);
-  if (unit === "ms") return formatMs(value);
-  if (unit === "%") return formatPercent(value);
-  if (unit === "d") {
-    return `${value.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} d`;
-  }
-  return value.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
 }
 
 function formatShortDate(value: string | null | undefined) {
@@ -563,12 +508,8 @@ function monitoringReportHref(unitId: string, windowPreset: MonitoringWindowPres
 }
 
 async function readUnitZabbixSnapshot(unitId: string) {
-  try {
-    const telemetry = await apiJson<{ items: UnitZabbixSnapshot[] }>("/monitoring/unit-hosts");
-    return telemetry.items.find((item) => item.unit.id === unitId) || null;
-  } catch {
-    return null;
-  }
+  const telemetry = await readUnitHostTelemetry({ timeoutMs: 1_500, fast: true });
+  return telemetry.items.find((item) => item.unit.id === unitId) || null;
 }
 
 async function readUnitMonitoringReport(unitId: string, windowPreset: MonitoringWindowPreset = "7d") {
@@ -705,37 +646,6 @@ function narrowMonitoringReport(report: UnitMonitoringReport | null, windowPrese
   };
 }
 
-function average(values: number[]) {
-  if (!values.length) return null;
-  return values.reduce((total, value) => total + value, 0) / values.length;
-}
-
-function compareSeriesHalves(series: MonitoringReportSeries) {
-  const points = cleanSeriesPoints(series);
-  if (points.length < 4) return null;
-
-  const start = points[0].clock;
-  const end = points[points.length - 1].clock;
-  const middle = start + (end - start) / 2;
-  const previous = average(points.filter((point) => point.clock < middle).map((point) => point.value));
-  const current = average(points.filter((point) => point.clock >= middle).map((point) => point.value));
-
-  if (previous === null || current === null) return null;
-
-  return {
-    previous,
-    current,
-    delta: current - previous,
-  };
-}
-
-function deltaTone(series: MonitoringReportSeries, delta: number) {
-  const lowerIsBetter = series.unit === "ms" || series.unit === "%";
-  if (Math.abs(delta) < 0.001) return "neutral";
-  if (lowerIsBetter) return delta <= 0 ? "success" : "attention";
-  return delta >= 0 ? "info" : "neutral";
-}
-
 function pathFromPoints(points: Array<{ x: number; y: number }>) {
   return points
     .map((point, index) => `${index === 0 ? "M" : "L"} ${point.x.toFixed(2)} ${point.y.toFixed(2)}`)
@@ -745,12 +655,12 @@ function pathFromPoints(points: Array<{ x: number; y: number }>) {
 function ChartRangeBar({ percent = 80, tone = "neutral" }: { percent?: number; tone?: "success" | "attention" | "critical" | "neutral" }) {
   const activeClass =
     tone === "critical"
-      ? "bg-rose-400"
+      ? "bg-[var(--nova-danger)]"
       : tone === "attention"
-        ? "bg-amber-400"
+        ? "bg-[var(--nova-warning)]"
         : tone === "success"
-          ? "bg-emerald-400"
-          : "bg-slate-500";
+          ? "bg-[var(--nova-success)]"
+          : "bg-[var(--nova-text-dim)]";
 
   const activeSegments = Math.max(0, Math.min(10, Math.round(percent / 10)));
 
@@ -834,27 +744,11 @@ function trendStatusForLatency(value: number | null) {
   return "success";
 }
 
-function trendLabelForLatency(value: number | null) {
-  const status = trendStatusForLatency(value);
-  if (status === "critical") return "Crítico";
-  if (status === "attention") return "Atenção";
-  if (status === "success") return "Excelente";
-  return "Sem leitura";
-}
-
 function trendStatusForLoss(value: number | null) {
   if (typeof value !== "number" || !Number.isFinite(value)) return "neutral";
   if (value >= 3) return "critical";
   if (value >= 1) return "attention";
   return "success";
-}
-
-function trendLabelForLoss(value: number | null) {
-  const status = trendStatusForLoss(value);
-  if (status === "critical") return "Crítica";
-  if (status === "attention") return "Atenção";
-  if (status === "success") return "Excelente";
-  return "Sem leitura";
 }
 
 function trendStatusForTemperature(value: number | null) {
@@ -865,50 +759,24 @@ function trendStatusForTemperature(value: number | null) {
 }
 
 function semanticColorForStatus(status: "success" | "attention" | "critical" | "neutral") {
-  if (status === "critical") return "#fb7185";
-  if (status === "attention") return "#facc15";
-  if (status === "success") return "#34d399";
-  return "#94a3b8";
-}
-
-function semanticTextClassForStatus(status: "success" | "attention" | "critical" | "neutral") {
-  if (status === "critical") return "text-rose-400";
-  if (status === "attention") return "text-amber-400";
-  if (status === "success") return "text-emerald-400";
-  return "text-slate-400";
-}
-
-function semanticBadgeClassForStatus(status: "success" | "attention" | "critical" | "neutral") {
-  if (status === "critical") return "border-rose-400/20 bg-rose-500/10 text-rose-200";
-  if (status === "attention") return "border-amber-400/20 bg-amber-500/10 text-amber-200";
-  if (status === "success") return "border-emerald-400/20 bg-emerald-500/10 text-emerald-200";
-  return "border-white/10 bg-white/[0.04] text-slate-300";
-}
-
-function semanticStatusForSeries(entry: MonitoringReportSeries) {
-  if (entry.unit === "ms" || entry.kind === "ping") {
-    return trendStatusForLatency(entry.stats.avg ?? entry.stats.last ?? entry.stats.max ?? null);
-  }
-
-  if (entry.unit === "%" || entry.kind === "loss") {
-    return trendStatusForLoss(entry.stats.avg ?? entry.stats.last ?? entry.stats.max ?? null);
-  }
-
-  return "neutral";
+  if (status === "critical") return "var(--nova-danger)";
+  if (status === "attention") return "var(--nova-warning)";
+  if (status === "success") return "var(--nova-success)";
+  return "var(--nova-text-dim)";
 }
 
 function chartStrokeColor(entry: MonitoringReportSeries) {
-  if (entry.kind === "ping") return entry.color || "#38bdf8";
-  if (entry.kind === "loss") return entry.color || "#fb7185";
-  if (entry.kind === "trafficIn") return entry.color || "#22c55e";
-  if (entry.kind === "trafficOut") return entry.color || "#f59e0b";
+  if (entry.kind === "ping") return entry.color || "var(--nova-info)";
+  if (entry.kind === "loss") return entry.color || "var(--nova-danger)";
+  if (entry.kind === "trafficIn") return entry.color || "var(--nova-success)";
+  if (entry.kind === "trafficOut") return entry.color || "var(--nova-warning)";
   if (entry.color) return entry.color;
 
-  if (entry.unit === "ms") return "#38bdf8";
-  if (entry.unit === "%") return "#fb7185";
-  if (entry.unit === "bps") return "#22c55e";
+  if (entry.unit === "ms") return "var(--nova-info)";
+  if (entry.unit === "%") return "var(--nova-danger)";
+  if (entry.unit === "bps") return "var(--nova-success)";
 
-  return "#94a3b8";
+  return "var(--nova-text-dim)";
 }
 
 function TrendChart({
@@ -958,7 +826,7 @@ function TrendChart({
 
   if (!usableSeries.length) {
     return (
-      <div className="flex min-h-[230px] items-center justify-center rounded-[18px] border border-dashed border-white/[0.1] bg-black/20 text-sm text-slate-500">
+      <div className="nds-empty flex min-h-[118px] items-center justify-center text-[11px] text-[var(--nova-text-muted)]">
         Sem dados suficientes para esta janela.
       </div>
     );
@@ -1040,16 +908,8 @@ function TrendChart({
     return entry.label || "Valor";
   }
 
-  function tooltipBoxX(x: number) {
-    return Math.min(Math.max(x + 14, pad.left + 8), width - pad.right - 186);
-  }
-
-  function tooltipBoxY(y: number) {
-    return Math.min(Math.max(y - 78, pad.top + 8), height - pad.bottom - 82);
-  }
-
   return (
-    <div className="overflow-hidden rounded-[18px] border border-white/[0.08] bg-[linear-gradient(180deg,#07101a,#060b12)] shadow-[0_10px_26px_rgba(0,0,0,0.16),inset_0_1px_0_rgba(255,255,255,0.025)]"><svg
+    <div className="nds-card overflow-hidden p-0"><svg
         viewBox={`0 0 ${width} ${height}`}
         role="img"
         aria-label="Gráfico histórico de monitoramento"
@@ -1058,10 +918,10 @@ function TrendChart({
           {usableSeries.map(({ entry }) => (
             <linearGradient key={`${id}-${entry.id}-fill`} id={`${id}-${entry.id}-fill`} x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor={chartStrokeColor(entry)} stopOpacity={isTraffic ? "0.25" : "0.16"} /><stop offset="100%" stopColor={chartStrokeColor(entry)} stopOpacity="0" /></linearGradient>
           ))}
-          <linearGradient id={`${id}-good-band`} x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="#22c55e" stopOpacity="0.13" /><stop offset="100%" stopColor="#22c55e" stopOpacity="0.06" /></linearGradient><linearGradient id={`${id}-warn-band`} x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="#f59e0b" stopOpacity="0.14" /><stop offset="100%" stopColor="#f59e0b" stopOpacity="0.06" /></linearGradient><linearGradient id={`${id}-critical-band`} x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="#fb7185" stopOpacity="0.16" /><stop offset="100%" stopColor="#fb7185" stopOpacity="0.08" /></linearGradient></defs>
+          <linearGradient id={`${id}-good-band`} x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="var(--nova-success)" stopOpacity="0.13" /><stop offset="100%" stopColor="var(--nova-success)" stopOpacity="0.06" /></linearGradient><linearGradient id={`${id}-warn-band`} x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="var(--nova-warning)" stopOpacity="0.14" /><stop offset="100%" stopColor="var(--nova-warning)" stopOpacity="0.06" /></linearGradient><linearGradient id={`${id}-critical-band`} x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="var(--nova-danger)" stopOpacity="0.16" /><stop offset="100%" stopColor="var(--nova-danger)" stopOpacity="0.08" /></linearGradient></defs>
 
         {showThresholdBands ? (
-          <><rect x={pad.left} y={yFor(pingMax, pingEntry?.entry || usableSeries[0].entry)} width={plotWidth} height={Math.max(0, yFor(100, pingEntry?.entry || usableSeries[0].entry) - yFor(pingMax, pingEntry?.entry || usableSeries[0].entry))} fill={`url(#${id}-critical-band)`} /><rect x={pad.left} y={yFor(100, pingEntry?.entry || usableSeries[0].entry)} width={plotWidth} height={Math.max(0, yFor(50, pingEntry?.entry || usableSeries[0].entry) - yFor(100, pingEntry?.entry || usableSeries[0].entry))} fill={`url(#${id}-warn-band)`} /><rect x={pad.left} y={yFor(50, pingEntry?.entry || usableSeries[0].entry)} width={plotWidth} height={Math.max(0, height - pad.bottom - yFor(50, pingEntry?.entry || usableSeries[0].entry))} fill={`url(#${id}-good-band)`} /><text x={pad.left + 10} y={yFor(118, pingEntry?.entry || usableSeries[0].entry)} fill="#fb7185" fontSize="12" fontWeight="700">Crítico &gt; 100 ms</text><text x={pad.left + 10} y={yFor(74, pingEntry?.entry || usableSeries[0].entry)} fill="#fbbf24" fontSize="12" fontWeight="700">Atenção 50–100 ms</text><text x={pad.left + 10} y={yFor(28, pingEntry?.entry || usableSeries[0].entry)} fill="#4ade80" fontSize="12" fontWeight="700">Bom &lt; 50 ms</text></>
+          <><rect x={pad.left} y={yFor(pingMax, pingEntry?.entry || usableSeries[0].entry)} width={plotWidth} height={Math.max(0, yFor(100, pingEntry?.entry || usableSeries[0].entry) - yFor(pingMax, pingEntry?.entry || usableSeries[0].entry))} fill={`url(#${id}-critical-band)`} /><rect x={pad.left} y={yFor(100, pingEntry?.entry || usableSeries[0].entry)} width={plotWidth} height={Math.max(0, yFor(50, pingEntry?.entry || usableSeries[0].entry) - yFor(100, pingEntry?.entry || usableSeries[0].entry))} fill={`url(#${id}-warn-band)`} /><rect x={pad.left} y={yFor(50, pingEntry?.entry || usableSeries[0].entry)} width={plotWidth} height={Math.max(0, height - pad.bottom - yFor(50, pingEntry?.entry || usableSeries[0].entry))} fill={`url(#${id}-good-band)`} /><text x={pad.left + 10} y={yFor(118, pingEntry?.entry || usableSeries[0].entry)} fill="var(--nova-danger)" fontSize="12" fontWeight="700">Crítico &gt; 100 ms</text><text x={pad.left + 10} y={yFor(74, pingEntry?.entry || usableSeries[0].entry)} fill="var(--nova-warning)" fontSize="12" fontWeight="700">Atenção 50-100 ms</text><text x={pad.left + 10} y={yFor(28, pingEntry?.entry || usableSeries[0].entry)} fill="var(--nova-success)" fontSize="12" fontWeight="700">Bom &lt; 50 ms</text></>
         ) : null}
 
         {!isMini ? (
@@ -1259,75 +1119,6 @@ function TrendChart({
   );
 }
 
-function TrendStatCard({ series }: { series: MonitoringReportSeries }) {
-  const comparison = compareSeriesHalves(series);
-  const delta = comparison?.delta ?? null;
-
-  return (
-    <div className="rounded-[16px] border border-white/[0.08] bg-black/20 p-4"><div className="flex items-start justify-between gap-3"><div><div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-            {series.label}
-          </div><div className="mt-2 text-2xl font-semibold tracking-tight text-white">
-            {formatReportValue(series.stats.avg, series.unit)}
-          </div></div>
-        {delta !== null ? (
-          <TonePill tone={deltaTone(series, delta)}>
-            {delta > 0 ? "+" : ""}
-            {formatReportValue(delta, series.unit)}
-          </TonePill>
-        ) : null}
-      </div><div className="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-500"><div>
-          mínimo <span className="text-slate-300">{formatReportValue(series.stats.min, series.unit)}</span></div><div>
-          pico <span className="text-slate-300">{formatReportValue(series.stats.max, series.unit)}</span></div></div></div>
-  );
-}
-
-function MonitoringKpiCard({
-  label,
-  value,
-  tone,
-  series,
-  helper,
-}: {
-  label: string;
-  value: string;
-  tone: "success" | "attention" | "critical" | "neutral";
-  series?: MonitoringReportSeries | null;
-  helper?: string;
-}) {
-  const points = series ? cleanSeriesPoints(series).slice(-70) : [];
-  const width = 180;
-  const height = 32;
-  const pad = 2;
-  const min = points.length ? Math.min(...points.map((point) => point.value), 0) : 0;
-  const max = points.length ? Math.max(...points.map((point) => point.value), 1) : 1;
-  const minClock = points.length ? points[0].clock : 0;
-  const maxClock = points.length ? points[points.length - 1].clock : 1;
-  const range = Math.max(max - min, 1);
-  const path = points.length > 1
-    ? pathFromPoints(
-        points.map((point) => ({
-          x: ((point.clock - minClock) / Math.max(maxClock - minClock, 1)) * (width - pad * 2) + pad,
-          y: (1 - (point.value - min) / range) * (height - pad * 2) + pad,
-        })),
-      )
-    : "";
-  const color = semanticColorForStatus(tone);
-
-  return (
-    <div className="rounded-[20px] border border-white/[0.08] bg-[linear-gradient(180deg,rgba(11,18,28,0.96),rgba(8,12,18,0.99))] p-4 shadow-[0_14px_32px_rgba(0,0,0,0.18),inset_0_1px_0_rgba(255,255,255,0.04)]"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">{label}</div><div className="mt-2 whitespace-nowrap text-[1.65rem] font-semibold leading-none tracking-tight text-white tabular-nums">{value}</div>
-          {helper ? (
-            <div className="mt-2 text-[11px] font-medium text-slate-500">{helper}</div>
-          ) : null}
-        </div><span className="mt-1 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"><span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: color }} /></span></div><div className="mt-4 h-8 rounded-[10px] border border-white/[0.06] bg-black/20 px-1.5 py-1">
-        {path ? (
-          <svg viewBox={`0 0 ${width} ${height}`} className="h-full w-full" aria-hidden="true"><path d={path} fill="none" stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" /></svg>
-        ) : (
-          <div className="flex h-full items-center text-[11px] text-slate-600">Sem histórico</div>
-        )}
-      </div></div>
-  );
-}
-
 type MonitoringEventRow = {
   id: string;
   icon: string;
@@ -1338,75 +1129,31 @@ type MonitoringEventRow = {
   status: "Resolvido" | "Concluído" | "Aberto";
 };
 
-function severityClasses(severity: MonitoringEventRow["severity"]) {
-  if (severity === "Crítico") return "border-rose-400/20 bg-rose-500/10 text-rose-200";
-  if (severity === "Atenção") return "border-amber-400/20 bg-amber-500/10 text-amber-200";
-  return "border-sky-400/20 bg-sky-500/10 text-sky-200";
+function severityTone(severity: MonitoringEventRow["severity"]) {
+  if (severity === "Crítico") return "critical";
+  if (severity === "Atenção") return "attention";
+  return "info";
 }
 
-function statusClasses(status: MonitoringEventRow["status"]) {
-  if (status === "Aberto") return "border-amber-400/20 bg-amber-500/10 text-amber-200";
-  return "border-emerald-400/20 bg-emerald-500/10 text-emerald-200";
+function eventStatusTone(status: MonitoringEventRow["status"]) {
+  if (status === "Aberto") return "attention";
+  return "success";
 }
 
 function MonitoringEventsCard({ events }: { events: MonitoringEventRow[] }) {
   return (
-    <div className="rounded-[24px] border border-white/[0.08] bg-[linear-gradient(180deg,rgba(8,13,19,0.98),rgba(8,11,18,0.98))] p-5 shadow-[0_16px_36px_rgba(0,0,0,0.18)]"><div className="flex flex-wrap items-center justify-between gap-3"><div className="flex min-w-0 items-center gap-3"><span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] border border-sky-400/20 bg-sky-500/10 text-sky-200"><IconAlertList className="h-5 w-5" /></span><div className="min-w-0"><div className="text-[1.28rem] font-semibold tracking-tight text-white">Eventos e alertas recentes</div></div></div><TonePill tone={events.some((event) => event.severity === "Crítico" && event.status === "Aberto") ? "critical" : events.length ? "info" : "success"}>
+    <div className="nds-card"><div className="flex flex-wrap items-center justify-between gap-2"><div className="flex min-w-0 items-center gap-2"><span className={iconTileClass}><IconAlertList className="h-4 w-4" /></span><div className="min-w-0"><div className="text-[13px] font-black text-white">Eventos e alertas recentes</div></div></div><TonePill tone={events.some((event) => event.severity === "Crítico" && event.status === "Aberto") ? "critical" : events.length ? "info" : "success"}>
           {events.length ? `${events.length} evento(s)` : "sem alertas"}
-        </TonePill></div><div className="mt-5 overflow-hidden rounded-[18px] border border-white/[0.08] bg-black/20"><div className="grid grid-cols-[minmax(180px,1.1fr)_minmax(220px,1.4fr)_120px_150px_110px] gap-4 border-b border-white/[0.08] px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 max-xl:hidden"><span>Evento</span><span>Detalhes</span><span>Severidade</span><span>Início</span><span>Status</span></div>
+        </TonePill></div><div className="nds-table-shell mt-2"><div className="nova-events-grid border-b border-white/[0.08] px-3 py-2 text-[8px] font-black uppercase text-[var(--nova-text-dim)] max-xl:hidden"><span>Evento</span><span>Detalhes</span><span>Severidade</span><span>Início</span><span>Status</span></div>
 
         {events.length ? (
           <div className="divide-y divide-white/[0.06]">
             {events.map((event) => (
-              <div key={event.id} className="grid gap-3 px-5 py-4 text-sm text-slate-300 xl:grid-cols-[minmax(180px,1.1fr)_minmax(220px,1.4fr)_120px_150px_110px] xl:items-center xl:gap-4"><div className="flex min-w-0 items-center gap-3 font-medium text-slate-100"><span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-xs">{event.icon}</span><span className="truncate">{event.event}</span></div><div className="text-slate-400">{event.details}</div><div><span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${severityClasses(event.severity)}`}>{event.severity}</span></div><div className="text-slate-400">{event.startedAt}</div><div><span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${statusClasses(event.status)}`}>{event.status}</span></div></div>
+              <div key={event.id} className="nova-events-grid px-3 py-2 text-[11px] text-slate-300"><div className="flex min-w-0 items-center gap-2 font-medium text-slate-100"><span className="grid h-6 w-6 shrink-0 place-items-center rounded-full border border-white/10 bg-white/[0.03] text-[10px]">{event.icon}</span><span className="truncate">{event.event}</span></div><div className="text-[var(--nova-text-muted)]">{event.details}</div><div><TonePill tone={severityTone(event.severity)}>{event.severity}</TonePill></div><div className="text-[var(--nova-text-muted)]">{event.startedAt}</div><div><TonePill tone={eventStatusTone(event.status)}>{event.status}</TonePill></div></div>
             ))}
           </div>
         ) : (
-          <div className="px-4 py-8 text-center text-sm text-slate-500">Nenhum alerta operacional gerado para esta janela.</div>
-        )}
-      </div></div>
-  );
-}
-
-function MonitoringMetricCard({
-  title,
-  value,
-  subtitle,
-  accentClass,
-  series,
-}: {
-  title: string;
-  value: string;
-  subtitle: string;
-  accentClass: string;
-  series?: MonitoringReportSeries | null;
-}) {
-  const points = series ? cleanSeriesPoints(series) : [];
-  const width = 220;
-  const height = 34;
-  const pad = 2;
-  const min = points.length ? Math.min(...points.map((point) => point.value), 0) : 0;
-  const max = points.length ? Math.max(...points.map((point) => point.value), 1) : 1;
-  const minClock = points.length ? points[0].clock : 0;
-  const maxClock = points.length ? points[points.length - 1].clock : 1;
-  const range = Math.max(max - min, 1);
-  const path = points.length > 1
-    ? pathFromPoints(
-        points.map((point) => ({
-          x: ((point.clock - minClock) / Math.max(maxClock - minClock, 1)) * (width - pad * 2) + pad,
-          y: (1 - (point.value - min) / range) * (height - pad * 2) + pad,
-        })),
-      )
-    : '';
-
-  return (
-    <div className="rounded-[18px] border border-white/[0.08] bg-[linear-gradient(180deg,rgba(10,15,21,0.96),rgba(9,12,18,0.99))] p-4 shadow-[0_10px_28px_rgba(0,0,0,0.14),inset_0_1px_0_rgba(255,255,255,0.03)]"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">{title}</div><div className="mt-3 whitespace-nowrap text-[1.75rem] font-semibold leading-none tracking-tight text-white tabular-nums sm:text-[1.95rem]">{value}</div></div><span className={`mt-1 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/20 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] ${accentClass}`}>
-          ●
-        </span></div><div className="mt-3 text-sm leading-6 text-slate-400">{subtitle}</div><div className="mt-4 h-10 rounded-[12px] border border-white/[0.06] bg-black/20 px-2 py-1.5">
-        {path ? (
-          <svg viewBox={`0 0 ${width} ${height}`} className="h-full w-full" aria-hidden="true"><path d={path} fill="none" stroke="currentColor" strokeWidth="2.2" className={accentClass} /></svg>
-        ) : (
-          <div className="flex h-full items-center text-xs text-slate-600">Sem histórico</div>
+          <div className="px-3 py-2 text-center text-[11px] text-[var(--nova-text-muted)]">Nenhum alerta operacional gerado para esta janela.</div>
         )}
       </div></div>
   );
@@ -1428,7 +1175,7 @@ function MonitoringSummaryRow({
   const resolvedTone = tone ?? (percent >= 85 ? "success" : percent >= 55 ? "attention" : percent > 0 ? "critical" : "neutral");
 
   return (
-    <div className="rounded-[16px] border border-white/[0.06] bg-black/10 px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]"><div className="flex items-center justify-between gap-3 text-sm"><span className="text-slate-200">{label}</span><span className="font-semibold text-slate-50 tabular-nums">{value}</span></div><div className="mt-3 flex items-center gap-3"><div className="flex-1"><ChartRangeBar percent={percent} tone={resolvedTone} /></div>
+    <div className="nds-card"><div className="flex items-center justify-between gap-2 text-[11px]"><span className="text-slate-200">{label}</span><span className="font-black text-slate-50 tabular-nums">{value}</span></div><div className="mt-2 flex items-center gap-2"><div className="flex-1"><ChartRangeBar percent={percent} tone={resolvedTone} /></div>
         {badge ? <div className="shrink-0">{badge}</div> : null}
       </div></div>
   );
@@ -1461,11 +1208,12 @@ function MonitoringWindowControl({
             href={unitMonitoringHref(unitId, option.value, focusMode ? { focus: "monitoring" } : undefined)}
             scroll={false}
             aria-current={isActive ? "page" : undefined}
-            className={`inline-flex h-10 items-center justify-center rounded-[14px] border px-3.5 text-xs font-semibold tracking-[0.02em] transition ${
+            className={`nds-button ${
               isActive
-                ? "border-sky-400/30 bg-sky-500/12 text-sky-100 shadow-[0_0_0_1px_rgba(56,189,248,0.08)]"
-                : "border-white/10 bg-black/20 text-slate-300 hover:border-white/20 hover:bg-white/[0.05] hover:text-white"
+                ? "border-[color-mix(in_srgb,var(--nova-primary)_42%,transparent)] bg-[var(--nova-primary-soft)] text-white"
+                : ""
             }`}
+            data-variant="secondary"
           >
             {option.label}
           </Link>
@@ -1482,6 +1230,7 @@ function UnitMonitoringVisualPanel({
   editControl,
   syncControl,
   windowPreset,
+  refreshToken,
   focusMode = false,
 }: {
   unit: UnitDetail;
@@ -1490,6 +1239,7 @@ function UnitMonitoringVisualPanel({
   editControl?: ReactNode;
   syncControl?: ReactNode;
   windowPreset: MonitoringWindowPreset;
+  refreshToken: string;
   focusMode?: boolean;
 }) {
   const pingBlock = report?.blocks.find((block) => block.id === "ping") || null;
@@ -1511,28 +1261,19 @@ function UnitMonitoringVisualPanel({
   const lossPercent = lossSeries?.stats.avg ?? snapshot?.metrics.lossPct ?? null;
   const latencyCurrent = pingSeries?.stats.last ?? snapshot?.metrics.latencyMs ?? null;
   const latencyAverage = pingSeries?.stats.avg ?? snapshot?.metrics.latencyMs ?? null;
-  const latencyMin = pingSeries?.stats.min ?? null;
   const latencyMax = pingSeries?.stats.max ?? null;
   const trafficInSeries = trafficSeries.find((series) => series.kind === "trafficIn") || null;
   const trafficOutSeries = trafficSeries.find((series) => series.kind === "trafficOut") || null;
-  const syncStatusLabel = hasManualZabbixLink ? "Sincronizado" : snapshot?.match.syncReady ? "Conectado" : "Pendente";
   const selectedPeriod = selectedMonitoringPeriod(windowPreset, report?.period.to || report?.generatedAt || null);
   const periodLabel = `${formatShortDate(selectedPeriod.from)} até ${formatShortDate(selectedPeriod.to)}`;
-  const lastSyncLabel = formatDate(report?.generatedAt || snapshot?.metrics.ping?.lastClock || null);
-  const refreshToken = String(Date.now());
-  const latencyCurrentTone = trendStatusForLatency(latencyCurrent);
-  const latencyAverageTone = trendStatusForLatency(latencyAverage);
-  const latencyMinTone = trendStatusForLatency(latencyMin);
-  const latencyMaxTone = trendStatusForLatency(latencyMax);
+  const lastSyncLabel = formatDateTime(report?.generatedAt || snapshot?.metrics.ping?.lastClock || null);
   const lossTone = trendStatusForLoss(lossPercent);
   const temperatureTone = trendStatusForTemperature(snapshot?.metrics.temperatureC ?? null);
-  const availabilityValue = pingOk === false ? "0,00%" : hasHistoricalData ? "100,00%" : "-";
-  const syncAgeValue = report?.generatedAt ? "agora" : snapshot?.metrics.ping?.lastClock ? formatDate(snapshot.metrics.ping.lastClock) : "-";
-  const latencyChartSeries = pingSeries ? [{ ...pingSeries, color: "#38bdf8", label: "Latência" }] : [];
-  const lossChartSeries = lossSeries ? [{ ...lossSeries, color: "#fb7185", label: "Perda de pacote" }] : [];
+  const latencyChartSeries = pingSeries ? [{ ...pingSeries, color: "var(--nova-info)", label: "Latência" }] : [];
+  const lossChartSeries = lossSeries ? [{ ...lossSeries, color: "var(--nova-danger)", label: "Perda de pacote" }] : [];
   const trafficChartSeries = [
-    trafficInSeries ? { ...trafficInSeries, color: "#22c55e", label: "Download (entrada)" } : null,
-    trafficOutSeries ? { ...trafficOutSeries, color: "#f59e0b", label: "Upload (saída)" } : null,
+    trafficInSeries ? { ...trafficInSeries, color: "var(--nova-success)", label: "Download (entrada)" } : null,
+    trafficOutSeries ? { ...trafficOutSeries, color: "var(--nova-warning)", label: "Upload (saída)" } : null,
   ].filter((series): series is MonitoringReportSeries => Boolean(series));
   const monitoringEvents: MonitoringEventRow[] = [
     ...(latencyMax !== null && latencyMax >= 100
@@ -1542,7 +1283,7 @@ function UnitMonitoringVisualPanel({
           event: "Pico de latência detectado",
           details: "Latência acima de 100 ms no período analisado",
           severity: "Crítico" as const,
-          startedAt: report?.generatedAt ? formatDate(report.generatedAt) : lastSyncLabel,
+          startedAt: report?.generatedAt ? formatDateTime(report.generatedAt) : lastSyncLabel,
           status: "Resolvido" as const,
         }]
       : latencyMax !== null && latencyMax >= 50
@@ -1552,7 +1293,7 @@ function UnitMonitoringVisualPanel({
             event: "Latência em atenção",
             details: "Latência passou da faixa ideal no período",
             severity: "Atenção" as const,
-            startedAt: report?.generatedAt ? formatDate(report.generatedAt) : lastSyncLabel,
+            startedAt: report?.generatedAt ? formatDateTime(report.generatedAt) : lastSyncLabel,
             status: "Resolvido" as const,
           }]
         : []),
@@ -1563,7 +1304,7 @@ function UnitMonitoringVisualPanel({
           event: "Perda de pacote elevada",
           details: "Perda média acima do limite de atenção",
           severity: lossPercent >= 3 ? "Crítico" as const : "Atenção" as const,
-          startedAt: report?.generatedAt ? formatDate(report.generatedAt) : lastSyncLabel,
+          startedAt: report?.generatedAt ? formatDateTime(report.generatedAt) : lastSyncLabel,
           status: "Resolvido" as const,
         }]
       : []),
@@ -1574,7 +1315,7 @@ function UnitMonitoringVisualPanel({
           event: "Pico de uso do link",
           details: `Download (entrada) atingiu ${formatBits(trafficBlock.consumption.peakReceiveBps)} no período`,
           severity: "Informativo" as const,
-          startedAt: report?.generatedAt ? formatDate(report.generatedAt) : lastSyncLabel,
+          startedAt: report?.generatedAt ? formatDateTime(report.generatedAt) : lastSyncLabel,
           status: "Concluído" as const,
         }]
       : []),
@@ -1590,10 +1331,10 @@ function UnitMonitoringVisualPanel({
         }]
       : []),
   ].slice(0, 5);
-  const actionButtonClass = "inline-flex h-11 items-center justify-center gap-2 rounded-[15px] border border-white/10 bg-[rgba(6,10,16,0.86)] px-4 text-sm font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] transition hover:border-white/20 hover:bg-white/[0.05]";
+  const actionButtonClass = "nds-button";
 
   return (
-    <Surface className="overflow-hidden border-sky-400/10 bg-[radial-gradient(circle_at_top,rgba(14,48,79,0.32),transparent_38%),linear-gradient(180deg,rgba(9,16,25,0.98),rgba(6,10,16,0.99))] p-5 sm:p-6"><SectionIntro
+    <Surface><SectionIntro
         eyebrow="Monitoramento"
         title="Operação, histórico e sincronização"
         description={
@@ -1609,65 +1350,60 @@ function UnitMonitoringVisualPanel({
           )
         }
         compact
-      /><div className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1.55fr)_minmax(340px,0.8fr)]"><div className="grid gap-4"><div className="rounded-[26px] border border-white/[0.08] bg-[linear-gradient(180deg,rgba(8,13,19,0.98),rgba(8,11,18,0.98))] p-5 shadow-[0_18px_40px_rgba(0,0,0,0.22)]"><div className="flex flex-wrap items-start justify-between gap-4"><div className="flex min-w-0 items-center gap-3"><span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] border border-sky-400/20 bg-sky-500/10 text-sky-200"><IconPulse className="h-5 w-5" /></span><div className="min-w-0"><div className="text-[1.75rem] font-semibold tracking-tight text-white">Latência e perda</div><div className="mt-1 text-base text-slate-500">{periodLabel}</div></div></div><div className="flex flex-wrap items-center justify-end gap-2"><MonitoringWindowControl unitId={unit.id} active={windowPreset} focusMode={focusMode} /><Link
-                  href={monitoringReportHref(unit.id, windowPreset)}
-                  className={`${actionButtonClass} hover:border-sky-400/30 hover:bg-sky-500/10 hover:text-sky-100`}
+      /><div className="nova-monitoring-workbench mt-2"><div className="grid gap-2"><div className="nds-card"><div className="flex flex-wrap items-start justify-between gap-2"><div className="flex min-w-0 items-center gap-2"><span className={iconTileClass}><IconPulse className="h-4 w-4" /></span><div className="min-w-0"><div className="text-[15px] font-black text-white">Latência e perda</div><div className="mt-1 text-[11px] text-[var(--nova-text-muted)]">{periodLabel}</div></div></div><div className="flex flex-wrap items-center justify-end gap-2"><MonitoringWindowControl unitId={unit.id} active={windowPreset} focusMode={focusMode} /><Link
+                href={monitoringReportHref(unit.id, windowPreset)}
+                  className={actionButtonClass}
+                  data-variant="secondary"
                   title="Abrir relatório de monitoramento"
                 ><span>Relatório</span><IconArrowUpRight /></Link><Link
                   href={focusMode ? unitMonitoringHref(unit.id, windowPreset) : unitMonitoringHref(unit.id, windowPreset, { focus: "monitoring" })}
                   scroll={false}
-                  className={`${actionButtonClass} hover:border-emerald-400/30 hover:bg-emerald-500/10 hover:text-emerald-100`}
+                  className={actionButtonClass}
+                  data-variant="secondary"
                 ><IconFocus /><span>{focusMode ? "Sair foco" : "Modo foco"}</span></Link><Link
                   href={unitMonitoringHref(unit.id, windowPreset, focusMode ? { refresh: refreshToken, focus: "monitoring" } : { refresh: refreshToken })}
                   scroll={false}
                   className={actionButtonClass}
-                ><IconRefresh /><span>Atualizar</span></Link></div></div><div className="mt-5 flex flex-wrap items-center gap-2 text-xs">
-              {focusMode ? <span className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1.5 text-emerald-200">Modo foco ativo</span> : null}
-            </div><div className="mt-6 grid gap-4"><div className="rounded-[22px] border border-white/[0.08] bg-[rgba(8,12,18,0.82)] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]"><div className="flex items-start justify-between gap-3"><div><div className="text-sm font-semibold tracking-[0.02em] text-white">Latência</div></div><div className="rounded-[14px] border border-sky-400/20 bg-sky-500/10 px-3 py-1.5 text-right text-xs font-semibold text-sky-100">
+                  data-variant="secondary"
+                ><IconRefresh /><span>Atualizar</span></Link></div></div><div className="mt-2 flex flex-wrap items-center gap-2">
+              {focusMode ? <TonePill tone="success">Modo foco ativo</TonePill> : null}
+            </div><div className="mt-2 grid gap-2"><div className="nds-card"><div className="flex items-start justify-between gap-2"><div><div className="text-[13px] font-black text-white">Latência</div></div><div className="nds-badge" data-tone="info">
                     Atual: {formatMs(latencyCurrent)}
-                  </div></div><div className="mt-4 flex flex-wrap gap-2 text-xs"><span className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1.5 text-emerald-200">Ideal &lt; 50 ms</span><span className="rounded-full border border-amber-400/20 bg-amber-500/10 px-3 py-1.5 text-amber-200">Atenção 50–100 ms</span><span className="rounded-full border border-rose-400/20 bg-rose-500/10 px-3 py-1.5 text-rose-200">Crítico &gt; 100 ms</span></div><div className="mt-4 rounded-[18px] border border-white/[0.08] bg-black/20 p-3.5">
+                  </div></div><div className="mt-2 flex flex-wrap gap-2"><TonePill tone="success">Ideal &lt; 50 ms</TonePill><TonePill tone="attention">Atenção 50-100 ms</TonePill><TonePill tone="critical">Crítico &gt; 100 ms</TonePill></div><div className="nds-card mt-2 p-2">
                   {latencyChartSeries.length ? (
-                    <TrendChart id="unit-latency-main" series={latencyChartSeries} height={280} period={selectedPeriod} />
+                    <TrendChart id="unit-latency-main" series={latencyChartSeries} height={180} period={selectedPeriod} />
                   ) : (
-                    <div className="flex min-h-[190px] items-center justify-center rounded-[16px] border border-dashed border-white/[0.1] bg-black/20 px-4 text-center text-sm leading-6 text-slate-500">
+                    <div className="nds-empty flex min-h-[118px] items-center justify-center px-3 text-center text-[11px] leading-5 text-[var(--nova-text-muted)]">
                       Sem série de latência nesta janela. Use 7D ou 30D para conferir histórico consolidado.
                     </div>
                   )}
-                </div><div className="mt-3 grid gap-3 sm:grid-cols-3"><div className="rounded-[14px] border border-white/[0.06] bg-black/20 px-4 py-3"><div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">Atual</div><div className="mt-2 whitespace-nowrap text-[1.35rem] font-semibold leading-none text-white tabular-nums">{formatMs(latencyCurrent)}</div></div><div className="rounded-[14px] border border-white/[0.06] bg-black/20 px-4 py-3"><div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">Média</div><div className="mt-2 whitespace-nowrap text-[1.35rem] font-semibold leading-none text-white tabular-nums">{formatMs(latencyAverage)}</div></div><div className="rounded-[14px] border border-white/[0.06] bg-black/20 px-4 py-3"><div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">Pico</div><div className="mt-2 whitespace-nowrap text-[1.35rem] font-semibold leading-none text-white tabular-nums">{formatMs(latencyMax)}</div></div></div></div><div className="rounded-[22px] border border-white/[0.08] bg-[rgba(8,12,18,0.82)] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]"><div className="flex items-start justify-between gap-3"><div><div className="text-sm font-semibold tracking-[0.02em] text-white">Perda de pacote</div></div><div className="rounded-[14px] border border-rose-400/20 bg-rose-500/10 px-3 py-1.5 text-right text-xs font-semibold text-rose-100">
+                </div><div className="mt-2 grid gap-2 sm:grid-cols-3"><div className="nds-card"><div className="nds-label">Atual</div><div className="mt-2 whitespace-nowrap text-[18px] font-black leading-none text-white tabular-nums">{formatMs(latencyCurrent)}</div></div><div className="nds-card"><div className="nds-label">Média</div><div className="mt-2 whitespace-nowrap text-[18px] font-black leading-none text-white tabular-nums">{formatMs(latencyAverage)}</div></div><div className="nds-card"><div className="nds-label">Pico</div><div className="mt-2 whitespace-nowrap text-[18px] font-black leading-none text-white tabular-nums">{formatMs(latencyMax)}</div></div></div></div><div className="nds-card"><div className="flex items-start justify-between gap-2"><div><div className="text-[13px] font-black text-white">Perda de pacote</div></div><div className="nds-badge" data-tone="critical">
                     Média: {formatPercent(lossPercent)}
-                  </div></div><div className="mt-4 flex flex-wrap gap-2 text-xs"><span className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1.5 text-emerald-200">Ideal &lt; 1%</span><span className="rounded-full border border-amber-400/20 bg-amber-500/10 px-3 py-1.5 text-amber-200">Atenção 1–3%</span><span className="rounded-full border border-rose-400/20 bg-rose-500/10 px-3 py-1.5 text-rose-200">Crítico &gt; 3%</span></div><div className="mt-4 rounded-[18px] border border-white/[0.08] bg-black/20 p-3.5">
+                  </div></div><div className="mt-2 flex flex-wrap gap-2"><TonePill tone="success">Ideal &lt; 1%</TonePill><TonePill tone="attention">Atenção 1-3%</TonePill><TonePill tone="critical">Crítico &gt; 3%</TonePill></div><div className="nds-card mt-2 p-2">
                   {lossChartSeries.length ? (
-                    <TrendChart id="unit-loss-main" series={lossChartSeries} height={230} period={selectedPeriod} />
+                    <TrendChart id="unit-loss-main" series={lossChartSeries} height={160} period={selectedPeriod} />
                   ) : (
-                    <div className="flex min-h-[180px] items-center justify-center rounded-[16px] border border-dashed border-white/[0.1] bg-black/20 px-4 text-center text-sm leading-6 text-slate-500">
+                    <div className="nds-empty flex min-h-[118px] items-center justify-center px-3 text-center text-[11px] leading-5 text-[var(--nova-text-muted)]">
                       Sem série de perda nesta janela. Use 7D ou 30D para conferir histórico consolidado.
                     </div>
                   )}
-                </div><div className="mt-3 grid gap-3 sm:grid-cols-3"><div className="rounded-[14px] border border-white/[0.06] bg-black/20 px-4 py-3"><div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">Atual</div><div className="mt-2 whitespace-nowrap text-[1.35rem] font-semibold leading-none text-white tabular-nums">{formatPercent(lossSeries?.stats.last ?? lossPercent)}</div></div><div className="rounded-[14px] border border-white/[0.06] bg-black/20 px-4 py-3"><div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">Média</div><div className="mt-2 whitespace-nowrap text-[1.35rem] font-semibold leading-none text-white tabular-nums">{formatPercent(lossPercent)}</div></div><div className="rounded-[14px] border border-white/[0.06] bg-black/20 px-4 py-3"><div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">Pico</div><div className="mt-2 whitespace-nowrap text-[1.35rem] font-semibold leading-none text-white tabular-nums">{formatPercent(lossSeries?.stats.max ?? null)}</div></div></div></div></div></div><div className="rounded-[26px] border border-white/[0.08] bg-[linear-gradient(180deg,rgba(8,13,19,0.98),rgba(8,11,18,0.98))] p-5 shadow-[0_16px_36px_rgba(0,0,0,0.18)]"><div className="flex flex-wrap items-start justify-between gap-4"><div className="flex items-center gap-3"><span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] border border-sky-400/20 bg-sky-500/10 text-sky-200"><IconServer className="h-5 w-5" /></span><div><div className="text-[1.55rem] font-semibold tracking-tight text-white">Consumo do link</div></div></div><div className="flex flex-wrap items-center gap-2 text-xs"><span className="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1.5 text-emerald-200"><span className="h-2 w-2 rounded-full bg-emerald-300" />
+                </div><div className="mt-2 grid gap-2 sm:grid-cols-3"><div className="nds-card"><div className="nds-label">Atual</div><div className="mt-2 whitespace-nowrap text-[18px] font-black leading-none text-white tabular-nums">{formatPercent(lossSeries?.stats.last ?? lossPercent)}</div></div><div className="nds-card"><div className="nds-label">Média</div><div className="mt-2 whitespace-nowrap text-[18px] font-black leading-none text-white tabular-nums">{formatPercent(lossPercent)}</div></div><div className="nds-card"><div className="nds-label">Pico</div><div className="mt-2 whitespace-nowrap text-[18px] font-black leading-none text-white tabular-nums">{formatPercent(lossSeries?.stats.max ?? null)}</div></div></div></div></div></div><div className="nds-card"><div className="flex flex-wrap items-start justify-between gap-2"><div className="flex items-center gap-2"><span className={iconTileClass}><IconServer className="h-4 w-4" /></span><div><div className="text-[15px] font-black text-white">Consumo do link</div></div></div><div className="flex flex-wrap items-center gap-2"><TonePill tone="success">
                   Download (entrada)
-                </span><span className="inline-flex items-center gap-2 rounded-full border border-amber-400/20 bg-amber-500/10 px-3 py-1.5 text-amber-200"><span className="h-2 w-2 rounded-full bg-amber-300" />
+                </TonePill><TonePill tone="attention">
                   Upload (saída)
-                </span><span className="inline-flex h-10 items-center rounded-[14px] border border-white/10 bg-black/20 px-3.5 text-sm font-semibold text-white">Bits/s</span></div></div><div className="mt-5 rounded-[20px] border border-white/[0.08] bg-black/20 p-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
+                </TonePill><TonePill tone="neutral">Bits/s</TonePill></div></div><div className="nds-card mt-2 p-2">
               {trafficChartSeries.length ? (
-                <TrendChart id="unit-traffic-main" series={trafficChartSeries} height={240} period={selectedPeriod} />
+                <TrendChart id="unit-traffic-main" series={trafficChartSeries} height={170} period={selectedPeriod} />
               ) : (
-                <div className="flex min-h-[200px] items-center justify-center rounded-[16px] border border-dashed border-white/[0.1] bg-black/20 px-4 text-center text-sm leading-6 text-slate-500">
+                <div className="nds-empty flex min-h-[118px] items-center justify-center px-3 text-center text-[11px] leading-5 text-[var(--nova-text-muted)]">
                   Sem tráfego nesta janela. Use 7D ou 30D para conferir consumo consolidado.
                 </div>
               )}
-            </div><div className="mt-4 grid gap-3 border-t border-white/[0.08] pt-4 text-sm sm:grid-cols-2 xl:grid-cols-5"><div className="min-w-0 rounded-[16px] border border-white/[0.06] bg-white/[0.02] p-3"><div className="text-slate-500">Total do período</div><div className="mt-2 whitespace-nowrap text-[1.35rem] font-semibold leading-none text-white tabular-nums">{formatBytes(trafficBlock?.consumption?.totalBytes ?? null)}</div></div><div className="min-w-0 rounded-[16px] border border-emerald-400/10 bg-emerald-500/[0.03] p-3"><div className="text-slate-500">Média download</div><div className="mt-2 whitespace-nowrap text-[1.2rem] font-semibold leading-tight text-emerald-300 tabular-nums">{formatBits(trafficBlock?.consumption?.avgReceiveBps ?? null)}</div></div><div className="min-w-0 rounded-[16px] border border-amber-400/10 bg-amber-500/[0.03] p-3"><div className="text-slate-500">Média upload</div><div className="mt-2 whitespace-nowrap text-[1.2rem] font-semibold leading-tight text-amber-300 tabular-nums">{formatBits(trafficBlock?.consumption?.avgSendBps ?? null)}</div></div><div className="min-w-0 rounded-[16px] border border-emerald-400/10 bg-emerald-500/[0.03] p-3"><div className="text-slate-500">Pico download</div><div className="mt-2 whitespace-nowrap text-[1.2rem] font-semibold leading-tight text-emerald-300 tabular-nums">{formatBits(trafficBlock?.consumption?.peakReceiveBps ?? null)}</div></div><div className="min-w-0 rounded-[16px] border border-amber-400/10 bg-amber-500/[0.03] p-3"><div className="text-slate-500">Pico upload</div><div className="mt-2 whitespace-nowrap text-[1.2rem] font-semibold leading-tight text-amber-300 tabular-nums">{formatBits(trafficBlock?.consumption?.peakSendBps ?? null)}</div></div></div></div></div><div className="grid content-start gap-4"><div className="rounded-[24px] border border-white/[0.08] bg-[linear-gradient(180deg,rgba(8,13,19,0.98),rgba(8,11,18,0.98))] p-5 shadow-[0_16px_36px_rgba(0,0,0,0.18)]"><div className="flex items-start justify-between gap-3"><div className="flex items-center gap-3"><span className="inline-flex h-11 w-11 items-center justify-center rounded-[14px] border border-sky-400/20 bg-sky-500/10 text-sky-200"><IconPulse className="h-5 w-5" /></span><div><div className="text-[1.38rem] font-semibold tracking-tight text-white">Status da unidade</div><div className="mt-1 text-xs uppercase tracking-[0.16em] text-slate-500">
+            </div><div className="mt-2 grid gap-2 border-t border-white/[0.08] pt-2 sm:grid-cols-2 xl:grid-cols-5"><div className="nds-card min-w-0"><div className="nds-label">Total do período</div><div className="mt-2 whitespace-nowrap text-[18px] font-black leading-none text-white tabular-nums">{formatBytes(trafficBlock?.consumption?.totalBytes ?? null)}</div></div><div className="nds-card min-w-0"><div className="nds-label">Média download</div><div className="mt-2 whitespace-nowrap text-[16px] font-black leading-tight text-[var(--nova-success)] tabular-nums">{formatBits(trafficBlock?.consumption?.avgReceiveBps ?? null)}</div></div><div className="nds-card min-w-0"><div className="nds-label">Média upload</div><div className="mt-2 whitespace-nowrap text-[16px] font-black leading-tight text-[var(--nova-warning)] tabular-nums">{formatBits(trafficBlock?.consumption?.avgSendBps ?? null)}</div></div><div className="nds-card min-w-0"><div className="nds-label">Pico download</div><div className="mt-2 whitespace-nowrap text-[16px] font-black leading-tight text-[var(--nova-success)] tabular-nums">{formatBits(trafficBlock?.consumption?.peakReceiveBps ?? null)}</div></div><div className="nds-card min-w-0"><div className="nds-label">Pico upload</div><div className="mt-2 whitespace-nowrap text-[16px] font-black leading-tight text-[var(--nova-warning)] tabular-nums">{formatBits(trafficBlock?.consumption?.peakSendBps ?? null)}</div></div></div></div></div><div className="grid content-start gap-2"><div className="nds-card"><div className="flex items-start justify-between gap-2"><div className="flex items-center gap-2"><span className={iconTileClass}><IconPulse className="h-4 w-4" /></span><div><div className="text-[15px] font-black text-white">Status da unidade</div><div className="mt-1 nds-label">
                     {monitoringWindowLabel(windowPreset)}
-                  </div></div></div><span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${
-                snapshot
-                  ? toneForHealth(snapshot.health) === "success"
-                    ? "bg-emerald-500/15 text-emerald-200"
-                    : toneForHealth(snapshot.health) === "attention"
-                      ? "bg-amber-500/15 text-amber-200"
-                      : "bg-rose-500/15 text-rose-200"
-                  : "bg-slate-500/15 text-slate-300"
-              }`}><span className="h-1.5 w-1.5 rounded-full bg-current" />
+                  </div></div></div><TonePill tone={snapshot ? toneForHealth(snapshot.health) : "neutral"}>
                 {snapshot ? health : "sem leitura"}
-              </span></div><div className="mt-5 grid gap-3"><MonitoringSummaryRow
+              </TonePill></div><div className="mt-2 grid gap-2"><MonitoringSummaryRow
                 label="Confiança"
                 value={`${confidence}%`}
                 percent={confidence}
@@ -1678,9 +1414,9 @@ function UnitMonitoringVisualPanel({
                 percent={pingOk === null ? 0 : pingOk ? 100 : 15}
                 tone={pingOk === null ? "neutral" : pingOk ? "success" : "critical"}
                 badge={pingOk === null ? null : (
-                  <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${pingOk ? "bg-emerald-500/15 text-emerald-200" : "bg-rose-500/15 text-rose-200"}`}>
+                  <TonePill tone={pingOk ? "success" : "critical"}>
                     {pingOk ? "UP" : "DOWN"}
-                  </span>
+                  </TonePill>
                 )}
               /><MonitoringSummaryRow
                 label="Perda"
@@ -1697,25 +1433,25 @@ function UnitMonitoringVisualPanel({
                 value={`${unit._count.equipments} ativo(s)`}
                 percent={Math.min(unit._count.equipments * 10, 100)}
                 tone={unit._count.equipments > 0 ? "success" : "neutral"}
-              /></div><div className="mt-5 rounded-[18px] border border-white/[0.08] bg-black/20 p-4 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]"><div className="grid gap-3"><div><div className="text-xs text-slate-500">Host Zabbix</div><div className="mt-1 break-all font-semibold text-white">{unit.zabbixHost || hostName}</div></div><div><div className="text-xs text-slate-500">Nome visível</div><div className="mt-1 break-all font-semibold text-white">{unit.zabbixVisibleName || report?.host?.hostName || "-"}</div></div><div className="grid gap-2 border-t border-white/[0.08] pt-3 text-slate-400"><div className="flex items-center justify-between gap-3"><span>Última sincronização</span><span className="text-right text-slate-200">{lastSyncLabel}</span></div><div className="flex items-center justify-between gap-3"><span>Integração</span><span className="text-right text-slate-200">{report?.integration?.code || snapshot?.match.integrationCode || "sem fonte"}</span></div><div className="flex items-center justify-between gap-3"><span>Vínculo</span><span className="text-right text-slate-200">{hasManualZabbixLink ? "manual" : snapshot?.match.syncReady ? "automático" : "pendente"}</span></div></div></div></div>
+              /></div><div className="nds-card mt-2 text-[11px]"><div className="grid gap-2"><div><div className="nds-label">Host Zabbix</div><div className="mt-1 break-all font-black text-white">{unit.zabbixHost || hostName}</div></div><div><div className="nds-label">Nome visível</div><div className="mt-1 break-all font-black text-white">{unit.zabbixVisibleName || report?.host?.hostName || "-"}</div></div><div className="grid gap-2 border-t border-white/[0.08] pt-2 text-[var(--nova-text-muted)]"><div className="flex items-center justify-between gap-2"><span>Última sincronização</span><span className="text-right text-slate-200">{lastSyncLabel}</span></div><div className="flex items-center justify-between gap-2"><span>Integração</span><span className="text-right text-slate-200">{report?.integration?.code || snapshot?.match.integrationCode || "sem fonte"}</span></div><div className="flex items-center justify-between gap-2"><span>Vínculo</span><span className="text-right text-slate-200">{hasManualZabbixLink ? "manual" : snapshot?.match.syncReady ? "automático" : "pendente"}</span></div></div></div></div>
 
 
 
             {(editControl || syncControl) ? (
-              <div className="mt-6 grid gap-3">
+              <div className="mt-2 grid gap-2">
                 {syncControl ? (
-                  <div className="w-full [&_form]:m-0 [&_form]:w-full [&_form]:border-0 [&_form]:bg-transparent [&_form]:p-0 [&_form]:shadow-none [&_form>div]:m-0 [&_form>div]:border-0 [&_form>div]:bg-transparent [&_form>div]:p-0 [&_form>div]:shadow-none [&_button]:h-12 [&_button]:w-full [&_button]:justify-center [&_button]:rounded-[14px] [&_button]:border [&_button]:border-sky-300/35 [&_button]:bg-[linear-gradient(180deg,#1677ff,#0f63d6)] [&_button]:px-4 [&_button]:py-3 [&_button]:text-sm [&_button]:font-semibold [&_button]:text-white [&_button]:shadow-[0_12px_28px_rgba(37,99,235,0.24)] hover:[&_button]:brightness-110">
+                  <div className="w-full [&_form]:m-0 [&_form]:w-full [&_form]:border-0 [&_form]:bg-transparent [&_form]:p-0 [&_form]:shadow-none [&_form>div]:m-0 [&_form>div]:border-0 [&_form>div]:bg-transparent [&_form>div]:p-0 [&_form>div]:shadow-none [&_button]:w-full [&_button]:justify-center">
                     {syncControl}
                   </div>
                 ) : null}
                 {editControl ? (
-                  <div className="[&_button]:w-full [&_button]:justify-center [&_button]:rounded-[14px] [&_button]:border [&_button]:border-white/10 [&_button]:bg-[rgba(6,10,16,0.86)] [&_button]:px-4 [&_button]:py-3 [&_button]:text-sm [&_button]:font-semibold [&_button]:text-white hover:[&_button]:border-white/20 hover:[&_button]:bg-white/[0.05]">
+                  <div className="[&_button]:w-full [&_button]:justify-center">
                     {editControl}
                   </div>
                 ) : null}
               </div>
             ) : null}
-          </div></div></div><div className="mt-4"><MonitoringEventsCard events={monitoringEvents} /></div></Surface>
+          </div></div></div><div className="mt-2"><MonitoringEventsCard events={monitoringEvents} /></div></Surface>
   );
 }
 
@@ -1727,7 +1463,7 @@ function LegacyLinkCard({
   link: LegacyLink;
 }) {
   return (
-    <div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="flex flex-wrap items-center justify-between gap-2"><div className="text-sm font-semibold text-slate-50">{title}</div><TonePill tone="info">{link.partnerCode}</TonePill></div><div className="mt-3 grid gap-2 text-sm text-slate-400 md:grid-cols-2"><div>Serviço: <span className="text-slate-200">{link.serviceType || "-"}</span></div><div>Conexão: <span className="text-slate-200">{link.connectionType || "-"}</span></div><div>Porta RB: <span className="text-slate-200">{link.routerPort || "-"}</span></div><div>Tecnologia: <span className="text-slate-200">{link.technology || "-"}</span></div><div>Latência: <span className="text-slate-200">{link.latency || "-"}</span></div><div>Acionamento: <span className="text-slate-200">{link.phone || "-"}</span></div><div>Contrato IXC: <span className="text-slate-200">{link.contractIxc || "-"}</span></div><div className="md:col-span-2">
+    <div className="nds-card"><div className="flex flex-wrap items-center justify-between gap-2"><div className="text-[12px] font-black text-slate-50">{title}</div><TonePill tone="info">{link.partnerCode}</TonePill></div><div className="mt-2 grid gap-2 text-[11px] text-[var(--nova-text-muted)] md:grid-cols-2"><div>Serviço: <span className="text-slate-200">{link.serviceType || "-"}</span></div><div>Conexão: <span className="text-slate-200">{link.connectionType || "-"}</span></div><div>Porta RB: <span className="text-slate-200">{link.routerPort || "-"}</span></div><div>Tecnologia: <span className="text-slate-200">{link.technology || "-"}</span></div><div>Latência: <span className="text-slate-200">{link.latency || "-"}</span></div><div>Acionamento: <span className="text-slate-200">{link.phone || "-"}</span></div><div>Contrato IXC: <span className="text-slate-200">{link.contractIxc || "-"}</span></div><div className="md:col-span-2">
           MAC/ONU: <span className="break-all text-slate-200">{link.macOnu || "-"}</span></div>
         {link.notes ? (
           <div className="md:col-span-2">
@@ -1742,7 +1478,7 @@ function LegacyUnitBlock({ profile }: { profile: LegacyUnitProfile | null }) {
 
   if (!profile.sourceAvailable) {
     return (
-      <Surface className="overflow-hidden border-sky-400/10 bg-[radial-gradient(circle_at_top,rgba(14,48,79,0.32),transparent_38%),linear-gradient(180deg,rgba(9,16,25,0.98),rgba(6,10,16,0.99))] p-5 sm:p-6"><SectionIntro
+      <Surface><SectionIntro
           eyebrow="Legado"
           title="Base legada pronta para conectar"
           description={profile.message || "Gere o arquivo legado para exibir transporte, contatos e Starlinks nesta tela."}
@@ -1761,7 +1497,7 @@ function LegacyUnitBlock({ profile }: { profile: LegacyUnitProfile | null }) {
   if (!hasLegacy) return null;
 
   return (
-    <Surface className="overflow-hidden border-sky-400/10 bg-[radial-gradient(circle_at_top,rgba(14,48,79,0.32),transparent_38%),linear-gradient(180deg,rgba(9,16,25,0.98),rgba(6,10,16,0.99))] p-5 sm:p-6"><SectionIntro
+    <Surface><SectionIntro
         eyebrow="Legado operacional"
         title="Acionamento, transporte e contingência"
         description="Dados importados dos SQLite de contatos, parceiros e Starlinks para apoiar reconciliação operacional."
@@ -1773,7 +1509,7 @@ function LegacyUnitBlock({ profile }: { profile: LegacyUnitProfile | null }) {
           )
         }
         compact
-      /><div className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]"><div className="grid gap-3">
+      /><div className="mt-2 nova-side-grid nova-side-grid--360"><div className="grid gap-2">
           {profile.links.map((link, index) => (
             <LegacyLinkCard
               key={`legacy-link-${link.legacyId}-${index}`}
@@ -1791,9 +1527,9 @@ function LegacyUnitBlock({ profile }: { profile: LegacyUnitProfile | null }) {
           ))}
 
           {profile.starlinks.length ? (
-            <div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="flex flex-wrap items-center justify-between gap-2"><div className="text-sm font-semibold text-slate-50">Starlink</div><TonePill tone="info">{profile.starlinks.length}</TonePill></div><div className="mt-3 grid gap-3">
+            <div className="nds-card"><div className="flex flex-wrap items-center justify-between gap-2"><div className="text-[12px] font-black text-slate-50">Starlink</div><TonePill tone="info">{profile.starlinks.length}</TonePill></div><div className="mt-2 grid gap-2">
                 {profile.starlinks.map((item) => (
-                  <div key={item.legacyId} className="rounded-[12px] border border-white/[0.08] bg-white/[0.03] p-3 text-sm text-slate-400"><div className="font-medium text-slate-100">
+                  <div key={item.legacyId} className="nds-card text-[11px] text-[var(--nova-text-muted)]"><div className="font-medium text-slate-100">
                       {item.antennaId || item.kitSerial || "Starlink"}
                     </div><div className="mt-1">Local: <span className="text-slate-200">{item.localName || "-"}</span></div><div>IP VPN: <span className="text-slate-200">{item.ipvpn || "-"}</span></div><div>Kit: <span className="break-all text-slate-200">{item.kitSerial || "-"}</span></div><div>Antena: <span className="break-all text-slate-200">{item.antennaSerial || "-"}</span></div><div>Instalação: <span className="text-slate-200">{item.installedAt || "-"}</span></div>
                     {item.notes ? <div className="mt-1 text-slate-300">{item.notes}</div> : null}
@@ -1801,39 +1537,39 @@ function LegacyUnitBlock({ profile }: { profile: LegacyUnitProfile | null }) {
                 ))}
               </div></div>
           ) : null}
-        </div><div className="grid content-start gap-3">
+        </div><div className="grid content-start gap-2">
           {profile.unit ? (
-            <div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="text-sm font-semibold text-slate-50">Resumo legado</div><div className="mt-3 grid gap-2 text-sm text-slate-400"><div>Grupo: <span className="text-slate-200">{profile.unit.group || "-"}</span></div><div>Contratos: <span className="text-slate-200">{profile.unit.contracts.join(", ") || "-"}</span></div><div>Telefones: <span className="text-slate-200">{profile.unit.phones.join(", ") || "-"}</span></div></div></div>
+            <div className="nds-card"><div className="text-[12px] font-black text-slate-50">Resumo legado</div><div className="mt-2 grid gap-2 text-[11px] text-[var(--nova-text-muted)]"><div>Grupo: <span className="text-slate-200">{profile.unit.group || "-"}</span></div><div>Contratos: <span className="text-slate-200">{profile.unit.contracts.join(", ") || "-"}</span></div><div>Telefones: <span className="text-slate-200">{profile.unit.phones.join(", ") || "-"}</span></div></div></div>
           ) : null}
 
-          <div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="text-sm font-semibold text-slate-50">Contatos do parceiro</div><div className="mt-3 grid gap-2">
+          <div className="nds-card"><div className="text-[12px] font-black text-slate-50">Contatos do parceiro</div><div className="mt-2 grid gap-2">
               {profile.partnerContacts.length ? (
                 profile.partnerContacts.slice(0, 6).map((contact) => (
-                  <div key={contact.legacyId} className="rounded-[12px] border border-white/[0.08] bg-white/[0.03] p-3"><div className="text-sm font-medium text-slate-100">{contact.name || "Contato"}</div><div className="mt-1 text-xs text-slate-500">
+                  <div key={contact.legacyId} className="nds-card"><div className="text-[11px] font-bold text-slate-100">{contact.name || "Contato"}</div><div className="mt-1 text-[10px] text-[var(--nova-text-muted)]">
                       {[contact.role, contact.city].filter(Boolean).join(" · ") || "Sem cargo/cidade"}
-                    </div><div className="mt-1 text-sm text-slate-300">{contact.phone || "-"}</div>
-                    {contact.notes ? <div className="mt-1 text-xs text-slate-500">{contact.notes}</div> : null}
+                    </div><div className="mt-1 text-[11px] text-slate-300">{contact.phone || "-"}</div>
+                    {contact.notes ? <div className="mt-1 text-[10px] text-[var(--nova-text-muted)]">{contact.notes}</div> : null}
                   </div>
                 ))
               ) : (
-                <div className="text-sm text-slate-500">Nenhum contato legado vinculado.</div>
+                <div className="text-[11px] text-[var(--nova-text-muted)]">Nenhum contato legado vinculado.</div>
               )}
             </div></div>
 
           {profile.equipments.length ? (
-            <div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="flex flex-wrap items-center justify-between gap-2"><div className="text-sm font-semibold text-slate-50">Ativos legados</div><TonePill tone="success">{profile.equipments.length}</TonePill></div><div className="mt-3 grid gap-2">
+            <div className="nds-card"><div className="flex flex-wrap items-center justify-between gap-2"><div className="text-[12px] font-black text-slate-50">Ativos legados</div><TonePill tone="success">{profile.equipments.length}</TonePill></div><div className="mt-2 grid gap-2">
                 {profile.equipments.slice(0, 8).map((equipment) => (
-                  <div key={`${equipment.source}-${equipment.tag}-${equipment.serialNumber}`} className="rounded-[12px] border border-white/[0.08] bg-white/[0.03] p-3"><div className="text-sm font-medium text-slate-100">{equipment.tag || equipment.name || "Ativo legado"}</div><div className="mt-1 text-xs text-slate-500">
+                  <div key={`${equipment.source}-${equipment.tag}-${equipment.serialNumber}`} className="nds-card"><div className="text-[11px] font-bold text-slate-100">{equipment.tag || equipment.name || "Ativo legado"}</div><div className="mt-1 text-[10px] text-[var(--nova-text-muted)]">
                       {[equipment.type, equipment.source].filter(Boolean).join(" · ") || "Sem tipo"}
-                    </div><div className="mt-1 break-all text-sm text-slate-300">{equipment.serialNumber || "Sem serial/MAC"}</div></div>
+                    </div><div className="mt-1 break-all text-[11px] text-slate-300">{equipment.serialNumber || "Sem serial/MAC"}</div></div>
                 ))}
               </div></div>
           ) : null}
 
           {profile.starlinkHistory.length ? (
-            <div className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4"><div className="text-sm font-semibold text-slate-50">Histórico Starlink</div><div className="mt-3 grid gap-2">
+            <div className="nds-card"><div className="text-[12px] font-black text-slate-50">Histórico Starlink</div><div className="mt-2 grid gap-2">
                 {profile.starlinkHistory.map((item) => (
-                  <div key={item.legacyId} className="text-sm text-slate-400"><span className="text-slate-200">{item.action}</span> · {item.datetime}
+                  <div key={item.legacyId} className="text-[11px] text-[var(--nova-text-muted)]"><span className="text-slate-200">{item.action}</span> · {item.datetime}
                   </div>
                 ))}
               </div></div>
@@ -1891,12 +1627,12 @@ export default async function UnidadeDetailPage({
 
       revalidatePath("/unidades");
       revalidatePath(`/unidades/${id}`);
-      revalidatePath("/monitoramento");
+      revalidatePath("/sensores");
       revalidatePath("/parceiros");
       if (previousPartnerId) revalidatePath(`/parceiros/${previousPartnerId}`);
       if (nextPartnerId) revalidatePath(`/parceiros/${nextPartnerId}`);
       revalidatePath("/integracoes");
-      revalidatePath("/reconciliacao-central");
+      revalidatePath("/reconciliacao");
       revalidatePath("/relatorios/monitoramento");
 
       return { status: "success", message: "Unidade atualizada com sucesso." };
@@ -1930,7 +1666,7 @@ export default async function UnidadeDetailPage({
 
       revalidatePath("/unidades");
       revalidatePath(`/unidades/${id}`);
-      revalidatePath("/monitoramento");
+      revalidatePath("/sensores");
       revalidatePath("/relatorios/monitoramento");
       if (partnerId) revalidatePath(`/parceiros/${partnerId}`);
     } catch (error) {
@@ -1946,6 +1682,8 @@ export default async function UnidadeDetailPage({
   const from = readStringParam(resolvedSearchParams, "from");
   const monitoringWindow = normalizeMonitoringWindow(readStringParam(resolvedSearchParams, "mw"));
   const focusMode = readStringParam(resolvedSearchParams, "focus") === "monitoring";
+  const currentRefresh = Number.parseInt(readStringParam(resolvedSearchParams, "refresh", "0"), 10);
+  const nextRefreshToken = String(Number.isFinite(currentRefresh) && currentRefresh >= 0 ? currentRefresh + 1 : 1);
 
   const [unit, zabbixSnapshot, monitoringReportBase, partnersResponse] = await Promise.all([
     apiJson<UnitDetail>(`/units/${resolvedParams.id}`),
@@ -1958,8 +1696,8 @@ export default async function UnidadeDetailPage({
   const monitoringReport = narrowMonitoringReport(monitoringReportBase, monitoringWindow);
   const legacyProfile = (await getLegacyUnitProfileForUnit(unit)) satisfies LegacyUnitProfile | null;
   const role = normalizeRole(session.user?.role || "");
-  const isAdmin = role === "admin";
-  const canEditAttachments = ["admin", "editor"].includes(role);
+  const isAdmin = isAdminRole(role);
+  const canEditAttachments = canEditAttachmentsForRole(role);
   const sensorCount = zabbixSensorCount(zabbixSnapshot);
   const showUnitCode = !isRedundantLabel(unit.code, unit.name);
   const showPartnerCode = !isRedundantLabel(unit.partner.code, unit.partner.name);
@@ -1970,39 +1708,39 @@ export default async function UnidadeDetailPage({
       title: "Base",
       description: "Código, nome e localização principal da unidade.",
       body: (
-        <div className="grid gap-4 md:grid-cols-2"><input type="hidden" name="id" value={unit.id} /><input type="hidden" name="previousPartnerId" value={unit.partner.id} /><div className="grid gap-2"><label
+        <div className="grid gap-2 md:grid-cols-2"><input type="hidden" name="id" value={unit.id} /><input type="hidden" name="previousPartnerId" value={unit.partner.id} /><div className="grid gap-1.5"><label
               htmlFor="unit-code"
-              className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
+              className={editLabelClass}
             >
               Código
             </label><input
               id="unit-code"
               name="code"
               defaultValue={unit.code}
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm uppercase text-white outline-none transition focus:border-sky-400/40"
-            /></div><div className="grid gap-2"><label
+              className={editInputClass}
+            /></div><div className="grid gap-1.5"><label
               htmlFor="unit-name"
-              className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
+              className={editLabelClass}
             >
               Nome
             </label><input
               id="unit-name"
               name="name"
               defaultValue={unit.name}
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            /></div><div className="grid gap-2"><label
+              className={editInputClass}
+            /></div><div className="grid gap-1.5"><label
               htmlFor="unit-city"
-              className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
+              className={editLabelClass}
             >
               Cidade
             </label><input
               id="unit-city"
               name="city"
               defaultValue={unit.city || ""}
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            /></div><div className="grid gap-2"><label
+              className={editInputClass}
+            /></div><div className="grid gap-1.5"><label
               htmlFor="unit-state"
-              className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
+              className={editLabelClass}
             >
               UF
             </label><input
@@ -2010,7 +1748,7 @@ export default async function UnidadeDetailPage({
               name="state"
               maxLength={2}
               defaultValue={unit.state || ""}
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm uppercase text-white outline-none transition focus:border-sky-400/40"
+              className={editInputClass}
             /></div></div>
       ),
     },
@@ -2018,25 +1756,25 @@ export default async function UnidadeDetailPage({
       title: "Vínculos",
       description: "Parceiro responsável e host Zabbix da unidade.",
       body: (
-        <div className="grid gap-4"><div className="grid gap-2"><label
+        <div className="grid gap-2"><div className="grid gap-1.5"><label
               htmlFor="unit-partner"
-              className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
+              className={editLabelClass}
             >
               Parceiro responsável
             </label><select
               id="unit-partner"
               name="partnerId"
               defaultValue={unit.partner.id}
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
+              className={editInputClass}
             >
               {partnerOptions.map((partner) => (
                 <option key={partner.id} value={partner.id}>
                   {partner.code} - {partner.name}
                 </option>
               ))}
-            </select></div><div className="grid gap-4 md:grid-cols-2"><div className="grid gap-2"><label
+            </select></div><div className="grid gap-2 md:grid-cols-2"><div className="grid gap-1.5"><label
                 htmlFor="unit-zabbix-host"
-                className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
+                className={editLabelClass}
               >
                 Host Zabbix
               </label><input
@@ -2044,10 +1782,10 @@ export default async function UnidadeDetailPage({
                 name="zabbixHost"
                 defaultValue={unit.zabbixHost || ""}
                 placeholder="Nome técnico do host"
-                className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
-              /></div><div className="grid gap-2"><label
+                className={editInputClass}
+              /></div><div className="grid gap-1.5"><label
                 htmlFor="unit-zabbix-visible-name"
-                className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
+                className={editLabelClass}
               >
                 Nome visível no Zabbix
               </label><input
@@ -2055,8 +1793,8 @@ export default async function UnidadeDetailPage({
                 name="zabbixVisibleName"
                 defaultValue={unit.zabbixVisibleName || ""}
                 placeholder="Nome exibido no host"
-                className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
-              /></div></div><div className="grid gap-3 rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4 text-sm text-slate-400 md:grid-cols-3"><div>
+                className={editInputClass}
+              /></div></div><div className="nds-card grid gap-2 text-[11px] text-[var(--nova-text-muted)] md:grid-cols-3"><div>
               Host lido:{" "}
               <span className="text-slate-200">
                 {zabbixSnapshot?.match.hostName || zabbixSnapshot?.match.host || "sem vínculo"}
@@ -2069,16 +1807,17 @@ export default async function UnidadeDetailPage({
       ),
     },
     {
-      title: "Equipamentos",
+      title: "Ativos",
       description: "Ativos ligados a esta unidade.",
       body: (
-        <div className="grid gap-4"><div className="flex flex-wrap items-center justify-between gap-3"><div className="text-sm font-semibold text-slate-100">
-              {unit.equipments.length} equipamento(s) vinculado(s)
+        <div className="grid gap-2"><div className="flex flex-wrap items-center justify-between gap-2"><div className="text-[11px] font-bold text-slate-100">
+              {unit.equipments.length} ativo(s) vinculado(s)
             </div><Link
-              href={`/equipamentos/nova?unitId=${unit.id}`}
-              className="rounded-[14px] border border-sky-500/28 bg-sky-500/14 px-4 py-2.5 text-sm font-semibold text-sky-50 transition hover:bg-sky-500/18"
+              href={`/ativos/nova?unitId=${unit.id}`}
+              className="nds-button"
+              data-variant="primary"
             >
-              Novo equipamento nesta unidade
+              Novo ativo nesta unidade
             </Link></div>
 
           {unit.equipments.length ? (
@@ -2086,20 +1825,21 @@ export default async function UnidadeDetailPage({
               {unit.equipments.map((equipment) => (
                 <div
                   key={equipment.id}
-                  className="grid gap-3 rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4 text-sm md:grid-cols-[minmax(0,1fr)_120px_auto] md:items-center"
-                ><div className="min-w-0"><div className="truncate font-semibold text-slate-50">{equipment.tag}</div><div className="mt-1 truncate text-slate-400">{equipment.name}</div><div className="mt-1 break-all text-xs text-slate-500">
+                  className="nds-card nova-equipment-row text-[11px]"
+                ><div className="min-w-0"><div className="truncate font-semibold text-slate-50">{equipment.tag}</div><div className="mt-1 truncate text-slate-400">{equipment.name}</div><div className="mt-1 break-all text-[10px] text-[var(--nova-text-muted)]">
                       {equipment.serialNumber || "sem serial/MAC"}
                     </div></div><TonePill tone={toneForStatus(equipment.status)}>{equipment.status}</TonePill><Link
-                    href={`/equipamentos/${equipment.id}`}
-                    className="rounded-full border border-white/10 bg-black/20 px-3 py-2 text-center text-xs text-slate-200 transition hover:bg-white/[0.06] hover:text-white"
+                    href={`/ativos/${equipment.id}`}
+                    className="nds-button"
+                    data-variant="secondary"
                   >
                     Editar ativo
                   </Link></div>
               ))}
             </div>
           ) : (
-            <div className="rounded-[16px] border border-white/[0.08] bg-black/20 p-4 text-sm text-slate-400">
-              Nenhum equipamento vinculado a esta unidade.
+            <div className="nds-empty text-[11px] text-[var(--nova-text-muted)]">
+              Nenhum ativo vinculado a esta unidade.
             </div>
           )}
         </div>
@@ -2109,9 +1849,9 @@ export default async function UnidadeDetailPage({
       title: "Relatório",
       description: "Dados oficiais usados automaticamente no DOCX/PDF da unidade.",
       body: (
-        <div className="grid gap-4"><div className="grid gap-4 md:grid-cols-2"><div className="grid gap-2"><label
+        <div className="grid gap-2"><div className="grid gap-2 md:grid-cols-2"><div className="grid gap-1.5"><label
               htmlFor="unit-report-contract"
-              className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
+              className={editLabelClass}
             >
               Contrato do relatório
             </label><input
@@ -2119,10 +1859,10 @@ export default async function UnidadeDetailPage({
               name="reportContractLabel"
               defaultValue={unit.reportContractLabel || ""}
               placeholder="Contrato nº ..."
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
-            /></div><div className="grid gap-2"><label
+              className={editInputClass}
+            /></div><div className="grid gap-1.5"><label
               htmlFor="unit-report-bandwidth"
-              className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
+              className={editLabelClass}
             >
               Banda contratada
             </label><input
@@ -2130,10 +1870,10 @@ export default async function UnidadeDetailPage({
               name="reportContractedBandwidth"
               defaultValue={unit.reportContractedBandwidth || ""}
               placeholder="Ex.: 100 Mbps"
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
-            /></div></div><div className="grid gap-2"><label
+              className={editInputClass}
+            /></div></div><div className="grid gap-1.5"><label
               htmlFor="unit-report-address"
-              className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
+              className={editLabelClass}
             >
               Endereço do relatório
             </label><input
@@ -2141,10 +1881,10 @@ export default async function UnidadeDetailPage({
               name="reportAddressLine"
               defaultValue={unit.reportAddressLine || ""}
               placeholder="Vazio usa Cidade - UF"
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
-            /></div><div className="grid gap-2"><label
+              className={editInputClass}
+            /></div><div className="grid gap-1.5"><label
               htmlFor="unit-report-notes"
-              className="text-[10px] uppercase tracking-[0.16em] text-slate-500"
+              className={editLabelClass}
             >
               Observações do relatório
             </label><textarea
@@ -2153,8 +1893,8 @@ export default async function UnidadeDetailPage({
               defaultValue={unit.reportNotes || ""}
               rows={3}
               placeholder="Observações internas para emissão do relatório"
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
-            /></div><div className="rounded-[16px] border border-sky-500/15 bg-sky-500/[0.06] p-4 text-sm leading-6 text-slate-300">
+              className={editTextareaClass}
+            /></div><div className="nds-notice-info rounded-[var(--nova-radius-card)] border px-3 py-2 text-[11px] leading-5">
               Estes campos alimentam automaticamente o relatório oficial de consumo. Na tela do relatório, ainda é possível sobrescrever manualmente para uma emissão específica.
             </div></div>
       ),
@@ -2163,7 +1903,7 @@ export default async function UnidadeDetailPage({
       title: "Fechamento",
       description: "Status final e revisão rápida antes de salvar.",
       body: (
-        <div className="grid gap-4"><label className="flex items-start gap-3 rounded-[16px] border border-white/[0.08] bg-black/20 px-4 py-4 text-sm text-slate-300"><input
+        <div className="grid gap-2"><label className="nds-card flex items-start gap-2 text-[11px] text-slate-300"><input
               type="checkbox"
               name="isActive"
               defaultChecked={unit.isActive}
@@ -2181,16 +1921,18 @@ export default async function UnidadeDetailPage({
         title={`Monitoramento · ${unit.name}`}
         subtitle={`${locationLabel(unit)} · ${unit.partner.name}${showUnitCode ? ` · ${unit.code}` : ""}.`}
         hidePageHeader
-      ><Surface className="border-sky-500/15 bg-sky-500/[0.04] p-4 sm:p-5"><div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between"><div><div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-sky-300">Modo foco</div><div className="mt-1 text-sm text-slate-300">
+      ><Surface><div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between"><div><div className="nds-label">Modo foco</div><div className="mt-1 text-[11px] text-slate-300">
                 Monitoramento da unidade.
               </div></div><div className="flex flex-wrap gap-2"><Link
                 href={unitMonitoringHref(unit.id, monitoringWindow)}
-                className="rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/[0.06] hover:text-white"
+                className="nds-button"
+                data-variant="secondary"
               >
                 Sair do foco
               </Link><Link
                 href="/unidades"
-                className="rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/[0.06] hover:text-white"
+                className="nds-button"
+                data-variant="secondary"
               >
                 Voltar para unidades
               </Link></div></div></Surface><UnitMonitoringVisualPanel
@@ -2208,11 +1950,12 @@ export default async function UnidadeDetailPage({
                 pendingLabel="Salvando..."
                 steps={unitEditSteps}
                 action={updateUnit}
-                triggerClassName="w-full justify-center rounded-[16px] border border-white/10 bg-[rgba(6,10,16,0.86)] px-4 py-3 text-sm font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] transition hover:border-white/20 hover:bg-white/[0.05]"
+                triggerClassName="nds-button w-full"
               />
             ) : null
           }
           windowPreset={monitoringWindow}
+          refreshToken={nextRefreshToken}
           focusMode={focusMode}
           syncControl={
             isAdmin ? (
@@ -2222,7 +1965,7 @@ export default async function UnidadeDetailPage({
                 submitLabel="Sincronizar Zabbix"
                 pendingLabel="Sincronizando..."
                 variant="primary"
-                submitClassName="mt-0 w-full [&_button]:h-11 [&_button]:w-full [&_button]:justify-center [&_button]:rounded-[14px] [&_button]:border [&_button]:border-sky-300/35 [&_button]:bg-[linear-gradient(180deg,#1677ff,#0f63d6)] [&_button]:px-4 [&_button]:py-2.5 [&_button]:text-sm [&_button]:font-semibold [&_button]:text-white [&_button]:shadow-[0_10px_22px_rgba(37,99,235,0.22)] hover:[&_button]:brightness-110"
+                submitClassName="mt-0 w-full [&_button]:w-full [&_button]:justify-center"
               ><input type="hidden" name="unitId" value={unit.id} /></ActionForm>
             ) : null
           }
@@ -2237,12 +1980,12 @@ export default async function UnidadeDetailPage({
       hidePageHeader
     >
       {created ? (
-        <Surface className="border-emerald-500/20 bg-emerald-500/10 p-5 sm:p-6"><div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between"><SectionIntro
+        <Surface className="nds-notice-success"><div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between"><SectionIntro
               eyebrow="Cadastro concluído"
               title="Unidade criada com sucesso"
               description={
                 from === "legacy"
-                  ? "A unidade nasceu a partir de uma pista do legado. Revise vínculos, equipamentos e host Zabbix antes de sincronizar."
+                  ? "A unidade nasceu a partir de uma pista do legado. Revise vínculos, ativos e host Zabbix antes de sincronizar."
                   : from === "wizard"
                   ? "Cadastro concluído."
                   : "A unidade criada pelo cadastro direto já está disponível para consulta e próximos vínculos."
@@ -2250,12 +1993,14 @@ export default async function UnidadeDetailPage({
               compact
             /><div className="flex flex-wrap gap-2"><Link
                 href="/unidades/nova"
-                className="rounded-full bg-white px-4 py-2.5 text-sm font-medium text-black transition hover:opacity-95"
+                className="nds-button"
+                data-variant="primary"
               >
                 Criar outra
               </Link><Link
                 href="/unidades"
-                className="rounded-full border border-white/10 bg-black/20 px-4 py-2.5 text-sm text-white transition hover:bg-white/[0.06]"
+                className="nds-button"
+                data-variant="secondary"
               >
                 Voltar para lista
               </Link></div></div></Surface>
@@ -2278,7 +2023,8 @@ export default async function UnidadeDetailPage({
         actions={
           <><Link
               href="/unidades"
-              className="rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/[0.06] hover:text-white"
+              className="nds-button"
+              data-variant="secondary"
             >
               Voltar
             </Link>
@@ -2310,6 +2056,7 @@ export default async function UnidadeDetailPage({
         report={monitoringReport}
         snapshot={zabbixSnapshot}
         windowPreset={monitoringWindow}
+        refreshToken={nextRefreshToken}
         focusMode={focusMode}
         syncControl={
           isAdmin ? (
@@ -2319,7 +2066,7 @@ export default async function UnidadeDetailPage({
               submitLabel="Sincronizar Zabbix"
               pendingLabel="Sincronizando..."
               variant="primary"
-              submitClassName="mt-0 w-full [&_button]:h-11 [&_button]:w-full [&_button]:justify-center [&_button]:rounded-[14px] [&_button]:border [&_button]:border-sky-300/35 [&_button]:bg-[linear-gradient(180deg,#1677ff,#0f63d6)] [&_button]:px-4 [&_button]:py-2.5 [&_button]:text-sm [&_button]:font-semibold [&_button]:text-white [&_button]:shadow-[0_10px_22px_rgba(37,99,235,0.22)] hover:[&_button]:brightness-110"
+              submitClassName="mt-0 w-full [&_button]:w-full [&_button]:justify-center"
             ><input type="hidden" name="unitId" value={unit.id} /></ActionForm>
           ) : null
         }
@@ -2329,118 +2076,120 @@ export default async function UnidadeDetailPage({
         entityLabel="unidade"
         returnPath={`/unidades/${unit.id}`}
         canEdit={canEditAttachments}
-      /><Surface className="overflow-hidden border-sky-400/10 bg-[radial-gradient(circle_at_top,rgba(14,48,79,0.32),transparent_38%),linear-gradient(180deg,rgba(9,16,25,0.98),rgba(6,10,16,0.99))] p-5 sm:p-6"><SectionIntro
+      /><Surface><SectionIntro
           eyebrow="Inventário"
-          title="Equipamentos"
-          description="Equipamentos já vinculados a esta unidade."
+          title="Ativos"
+          description="Ativos já vinculados a esta unidade."
           actions={
             isAdmin ? (
               <Link
-                href={`/equipamentos/nova?unitId=${unit.id}`}
-                className="rounded-full border border-sky-500/28 bg-sky-500/14 px-4 py-2 text-sm font-semibold text-sky-50 transition hover:bg-sky-500/18"
+                href={`/ativos/nova?unitId=${unit.id}`}
+                className="nds-button"
+                data-variant="primary"
               >
-                Novo equipamento
+                Novo ativo
               </Link>
             ) : null
           }
           compact
-        /><div className="mt-4">
+        /><div className="mt-2">
           {unit.equipments.length ? (
-            <TableShell><DenseTable><TableHead><tr><th className="px-4 py-3">Tag</th><th className="px-4 py-3">Nome</th><th className="px-4 py-3">Serial/MAC</th><th className="px-4 py-3">Tipo</th><th className="px-4 py-3">Status</th><TableActionHeader /></tr></TableHead><tbody>
+            <TableShell><DenseTable><TableHead><tr><th className="px-3 py-2">Tag</th><th className="px-3 py-2">Nome</th><th className="px-3 py-2">Serial/MAC</th><th className="px-3 py-2">Tipo</th><th className="px-3 py-2">Status</th><TableActionHeader /></tr></TableHead><tbody>
                   {unit.equipments.map((equipment) => (
                     <tr
                       key={equipment.id}
                       className="border-b border-white/6 last:border-b-0 hover:bg-white/[0.025]"
                     ><TableCell><Link
-                          href={`/equipamentos/${equipment.id}`}
-                          className="font-medium text-white hover:text-sky-100"
+                          href={`/ativos/${equipment.id}`}
+                          className="font-medium text-white hover:text-[var(--nova-primary)]"
                         >
                           {equipment.tag}
                         </Link></TableCell><TableCell className="text-slate-300">{equipment.name}</TableCell><TableCell className="text-slate-400">{equipment.serialNumber || "-"}</TableCell><TableCell className="text-slate-400">{equipment.type}</TableCell><TableCell><TonePill tone={toneForStatus(equipment.status)}>
                           {equipment.status}
-                        </TonePill></TableCell><TableActionCell><TableActionLink href={`/equipamentos/${equipment.id}`}>
+                        </TonePill></TableCell><TableActionCell><TableActionLink href={`/ativos/${equipment.id}`}>
                           Abrir
                         </TableActionLink></TableActionCell></tr>
                   ))}
                 </tbody></DenseTable></TableShell>
           ) : (
             <EmptyState
-              title="Nenhum equipamento vinculado"
+              title="Nenhum ativo vinculado"
               description="Quando o inventário for associado, ele aparece aqui com tag, tipo e status."
               action={
                 <Link
-                  href={`/equipamentos/nova?unitId=${unit.id}`}
-                  className="rounded-full bg-white px-4 py-2 text-sm font-medium text-black"
+                  href={`/ativos/nova?unitId=${unit.id}`}
+                  className="nds-button"
+                  data-variant="primary"
                 >
-                  Novo equipamento
+                  Novo ativo
                 </Link>
               }
             />
           )}
-        </div></Surface><section className="grid gap-5 xl:grid-cols-2"><Surface className="overflow-hidden border-sky-400/10 bg-[radial-gradient(circle_at_top,rgba(14,48,79,0.32),transparent_38%),linear-gradient(180deg,rgba(9,16,25,0.98),rgba(6,10,16,0.99))] p-5 sm:p-6"><SectionIntro
+        </div></Surface><section className="grid gap-2 xl:grid-cols-2"><Surface><SectionIntro
             eyebrow="Histórico"
-            title="Ocorrências recentes"
-            description="Últimas ocorrências ligadas à unidade."
+            title="Alertas recentes"
+            description="Últimas alertas ligadas à unidade."
             compact
-          /><div className="mt-4">
+          /><div className="mt-2">
             {unit.occurrences.length ? (
-              <TableShell><DenseTable><TableHead><tr><th className="px-4 py-3">Ocorrência</th><th className="px-4 py-3">Sev.</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Criada</th></tr></TableHead><tbody>
+              <TableShell><DenseTable><TableHead><tr><th className="px-3 py-2">Alerta</th><th className="px-3 py-2">Sev.</th><th className="px-3 py-2">Status</th><th className="px-3 py-2">Criada</th></tr></TableHead><tbody>
                     {unit.occurrences.map((item) => (
                       <tr
                         key={item.id}
                         className="border-b border-white/6 last:border-b-0 hover:bg-white/[0.025]"
                       ><TableCell><Link
-                            href={`/ocorrencias/${item.id}`}
-                            className="font-medium text-white hover:text-sky-100"
+                            href={`/alertas/${item.id}`}
+                            className="font-medium text-white hover:text-[var(--nova-primary)]"
                           >
                             {item.code}
-                          </Link><div className="mt-1 max-w-[320px] truncate text-xs text-slate-500">
+                          </Link><div className="mt-1 max-w-[320px] truncate text-[10px] text-[var(--nova-text-muted)]">
                             {item.title}
                           </div></TableCell><TableCell><TonePill tone={toneForStatus(item.severity)}>
                             {item.severity}
                           </TonePill></TableCell><TableCell><TonePill tone={toneForStatus(item.status)}>
                             {item.status}
                           </TonePill></TableCell><TableCell className="text-slate-400">
-                          {formatDate(item.createdAt)}
+                          {formatDateTime(item.createdAt)}
                         </TableCell></tr>
                     ))}
                   </tbody></DenseTable></TableShell>
             ) : (
               <EmptyState
-                title="Nenhuma ocorrência recente"
-                description="Ocorrências vinculadas à unidade serão listadas aqui."
+                title="Nenhum alerta recente"
+                description="Alertas vinculadas à unidade serão listadas aqui."
               />
             )}
-          </div></Surface><Surface className="overflow-hidden border-sky-400/10 bg-[radial-gradient(circle_at_top,rgba(14,48,79,0.32),transparent_38%),linear-gradient(180deg,rgba(9,16,25,0.98),rgba(6,10,16,0.99))] p-5 sm:p-6"><SectionIntro
+          </div></Surface><Surface><SectionIntro
             eyebrow="Histórico"
-            title="Manutenções recentes"
-            description="Ações de manutenção associadas à unidade."
+            title="Chamados recentes"
+            description="Chamados associadas à unidade."
             compact
-          /><div className="mt-4">
+          /><div className="mt-2">
             {unit.maintenances.length ? (
-              <TableShell><DenseTable><TableHead><tr><th className="px-4 py-3">Manutenção</th><th className="px-4 py-3">Tipo</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Agenda</th></tr></TableHead><tbody>
+              <TableShell><DenseTable><TableHead><tr><th className="px-3 py-2">Chamado</th><th className="px-3 py-2">Tipo</th><th className="px-3 py-2">Status</th><th className="px-3 py-2">Agenda</th></tr></TableHead><tbody>
                     {unit.maintenances.map((item) => (
                       <tr
                         key={item.id}
                         className="border-b border-white/6 last:border-b-0 hover:bg-white/[0.025]"
                       ><TableCell><Link
-                            href={`/manutencoes/${item.id}`}
-                            className="font-medium text-white hover:text-sky-100"
+                            href={`/chamados/${item.id}`}
+                            className="font-medium text-white hover:text-[var(--nova-primary)]"
                           >
                             {item.code}
-                          </Link><div className="mt-1 max-w-[320px] truncate text-xs text-slate-500">
+                          </Link><div className="mt-1 max-w-[320px] truncate text-[10px] text-[var(--nova-text-muted)]">
                             {item.title}
                           </div></TableCell><TableCell><TonePill tone="neutral">{item.type}</TonePill></TableCell><TableCell><TonePill tone={toneForStatus(item.status)}>
                             {item.status}
                           </TonePill></TableCell><TableCell className="text-slate-400">
-                          {formatDate(item.scheduledAt)}
+                          {formatDateTime(item.scheduledAt)}
                         </TableCell></tr>
                     ))}
                   </tbody></DenseTable></TableShell>
             ) : (
               <EmptyState
-                title="Nenhuma manutenção recente"
-                description="Manutenções ligadas à unidade serão listadas aqui."
+                title="Nenhum chamado recente"
+                description="Chamados ligadas à unidade serão listadas aqui."
               />
             )}
           </div></Surface></section></AppShell>

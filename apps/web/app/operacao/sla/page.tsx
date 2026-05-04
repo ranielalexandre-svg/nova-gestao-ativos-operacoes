@@ -20,6 +20,12 @@ import {
 import { RegistryHero, RegistrySummaryStrip } from "@/components/registry-shell";
 import { getActionErrorMessage, type ActionFeedbackState } from "@/lib/action-state";
 import { apiJson } from "@/lib/server-api";
+import {
+  exceptionKindLabel as kindLabel,
+  exceptionQueueLabel as queueLabel,
+  occurrenceSeverityLabel as severityLabel,
+  occurrenceSeverityTone as severityTone,
+} from "@/lib/status-ui";
 import { getServerWebSession, normalizeRole } from "@/lib/web-session";
 
 type PolicyRow = {
@@ -37,49 +43,8 @@ type PolicyRow = {
   _count: { exceptionCases: number };
 };
 
-const inputClass = "mt-2 w-full rounded-[12px] border border-white/10 bg-[#0b0f14] px-3 py-2.5 text-sm text-white outline-none transition focus:border-sky-400/50 focus:ring-4 focus:ring-sky-500/10";
+const inputClass = "mt-2";
 const selectClass = inputClass;
-
-function queueLabel(value: string) {
-  const map: Record<string, string> = {
-    "ops-general": "Geral",
-    "ops-integracoes": "Integrações",
-    "ops-ocorrencias": "Ocorrências",
-    "ops-manutencao": "Manutenção",
-    "ops-sla": "SLA",
-    "ops-automacoes": "Automações",
-  };
-  return map[value] || value;
-}
-
-function kindLabel(value: string) {
-  const map: Record<string, string> = {
-    generic: "Geral",
-    sla: "SLA",
-    integration: "Integração",
-    occurrence: "Ocorrência",
-    maintenance: "Manutenção",
-    automation: "Automação",
-  };
-  return map[value] || value;
-}
-
-function severityLabel(value: string) {
-  const map: Record<string, string> = {
-    low: "Baixa",
-    medium: "Média",
-    high: "Alta",
-    critical: "Crítica",
-  };
-  return map[value] || value;
-}
-
-function severityTone(value: string) {
-  if (value === "critical") return "critical";
-  if (value === "high") return "attention";
-  if (value === "medium") return "info";
-  return "neutral";
-}
 
 function minutesLabel(value: number) {
   if (value < 60) return `${value} min`;
@@ -186,7 +151,7 @@ export default async function OperacaoSlaPage() {
         description="Prazo, severidade, backlog, fila e regra."
         links={[
           {
-            href: "/operacao/excecoes",
+            href: "/excecoes",
             title: "Exceções",
             description: "Casos que herdam fila, prazo e severidade definidos nas políticas.",
             badge: <TonePill tone={caseCount ? "attention" : "neutral"}>{caseCount} caso(s)</TonePill>,
@@ -204,7 +169,7 @@ export default async function OperacaoSlaPage() {
             badge: <TonePill tone="success">histórico do caso</TonePill>,
           },
           {
-            href: "/operacao/automacoes",
+            href: "/automacao",
             title: "Automações",
             description: "Regras que podem abrir casos usando esse contrato como suporte.",
             badge: <TonePill tone="violet">motor de regra</TonePill>,
@@ -233,48 +198,48 @@ export default async function OperacaoSlaPage() {
             tone: "success",
           },
         ]}
-      /><Surface className="p-5 sm:p-6"><SectionIntro
+      /><Surface><SectionIntro
           eyebrow="Cadastro"
           title="Políticas cadastradas"
           description="Lista administrativa densa para verificar cobertura, prazo e fila sem abrir todos os formulários."
           compact
-        /><div className="mt-5">
+        /><div className="mt-2">
           {items.length ? (
-            <TableShell><DenseTable><TableHead><tr><th className="px-4 py-3">Política</th><th className="px-4 py-3">Fila</th><th className="px-4 py-3">Tipo</th><th className="px-4 py-3">Sev.</th><th className="px-4 py-3">1ª resposta</th><th className="px-4 py-3">Resolução</th><th className="px-4 py-3">Casos</th><th className="px-4 py-3">Status</th></tr></TableHead><tbody>
+            <TableShell><DenseTable><TableHead><tr><th className="px-3 py-2">Política</th><th className="px-3 py-2">Fila</th><th className="px-3 py-2">Tipo</th><th className="px-3 py-2">Sev.</th><th className="px-3 py-2">1ª resposta</th><th className="px-3 py-2">Resolução</th><th className="px-3 py-2">Casos</th><th className="px-3 py-2">Status</th></tr></TableHead><tbody>
                   {items.map((item) => (
-                    <tr key={item.id} className="border-b border-white/[0.06] last:border-b-0 hover:bg-white/[0.025]"><TableCell><div className="font-semibold text-slate-50">{item.code}</div><div className="mt-1 text-xs text-slate-500">{item.name}</div></TableCell><TableCell>{queueLabel(item.queueKey)}</TableCell><TableCell><TonePill tone="neutral">{kindLabel(item.kind)}</TonePill></TableCell><TableCell><TonePill tone={severityTone(item.severity)}>{severityLabel(item.severity)}</TonePill></TableCell><TableCell>{minutesLabel(item.firstResponseMinutes)}</TableCell><TableCell>{minutesLabel(item.resolveMinutes)}</TableCell><TableCell>{item._count.exceptionCases}</TableCell><TableCell><TonePill tone={item.isActive ? "success" : "neutral"}>{item.isActive ? "Ativa" : "Inativa"}</TonePill></TableCell></tr>
+                    <tr key={item.id} className="border-b border-white/[0.06] last:border-b-0 hover:bg-white/[0.025]"><TableCell><div className="font-semibold text-slate-50">{item.code}</div><div className="mt-1 text-[10px] text-slate-500">{item.name}</div></TableCell><TableCell>{queueLabel(item.queueKey)}</TableCell><TableCell><TonePill tone="neutral">{kindLabel(item.kind)}</TonePill></TableCell><TableCell><TonePill tone={severityTone(item.severity)}>{severityLabel(item.severity)}</TonePill></TableCell><TableCell>{minutesLabel(item.firstResponseMinutes)}</TableCell><TableCell>{minutesLabel(item.resolveMinutes)}</TableCell><TableCell>{item._count.exceptionCases}</TableCell><TableCell><TonePill tone={item.isActive ? "success" : "neutral"}>{item.isActive ? "Ativa" : "Inativa"}</TonePill></TableCell></tr>
                   ))}
                 </tbody></DenseTable></TableShell>
           ) : (
             <EmptyState title="Sem políticas cadastradas" description="Crie a primeira política de SLA para sustentar prioridade, prazo e fila padrão com consistência." />
           )}
-        </div></Surface><Surface className="p-5 sm:p-6"><SectionIntro
+        </div></Surface><Surface><SectionIntro
           eyebrow="Administração"
           title="Nova política"
           description="Cadastro de política."
           compact
-        /><ActionForm action={createPolicy} className="grid gap-4" submitLabel="Criar política" pendingLabel="Criando..."><div className="mt-5 grid gap-3 lg:grid-cols-4"><div><FieldLabel>Código</FieldLabel><input name="code" placeholder="SLA-OPS-GERAL-ALTA" className={inputClass} /></div><div className="lg:col-span-2"><FieldLabel>Nome</FieldLabel><input name="name" placeholder="Operação geral alta" className={inputClass} /></div><div><FieldLabel>Status</FieldLabel><label className="mt-2 flex min-h-[42px] items-center gap-3 rounded-[12px] border border-white/10 bg-[#0b0f14] px-3 text-sm text-slate-300"><input type="checkbox" name="isActive" defaultChecked className="h-4 w-4 rounded border-white/12" />
+        /><ActionForm action={createPolicy} className="grid gap-2" submitLabel="Criar política" pendingLabel="Criando..."><div className="mt-2 grid gap-2 lg:grid-cols-4"><div><FieldLabel>Código</FieldLabel><input name="code" placeholder="SLA-OPS-GERAL-ALTA" className={inputClass} /></div><div className="lg:col-span-2"><FieldLabel>Nome</FieldLabel><input name="name" placeholder="Operação geral alta" className={inputClass} /></div><div><FieldLabel>Status</FieldLabel><label className="nds-card mt-2 flex min-h-[34px] items-center gap-2 text-[11px] text-slate-300"><input type="checkbox" name="isActive" defaultChecked className="h-4 w-4 rounded border-white/12" />
                 Ativa
-              </label></div><div><FieldLabel>Tipo</FieldLabel><select name="kind" defaultValue="generic" className={selectClass}><option value="generic">Geral</option><option value="sla">SLA</option><option value="integration">Integração</option><option value="occurrence">Ocorrência</option><option value="maintenance">Manutenção</option><option value="automation">Automação</option></select></div><div><FieldLabel>Severidade</FieldLabel><select name="severity" defaultValue="medium" className={selectClass}><option value="low">Baixa</option><option value="medium">Média</option><option value="high">Alta</option><option value="critical">Crítica</option></select></div><div><FieldLabel>Fila</FieldLabel><select name="queueKey" defaultValue="ops-general" className={selectClass}><option value="ops-general">Geral</option><option value="ops-integracoes">Integrações</option><option value="ops-ocorrencias">Ocorrências</option><option value="ops-manutencao">Manutenção</option><option value="ops-sla">SLA</option><option value="ops-automacoes">Automações</option></select></div><div><FieldLabel>1ª resposta</FieldLabel><input name="firstResponseMinutes" type="number" min="1" defaultValue="30" className={inputClass} /></div><div><FieldLabel>Resolução</FieldLabel><input name="resolveMinutes" type="number" min="1" defaultValue="240" className={inputClass} /></div></div></ActionForm></Surface>
+              </label></div><div><FieldLabel>Tipo</FieldLabel><select name="kind" defaultValue="generic" className={selectClass}><option value="generic">Geral</option><option value="sla">SLA</option><option value="integration">Integração</option><option value="occurrence">Alerta</option><option value="maintenance">Chamado</option><option value="automation">Automação</option></select></div><div><FieldLabel>Severidade</FieldLabel><select name="severity" defaultValue="medium" className={selectClass}><option value="low">Baixa</option><option value="medium">Média</option><option value="high">Alta</option><option value="critical">Crítica</option></select></div><div><FieldLabel>Fila</FieldLabel><select name="queueKey" defaultValue="ops-general" className={selectClass}><option value="ops-general">Geral</option><option value="ops-integracoes">Integrações</option><option value="ops-ocorrencias">Alertas</option><option value="ops-manutencao">Chamado</option><option value="ops-sla">SLA</option><option value="ops-automacoes">Automações</option></select></div><div><FieldLabel>1ª resposta</FieldLabel><input name="firstResponseMinutes" type="number" min="1" defaultValue="30" className={inputClass} /></div><div><FieldLabel>Resolução</FieldLabel><input name="resolveMinutes" type="number" min="1" defaultValue="240" className={inputClass} /></div></div></ActionForm></Surface>
 
       {items.length ? (
-        <Surface className="p-5 sm:p-6"><SectionIntro
+        <Surface><SectionIntro
             eyebrow="Administração"
             title="Editar políticas"
             description="Contrato, prazo e roteamento."
             compact
-          /><div className="mt-5 grid gap-3">
+          /><div className="mt-2 grid gap-2">
             {items.map((item) => (
               <ActionForm
                 key={item.id}
                 action={updatePolicy}
-                className="rounded-[16px] border border-white/[0.08] bg-[#0a0f15] p-4"
+                className="nds-card"
                 submitLabel="Salvar política"
                 pendingLabel="Salvando..."
                 variant="secondary"
-              ><input type="hidden" name="id" value={item.id} /><div className="mb-4 flex flex-wrap items-center gap-2"><TonePill tone={item.isActive ? "success" : "neutral"}>{item.isActive ? "Ativa" : "Inativa"}</TonePill><TonePill tone={severityTone(item.severity)}>{severityLabel(item.severity)}</TonePill><TonePill tone="neutral">{queueLabel(item.queueKey)}</TonePill><span className="text-xs text-slate-500">{item._count.exceptionCases} caso(s)</span></div><div className="grid gap-3 lg:grid-cols-4"><div><FieldLabel>Código</FieldLabel><input name="code" defaultValue={item.code} className={inputClass} /></div><div className="lg:col-span-2"><FieldLabel>Nome</FieldLabel><input name="name" defaultValue={item.name} className={inputClass} /></div><div><FieldLabel>Status</FieldLabel><label className="mt-2 flex min-h-[42px] items-center gap-3 rounded-[12px] border border-white/10 bg-[#0b0f14] px-3 text-sm text-slate-300"><input type="checkbox" name="isActive" defaultChecked={item.isActive} className="h-4 w-4 rounded border-white/12" />
+              ><input type="hidden" name="id" value={item.id} /><div className="mb-2 flex flex-wrap items-center gap-2"><TonePill tone={item.isActive ? "success" : "neutral"}>{item.isActive ? "Ativa" : "Inativa"}</TonePill><TonePill tone={severityTone(item.severity)}>{severityLabel(item.severity)}</TonePill><TonePill tone="neutral">{queueLabel(item.queueKey)}</TonePill><span className="text-[10px] text-slate-500">{item._count.exceptionCases} caso(s)</span></div><div className="grid gap-2 lg:grid-cols-4"><div><FieldLabel>Código</FieldLabel><input name="code" defaultValue={item.code} className={inputClass} /></div><div className="lg:col-span-2"><FieldLabel>Nome</FieldLabel><input name="name" defaultValue={item.name} className={inputClass} /></div><div><FieldLabel>Status</FieldLabel><label className="nds-card mt-2 flex min-h-[34px] items-center gap-2 text-[11px] text-slate-300"><input type="checkbox" name="isActive" defaultChecked={item.isActive} className="h-4 w-4 rounded border-white/12" />
                       Ativa
-                    </label></div><div><FieldLabel>Tipo</FieldLabel><select name="kind" defaultValue={item.kind} className={selectClass}><option value="generic">Geral</option><option value="sla">SLA</option><option value="integration">Integração</option><option value="occurrence">Ocorrência</option><option value="maintenance">Manutenção</option><option value="automation">Automação</option></select></div><div><FieldLabel>Severidade</FieldLabel><select name="severity" defaultValue={item.severity} className={selectClass}><option value="low">Baixa</option><option value="medium">Média</option><option value="high">Alta</option><option value="critical">Crítica</option></select></div><div><FieldLabel>Fila</FieldLabel><select name="queueKey" defaultValue={item.queueKey} className={selectClass}><option value="ops-general">Geral</option><option value="ops-integracoes">Integrações</option><option value="ops-ocorrencias">Ocorrências</option><option value="ops-manutencao">Manutenção</option><option value="ops-sla">SLA</option><option value="ops-automacoes">Automações</option></select></div><div><FieldLabel>1ª resposta</FieldLabel><input name="firstResponseMinutes" type="number" min="1" defaultValue={item.firstResponseMinutes} className={inputClass} /></div><div><FieldLabel>Resolução</FieldLabel><input name="resolveMinutes" type="number" min="1" defaultValue={item.resolveMinutes} className={inputClass} /></div></div></ActionForm>
+                    </label></div><div><FieldLabel>Tipo</FieldLabel><select name="kind" defaultValue={item.kind} className={selectClass}><option value="generic">Geral</option><option value="sla">SLA</option><option value="integration">Integração</option><option value="occurrence">Alerta</option><option value="maintenance">Chamado</option><option value="automation">Automação</option></select></div><div><FieldLabel>Severidade</FieldLabel><select name="severity" defaultValue={item.severity} className={selectClass}><option value="low">Baixa</option><option value="medium">Média</option><option value="high">Alta</option><option value="critical">Crítica</option></select></div><div><FieldLabel>Fila</FieldLabel><select name="queueKey" defaultValue={item.queueKey} className={selectClass}><option value="ops-general">Geral</option><option value="ops-integracoes">Integrações</option><option value="ops-ocorrencias">Alertas</option><option value="ops-manutencao">Chamado</option><option value="ops-sla">SLA</option><option value="ops-automacoes">Automações</option></select></div><div><FieldLabel>1ª resposta</FieldLabel><input name="firstResponseMinutes" type="number" min="1" defaultValue={item.firstResponseMinutes} className={inputClass} /></div><div><FieldLabel>Resolução</FieldLabel><input name="resolveMinutes" type="number" min="1" defaultValue={item.resolveMinutes} className={inputClass} /></div></div></ActionForm>
             ))}
           </div></Surface>
       ) : null}

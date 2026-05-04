@@ -13,8 +13,8 @@ type ModalStep = {
 };
 
 function stepTone(active: boolean, completed: boolean) {
-  if (active) return "border-sky-500/32 bg-sky-500/[0.14] text-white";
-  if (completed) return "border-emerald-500/22 bg-emerald-500/10 text-emerald-100";
+  if (active) return "border-[var(--nova-primary)] bg-[var(--nova-primary-soft)] text-white";
+  if (completed) return "nds-step-complete";
 
   return "border-white/10 bg-white/[0.04] text-slate-300 hover:bg-white/[0.06]";
 }
@@ -60,77 +60,77 @@ function EditModalBody({
   }, [onClose, state.status]);
 
   return (
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-6"><button
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-2 sm:p-2"><button
         type="button"
         aria-label="Fechar modal"
         onClick={onClose}
-        className="absolute inset-0 bg-[rgba(2,6,12,0.82)] backdrop-blur-[14px]"
+        className="absolute inset-0 bg-[rgba(2,6,12,0.82)]"
       /><div
         role="dialog"
         aria-modal="true"
-        className="relative z-[100000] max-h-[calc(100vh-48px)] w-full max-w-5xl overflow-hidden rounded-[24px] border border-slate-400/15 bg-[linear-gradient(180deg,#0a121d_0%,#070b12_100%)] text-slate-100 shadow-[0_34px_110px_rgba(0,0,0,0.72),inset_0_1px_0_rgba(255,255,255,0.045)]"
-      ><div className="border-b border-white/[0.08] bg-[linear-gradient(180deg,rgba(15,23,42,0.45),rgba(15,23,42,0.14))] px-5 py-5 sm:px-6"><div className="flex items-start justify-between gap-4"><div className="min-w-0">
+        className="nds-panel relative z-[100000] max-h-[calc(100vh-32px)] w-full max-w-5xl overflow-hidden text-slate-100"
+      ><div className="border-b border-white/[0.08] px-3 py-2 sm:px-3"><div className="flex items-start justify-between gap-2"><div className="min-w-0">
               {kicker ? (
-                <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                <div className="nds-label">
                   {kicker}
                 </div>
               ) : null}
 
-              <h2 className="mt-2 text-[24px] font-extrabold tracking-[-0.04em] text-slate-50">
+              <h2 className="mt-2 text-[18px] font-black text-slate-50">
                 {title}
               </h2>
 
               {description ? (
-                <p className="mt-2 max-w-4xl text-sm leading-6 text-slate-400">
+                <p className="mt-2 max-w-4xl text-[11px] leading-5 text-[var(--nova-text-muted)]">
                   {description}
                 </p>
               ) : null}
             </div><button
               type="button"
               onClick={onClose}
-              className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] border border-white/10 bg-white/[0.04] text-lg text-slate-300 transition hover:bg-white/[0.08] hover:text-white"
+              className="nds-icon-button shrink-0"
             >
               ×
             </button></div>
 
           {steps.length > 1 ? (
-            <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            <div className="mt-2 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
               {steps.map((step, index) => (
                 <button
                   key={`${step.title}-${index}`}
                   type="button"
                   onClick={() => setCurrentStep(index)}
-                  className={`flex min-h-[68px] items-center gap-3 rounded-[14px] border px-4 py-3 text-left transition ${stepTone(
+                  className={`flex min-h-[36px] items-center gap-2 rounded-[6px] border px-2 py-1.5 text-left transition ${stepTone(
                     index === currentStep,
                     index < currentStep,
                   )}`}
-                ><div className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/20 text-xs font-semibold">
+                ><div className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/20 text-[10px] font-black">
                     {index + 1}
-                  </div><div className="min-w-0"><div className="text-sm font-semibold">{step.title}</div><div className="mt-0.5 text-xs leading-5 text-slate-500">
+                  </div><div className="min-w-0"><div className="text-[11px] font-black">{step.title}</div><div className="mt-0.5 text-[10px] leading-4 text-slate-500">
                       {step.description}
                     </div></div></button>
               ))}
             </div>
           ) : null}
-        </div><form action={formAction} onSubmit={handleSubmit}><div className="max-h-[calc(100vh-316px)] overflow-y-auto bg-[#070b12] px-5 py-5 sm:px-6">
+        </div><form action={formAction} onSubmit={handleSubmit}><div className="max-h-[calc(100vh-258px)] overflow-y-auto bg-[var(--nova-surface-3)] px-3 py-2 sm:px-3">
             {state.status !== "idle" ? (
               <div
                 role={state.status === "error" ? "alert" : "status"}
-                className={`mb-4 rounded-[14px] border px-4 py-3 text-sm ${
-                  state.status === "success"
-                    ? "border-emerald-500/25 bg-emerald-500/12 text-emerald-100"
-                    : "border-rose-500/25 bg-rose-500/12 text-rose-100"
-                }`}
+                  className={`mb-2 rounded-[6px] border px-3 py-2 text-[11px] ${
+                    state.status === "success"
+                      ? "nds-notice-success"
+                      : "nds-notice-error"
+                  }`}
               >
                 {state.message}
               </div>
             ) : null}
 
-            <div className="rounded-[18px] border border-white/[0.08] bg-[#101720] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] sm:p-6"><div><div className="text-[16px] font-semibold tracking-tight text-slate-50">
+            <div className="nds-card"><div><div className="text-[13px] font-black text-slate-50">
                   {current.title}
-                </div><div className="mt-2 text-sm leading-6 text-slate-400">
+                </div><div className="mt-1 text-[11px] leading-5 text-[var(--nova-text-muted)]">
                   {current.description}
-                </div></div><div className="mt-5 border-t border-white/[0.08] pt-5">
+                </div></div><div className="mt-2 border-t border-white/[0.08] pt-2">
                 {steps.map((step, index) => (
                   <div
                     key={`${step.title}-panel-${index}`}
@@ -139,12 +139,13 @@ function EditModalBody({
                     {step.body}
                   </div>
                 ))}
-              </div></div></div><div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.08] bg-[#080d14] px-5 py-4 sm:px-6"><div className="text-xs uppercase tracking-[0.16em] text-slate-500">
+              </div></div></div><div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.08] bg-[var(--nova-surface-3)] px-3 py-2 sm:px-3"><div className="nds-label">
               etapa {currentStep + 1} de {steps.length}
             </div><div className="flex flex-wrap items-center gap-2"><button
                 type="button"
                 onClick={onClose}
-                className="rounded-[14px] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-slate-100 transition hover:bg-white/[0.08]"
+                className="nds-button"
+                data-variant="secondary"
               >
                 Cancelar
               </button>
@@ -153,7 +154,8 @@ function EditModalBody({
                 <button
                   type="button"
                   onClick={() => setCurrentStep((step) => Math.max(step - 1, 0))}
-                  className="rounded-[14px] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-slate-100 transition hover:bg-white/[0.08]"
+                  className="nds-button"
+                  data-variant="secondary"
                 >
                   Voltar
                 </button>
@@ -163,7 +165,8 @@ function EditModalBody({
                 <button
                   type="button"
                   onClick={() => setCurrentStep((step) => Math.min(step + 1, maxStep))}
-                  className="rounded-[14px] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-slate-100 transition hover:bg-white/[0.08]"
+                  className="nds-button"
+                  data-variant="primary"
                 >
                   Próximo
                 </button>
@@ -229,8 +232,9 @@ export function EntityEditModal({
         onClick={() => setOpen(true)}
         className={
           triggerClassName ||
-          "rounded-full border border-white/10 bg-black/20 px-4 py-2.5 text-sm text-slate-200 transition hover:bg-white/[0.06] hover:text-white"
+          "nds-button"
         }
+        data-variant="secondary"
       >
         {triggerLabel}
       </button>

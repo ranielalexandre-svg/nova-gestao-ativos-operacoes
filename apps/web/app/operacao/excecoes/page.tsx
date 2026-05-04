@@ -29,8 +29,14 @@ import {
   type PaginatedResponse,
   type RawSearchParams,
 } from "@/lib/list-query";
+import { isAdminRole } from "@/lib/role-policy";
 import { apiJson } from "@/lib/server-api";
-import { getServerWebSession, normalizeRole } from "@/lib/web-session";
+import {
+  exceptionLabel as label,
+  exceptionQueueLabel as queueLabel,
+  exceptionTone as tone,
+} from "@/lib/status-ui";
+import { getServerWebSession } from "@/lib/web-session";
 
 type UserOption = { id: string; name: string; email: string; role: string; isActive: boolean };
 type PartnerOption = { id: string; code: string; name: string };
@@ -66,59 +72,15 @@ type ExceptionRow = {
   _count: { comments: number; activities: number };
 };
 
-const inputClass = "mt-2 w-full rounded-[12px] border border-white/10 bg-[#0b0f14] px-3 py-2.5 text-sm text-white outline-none transition focus:border-sky-400/50 focus:ring-4 focus:ring-sky-500/10";
+const inputClass = "mt-2";
 const selectClass = inputClass;
-
-function queueLabel(value: string) {
-  const map: Record<string, string> = {
-    "ops-general": "Geral",
-    "ops-integracoes": "Integrações",
-    "ops-ocorrencias": "Ocorrências",
-    "ops-manutencao": "Manutenção",
-    "ops-sla": "SLA",
-    "ops-automacoes": "Automações",
-  };
-  return map[value] || value;
-}
-
-function label(value: string) {
-  const map: Record<string, string> = {
-    generic: "Geral",
-    sla: "SLA",
-    integration: "Integração",
-    occurrence: "Ocorrência",
-    maintenance: "Manutenção",
-    automation: "Automação",
-    low: "Baixa",
-    medium: "Média",
-    high: "Alta",
-    critical: "Crítica",
-    open: "Aberta",
-    acknowledged: "Reconhecida",
-    resolved: "Resolvida",
-    silenced: "Silenciada",
-    pending: "Pendente",
-    triaged: "Triada",
-    closed: "Fechada",
-  };
-  return map[value] || value;
-}
-
-function tone(value: string) {
-  if (value === "critical") return "critical";
-  if (["high", "open", "pending"].includes(value)) return "attention";
-  if (["medium", "acknowledged", "triaged"].includes(value)) return "info";
-  if (["resolved", "closed"].includes(value)) return "success";
-  if (value === "silenced") return "violet";
-  return "neutral";
-}
 
 function linkSummary(item: ExceptionRow) {
   const parts: string[] = [];
   if (item.integration) parts.push(`integração ${item.integration.code}`);
-  if (item.occurrence) parts.push(`ocorrência ${item.occurrence.code}`);
-  if (item.maintenance) parts.push(`manutenção ${item.maintenance.code}`);
-  if (item.equipment) parts.push(`equipamento ${item.equipment.tag}`);
+  if (item.occurrence) parts.push(`alerta ${item.occurrence.code}`);
+  if (item.maintenance) parts.push(`chamado ${item.maintenance.code}`);
+  if (item.equipment) parts.push(`ativo ${item.equipment.tag}`);
   if (item.unit) parts.push(`unidade ${item.unit.code}`);
   if (item.partner) parts.push(`parceiro ${item.partner.code}`);
   return parts.length ? parts.join(" - ") : "sem vínculo";
@@ -137,7 +99,7 @@ export default async function ExcecoesPage({
   searchParams?: Promise<RawSearchParams> | RawSearchParams;
 }) {
   const session = await getServerWebSession();
-  if (!session.authenticated) redirect("/login?next=/operacao/excecoes");
+  if (!session.authenticated) redirect("/login?next=/excecoes");
 
   const params = await resolveSearchParams(searchParams);
   const q = readStringParam(params, "q");
@@ -147,7 +109,7 @@ export default async function ExcecoesPage({
   const triageStatus = readStringParam(params, "triageStatus", "all");
   const page = readPositiveIntParam(params, "page", 1);
   const pageSize = readPositiveIntParam(params, "pageSize", 12);
-  const isAdmin = normalizeRole(session.user?.role || "") === "admin";
+  const isAdmin = isAdminRole(session.user?.role || "");
 
   async function createException(
     _prevState: ActionFeedbackState,
@@ -155,7 +117,7 @@ export default async function ExcecoesPage({
   ): Promise<ActionFeedbackState> {
     "use server";
     try {
-      if (normalizeRole((await getServerWebSession()).user?.role || "") !== "admin") {
+      if (!isAdminRole((await getServerWebSession()).user?.role || "")) {
         return { status: "error", message: "Acesso negado." };
       }
 
@@ -180,7 +142,7 @@ export default async function ExcecoesPage({
         }),
       });
 
-      revalidatePath("/operacao/excecoes");
+      revalidatePath("/excecoes");
       revalidatePath("/operacao/fila");
       revalidatePath("/operacao");
       return { status: "success", message: "Exceção criada com sucesso." };
@@ -199,13 +161,13 @@ export default async function ExcecoesPage({
     maintenancesResponse,
     response,
   ] = await Promise.all([
-    apiJson<PaginatedResponse<UserOption>>("/users?page=1&pageSize=100"),
-    apiJson<PaginatedResponse<PartnerOption>>("/partners?page=1&pageSize=100&sortBy=code&sortDir=asc"),
-    apiJson<PaginatedResponse<UnitOption>>("/units?page=1&pageSize=100&sortBy=code&sortDir=asc"),
-    apiJson<PaginatedResponse<EquipmentOption>>("/equipments?page=1&pageSize=100&sortBy=tag&sortDir=asc"),
-    apiJson<PaginatedResponse<IntegrationOption>>("/integrations?page=1&pageSize=100&sortBy=code&sortDir=asc"),
-    apiJson<PaginatedResponse<OccurrenceOption>>("/occurrences?page=1&pageSize=100&sortBy=createdAt&sortDir=desc"),
-    apiJson<PaginatedResponse<MaintenanceOption>>("/maintenances?page=1&pageSize=100&sortBy=createdAt&sortDir=desc"),
+    isAdmin ? apiJson<PaginatedResponse<UserOption>>("/users?page=1&pageSize=100") : Promise.resolve({ items: [] as UserOption[] }),
+    isAdmin ? apiJson<PaginatedResponse<PartnerOption>>("/partners?page=1&pageSize=100&sortBy=code&sortDir=asc") : Promise.resolve({ items: [] as PartnerOption[] }),
+    isAdmin ? apiJson<PaginatedResponse<UnitOption>>("/units?page=1&pageSize=100&sortBy=code&sortDir=asc") : Promise.resolve({ items: [] as UnitOption[] }),
+    isAdmin ? apiJson<PaginatedResponse<EquipmentOption>>("/equipments?page=1&pageSize=100&sortBy=tag&sortDir=asc") : Promise.resolve({ items: [] as EquipmentOption[] }),
+    isAdmin ? apiJson<PaginatedResponse<IntegrationOption>>("/integrations?page=1&pageSize=100&sortBy=code&sortDir=asc") : Promise.resolve({ items: [] as IntegrationOption[] }),
+    isAdmin ? apiJson<PaginatedResponse<OccurrenceOption>>("/occurrences?page=1&pageSize=100&sortBy=createdAt&sortDir=desc") : Promise.resolve({ items: [] as OccurrenceOption[] }),
+    isAdmin ? apiJson<PaginatedResponse<MaintenanceOption>>("/maintenances?page=1&pageSize=100&sortBy=createdAt&sortDir=desc") : Promise.resolve({ items: [] as MaintenanceOption[] }),
     apiJson<PaginatedResponse<ExceptionRow>>(
       `/exceptions${buildApiQuery({
         q,
@@ -266,7 +228,7 @@ export default async function ExcecoesPage({
             badge: <TonePill tone={breachedCount ? "critical" : "neutral"}>{breachedCount} estourado(s)</TonePill>,
           },
           {
-            href: "/operacao/automacoes",
+            href: "/automacao",
             title: "Automações",
             description: "Regras e geração de casos.",
             badge: <TonePill tone="violet">motor de origem</TonePill>,
@@ -279,7 +241,7 @@ export default async function ExcecoesPage({
           {
             label: "Ler",
             title: "Qualificação",
-            description: "Parceiro, unidade, equipamento, prioridade e prazo.",
+            description: "Parceiro, unidade, ativo, prioridade e prazo.",
             tone: "info",
           },
           {
@@ -295,30 +257,30 @@ export default async function ExcecoesPage({
             tone: "success",
           },
         ]}
-      /><Surface className="p-5 sm:p-6"><SectionIntro
+      /><Surface><SectionIntro
           eyebrow="Consulta"
           title="Filtros"
           description="Tipo, severidade, status e triagem."
           actions={
-            <div className="flex flex-wrap gap-2"><Link href="/operacao/fila" className="rounded-[12px] border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-semibold text-slate-100">Ir para fila</Link><Link href="/operacao/excecoes" className="rounded-[12px] border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-semibold text-slate-100">Limpar</Link></div>
+            <div className="flex flex-wrap gap-2"><Link href="/operacao/fila" className="nds-button" data-variant="secondary">Ir para fila</Link><Link href="/excecoes" className="nds-button" data-variant="secondary">Limpar</Link></div>
           }
           compact
-        /><form method="GET" className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-[minmax(0,1.5fr)_repeat(5,minmax(0,180px))]"><div className="md:col-span-2 xl:col-span-1"><FieldLabel>Busca</FieldLabel><input name="q" defaultValue={q} placeholder="Código, título, vínculo ou responsável" className={inputClass} /></div><div><FieldLabel>Tipo</FieldLabel><select name="kind" defaultValue={kind} className={selectClass}><option value="all">Todos</option><option value="generic">Geral</option><option value="sla">SLA</option><option value="integration">Integração</option><option value="occurrence">Ocorrência</option><option value="maintenance">Manutenção</option><option value="automation">Automação</option></select></div><div><FieldLabel>Severidade</FieldLabel><select name="severity" defaultValue={severity} className={selectClass}><option value="all">Todas</option><option value="low">Baixa</option><option value="medium">Média</option><option value="high">Alta</option><option value="critical">Crítica</option></select></div><div><FieldLabel>Status</FieldLabel><select name="status" defaultValue={status} className={selectClass}><option value="all">Todos</option><option value="open">Aberta</option><option value="acknowledged">Reconhecida</option><option value="resolved">Resolvida</option><option value="silenced">Silenciada</option></select></div><div><FieldLabel>Triagem</FieldLabel><select name="triageStatus" defaultValue={triageStatus} className={selectClass}><option value="all">Toda</option><option value="pending">Pendente</option><option value="triaged">Triada</option><option value="closed">Fechada</option></select></div><div><FieldLabel>Página</FieldLabel><select name="pageSize" defaultValue={String(pageSize)} className={selectClass}><option value="12">12 por página</option><option value="25">25 por página</option><option value="50">50 por página</option></select></div><button className="rounded-[12px] border border-blue-400/30 bg-[#17213a] px-4 py-2.5 text-sm font-semibold text-white md:col-span-2 xl:col-span-2 xl:self-end">
+        /><form method="GET" className="nova-filter-grid nova-filter-grid--ops-wide mt-2"><div className="md:col-span-2 xl:col-span-1"><FieldLabel>Busca</FieldLabel><input name="q" defaultValue={q} placeholder="Código, título, vínculo ou responsável" className={inputClass} /></div><div><FieldLabel>Tipo</FieldLabel><select name="kind" defaultValue={kind} className={selectClass}><option value="all">Todos</option><option value="generic">Geral</option><option value="sla">SLA</option><option value="integration">Integração</option><option value="occurrence">Alerta</option><option value="maintenance">Chamado</option><option value="automation">Automação</option></select></div><div><FieldLabel>Severidade</FieldLabel><select name="severity" defaultValue={severity} className={selectClass}><option value="all">Todas</option><option value="low">Baixa</option><option value="medium">Média</option><option value="high">Alta</option><option value="critical">Crítica</option></select></div><div><FieldLabel>Status</FieldLabel><select name="status" defaultValue={status} className={selectClass}><option value="all">Todos</option><option value="open">Aberta</option><option value="acknowledged">Reconhecida</option><option value="resolved">Resolvida</option><option value="silenced">Silenciada</option></select></div><div><FieldLabel>Triagem</FieldLabel><select name="triageStatus" defaultValue={triageStatus} className={selectClass}><option value="all">Toda</option><option value="pending">Pendente</option><option value="triaged">Triada</option><option value="closed">Fechada</option></select></div><div><FieldLabel>Página</FieldLabel><select name="pageSize" defaultValue={String(pageSize)} className={selectClass}><option value="12">12 por página</option><option value="25">25 por página</option><option value="50">50 por página</option></select></div><button className="nds-button md:col-span-2 xl:col-span-2 xl:self-end" data-variant="primary">
             Aplicar filtros
-          </button></form></Surface><Surface className="p-5 sm:p-6"><SectionIntro
+          </button></form></Surface><Surface><SectionIntro
           eyebrow="Backlog"
           title="Casos encontrados"
           description={`${response.meta.total} caso(s) no recorte atual.`}
           compact
-        /><div className="mt-5">
+        /><div className="mt-2">
           {response.items.length ? (
-            <TableShell><DenseTable><TableHead><tr><th className="px-4 py-3">Caso</th><th className="px-4 py-3">Fila</th><th className="px-4 py-3">Sev.</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Triagem</th><th className="px-4 py-3">SLA</th><th className="px-4 py-3">Responsável</th><th className="px-4 py-3">Ação</th></tr></TableHead><tbody>
+            <TableShell><DenseTable><TableHead><tr><th className="px-3 py-2">Caso</th><th className="px-3 py-2">Fila</th><th className="px-3 py-2">Sev.</th><th className="px-3 py-2">Status</th><th className="px-3 py-2">Triagem</th><th className="px-3 py-2">SLA</th><th className="px-3 py-2">Responsável</th><th className="px-3 py-2">Ação</th></tr></TableHead><tbody>
                   {response.items.map((item) => (
-                    <tr key={item.id} className="border-b border-white/[0.06] last:border-b-0 hover:bg-white/[0.025]"><TableCell><Link href={`/operacao/excecoes/${item.id}`} className="font-semibold text-slate-50 transition hover:text-sky-100">
+                    <tr key={item.id} className="border-b border-white/[0.06] last:border-b-0 hover:bg-white/[0.025]"><TableCell><Link href={`/excecoes/${item.id}`} className="font-semibold text-slate-50 transition hover:text-white">
                           {item.code}
-                        </Link><div className="mt-1 text-sm text-slate-300">{item.title}</div><div className="mt-1 max-w-xl text-xs leading-5 text-slate-500">
+                        </Link><div className="mt-1 text-[12px] text-slate-300">{item.title}</div><div className="mt-1 max-w-xl text-[10px] leading-5 text-slate-500">
                           {linkSummary(item)} - prioridade {item.priorityScore} - {item._count.comments} comentário(s)
-                        </div></TableCell><TableCell>{queueLabel(item.queueKey)}</TableCell><TableCell><TonePill tone={tone(item.severity)}>{label(item.severity)}</TonePill></TableCell><TableCell><TonePill tone={tone(item.status)}>{label(item.status)}</TonePill></TableCell><TableCell><TonePill tone={tone(item.triageStatus)}>{label(item.triageStatus)}</TonePill></TableCell><TableCell className={item.breachedAt ? "text-rose-200" : "text-slate-300"}>{slaLabel(item)}</TableCell><TableCell><div className="text-slate-200">{item.assignee?.name || "-"}</div><div className="mt-1 text-xs text-slate-500">{item.assignee?.email || ""}</div></TableCell><TableCell><Link href={`/operacao/excecoes/${item.id}`} className="inline-flex rounded-[12px] border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-semibold text-slate-100 transition hover:border-white/18 hover:bg-white/[0.08]">
+                        </div></TableCell><TableCell>{queueLabel(item.queueKey)}</TableCell><TableCell><TonePill tone={tone(item.severity)}>{label(item.severity)}</TonePill></TableCell><TableCell><TonePill tone={tone(item.status)}>{label(item.status)}</TonePill></TableCell><TableCell><TonePill tone={tone(item.triageStatus)}>{label(item.triageStatus)}</TonePill></TableCell><TableCell className={item.breachedAt ? "text-[color:var(--nova-danger)]" : "text-slate-300"}>{slaLabel(item)}</TableCell><TableCell><div className="text-slate-200">{item.assignee?.name || "-"}</div><div className="mt-1 text-[10px] text-slate-500">{item.assignee?.email || ""}</div></TableCell><TableCell><Link href={`/excecoes/${item.id}`} className="nds-button" data-variant="secondary">
                           Abrir
                         </Link></TableCell></tr>
                   ))}
@@ -326,29 +288,29 @@ export default async function ExcecoesPage({
           ) : (
             <EmptyState title="Nenhuma exceção encontrada" description="A busca atual não retornou casos. Ajuste os filtros ou volte para a fila operacional." />
           )}
-        </div></Surface><ListPagination pathname="/operacao/excecoes" searchParams={params} meta={response.meta} />
+        </div></Surface><ListPagination pathname="/excecoes" searchParams={params} meta={response.meta} />
 
       {isAdmin ? (
-        <Surface className="p-5 sm:p-6"><SectionIntro
+        <Surface><SectionIntro
             eyebrow="Cadastro manual"
             title="Nova exceção"
             description="Abertura manual e fila operacional."
             compact
-          /><ActionForm action={createException} className="grid gap-4" submitLabel="Criar exceção" pendingLabel="Criando..."><div className="mt-5 grid gap-3 lg:grid-cols-4"><div><FieldLabel>Código</FieldLabel><input name="code" placeholder="EXC-OPS-001" className={inputClass} /></div><div className="lg:col-span-2"><FieldLabel>Título</FieldLabel><input name="title" placeholder="Falha crítica de integração" className={inputClass} /></div><div><FieldLabel>Responsável</FieldLabel><select name="assigneeUserId" defaultValue="" className={selectClass}><option value="">Sem responsável</option>
+          /><ActionForm action={createException} className="grid gap-2" submitLabel="Criar exceção" pendingLabel="Criando..."><div className="mt-2 grid gap-2 lg:grid-cols-4"><div><FieldLabel>Código</FieldLabel><input name="code" placeholder="EXC-OPS-001" className={inputClass} /></div><div className="lg:col-span-2"><FieldLabel>Título</FieldLabel><input name="title" placeholder="Falha crítica de integração" className={inputClass} /></div><div><FieldLabel>Responsável</FieldLabel><select name="assigneeUserId" defaultValue="" className={selectClass}><option value="">Sem responsável</option>
                   {usersResponse.items.map((user) => (
                     <option key={user.id} value={user.id}>{user.name} - {user.email}</option>
                   ))}
-                </select></div><div><FieldLabel>Tipo</FieldLabel><select name="kind" defaultValue="generic" className={selectClass}><option value="generic">Geral</option><option value="sla">SLA</option><option value="integration">Integração</option><option value="occurrence">Ocorrência</option><option value="maintenance">Manutenção</option><option value="automation">Automação</option></select></div><div><FieldLabel>Severidade</FieldLabel><select name="severity" defaultValue="medium" className={selectClass}><option value="low">Baixa</option><option value="medium">Média</option><option value="high">Alta</option><option value="critical">Crítica</option></select></div><div><FieldLabel>Status</FieldLabel><select name="status" defaultValue="open" className={selectClass}><option value="open">Aberta</option><option value="acknowledged">Reconhecida</option><option value="silenced">Silenciada</option></select></div><div><FieldLabel>Silenciar até</FieldLabel><input name="silencedUntil" type="datetime-local" className={inputClass} /></div><div><FieldLabel>Parceiro</FieldLabel><select name="partnerId" defaultValue="" className={selectClass}><option value="">Sem parceiro</option>
+                </select></div><div><FieldLabel>Tipo</FieldLabel><select name="kind" defaultValue="generic" className={selectClass}><option value="generic">Geral</option><option value="sla">SLA</option><option value="integration">Integração</option><option value="occurrence">Alerta</option><option value="maintenance">Chamado</option><option value="automation">Automação</option></select></div><div><FieldLabel>Severidade</FieldLabel><select name="severity" defaultValue="medium" className={selectClass}><option value="low">Baixa</option><option value="medium">Média</option><option value="high">Alta</option><option value="critical">Crítica</option></select></div><div><FieldLabel>Status</FieldLabel><select name="status" defaultValue="open" className={selectClass}><option value="open">Aberta</option><option value="acknowledged">Reconhecida</option><option value="silenced">Silenciada</option></select></div><div><FieldLabel>Silenciar até</FieldLabel><input name="silencedUntil" type="datetime-local" className={inputClass} /></div><div><FieldLabel>Parceiro</FieldLabel><select name="partnerId" defaultValue="" className={selectClass}><option value="">Sem parceiro</option>
                   {partnersResponse.items.map((item) =><option key={item.id} value={item.id}>{item.code} - {item.name}</option>)}
                 </select></div><div><FieldLabel>Unidade</FieldLabel><select name="unitId" defaultValue="" className={selectClass}><option value="">Sem unidade</option>
                   {unitsResponse.items.map((item) =><option key={item.id} value={item.id}>{item.code} - {item.name}</option>)}
-                </select></div><div><FieldLabel>Equipamento</FieldLabel><select name="equipmentId" defaultValue="" className={selectClass}><option value="">Sem equipamento</option>
+                </select></div><div><FieldLabel>Ativo</FieldLabel><select name="equipmentId" defaultValue="" className={selectClass}><option value="">Sem ativo</option>
                   {equipmentsResponse.items.map((item) =><option key={item.id} value={item.id}>{item.tag} - {item.name}</option>)}
                 </select></div><div><FieldLabel>Integração</FieldLabel><select name="integrationId" defaultValue="" className={selectClass}><option value="">Sem integração</option>
                   {integrationsResponse.items.map((item) =><option key={item.id} value={item.id}>{item.code} - {item.name}</option>)}
-                </select></div><div><FieldLabel>Ocorrência</FieldLabel><select name="occurrenceId" defaultValue="" className={selectClass}><option value="">Sem ocorrência</option>
+                </select></div><div><FieldLabel>Alerta</FieldLabel><select name="occurrenceId" defaultValue="" className={selectClass}><option value="">Sem alerta</option>
                   {occurrencesResponse.items.map((item) =><option key={item.id} value={item.id}>{item.code} - {item.title}</option>)}
-                </select></div><div><FieldLabel>Manutenção</FieldLabel><select name="maintenanceId" defaultValue="" className={selectClass}><option value="">Sem manutenção</option>
+                </select></div><div><FieldLabel>Chamado</FieldLabel><select name="maintenanceId" defaultValue="" className={selectClass}><option value="">Sem chamado</option>
                   {maintenancesResponse.items.map((item) =><option key={item.id} value={item.id}>{item.code} - {item.title}</option>)}
                 </select></div><div className="lg:col-span-4"><FieldLabel>Descrição</FieldLabel><textarea name="description" placeholder="Contexto operacional do caso" className={`${inputClass} min-h-28`} /></div></div></ActionForm></Surface>
       ) : null}

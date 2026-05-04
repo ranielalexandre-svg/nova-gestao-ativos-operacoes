@@ -64,7 +64,7 @@ type ActivityRow = {
   maintenance: MaintenanceOption | null;
 };
 
-const inputClass = "mt-2 w-full rounded-[12px] border border-white/10 bg-[#0b0f14] px-3 py-2.5 text-sm text-white outline-none transition focus:border-sky-400/50 focus:ring-4 focus:ring-sky-500/10";
+const inputClass = "mt-2";
 const selectClass = inputClass;
 
 function refs(item: ActivityRow) {
@@ -72,9 +72,9 @@ function refs(item: ActivityRow) {
   if (item.exceptionCase) parts.push(`exceção ${item.exceptionCase.code}`);
   if (item.automation) parts.push(`regra ${item.automation.code}`);
   if (item.integration) parts.push(`integração ${item.integration.code}`);
-  if (item.occurrence) parts.push(`ocorrência ${item.occurrence.code}`);
-  if (item.maintenance) parts.push(`manutenção ${item.maintenance.code}`);
-  if (item.equipment) parts.push(`equipamento ${item.equipment.tag}`);
+  if (item.occurrence) parts.push(`alerta ${item.occurrence.code}`);
+  if (item.maintenance) parts.push(`chamado ${item.maintenance.code}`);
+  if (item.equipment) parts.push(`ativo ${item.equipment.tag}`);
   if (item.unit) parts.push(`unidade ${item.unit.code}`);
   if (item.partner) parts.push(`parceiro ${item.partner.code}`);
   return parts.length ? parts.join(" - ") : "sem vínculo";
@@ -229,7 +229,7 @@ export default async function AtividadePage({
         description="Contexto, despacho, regra e consulta."
         links={[
           {
-            href: "/operacao/excecoes",
+            href: "/excecoes",
             title: "Exceções",
             description: "Casos qualificados, abertura manual e leitura de vínculo.",
             badge: <TonePill tone="attention">{manualCount} manual(is)</TonePill>,
@@ -241,13 +241,13 @@ export default async function AtividadePage({
             badge: <TonePill tone={criticalCount ? "critical" : "success"}>{criticalCount} alta atenção</TonePill>,
           },
           {
-            href: "/operacao/automacoes",
+            href: "/automacao",
             title: "Automações",
             description: "Regras e runs recentes.",
             badge: <TonePill tone="violet">{automationCount} auto</TonePill>,
           },
           {
-            href: "/monitoramento",
+            href: "/sensores",
             title: "Monitoramento",
             description: "Saúde do host, perda, latência e pressão por unidade vinculada.",
             badge: <TonePill tone="info">host e unidade</TonePill>,
@@ -272,28 +272,28 @@ export default async function AtividadePage({
           {
             label: "Cruzar",
             title: "Linke tudo que sustenta a leitura",
-            description: "Sempre que possível, conecte exceção, unidade, equipamento, integração, ocorrência ou manutenção para a auditoria ficar navegável.",
+            description: "Sempre que possível, conecte exceção, unidade, ativo, integração, alerta ou chamado para a auditoria ficar navegável.",
             tone: "success",
           },
         ]}
-      /><Surface className="p-5 sm:p-6"><SectionIntro
+      /><Surface><SectionIntro
           eyebrow="Consulta"
           title="Buscar atividade por vínculo real"
           description="Filtre por texto, tipo, origem e severidade sem sair da URL compartilhável."
-          actions={<Link href="/operacao/atividade" className="rounded-[12px] border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-semibold text-slate-100">Limpar</Link>}
+          actions={<Link href="/operacao/atividade" className="nds-button" data-variant="secondary">Limpar</Link>}
           compact
-        /><form method="GET" className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-[minmax(0,1.4fr)_repeat(5,minmax(0,180px))]"><div className="md:col-span-2 xl:col-span-1"><FieldLabel>Busca</FieldLabel><input name="q" defaultValue={q} placeholder="Título, descrição, unidade, parceiro ou vínculo" className={inputClass} /></div><div><FieldLabel>Tipo</FieldLabel><select name="kind" defaultValue={kind} className={selectClass}><option value="all">Todos</option><option value="note">Nota</option><option value="event">Evento</option><option value="exception">Exceção</option><option value="automation">Automação</option><option value="system">Sistema</option></select></div><div><FieldLabel>Origem</FieldLabel><select name="source" defaultValue={source} className={selectClass}><option value="all">Todas</option><option value="manual">Manual</option><option value="automation">Automação</option><option value="exception">Exceção</option></select></div><div><FieldLabel>Severidade</FieldLabel><select name="severity" defaultValue={severity} className={selectClass}><option value="all">Todas</option><option value="info">Info</option><option value="low">Baixa</option><option value="medium">Média</option><option value="high">Alta</option><option value="critical">Crítica</option></select></div><div><FieldLabel>Ordenar por</FieldLabel><select name="sortBy" defaultValue={sortBy} className={selectClass}><option value="createdAt">Cadastro</option><option value="updatedAt">Atualização</option><option value="severity">Severidade</option><option value="kind">Tipo</option></select></div><div><FieldLabel>Direção</FieldLabel><select name="sortDir" defaultValue={sortDir} className={selectClass}><option value="desc">Descendente</option><option value="asc">Ascendente</option></select></div><div><FieldLabel>Página</FieldLabel><select name="pageSize" defaultValue={String(pageSize)} className={selectClass}><option value="10">10 por página</option><option value="25">25 por página</option><option value="50">50 por página</option></select></div><button className="rounded-[12px] border border-blue-400/30 bg-[#17213a] px-4 py-2.5 text-sm font-semibold text-white md:col-span-2 xl:col-span-2 xl:self-end">
+        /><form method="GET" className="nova-filter-grid nova-filter-grid--activity mt-2"><div className="md:col-span-2 xl:col-span-1"><FieldLabel>Busca</FieldLabel><input name="q" defaultValue={q} placeholder="Título, descrição, unidade, parceiro ou vínculo" className={inputClass} /></div><div><FieldLabel>Tipo</FieldLabel><select name="kind" defaultValue={kind} className={selectClass}><option value="all">Todos</option><option value="note">Nota</option><option value="event">Evento</option><option value="exception">Exceção</option><option value="automation">Automação</option><option value="system">Sistema</option></select></div><div><FieldLabel>Origem</FieldLabel><select name="source" defaultValue={source} className={selectClass}><option value="all">Todas</option><option value="manual">Manual</option><option value="automation">Automação</option><option value="exception">Exceção</option></select></div><div><FieldLabel>Severidade</FieldLabel><select name="severity" defaultValue={severity} className={selectClass}><option value="all">Todas</option><option value="info">Info</option><option value="low">Baixa</option><option value="medium">Média</option><option value="high">Alta</option><option value="critical">Crítica</option></select></div><div><FieldLabel>Ordenar por</FieldLabel><select name="sortBy" defaultValue={sortBy} className={selectClass}><option value="createdAt">Cadastro</option><option value="updatedAt">Atualização</option><option value="severity">Severidade</option><option value="kind">Tipo</option></select></div><div><FieldLabel>Direção</FieldLabel><select name="sortDir" defaultValue={sortDir} className={selectClass}><option value="desc">Descendente</option><option value="asc">Ascendente</option></select></div><div><FieldLabel>Página</FieldLabel><select name="pageSize" defaultValue={String(pageSize)} className={selectClass}><option value="10">10 por página</option><option value="25">25 por página</option><option value="50">50 por página</option></select></div><button className="nds-button md:col-span-2 xl:col-span-2 xl:self-end" data-variant="primary">
             Aplicar filtros
-          </button></form></Surface><Surface className="p-5 sm:p-6"><SectionIntro
+          </button></form></Surface><Surface><SectionIntro
           eyebrow="Linha do tempo"
           title="Atividades registradas"
           description={`${response.meta.total} evento(s) no recorte atual.`}
           compact
-        /><div className="mt-5">
+        /><div className="mt-2">
           {response.items.length ? (
-            <TableShell><DenseTable><TableHead><tr><th className="px-4 py-3">Atividade</th><th className="px-4 py-3">Tipo</th><th className="px-4 py-3">Origem</th><th className="px-4 py-3">Sev.</th><th className="px-4 py-3">Ator</th><th className="px-4 py-3">Vínculos</th><th className="px-4 py-3">Criada</th></tr></TableHead><tbody>
+            <TableShell><DenseTable><TableHead><tr><th className="px-3 py-2">Atividade</th><th className="px-3 py-2">Tipo</th><th className="px-3 py-2">Origem</th><th className="px-3 py-2">Sev.</th><th className="px-3 py-2">Ator</th><th className="px-3 py-2">Vínculos</th><th className="px-3 py-2">Criada</th></tr></TableHead><tbody>
                   {response.items.map((item) => (
-                    <tr key={item.id} className="border-b border-white/[0.06] last:border-b-0 hover:bg-white/[0.025]"><TableCell><div className="font-semibold text-slate-50">{item.title}</div><div className="mt-1 max-w-xl text-xs leading-5 text-slate-500">{item.description || "-"}</div></TableCell><TableCell><TonePill tone={tone(item.kind)}>{label(item.kind)}</TonePill></TableCell><TableCell><TonePill tone={tone(item.source)}>{label(item.source)}</TonePill></TableCell><TableCell><TonePill tone={tone(item.severity)}>{label(item.severity)}</TonePill></TableCell><TableCell><div className="text-slate-200">{item.actor?.name || "-"}</div><div className="mt-1 text-xs text-slate-500">{item.actor?.email || ""}</div></TableCell><TableCell className="max-w-md text-xs leading-5 text-slate-400">{refs(item)}</TableCell><TableCell className="whitespace-nowrap text-slate-300">{new Date(item.createdAt).toLocaleString("pt-BR")}</TableCell></tr>
+                    <tr key={item.id} className="border-b border-white/[0.06] last:border-b-0 hover:bg-white/[0.025]"><TableCell><div className="font-semibold text-slate-50">{item.title}</div><div className="mt-1 max-w-xl text-[10px] leading-5 text-slate-500">{item.description || "-"}</div></TableCell><TableCell><TonePill tone={tone(item.kind)}>{label(item.kind)}</TonePill></TableCell><TableCell><TonePill tone={tone(item.source)}>{label(item.source)}</TonePill></TableCell><TableCell><TonePill tone={tone(item.severity)}>{label(item.severity)}</TonePill></TableCell><TableCell><div className="text-slate-200">{item.actor?.name || "-"}</div><div className="mt-1 text-[10px] text-slate-500">{item.actor?.email || ""}</div></TableCell><TableCell className="max-w-md text-[10px] leading-5 text-slate-400">{refs(item)}</TableCell><TableCell className="whitespace-nowrap text-slate-300">{new Date(item.createdAt).toLocaleString("pt-BR")}</TableCell></tr>
                   ))}
                 </tbody></DenseTable></TableShell>
           ) : (
@@ -302,17 +302,17 @@ export default async function AtividadePage({
         </div></Surface><ListPagination pathname="/operacao/atividade" searchParams={params} meta={response.meta} />
 
       {isAdmin ? (
-        <Surface className="p-5 sm:p-6"><SectionIntro
+        <Surface><SectionIntro
             eyebrow="Registro manual"
             title="Nova atividade"
             description="Decisão, contato, evidência ou próximo passo."
             compact
           /><ActionForm
             action={createActivity}
-            className="mt-5 grid gap-4"
+            className="mt-2 grid gap-2"
             submitLabel="Criar atividade"
             pendingLabel="Criando..."
-          ><div className="grid gap-3 lg:grid-cols-4"><div className="lg:col-span-2"><FieldLabel>Título</FieldLabel><input name="title" placeholder="Resumo curto da atividade" className={inputClass} /></div><div><FieldLabel>Tipo</FieldLabel><select name="kind" defaultValue="note" className={selectClass}><option value="note">Nota</option><option value="event">Evento</option><option value="exception">Exceção</option><option value="automation">Automação</option><option value="system">Sistema</option></select></div><div><FieldLabel>Severidade</FieldLabel><select name="severity" defaultValue="info" className={selectClass}><option value="info">Info</option><option value="low">Baixa</option><option value="medium">Média</option><option value="high">Alta</option><option value="critical">Crítica</option></select></div><div className="lg:col-span-2"><FieldLabel>Ator</FieldLabel><select name="userId" className={selectClass}><option value="">Sem ator</option>
+          ><div className="grid gap-2 lg:grid-cols-4"><div className="lg:col-span-2"><FieldLabel>Título</FieldLabel><input name="title" placeholder="Resumo curto da atividade" className={inputClass} /></div><div><FieldLabel>Tipo</FieldLabel><select name="kind" defaultValue="note" className={selectClass}><option value="note">Nota</option><option value="event">Evento</option><option value="exception">Exceção</option><option value="automation">Automação</option><option value="system">Sistema</option></select></div><div><FieldLabel>Severidade</FieldLabel><select name="severity" defaultValue="info" className={selectClass}><option value="info">Info</option><option value="low">Baixa</option><option value="medium">Média</option><option value="high">Alta</option><option value="critical">Crítica</option></select></div><div className="lg:col-span-2"><FieldLabel>Ator</FieldLabel><select name="userId" className={selectClass}><option value="">Sem ator</option>
                   {usersResponse.items.map((item) => (
                     <option key={item.id} value={item.id}>{item.name} - {item.email}</option>
                   ))}
@@ -336,7 +336,7 @@ export default async function AtividadePage({
                   {unitsResponse.items.map((item) => (
                     <option key={item.id} value={item.id}>{item.code} - {item.name}</option>
                   ))}
-                </select></div><div><FieldLabel>Equipamento</FieldLabel><select name="equipmentId" className={selectClass}><option value="">Sem equipamento</option>
+                </select></div><div><FieldLabel>Ativo</FieldLabel><select name="equipmentId" className={selectClass}><option value="">Sem ativo</option>
                   {equipmentsResponse.items.map((item) => (
                     <option key={item.id} value={item.id}>{item.tag} - {item.name}</option>
                   ))}
@@ -344,11 +344,11 @@ export default async function AtividadePage({
                   {integrationsResponse.items.map((item) => (
                     <option key={item.id} value={item.id}>{item.code} - {item.name}</option>
                   ))}
-                </select></div><div><FieldLabel>Ocorrência</FieldLabel><select name="occurrenceId" className={selectClass}><option value="">Sem ocorrência</option>
+                </select></div><div><FieldLabel>Alerta</FieldLabel><select name="occurrenceId" className={selectClass}><option value="">Sem alerta</option>
                   {occurrencesResponse.items.map((item) => (
                     <option key={item.id} value={item.id}>{item.code} - {item.title}</option>
                   ))}
-                </select></div><div><FieldLabel>Manutenção</FieldLabel><select name="maintenanceId" className={selectClass}><option value="">Sem manutenção</option>
+                </select></div><div><FieldLabel>Chamado</FieldLabel><select name="maintenanceId" className={selectClass}><option value="">Sem chamado</option>
                   {maintenancesResponse.items.map((item) => (
                     <option key={item.id} value={item.id}>{item.code} - {item.title}</option>
                   ))}

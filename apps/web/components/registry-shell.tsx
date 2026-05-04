@@ -42,7 +42,7 @@ export function RegistrySummaryStrip({
   noteCopy: string;
 }) {
   return (
-    <Surface className="nova-registry-summary"><div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_300px] xl:items-stretch"><div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+    <Surface className="nova-registry-summary"><div className="nova-side-grid nova-side-grid--300 xl:items-stretch"><div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
           {items.map((item) => (
             <div
               key={item.label}
@@ -79,11 +79,11 @@ export function RegistryDetailHero({
   actions?: ReactNode;
 }) {
   return (
-    <Surface className="nova-detail-hero"><div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between"><div className="min-w-0"><div className="nds-label">
+    <Surface className="nova-detail-hero"><div className="flex flex-col gap-2 xl:flex-row xl:items-end xl:justify-between"><div className="min-w-0"><div className="nds-label">
             {eyebrow}
           </div>
           {badges ? <div className="mt-2 flex flex-wrap gap-2">{badges}</div> : null}
-          <h2 className="mt-2 text-[20px] font-black tracking-tight text-white">
+          <h2 className="mt-2 text-[18px] font-black text-white">
             {title}
           </h2>
           {meta ? (
@@ -111,7 +111,7 @@ export function RegistryMetricGrid({
   columnsClassName?: string;
 }) {
   return (
-    <section className={cx("grid gap-3", columnsClassName)}>
+    <section className={cx("grid gap-2", columnsClassName)}>
       {items.map((item) => (
         <div
           key={item.label}
@@ -145,7 +145,7 @@ export function RegistryInfoGrid({
   columnsClassName?: string;
 }) {
   return (
-    <div className={cx("grid gap-3", columnsClassName)}>
+    <div className={cx("grid gap-2", columnsClassName)}>
       {items.map((item) => (
         <div
           key={item.label}

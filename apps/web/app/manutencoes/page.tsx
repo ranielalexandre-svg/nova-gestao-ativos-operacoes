@@ -10,6 +10,7 @@ import {
   ActionTile,
   DenseTable,
   EmptyState,
+  FieldLabel,
   SectionIntro,
   Surface,
   TableActionCell,
@@ -39,6 +40,13 @@ import {
   type CommandCenter,
 } from "@/lib/noc-overview";
 import { apiJson } from "@/lib/server-api";
+import { formatDateTime, optionLabel } from "@/lib/formatters";
+import {
+  maintenanceStatusOptions as statusOptions,
+  maintenanceStatusTone as statusTone,
+  maintenanceTypeOptions as typeOptions,
+  maintenanceTypeTone as typeTone,
+} from "@/lib/status-ui";
 
 type PartnerOption = {
   id: string;
@@ -81,53 +89,6 @@ type MaintenanceRow = {
   occurrence: OccurrenceOption | null;
 };
 
-const typeOptions = [
-  { value: "preventive", label: "Preventiva" },
-  { value: "corrective", label: "Corretiva" },
-  { value: "inspection", label: "Inspeção" },
-];
-
-const statusOptions = [
-  { value: "planned", label: "Planejada" },
-  { value: "in_progress", label: "Em execução" },
-  { value: "done", label: "Concluída" },
-  { value: "cancelled", label: "Cancelada" },
-];
-
-function FieldLabel({
-  htmlFor,
-  label,
-}: {
-  htmlFor: string;
-  label: string;
-}) {
-  return (
-    <label htmlFor={htmlFor} className="text-[10px] uppercase tracking-[0.16em] text-slate-500">
-      {label}
-    </label>
-  );
-}
-
-function optionLabel(
-  options: Array<{ value: string; label: string }>,
-  value: string,
-) {
-  return options.find((option) => option.value === value)?.label || value || "-";
-}
-
-function typeTone(value: string) {
-  if (value === "corrective") return "attention";
-  if (value === "inspection") return "info";
-  return "success";
-}
-
-function statusTone(value: string) {
-  if (value === "done") return "success";
-  if (value === "cancelled") return "subtle";
-  if (value === "in_progress") return "info";
-  return "attention";
-}
-
 function maintenanceEntity(maintenance: MaintenanceRow) {
   if (maintenance.equipment) {
     return `${maintenance.equipment.tag} - ${maintenance.equipment.name}`;
@@ -144,17 +105,6 @@ function maintenanceEntity(maintenance: MaintenanceRow) {
   return "Sem vínculo";
 }
 
-function formatDateTime(value: string | null) {
-  if (!value) return "-";
-  return new Date(value).toLocaleString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
 function isOverdue(maintenance: MaintenanceRow) {
   if (!maintenance.scheduledAt) return false;
   if (["done", "cancelled"].includes(maintenance.status)) return false;
@@ -169,7 +119,7 @@ export default async function ManutencoesPage({
   const session = await getServerWebSession();
 
   if (!session.authenticated) {
-    redirect("/login?next=/manutencoes");
+    redirect("/login?next=/chamados");
   }
 
   const params = await resolveSearchParams(searchParams);
@@ -204,17 +154,17 @@ export default async function ManutencoesPage({
     {
       href: "/operacao/fila?view=dueSoon",
       title: "Fila com prazo e vencimento",
-      description: "Quando a manutenção já pesa no turno, a ordem de resposta continua na fila.",
+      description: "Quando o chamado já pesa no turno, a ordem de resposta continua na fila.",
       badge: <TonePill tone="attention">prazo</TonePill>,
     },
     {
-      href: "/ocorrencias",
-      title: "Ocorrências relacionadas",
+      href: "/alertas",
+      title: "Alertas relacionados",
       description: "Causa, vínculo e evento originador.",
       badge: <TonePill tone="info">incidente</TonePill>,
     },
     {
-      href: "/monitoramento?view=events",
+      href: "/sensores?view=events",
       title: "Eventos e hosts ativos",
       description: "Cruza a agenda técnica com problemas vivos do host que representa a unidade.",
       badge: <TonePill tone="attention">NOC</TonePill>,
@@ -223,21 +173,23 @@ export default async function ManutencoesPage({
 
   return (
     <AppShell
-      title="Manutenções"
-      subtitle="Agenda técnica, vínculo e status."
+      title="Chamados"
+      subtitle="Agenda técnica, SLA, vínculo e status."
     ><RegistryHero
-        eyebrow="Maintenance Desk"
-        title="Planejamento operacional"
-        description="Agenda, filtros e cadastro."
+        eyebrow="Service Desk"
+        title="Chamados operacionais"
+        description="Backlog, filtros e despacho técnico."
         actions={
           <div className="flex flex-wrap gap-2"><Link
               href="/operacao/fila?view=dueSoon"
-              className="inline-flex h-11 items-center justify-center rounded-[14px] border border-blue-400/30 bg-[#17213a] px-4 text-sm font-semibold text-white transition hover:bg-[#1b2946]"
+              className="nds-button"
+              data-variant="primary"
             >
               Abrir fila
             </Link><Link
-              href="/monitoramento?view=events"
-              className="inline-flex h-11 items-center justify-center rounded-[14px] border border-white/10 bg-white/[0.04] px-4 text-sm font-semibold text-slate-100 transition hover:bg-white/[0.08]"
+              href="/sensores?view=events"
+              className="nds-button"
+              data-variant="secondary"
             >
               Ver eventos NOC
             </Link></div>
@@ -245,7 +197,7 @@ export default async function ManutencoesPage({
       /><RegistrySummaryStrip
         items={[
           {
-            label: "Manutenções",
+            label: "Chamados",
             value: response.meta.total,
             meta: "resultado filtrado",
             tone: "info",
@@ -269,7 +221,7 @@ export default async function ManutencoesPage({
             tone: overdueOnPage ? "critical" : "success",
           },
           {
-            label: "Com ocorrência",
+            label: "Com alerta",
             value: linkedToOccurrenceOnPage,
             meta: "ligadas a incidente na página",
             tone: linkedToOccurrenceOnPage ? "attention" : "neutral",
@@ -277,30 +229,29 @@ export default async function ManutencoesPage({
         ]}
         noteTitle="Agenda primeiro"
         noteCopy="A tela prioriza a lista: o usuário entende o vínculo primeiro e só abre cadastro quando precisa registrar uma ação."
-      /><Surface className="p-5 sm:p-6"><SectionIntro
+      /><Surface><SectionIntro
           eyebrow="Filtros"
           title="Refine agenda, vínculo e status"
-          description="Busca por código, título, ocorrência, equipamento, unidade e parceiro. Os filtros continuam persistidos na URL."
+          description="Busca por código, título, alerta, ativo, unidade e parceiro. Os filtros continuam persistidos na URL."
           actions={
             <Link
-              href="/manutencoes"
-              className="rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/[0.06] hover:text-white"
+              href="/chamados"
+              className="nds-button"
+              data-variant="secondary"
             >
               Limpar filtros
             </Link>
           }
           compact
-        /><form method="GET" className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-6"><div className="grid gap-2 xl:col-span-2"><FieldLabel htmlFor="maintenance-q" label="Busca" /><input
+        /><form method="GET" className="nova-filter-grid nova-filter-grid--six mt-2"><div className="grid gap-2 xl:col-span-2"><FieldLabel htmlFor="maintenance-q" label="Busca" /><input
               id="maintenance-q"
               name="q"
               defaultValue={q}
-              placeholder="Código, título, ocorrência, unidade ou equipamento"
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
+              placeholder="Código, título, alerta, unidade ou ativo"
             /></div><div className="grid gap-2"><FieldLabel htmlFor="maintenance-type" label="Tipo" /><select
               id="maintenance-type"
               name="type"
               defaultValue={type}
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
             ><option value="all">Todos os tipos</option>
               {typeOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -311,7 +262,6 @@ export default async function ManutencoesPage({
               id="maintenance-status"
               name="status"
               defaultValue={status}
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
             ><option value="all">Todos os status</option>
               {statusOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -322,38 +272,35 @@ export default async function ManutencoesPage({
               id="maintenance-sort-by"
               name="sortBy"
               defaultValue={sortBy}
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
             ><option value="createdAt">Cadastro</option><option value="code">Código</option><option value="title">Título</option><option value="type">Tipo</option><option value="status">Status</option><option value="scheduledAt">Agendada</option></select></div><div className="grid gap-2"><FieldLabel htmlFor="maintenance-sort-dir" label="Direção" /><select
               id="maintenance-sort-dir"
               name="sortDir"
               defaultValue={sortDir}
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            ><option value="desc">Descendente</option><option value="asc">Ascendente</option></select></div><div className="grid gap-2 md:col-span-2 xl:col-span-2"><FieldLabel htmlFor="maintenance-page-size" label="Página" /><select
+            ><option value="desc">Descendente</option><option value="asc">Ascendente</option></select></div><div className="grid gap-2 md:col-span-2 xl:col-span-1"><FieldLabel htmlFor="maintenance-page-size" label="Página" /><select
               id="maintenance-page-size"
               name="pageSize"
               defaultValue={String(pageSize)}
-              className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
-            ><option value="10">10 por página</option><option value="20">20 por página</option><option value="50">50 por página</option></select></div><button className="rounded-[14px] bg-white px-4 py-3 text-sm font-semibold text-black transition hover:opacity-95 md:col-span-2 xl:col-span-4">
+            ><option value="10">10 por página</option><option value="20">20 por página</option><option value="50">50 por página</option></select></div><button className="nds-button md:col-span-2 xl:col-span-1 xl:self-end" data-variant="primary">
             Aplicar filtros
-          </button></form></Surface><div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]"><Surface className="p-5 sm:p-6"><SectionIntro
+          </button></form></Surface><div className="nova-side-grid nova-side-grid--380"><Surface><SectionIntro
             eyebrow="Agenda"
-            title="Manutenções cadastradas"
-            description={`${response.meta.total} manutenção(ões) encontradas nesta visão.`}
+            title="Chamados cadastrados"
+            description={`${response.meta.total} chamado(s) encontrados nesta visão.`}
             actions={<TonePill tone="neutral">{response.items.length} linhas</TonePill>}
             compact
-          /><div className="mt-5">
+          /><div className="mt-2">
             {response.items.length ? (
-              <TableShell><DenseTable><TableHead><tr><th className="px-4 py-3">Manutenção</th><th className="px-4 py-3">Tipo</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Vínculo</th><th className="px-4 py-3">Ocorrência</th><th className="px-4 py-3">Agenda</th><TableActionHeader /></tr></TableHead><tbody>
+              <TableShell><DenseTable><TableHead><tr><th className="px-3 py-2">Chamado</th><th className="px-3 py-2">Tipo</th><th className="px-3 py-2">Status</th><th className="px-3 py-2">Vínculo</th><th className="px-3 py-2">Alerta</th><th className="px-3 py-2">Agenda</th><TableActionHeader /></tr></TableHead><tbody>
                     {response.items.map((maintenance) => (
                       <tr
                         key={maintenance.id}
                         className="border-b border-white/6 last:border-b-0 hover:bg-white/[0.025]"
                       ><TableCell><Link
-                            href={`/manutencoes/${maintenance.id}`}
-                            className="font-medium text-white transition hover:text-sky-200"
+                            href={`/chamados/${maintenance.id}`}
+                            className="font-medium text-white transition hover:text-white"
                           >
                             {maintenance.code}
-                          </Link><div className="mt-1 max-w-[360px] truncate text-xs text-slate-500">
+                          </Link><div className="mt-1 max-w-[360px] truncate text-[10px] text-slate-500">
                             {maintenance.title}
                           </div></TableCell><TableCell><TonePill tone={typeTone(maintenance.type)}>
                             {optionLabel(typeOptions, maintenance.type)}
@@ -363,7 +310,7 @@ export default async function ManutencoesPage({
                             {maintenanceEntity(maintenance)}
                           </div>
                           {maintenance.partner ? (
-                            <div className="mt-1 max-w-[320px] truncate text-xs text-slate-500">
+                            <div className="mt-1 max-w-[320px] truncate text-[10px] text-slate-500">
                               {maintenance.partner.code} - {maintenance.partner.name}
                             </div>
                           ) : null}
@@ -371,34 +318,35 @@ export default async function ManutencoesPage({
                           {maintenance.occurrence
                             ? `${maintenance.occurrence.code} - ${maintenance.occurrence.title}`
                             : "-"}
-                        </TableCell><TableCell><div className={isOverdue(maintenance) ? "text-rose-200" : "text-slate-300"}>
+                        </TableCell><TableCell><div className={isOverdue(maintenance) ? "text-[color:var(--nova-danger)]" : "text-slate-300"}>
                             {formatDateTime(maintenance.scheduledAt)}
                           </div>
                           {maintenance.completedAt ? (
-                            <div className="mt-1 text-xs text-emerald-200">
+                            <div className="mt-1 text-[10px] text-[color:var(--nova-success)]">
                               concluída em {formatDateTime(maintenance.completedAt)}
                             </div>
                           ) : null}
-                        </TableCell><TableActionCell><TableActionLink href={`/manutencoes/${maintenance.id}`}>
+                        </TableCell><TableActionCell><TableActionLink href={`/chamados/${maintenance.id}`}>
                             Abrir
                           </TableActionLink></TableActionCell></tr>
                     ))}
                   </tbody></DenseTable></TableShell>
             ) : (
               <EmptyState
-                title="Nenhuma manutenção encontrada"
+                title="Nenhum chamado encontrado"
                 description="Ajuste os filtros ou limpe a busca para voltar à agenda completa."
                 action={
                   <Link
-                    href="/manutencoes"
-                    className="rounded-full bg-white px-4 py-2 text-sm font-medium text-black"
+                    href="/chamados"
+                    className="nds-button"
+                    data-variant="primary"
                   >
                     Limpar filtros
                   </Link>
                 }
               />
             )}
-          </div></Surface><div className="nova-page-stack nova-page-list nova-page-maintenance grid gap-5"><WorkflowStatsPanel
+          </div></Surface><div className="nova-page-stack nova-page-list nova-page-maintenance grid gap-2"><WorkflowStatsPanel
             eyebrow="Turno"
             title="Agenda"
             description="Esses números ajudam a decidir se a próxima ação é executar, reagendar, concluir ou voltar ao incidente de origem."
@@ -419,7 +367,7 @@ export default async function ManutencoesPage({
                 tone: overdueOnPage ? "critical" : "neutral",
               },
               {
-                label: "Com ocorrência",
+                label: "Com alerta",
                 value: linkedToOccurrenceOnPage,
                 tone: linkedToOccurrenceOnPage ? "attention" : "neutral",
               },
@@ -429,7 +377,7 @@ export default async function ManutencoesPage({
                 tone: commandCenter.metrics.overdueMaintenances ? "critical" : "neutral",
               },
               {
-                label: "Ocorrências abertas",
+                label: "Alertas abertos",
                 value: commandCenter.metrics.openOccurrences,
                 tone: commandCenter.metrics.openOccurrences ? "info" : "neutral",
               },
@@ -437,23 +385,23 @@ export default async function ManutencoesPage({
           /><ConnectedRoutesPanel
             eyebrow="Histórico"
             title="Rotas que completam a agenda"
-            description="A manutenção quase sempre conversa com fila, ocorrência e host da unidade. Essas rotas continuam o trabalho sem dispersão."
+            description="O chamado quase sempre conversa com fila, alerta e host da unidade. Essas rotas continuam o trabalho sem dispersão."
             routes={connectedRoutes}
-          /><Surface className="p-5 sm:p-6"><SectionIntro
+          /><Surface><SectionIntro
               eyebrow="Foco"
               title="Critérios"
-              description="Abra o detalhe quando a manutenção já exigir histórico, evidência, relação com ocorrência ou conferência da janela técnica."
+              description="Abra o detalhe quando o chamado já exigir histórico, evidência, relação com alerta ou conferência da janela técnica."
               compact
-            /><div className="mt-4 grid gap-3"><ActionTile
+            /><div className="mt-2 grid gap-2"><ActionTile
                 href="/operacao/fila?view=dueSoon"
                 title="Priorizar vencimento e prazo"
-                description="Se a manutenção já encostou em prazo, a ordem de execução precisa sair da fila."
+                description="Se o chamado já encostou em prazo, a ordem de execução precisa sair da fila."
                 badge={<TonePill tone="attention">{commandCenter.metrics.dueTodayMaintenances} hoje</TonePill>}
               /><ActionTile
-                href="/ocorrencias"
+                href="/alertas"
                 title="Reabrir contexto do incidente"
                 description="Causa, vínculo e impacto."
                 badge={<TonePill tone="info">incidente</TonePill>}
-              /></div></Surface></div></div><ListPagination pathname="/manutencoes" searchParams={params} meta={response.meta} /></AppShell>
+              /></div></Surface></div></div><ListPagination pathname="/chamados" searchParams={params} meta={response.meta} /></AppShell>
   );
 }

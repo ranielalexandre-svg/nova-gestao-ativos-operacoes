@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ComponentPropsWithoutRef, ReactNode, TdHTMLAttributes, ThHTMLAttributes } from "react";
+import type { NovaLayoutVariant } from "@/lib/nova-layout";
 
-export type NovaLayoutVariant = "layoutA" | "layoutB" | "layoutC" | "layoutD" | "layoutE" | "layoutF" | "layoutG";
 export type NovaTone = "neutral" | "primary" | "success" | "attention" | "warning" | "critical" | "danger" | "info" | "subtle" | "violet";
 
 function cx(...parts: Array<string | false | null | undefined>) {
@@ -56,7 +56,7 @@ export function NovaButton({
 }: {
   asChild?: boolean;
   href?: string;
-  variant?: "primary" | "secondary" | "ghost";
+  variant?: "primary" | "secondary" | "ghost" | "danger";
   className?: string;
   children: ReactNode;
 } & ComponentPropsWithoutRef<"button">) {
@@ -114,13 +114,13 @@ export function NovaPanel({
       {title || actions ? (
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            {title ? <h2 className="text-[13px] font-black tracking-[-0.02em] text-white">{title}</h2> : null}
+            {title ? <h2 className="text-[13px] font-black text-white">{title}</h2> : null}
             {description ? <p className="mt-1 text-[11px] leading-5 text-[var(--nova-text-muted)]">{description}</p> : null}
           </div>
           {actions ? <div className="shrink-0">{actions}</div> : null}
         </div>
       ) : null}
-      <div className={title || actions ? "mt-3 grid gap-2" : "grid gap-2"}>{children}</div>
+      <div className={title || actions ? "mt-2 grid gap-2" : "grid gap-2"}>{children}</div>
     </aside>
   );
 }
@@ -207,7 +207,7 @@ export function NovaProgress({ value, className = "" }: { value: number; classNa
 export function NovaFilterBar({ children, actions, className = "" }: { children: ReactNode; actions?: ReactNode; className?: string }) {
   return (
     <div className={cx("nds-filter-bar", className)}>
-      <div className="grid gap-2 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+      <div className="nova-filter-toolbar">
         <div className="nds-filter-grid">{children}</div>
         {actions ? <div className="flex flex-wrap justify-end gap-2">{actions}</div> : null}
       </div>
@@ -240,7 +240,7 @@ export function NovaTableActionCell({ children, className = "", ...props }: { ch
 }
 
 export function NovaTableActionLink({ className = "", ...props }: ComponentPropsWithoutRef<typeof Link>) {
-  return <Link className={cx("nds-button", className)} data-variant="secondary" {...props} />;
+  return <Link className={cx("nds-button nova-table-action", className)} data-variant="secondary" {...props} />;
 }
 
 export function NovaChartCard({
@@ -304,11 +304,11 @@ export function NovaReportPreview({ title, format, includeCharts, units }: { tit
         </div>
         <NovaBadge tone="primary">{format}</NovaBadge>
       </div>
-      <div className="nds-report-preview-page mt-3">
+      <div className="nds-report-preview-page mt-2">
         <div className="h-3 rounded-sm bg-[var(--nova-primary)]" />
-        <div className="mt-4 h-2 w-2/3 rounded-sm bg-slate-300" />
-        <div className="mt-2 h-2 w-full rounded-sm bg-slate-200" />
-        {includeCharts ? <div className="mt-4 h-20 rounded-sm border border-slate-200 bg-white"><NovaFakeChart tone="primary" /></div> : null}
+        <div className="mt-2 h-2 w-2/3 rounded-sm bg-white/[0.16]" />
+        <div className="mt-2 h-2 w-full rounded-sm bg-white/[0.10]" />
+        {includeCharts ? <div className="mt-2 h-20 rounded-sm border border-white/[0.08] bg-black/20"><NovaFakeChart tone="primary" /></div> : null}
       </div>
       <div className="mt-2 flex items-center justify-between text-[10px] text-[var(--nova-text-muted)]">
         <span>{units} unidade(s)</span>
@@ -339,22 +339,20 @@ export function NovaEmptyState({ title, description, action }: { title: string; 
     <div className="nds-empty">
       <div className="text-[13px] font-black text-white">{title}</div>
       <div className="mt-2 text-[11px] leading-5 text-[var(--nova-text-muted)]">{description}</div>
-      {action ? <div className="mt-3">{action}</div> : null}
+      {action ? <div className="mt-2">{action}</div> : null}
     </div>
   );
 }
 
 export function NovaTabs({ tabs }: { tabs: Array<{ href: string; label: string; active?: boolean; count?: number | string }> }) {
   return (
-    <div className="nds-surface p-2">
-      <div className="grid gap-2 md:grid-cols-3 xl:grid-cols-5">
-        {tabs.map((tab) => (
-          <Link key={tab.href} href={tab.href} className={cx("nds-button justify-between", tab.active && "border-[var(--nova-primary)] bg-[var(--nova-primary-soft)] text-white")} data-variant="secondary">
-            <span>{tab.label}</span>
-            {typeof tab.count !== "undefined" ? <NovaBadge tone={tab.active ? "primary" : "neutral"}>{tab.count}</NovaBadge> : null}
-          </Link>
-        ))}
-      </div>
+    <div className="nds-tabs">
+      {tabs.map((tab) => (
+        <Link key={tab.href} href={tab.href} className="nds-tab" data-active={tab.active ? "true" : "false"}>
+          <span>{tab.label}</span>
+          {typeof tab.count !== "undefined" ? <NovaBadge tone={tab.active ? "primary" : "neutral"}>{tab.count}</NovaBadge> : null}
+        </Link>
+      ))}
     </div>
   );
 }

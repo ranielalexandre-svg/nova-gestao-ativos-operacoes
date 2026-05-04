@@ -1,4 +1,5 @@
 import { IsBoolean, IsIn, IsOptional, IsString, MinLength } from "class-validator";
+import { USER_ROLES } from "../user-roles";
 
 export class UpdateUserDto {
   @IsOptional()
@@ -8,7 +9,7 @@ export class UpdateUserDto {
 
   @IsOptional()
   @IsString()
-  @IsIn(["admin", "operator", "viewer"])
+  @IsIn(USER_ROLES)
   role?: string;
 
   @IsOptional()

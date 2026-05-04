@@ -40,6 +40,16 @@ import {
   safeApiJson,
   type CommandCenter,
 } from "@/lib/noc-overview";
+import { formatDateTime } from "@/lib/formatters";
+import {
+  exceptionQueueLabel as queueLabel,
+  exceptionStatusLabel as statusLabel,
+  exceptionStatusTone as statusTone,
+  exceptionTriageLabel as triageLabel,
+  exceptionTriageTone as triageTone,
+  occurrenceSeverityLabel as severityLabel,
+  occurrenceSeverityTone as severityTone,
+} from "@/lib/status-ui";
 import { getServerWebSession, normalizeRole } from "@/lib/web-session";
 
 type QueueSummary = {
@@ -88,79 +98,14 @@ type ExceptionRow = {
   _count: { comments: number; activities: number };
 };
 
-function queueLabel(value: string) {
-  const map: Record<string, string> = {
-    "ops-general": "Geral",
-    "ops-integracoes": "Integrações",
-    "ops-ocorrencias": "Ocorrências",
-    "ops-manutencao": "Manutenção",
-    "ops-sla": "SLA",
-    "ops-automacoes": "Automações",
-  };
-  return map[value] || value;
-}
-
-function severityTone(value: string) {
-  if (value === "critical") return "critical";
-  if (value === "high") return "attention";
-  if (value === "medium") return "info";
-  return "neutral";
-}
-
-function severityLabel(value: string) {
-  const map: Record<string, string> = {
-    low: "Baixa",
-    medium: "Média",
-    high: "Alta",
-    critical: "Crítica",
-  };
-  return map[value] || value;
-}
-
-function statusLabel(value: string) {
-  const map: Record<string, string> = {
-    open: "Aberta",
-    acknowledged: "Reconhecida",
-    silenced: "Silenciada",
-    resolved: "Resolvida",
-  };
-  return map[value] || value;
-}
-
-function triageLabel(value: string) {
-  const map: Record<string, string> = {
-    pending: "Pendente",
-    triaged: "Triada",
-    closed: "Fechada",
-  };
-  return map[value] || value;
-}
-
-function statusTone(value: string) {
-  if (value === "resolved") return "success";
-  if (value === "acknowledged") return "info";
-  if (value === "silenced") return "violet";
-  return "attention";
-}
-
-function triageTone(value: string) {
-  if (value === "closed") return "success";
-  if (value === "triaged") return "info";
-  return "attention";
-}
-
 function linkLabel(item: ExceptionRow) {
   if (item.integration) return `Integração ${item.integration.code}`;
-  if (item.occurrence) return `Ocorrência ${item.occurrence.code}`;
-  if (item.maintenance) return `Manutenção ${item.maintenance.code}`;
-  if (item.equipment) return `Equipamento ${item.equipment.tag}`;
+  if (item.occurrence) return `Alerta ${item.occurrence.code}`;
+  if (item.maintenance) return `Chamado ${item.maintenance.code}`;
+  if (item.equipment) return `Ativo ${item.equipment.tag}`;
   if (item.unit) return `Unidade ${item.unit.code}`;
   if (item.partner) return `Parceiro ${item.partner.code}`;
   return "Sem vínculo";
-}
-
-function formatDate(value: string | null) {
-  return value ? new Date(value).toLocaleString("pt-BR") : "—";
 }
 
 function viewFilter(view: string) {
@@ -174,14 +119,14 @@ function viewFilter(view: string) {
 function FilaTable({ items, admin }: { items: ExceptionRow[]; admin: boolean }) {
   return (
     <TableShell><DenseTable><TableHead><tr>
-            {admin ? <th className="px-4 py-3">Sel.</th> : null}
-            <th className="px-4 py-3">Caso</th><th className="px-4 py-3">Fila</th><th className="px-4 py-3">Sev.</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Triagem</th><th className="px-4 py-3">SLA</th><th className="px-4 py-3">Responsável</th><th className="px-4 py-3">Atualizado</th></tr></TableHead><tbody>
+            {admin ? <th className="px-3 py-2">Sel.</th> : null}
+            <th className="px-3 py-2">Caso</th><th className="px-3 py-2">Fila</th><th className="px-3 py-2">Sev.</th><th className="px-3 py-2">Status</th><th className="px-3 py-2">Triagem</th><th className="px-3 py-2">SLA</th><th className="px-3 py-2">Responsável</th><th className="px-3 py-2">Atualizado</th></tr></TableHead><tbody>
           {items.map((item) => (
             <tr key={item.id} className="border-b border-white/6 align-top last:border-b-0 hover:bg-white/[0.02]">
               {admin ? (
                 <TableCell><input type="checkbox" name="ids" value={item.id} className="mt-1 h-4 w-4 rounded border-white/12 bg-transparent" /></TableCell>
               ) : null}
-              <TableCell><Link href={`/operacao/excecoes/${item.id}`} className="font-medium text-white transition hover:text-sky-100">{item.code} · {item.title}</Link><div className="mt-1 text-xs leading-5 text-slate-500">{linkLabel(item)} · prioridade {item.priorityScore}</div><div className="mt-1 text-xs text-slate-500">{item._count.comments} comentários · {item._count.activities} atividades</div></TableCell><TableCell className="text-slate-300"><div>{queueLabel(item.queueKey)}</div><div className="mt-1 text-xs text-slate-500">{item.source}</div></TableCell><TableCell><TonePill tone={severityTone(item.severity)}>{severityLabel(item.severity)}</TonePill></TableCell><TableCell><TonePill tone={statusTone(item.status)}>{statusLabel(item.status)}</TonePill></TableCell><TableCell><TonePill tone={triageTone(item.triageStatus)}>{triageLabel(item.triageStatus)}</TonePill></TableCell><TableCell className="text-slate-300"><div>{item.breachedAt ? <span className="text-rose-200">estourado</span> : <span className="text-emerald-200">no prazo</span>}</div><div className="mt-1 text-xs text-slate-500">{formatDate(item.resolveDueAt)}</div></TableCell><TableCell className="text-slate-300">{item.assignee ? item.assignee.name : "—"}</TableCell><TableCell className="text-slate-400">{formatDate(item.updatedAt)}</TableCell></tr>
+              <TableCell><Link href={`/excecoes/${item.id}`} className="font-medium text-white transition hover:text-white">{item.code} · {item.title}</Link><div className="mt-1 text-[10px] leading-5 text-slate-500">{linkLabel(item)} · prioridade {item.priorityScore}</div><div className="mt-1 text-[10px] text-slate-500">{item._count.comments} comentários · {item._count.activities} atividades</div></TableCell><TableCell className="text-slate-300"><div>{queueLabel(item.queueKey)}</div><div className="mt-1 text-[10px] text-slate-500">{item.source}</div></TableCell><TableCell><TonePill tone={severityTone(item.severity)}>{severityLabel(item.severity)}</TonePill></TableCell><TableCell><TonePill tone={statusTone(item.status)}>{statusLabel(item.status)}</TonePill></TableCell><TableCell><TonePill tone={triageTone(item.triageStatus)}>{triageLabel(item.triageStatus)}</TonePill></TableCell><TableCell className="text-slate-300"><div>{item.breachedAt ? <span className="text-[color:var(--nova-danger)]">estourado</span> : <span className="text-[color:var(--nova-success)]">no prazo</span>}</div><div className="mt-1 text-[10px] text-slate-500">{formatDateTime(item.resolveDueAt, "—")}</div></TableCell><TableCell className="text-slate-300">{item.assignee ? item.assignee.name : "—"}</TableCell><TableCell className="text-slate-400">{formatDateTime(item.updatedAt, "—")}</TableCell></tr>
           ))}
         </tbody></DenseTable></TableShell>
   );
@@ -231,7 +176,7 @@ export default async function FilaOperacionalPage({
       });
 
       revalidatePath("/operacao/fila");
-      revalidatePath("/operacao/excecoes");
+      revalidatePath("/excecoes");
       revalidatePath("/operacao");
       revalidatePath("/operacao/atividade");
       return { status: "success", message: `Ação ${action} aplicada em ${ids.length} item(ns).` };
@@ -275,19 +220,19 @@ export default async function FilaOperacionalPage({
   const linkedToMaintenanceOnPage = response.items.filter((item) => Boolean(item.maintenance)).length;
   const connectedRoutes = [
     {
-      href: "/ocorrencias",
-      title: "Ocorrências",
+      href: "/alertas",
+      title: "Alertas",
       description: "Volte para incidentes quando o item da fila já depende do caso operacional formalizado.",
       badge: <TonePill tone="info">incidente</TonePill>,
     },
     {
-      href: "/manutencoes",
+      href: "/chamados",
       title: "Agenda técnica",
-      description: "Quando a próxima ação já é execução, reagendamento ou conclusão em campo, siga para manutenções.",
+      description: "Quando a próxima ação já é execução, reagendamento ou conclusão em campo, siga para chamados.",
       badge: <TonePill tone="success">agenda</TonePill>,
     },
     {
-      href: "/monitoramento",
+      href: "/sensores",
       title: "Hosts e eventos",
       description: "Use a leitura dos hosts das unidades para reduzir dúvida antes de atribuir, silenciar ou escalar.",
       badge: <TonePill tone="attention">NOC</TonePill>,
@@ -302,12 +247,14 @@ export default async function FilaOperacionalPage({
         actions={
           <div className="flex flex-wrap gap-2"><Link
               href="/operacao/fila"
-              className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm text-white"
+              className="nds-button"
+              data-variant="secondary"
             >
               Resetar filtros
             </Link><Link
-              href="/monitoramento"
-              className="rounded-full border border-blue-400/30 bg-[#17213a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1b2946]"
+              href="/sensores"
+              className="nds-button"
+              data-variant="primary"
             >
               Abrir monitoramento
             </Link></div>
@@ -346,13 +293,13 @@ export default async function FilaOperacionalPage({
           },
         ]}
         noteTitle="Fila primeiro"
-        noteCopy="O turno se orienta daqui. Ocorrências, manutenções e monitoramento entram como continuidade de trabalho, não como competição pela tela."
-      /><Surface className="p-5"><SectionIntro
+        noteCopy="O turno se orienta daqui. Alertas, chamados e monitoramento entram como continuidade de trabalho, não como competição pela tela."
+      /><Surface><SectionIntro
           eyebrow="Visões"
           title="Recortes que mudam a ordem do turno"
           description="Use essas visões quando quiser trocar de foco sem refazer toda a busca."
           compact
-        /><div className="mt-4 flex flex-wrap gap-2">
+        /><div className="mt-2 flex flex-wrap gap-2">
           {views.map((item) => (
             <FilterChip
               key={item.key}
@@ -362,7 +309,7 @@ export default async function FilaOperacionalPage({
               count={item.total}
             />
           ))}
-        </div><div className="mt-3 flex flex-wrap gap-2">
+        </div><div className="mt-2 flex flex-wrap gap-2">
           {summary.queues.map((item) => (
             <FilterChip
               key={item.queueKey}
@@ -372,23 +319,23 @@ export default async function FilaOperacionalPage({
               count={item.total}
             />
           ))}
-        </div></Surface><Surface className="p-5"><SectionIntro eyebrow="Filtro" title="Busca e recorte" description="O filtro muda a grade principal sem tirar a operação do trilho." compact /><form method="GET" className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-[minmax(0,1.6fr)_repeat(4,minmax(0,170px))_136px]"><input name="q" defaultValue={q} placeholder="Buscar por código, título, vínculo ou responsável" className="rounded-[12px] border border-white/10 bg-[#0b0f14] px-4 py-3 text-white outline-none" /><select name="queueKey" defaultValue={queueKey} className="rounded-[12px] border border-white/10 bg-[#0b0f14] px-4 py-3 text-white outline-none"><option value="">Todas as filas</option>
+        </div></Surface><Surface><SectionIntro eyebrow="Filtro" title="Busca e recorte" description="O filtro muda a grade principal sem tirar a operação do trilho." compact /><form method="GET" className="nova-filter-grid nova-filter-grid--queue mt-2"><input name="q" defaultValue={q} placeholder="Buscar por código, título, vínculo ou responsável" /><select name="queueKey" defaultValue={queueKey}><option value="">Todas as filas</option>
             {summary.queues.map((item) =><option key={item.queueKey} value={item.queueKey}>{queueLabel(item.queueKey)}</option>)}
-          </select><select name="severity" defaultValue={severity} className="rounded-[12px] border border-white/10 bg-[#0b0f14] px-4 py-3 text-white outline-none"><option value="all">Todas severidades</option><option value="low">Baixa</option><option value="medium">Média</option><option value="high">Alta</option><option value="critical">Crítica</option></select><select name="status" defaultValue={status} className="rounded-[12px] border border-white/10 bg-[#0b0f14] px-4 py-3 text-white outline-none"><option value="all">Todos status</option><option value="open">Aberta</option><option value="acknowledged">Reconhecida</option><option value="silenced">Silenciada</option><option value="resolved">Resolvida</option></select><select name="triageStatus" defaultValue={triageStatus} className="rounded-[12px] border border-white/10 bg-[#0b0f14] px-4 py-3 text-white outline-none"><option value="all">Toda triagem</option><option value="pending">Pendente</option><option value="triaged">Triada</option><option value="closed">Fechada</option></select><input type="hidden" name="view" value={view} /><button className="rounded-[12px] bg-white px-4 py-3 text-sm font-medium text-black">Aplicar</button></form></Surface><div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]"><div className="grid gap-5">
+          </select><select name="severity" defaultValue={severity}><option value="all">Todas severidades</option><option value="low">Baixa</option><option value="medium">Média</option><option value="high">Alta</option><option value="critical">Crítica</option></select><select name="status" defaultValue={status}><option value="all">Todos status</option><option value="open">Aberta</option><option value="acknowledged">Reconhecida</option><option value="silenced">Silenciada</option><option value="resolved">Resolvida</option></select><select name="triageStatus" defaultValue={triageStatus}><option value="all">Toda triagem</option><option value="pending">Pendente</option><option value="triaged">Triada</option><option value="closed">Fechada</option></select><input type="hidden" name="view" value={view} /><button className="nds-button" data-variant="primary">Aplicar</button></form></Surface><div className="nova-side-grid nova-side-grid--380"><div className="grid gap-2">
           {isAdmin ? (
-            <Surface className="p-5"><SectionIntro eyebrow="Despacho" title="Ação em lote" description="Reconhecer, atribuir, silenciar ou resolver." compact /><ActionForm action={bulkApply} className="mt-4 grid gap-4" submitLabel="Aplicar em selecionados" pendingLabel="Aplicando..."><div className="grid gap-3 xl:grid-cols-[220px_220px_minmax(0,1fr)]"><select name="action" defaultValue="ack" className="rounded-[12px] border border-white/10 bg-[#0b0f14] px-4 py-3 text-white outline-none"><option value="ack">Reconhecer</option><option value="resolve">Resolver</option><option value="reopen">Reabrir</option><option value="silence_1h">Silenciar 1h</option><option value="assign">Atribuir</option><option value="unassign">Remover responsável</option></select><select name="assigneeUserId" defaultValue="" className="rounded-[12px] border border-white/10 bg-[#0b0f14] px-4 py-3 text-white outline-none"><option value="">Escolha o responsável</option>
+            <Surface><SectionIntro eyebrow="Despacho" title="Ação em lote" description="Reconhecer, atribuir, silenciar ou resolver." compact /><ActionForm action={bulkApply} className="mt-2 grid gap-2" submitLabel="Aplicar em selecionados" pendingLabel="Aplicando..."><div className="nova-bulk-action-grid"><select name="action" defaultValue="ack"><option value="ack">Reconhecer</option><option value="resolve">Resolver</option><option value="reopen">Reabrir</option><option value="silence_1h">Silenciar 1h</option><option value="assign">Atribuir</option><option value="unassign">Remover responsável</option></select><select name="assigneeUserId" defaultValue=""><option value="">Escolha o responsável</option>
                     {usersResponse.items.map((user) =><option key={user.id} value={user.id}>{user.name} · {user.email}</option>)}
-                  </select><div className="flex items-center text-sm text-slate-400">A leitura principal continua na grade. Essa barra só encurta o despacho quando ele já está claro.</div></div>
+                  </select><div className="flex items-center text-[11px] leading-5 text-slate-400">A leitura principal continua na grade. Essa barra só encurta o despacho quando ele já está claro.</div></div>
                 {response.items.length ? <FilaTable items={response.items} admin /> : null}
               </ActionForm></Surface>
           ) : null}
 
           {!isAdmin && response.items.length ? (
-            <Surface className="p-5"><SectionIntro eyebrow="Grade" title="Casos da fila" description="Triagem, responsável e prazo." compact /><div className="mt-4"><FilaTable items={response.items} admin={false} /></div></Surface>
+            <Surface><SectionIntro eyebrow="Grade" title="Casos da fila" description="Triagem, responsável e prazo." compact /><div className="mt-2"><FilaTable items={response.items} admin={false} /></div></Surface>
           ) : null}
 
           {!response.items.length ? <EmptyState title="Nenhum item encontrado" description="A combinação atual de filtros não retornou casos. Ajuste o recorte da fila para seguir." /> : null}
-        </div><div className="grid gap-5"><WorkflowStatsPanel
+        </div><div className="grid gap-2"><WorkflowStatsPanel
             eyebrow="Turno"
             title="Sinais rápidos do backlog"
             description="Esses números ajudam a saber se a próxima ação é triagem, atribuição, correção técnica ou ida ao monitoramento."
@@ -404,17 +351,17 @@ export default async function FilaOperacionalPage({
                 tone: unassignedOnPage ? "attention" : "neutral",
               },
               {
-                label: "Com ocorrência",
+                label: "Com alerta",
                 value: linkedToOccurrenceOnPage,
                 tone: linkedToOccurrenceOnPage ? "info" : "neutral",
               },
               {
-                label: "Com manutenção",
+                label: "Com chamado",
                 value: linkedToMaintenanceOnPage,
                 tone: linkedToMaintenanceOnPage ? "success" : "neutral",
               },
               {
-                label: "Ocorrências abertas",
+                label: "Alertas abertos",
                 value: commandCenter.metrics.openOccurrences,
                 tone: commandCenter.metrics.openOccurrences ? "attention" : "neutral",
               },

@@ -5,6 +5,7 @@ import { ActionForm } from "@/components/action-form";
 import { AppShell } from "@/components/app-shell";
 import {
   EmptyState,
+  FieldLabel,
   SectionIntro,
   Surface,
   TonePill,
@@ -65,15 +66,15 @@ const RESOURCES: Array<{
   },
   {
     key: "equipments",
-    label: "Equipamentos",
+    label: "Ativos",
     description: "Ativos técnicos vinculados a unidades.",
-    target: "/equipamentos",
+    target: "/ativos",
   },
   {
     key: "starlinks",
     label: "Starlinks",
     description: "Kits satelitais tratados como recorte dedicado.",
-    target: "/equipamentos/starlinks",
+    target: "/ativos/starlinks",
   },
 ];
 
@@ -115,7 +116,7 @@ async function importCsvAction(
         body: JSON.stringify({ csv }),
       });
 
-      revalidatePath("/operacao/importacao");
+      revalidatePath("/importacao");
       revalidatePath(RESOURCES.find((item) => item.key === resource)?.target || "/dashboard");
 
       return {
@@ -150,7 +151,7 @@ export default async function ImportacaoPage({
   const session = await getServerWebSession();
 
   if (!session.authenticated) {
-    redirect("/login?next=/operacao/importacao");
+    redirect("/login?next=/importacao");
   }
 
   if (normalizeRole(session.user?.role || "") !== "admin") {
@@ -172,6 +173,8 @@ export default async function ImportacaoPage({
   );
 
   const selectedTemplate = templates.find((template) => template.resource === selected)?.csv || "";
+  const activeIndex = selectedTemplate ? 1 : 0;
+  const templateHeaders = selectedTemplate.split(/\r?\n/)[0]?.split(",").filter(Boolean).length || 0;
 
   return (
     <AppShell
@@ -190,7 +193,34 @@ export default async function ImportacaoPage({
         }))}
         noteTitle="Regra de segurança"
         noteCopy="A validação não altera dados. A importação executa upsert por código/tag e deve ser usada após backup ou conferência do CSV."
-      /><section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]"><Surface className="p-5 sm:p-6"><SectionIntro
+      /><section className="nova-side-grid nova-side-grid--380"><div className="grid gap-2"><Surface>
+            <SectionIntro
+              eyebrow="Fluxo"
+              title="Carga assistida"
+              description="Stepper visual da importação: template, validação e execução controlada."
+              compact
+            />
+            <div className="nova-import-stepper mt-2">
+              {[
+                { title: "Template", detail: `${templateHeaders} coluna(s)` },
+                { title: "Validação", detail: "preview sem gravar" },
+                { title: "Importação", detail: "upsert auditável" },
+              ].map((step, index) => (
+                <div key={step.title} className="nova-import-step" data-active={index === activeIndex ? "true" : "false"} data-complete={index < activeIndex ? "true" : "false"}>
+                  <span>{index + 1}</span>
+                  <div className="min-w-0">
+                    <div className="text-[12px] font-black text-white">{step.title}</div>
+                    <div className="mt-1 truncate text-[10px] text-[var(--nova-text-muted)]">{step.detail}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="nova-import-dropzone mt-2">
+              <div className="text-[22px] font-black text-[var(--nova-primary)]">↑</div>
+              <div className="mt-2 text-[12px] font-black text-white">Arraste o arquivo CSV aqui</div>
+              <div className="mt-1 text-[10px] text-[var(--nova-text-muted)]">O campo abaixo continua sendo a entrada funcional enquanto o upload direto não existir.</div>
+            </div>
+          </Surface><Surface><SectionIntro
             eyebrow="CSV"
             title="Validar ou importar"
             description="Cole o conteúdo CSV usando o template do recurso. O botão validar mostra a saúde estrutural; importar grava no banco."
@@ -200,70 +230,89 @@ export default async function ImportacaoPage({
             submitLabel="Processar"
             pendingLabel="Processando..."
             hideSubmit
-            className="mt-5"
-          ><div className="grid gap-4"><div className="grid gap-2 md:grid-cols-[240px_minmax(0,1fr)] md:items-end"><label className="grid gap-2 text-sm font-semibold text-slate-200">
-                  Recurso
+            className="mt-2"
+          ><div className="grid gap-2"><div className="nova-resource-row"><label className="grid gap-2">
+                  <FieldLabel>Recurso</FieldLabel>
                   <select
                     name="resource"
                     defaultValue={selected}
-                    className="rounded-[14px] border border-white/10 bg-[#111318] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400/40"
                   >
                     {RESOURCES.map((resource) => (
                       <option key={resource.key} value={resource.key}>
                         {resource.label}
                       </option>
                     ))}
-                  </select></label><div className="text-sm leading-6 text-slate-400">
+                  </select></label><div className="text-[11px] leading-5 text-slate-400">
                   Trocar o recurso aqui não troca o template automaticamente no campo. Use o painel lateral para copiar o template certo.
-                </div></div><label className="grid gap-2 text-sm font-semibold text-slate-200">
-                CSV
+                </div></div><label className="grid gap-2">
+                <FieldLabel>CSV</FieldLabel>
                 <textarea
                   name="csv"
                   defaultValue={selectedTemplate}
                   rows={12}
-                  className="min-h-[260px] rounded-[14px] border border-white/10 bg-[#080d13] px-4 py-3 font-mono text-xs leading-6 text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-sky-400/40"
+                  className="min-h-[160px] font-mono"
                 /></label><div className="flex flex-wrap justify-end gap-2"><button
                   type="submit"
                   name="actionType"
                   value="preview"
-                  className="rounded-[14px] border border-white/10 bg-white/[0.05] px-4 py-2.5 text-sm font-semibold text-slate-100 transition hover:bg-white/[0.09]"
+                  className="nds-button"
+                  data-variant="secondary"
                 >
                   Validar CSV
                 </button><button
                   type="submit"
                   name="actionType"
                   value="execute"
-                  className="rounded-[14px] border border-sky-500/28 bg-sky-500/14 px-4 py-2.5 text-sm font-semibold text-sky-50 transition hover:bg-sky-500/18"
+                  className="nds-button"
+                  data-variant="primary"
                 >
                   Importar agora
-                </button></div></div></ActionForm></Surface><div className="grid gap-5"><Surface className="p-5 sm:p-6"><SectionIntro
+                </button></div></div></ActionForm></Surface></div><div className="grid gap-2"><Surface><SectionIntro
+              eyebrow="Validação"
+              title="Resumo esperado"
+              description="Conferência rápida antes de rodar o preview."
+              compact
+            /><div className="mt-2 grid gap-2">
+              <div className="nds-card flex items-center justify-between gap-2">
+                <span className="text-[11px] text-[var(--nova-text-muted)]">Recurso</span>
+                <TonePill tone="info">{resourceLabel(selected)}</TonePill>
+              </div>
+              <div className="nds-card flex items-center justify-between gap-2">
+                <span className="text-[11px] text-[var(--nova-text-muted)]">Colunas do template</span>
+                <TonePill tone={templateHeaders ? "success" : "attention"}>{templateHeaders}</TonePill>
+              </div>
+              <div className="nds-card flex items-center justify-between gap-2">
+                <span className="text-[11px] text-[var(--nova-text-muted)]">Modo seguro</span>
+                <TonePill tone="success">preview primeiro</TonePill>
+              </div>
+            </div></Surface><Surface><SectionIntro
               eyebrow="Templates"
               title="Modelos aceitos"
               description="Copie o cabeçalho e preencha as linhas abaixo dele."
               compact
-            /><div className="mt-4 grid gap-3">
+            /><div className="mt-2 grid gap-2">
               {templates.map((template) => (
                 <details
                   key={template.resource}
                   open={template.resource === selected}
-                  className="rounded-[14px] border border-white/[0.08] bg-[#0a0f15] p-4"
-                ><summary className="cursor-pointer text-sm font-semibold text-slate-50">
+                  className="nds-card"
+                ><summary className="cursor-pointer text-[12px] font-semibold text-slate-50">
                     {resourceLabel(template.resource)}
-                  </summary><pre className="mt-3 overflow-x-auto rounded-[12px] border border-white/10 bg-black/20 p-3 text-xs leading-5 text-slate-300">
+                  </summary><pre className="mt-2 overflow-x-auto rounded-[6px] border border-white/10 bg-black/20 p-2 text-[10px] leading-5 text-slate-300">
                     {template.csv || "Template indisponível"}
                   </pre></details>
               ))}
-            </div></Surface><Surface className="p-5 sm:p-6"><SectionIntro
+            </div></Surface><Surface><SectionIntro
               eyebrow="Exportação"
               title="Baixar bases atuais"
               description="Use estes arquivos para comparar antes e depois da importação."
               compact
-            /><div className="mt-4 grid gap-2">
+            /><div className="mt-2 grid gap-2">
               {RESOURCES.map((resource) => (
                 <Link
                   key={resource.key}
                   href={`/export/${resource.key}`}
-                  className="flex items-center justify-between gap-3 rounded-[14px] border border-white/[0.08] bg-[#0a0f15] px-4 py-3 text-sm text-slate-200 transition hover:border-white/14 hover:bg-[#10161d]"
+                  className="nds-card flex items-center justify-between gap-2 text-[11px] text-slate-200 transition"
                 ><span>{resource.label}</span><TonePill tone="neutral">CSV</TonePill></Link>
               ))}
             </div></Surface><EmptyState

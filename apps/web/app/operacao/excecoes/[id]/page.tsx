@@ -6,6 +6,12 @@ import { ActionForm } from "@/components/action-form";
 import { EmptyState, FieldLabel, InlineStat, SectionIntro, Surface, TonePill } from "@/components/ops-ui";
 import { apiJson } from "@/lib/server-api";
 import { getActionErrorMessage, type ActionFeedbackState } from "@/lib/action-state";
+import { formatDateTime } from "@/lib/formatters";
+import {
+  exceptionLabel,
+  exceptionQueueLabel as queueLabel,
+  exceptionTone as tone,
+} from "@/lib/status-ui";
 import { getServerWebSession, normalizeRole } from "@/lib/web-session";
 
 type UserOption = { id: string; name: string; email: string; role: string; isActive: boolean };
@@ -56,35 +62,9 @@ type ExceptionDetail = {
   }>;
 };
 
-function queueLabel(value: string) {
-  const map: Record<string, string> = {
-    "ops-general": "Geral",
-    "ops-integracoes": "Integrações",
-    "ops-ocorrencias": "Ocorrências",
-    "ops-manutencao": "Manutenção",
-    "ops-sla": "SLA",
-    "ops-automacoes": "Automações",
-  };
-  return map[value] || value;
-}
-
-function tone(value: string) {
-  if (value === "critical") return "critical";
-  if (value === "high") return "attention";
-  if (value === "medium") return "info";
-  if (value === "resolved" || value === "closed") return "success";
-  if (value === "acknowledged" || value === "triaged") return "info";
-  if (value === "silenced") return "violet";
-  return "attention";
-}
-
-function formatDate(value: string | null) {
-  return value ? new Date(value).toLocaleString("pt-BR") : "—";
-}
-
 export default async function ExceptionDetailPage({ params }: { params: Promise<{ id: string }> | { id: string } }) {
   const session = await getServerWebSession();
-  if (!session.authenticated) redirect("/login?next=/operacao/excecoes");
+  if (!session.authenticated) redirect("/login?next=/excecoes");
 
   const resolvedParams = await params;
   const id = resolvedParams.id;
@@ -110,8 +90,8 @@ export default async function ExceptionDetailPage({ params }: { params: Promise<
       body.assigneeUserId = assigneeUserId || null;
 
       await apiJson(`/exceptions/${id}`, { method: "PATCH", body: JSON.stringify(body) });
-      revalidatePath(`/operacao/excecoes/${id}`);
-      revalidatePath("/operacao/excecoes");
+      revalidatePath(`/excecoes/${id}`);
+      revalidatePath("/excecoes");
       revalidatePath("/operacao/fila");
       revalidatePath("/operacao");
       return { status: "success", message: "Caso atualizado." };
@@ -127,7 +107,7 @@ export default async function ExceptionDetailPage({ params }: { params: Promise<
         method: "POST",
         body: JSON.stringify({ body: String(formData.get("body") || "") }),
       });
-      revalidatePath(`/operacao/excecoes/${id}`);
+      revalidatePath(`/excecoes/${id}`);
       revalidatePath("/operacao/atividade");
       return { status: "success", message: "Comentário registrado." };
     } catch (error) {
@@ -141,25 +121,25 @@ export default async function ExceptionDetailPage({ params }: { params: Promise<
   ]);
 
   return (
-    <AppShell title={`${item.code} · ${item.title}`} subtitle="Detalhe do caso."><Surface className="p-5"><div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between"><div className="min-w-0"><div className="flex flex-wrap gap-2"><TonePill tone={tone(item.severity)}>{item.severity}</TonePill><TonePill tone={tone(item.status)}>{item.status}</TonePill><TonePill tone={tone(item.triageStatus)}>{item.triageStatus}</TonePill><TonePill tone="neutral">{queueLabel(item.queueKey)}</TonePill></div><div className="mt-3 max-w-4xl text-sm leading-6 text-slate-400">{item.description || "Sem descrição adicional."}</div></div><div className="flex flex-wrap gap-2"><Link href="/operacao/fila" className="rounded-full bg-white px-4 py-2.5 text-sm font-medium text-black">Fila</Link><Link href="/operacao/excecoes" className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm text-white">Exceções</Link></div></div><div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4"><InlineStat label="Responsável" value={item.assignee ? item.assignee.name : "Não atribuído"} tone={item.assignee ? "info" : "attention"} /><InlineStat label="Prioridade" value={item.priorityScore} tone={item.priorityScore >= 80 ? "critical" : item.priorityScore >= 50 ? "attention" : "info"} /><InlineStat label="Prazo" value={item.breachedAt ? "Estourado" : "No prazo"} tone={item.breachedAt ? "critical" : "success"} /><InlineStat label="Última atividade" value={formatDate(item.lastActivityAt)} tone="neutral" /></div></Surface><section className="grid gap-5 xl:grid-cols-[minmax(0,1.7fr)_340px]"><div className="grid gap-5"><Surface className="p-5"><SectionIntro eyebrow="Execução" title="Comentários" description="O centro do caso fica com o que move a decisão para frente: hipótese, encaminhamento e registro operacional." compact /><ActionForm action={addComment} className="mt-4 grid gap-3" submitLabel="Registrar comentário" pendingLabel="Registrando..."><textarea name="body" placeholder="Escreva o próximo passo, hipótese, contexto da análise ou decisão operacional..." className="min-h-28 rounded-[12px] border border-white/10 bg-[#0b0f14] px-4 py-3 text-white outline-none" /></ActionForm><div className="mt-5 grid gap-3">
+    <AppShell title={`${item.code} · ${item.title}`} subtitle="Detalhe do caso."><Surface><div className="flex flex-col gap-2 xl:flex-row xl:items-start xl:justify-between"><div className="min-w-0"><div className="flex flex-wrap gap-2"><TonePill tone={tone(item.severity)}>{exceptionLabel(item.severity)}</TonePill><TonePill tone={tone(item.status)}>{exceptionLabel(item.status)}</TonePill><TonePill tone={tone(item.triageStatus)}>{exceptionLabel(item.triageStatus)}</TonePill><TonePill tone="neutral">{queueLabel(item.queueKey)}</TonePill></div><div className="mt-2 max-w-4xl text-[11px] leading-5 text-slate-400">{item.description || "Sem descrição adicional."}</div></div><div className="flex flex-wrap gap-2"><Link href="/operacao/fila" className="nds-button" data-variant="primary">Fila</Link><Link href="/excecoes" className="nds-button" data-variant="secondary">Exceções</Link></div></div><div className="mt-2 grid gap-2 md:grid-cols-2 xl:grid-cols-4"><InlineStat label="Responsável" value={item.assignee ? item.assignee.name : "Não atribuído"} tone={item.assignee ? "info" : "attention"} /><InlineStat label="Prioridade" value={item.priorityScore} tone={item.priorityScore >= 80 ? "critical" : item.priorityScore >= 50 ? "attention" : "info"} /><InlineStat label="Prazo" value={item.breachedAt ? "Estourado" : "No prazo"} tone={item.breachedAt ? "critical" : "success"} /><InlineStat label="Última atividade" value={formatDateTime(item.lastActivityAt)} tone="neutral" /></div></Surface><section className="nova-side-grid nova-side-grid--340 nova-side-grid--wide-main"><div className="grid gap-2"><Surface><SectionIntro eyebrow="Execução" title="Comentários" description="O centro do caso fica com o que move a decisão para frente: hipótese, encaminhamento e registro operacional." compact /><ActionForm action={addComment} className="mt-2 grid gap-2" submitLabel="Registrar comentário" pendingLabel="Registrando..."><textarea name="body" placeholder="Escreva o próximo passo, hipótese, contexto da análise ou decisão operacional..." className="min-h-28" /></ActionForm><div className="mt-2 grid gap-2">
               {item.comments.length ? item.comments.map((comment) => (
-                <article key={comment.id} className="rounded-[14px] border border-white/7 bg-black/20 p-4"><div className="flex items-center justify-between gap-3"><div className="text-sm font-medium text-white">{comment.author.name}</div><div className="text-xs text-slate-500">{formatDate(comment.createdAt)}</div></div><div className="mt-2 text-sm leading-6 text-slate-300">{comment.body}</div></article>
+                <article key={comment.id} className="nds-card"><div className="flex items-center justify-between gap-2"><div className="text-[12px] font-medium text-white">{comment.author.name}</div><div className="text-[10px] text-slate-500">{formatDateTime(comment.createdAt)}</div></div><div className="mt-2 text-[11px] leading-5 text-slate-300">{comment.body}</div></article>
               )) : <EmptyState title="Sem comentários ainda" description="A discussão operacional deste caso ainda não começou." />}
-            </div></Surface><Surface className="p-5"><SectionIntro eyebrow="Histórico" title="Atividade recente" description="Rastro do sistema, das automações e dos operadores em leitura mais limpa e sequencial." compact /><div className="mt-4 grid gap-3">
+            </div></Surface><Surface><SectionIntro eyebrow="Histórico" title="Atividade recente" description="Rastro do sistema, das automações e dos operadores em leitura mais limpa e sequencial." compact /><div className="mt-2 grid gap-2">
               {item.activities.length ? item.activities.map((activity) => (
-                <article key={activity.id} className="rounded-[14px] border border-white/7 bg-black/20 p-4"><div className="flex flex-wrap items-center gap-2"><TonePill tone="neutral">{activity.kind}</TonePill><TonePill tone="subtle">{activity.source}</TonePill>
+                <article key={activity.id} className="nds-card"><div className="flex flex-wrap items-center gap-2"><TonePill tone="neutral">{activity.kind}</TonePill><TonePill tone="subtle">{activity.source}</TonePill>
                     {activity.automation ? <TonePill tone="violet">{activity.automation.code}</TonePill> : null}
-                  </div><div className="mt-3 text-sm font-medium text-white">{activity.title}</div>
-                  {activity.description ? <div className="mt-2 text-sm leading-6 text-slate-400">{activity.description}</div> : null}
-                  <div className="mt-3 text-xs text-slate-500">{activity.actor ? activity.actor.name : "Sistema"} · {formatDate(activity.createdAt)}</div></article>
+                  </div><div className="mt-2 text-[12px] font-medium text-white">{activity.title}</div>
+                  {activity.description ? <div className="mt-2 text-[11px] leading-5 text-slate-400">{activity.description}</div> : null}
+                  <div className="mt-2 text-[10px] text-slate-500">{activity.actor ? activity.actor.name : "Sistema"} · {formatDateTime(activity.createdAt)}</div></article>
               )) : <EmptyState title="Sem atividade registrada" description="Nenhuma atividade recente foi associada a este caso." />}
-            </div></Surface></div><div className="grid gap-5">
+            </div></Surface></div><div className="grid gap-2">
           {isAdmin ? (
-            <Surface className="p-5"><SectionIntro eyebrow="Ações" title="Despacho rápido" description="Atribuição e mudança de estado permanecem na lateral, curtas e previsíveis." compact /><ActionForm action={quickAction} className="mt-4 grid gap-3" submitLabel="Aplicar" pendingLabel="Aplicando..." variant="secondary"><select name="action" defaultValue="ack" className="rounded-[12px] border border-white/10 bg-[#0b0f14] px-4 py-3 text-white outline-none"><option value="ack">Reconhecer</option><option value="resolve">Resolver</option><option value="reopen">Reabrir</option><option value="silence">Silenciar 1h</option></select><select name="assigneeUserId" defaultValue={item.assignee?.id || ""} className="rounded-[12px] border border-white/10 bg-[#0b0f14] px-4 py-3 text-white outline-none"><option value="">Sem responsável</option>
+            <Surface><SectionIntro eyebrow="Ações" title="Despacho rápido" description="Atribuição e mudança de estado permanecem na lateral, curtas e previsíveis." compact /><ActionForm action={quickAction} className="mt-2 grid gap-2" submitLabel="Aplicar" pendingLabel="Aplicando..." variant="secondary"><select name="action" defaultValue="ack"><option value="ack">Reconhecer</option><option value="resolve">Resolver</option><option value="reopen">Reabrir</option><option value="silence">Silenciar 1h</option></select><select name="assigneeUserId" defaultValue={item.assignee?.id || ""}><option value="">Sem responsável</option>
                   {usersResponse.items.map((user) =><option key={user.id} value={user.id}>{user.name} · {user.email}</option>)}
                 </select></ActionForm></Surface>
           ) : null}
 
-          <Surface className="p-5"><SectionIntro eyebrow="Contexto" title="Metadados do caso" description="Origem, política, automação e vínculos." compact /><div className="mt-4 grid gap-3 text-sm text-slate-300"><div className="rounded-[14px] border border-white/7 bg-black/20 p-4"><FieldLabel>Classificação</FieldLabel><div className="mt-2">{item.classification} · impacto {item.impact} · urgência {item.urgency}</div></div><div className="rounded-[14px] border border-white/7 bg-black/20 p-4"><FieldLabel>Roteamento</FieldLabel><div className="mt-2">{queueLabel(item.queueKey)} · origem {item.source}</div></div><div className="rounded-[14px] border border-white/7 bg-black/20 p-4"><FieldLabel>Política SLA</FieldLabel><div className="mt-2">{item.slaPolicy ? `${item.slaPolicy.code} · ${item.slaPolicy.firstResponseMinutes}/${item.slaPolicy.resolveMinutes} min` : "—"}</div></div><div className="rounded-[14px] border border-white/7 bg-black/20 p-4"><FieldLabel>Automação</FieldLabel><div className="mt-2">{item.automation ? `${item.automation.code} · ${item.automation.detector}` : "—"}</div></div><div className="rounded-[14px] border border-white/7 bg-black/20 p-4"><FieldLabel>Vínculos</FieldLabel><div className="mt-2 grid gap-1 text-slate-300"><div>Parceiro: {item.partner ? `${item.partner.code} · ${item.partner.name}` : "—"}</div><div>Unidade: {item.unit ? `${item.unit.code} · ${item.unit.name}` : "—"}</div><div>Equipamento: {item.equipment ? `${item.equipment.tag} · ${item.equipment.name}` : "—"}</div><div>Integração: {item.integration ? `${item.integration.code} · ${item.integration.name}` : "—"}</div><div>Ocorrência: {item.occurrence ? `${item.occurrence.code} · ${item.occurrence.title}` : "—"}</div><div>Manutenção: {item.maintenance ? `${item.maintenance.code} · ${item.maintenance.title}` : "—"}</div></div></div></div></Surface></div></section></AppShell>
+          <Surface><SectionIntro eyebrow="Contexto" title="Metadados do caso" description="Origem, política, automação e vínculos." compact /><div className="mt-2 grid gap-2 text-[11px] leading-5 text-slate-300"><div className="nds-card"><FieldLabel>Classificação</FieldLabel><div className="mt-2">{item.classification} · impacto {item.impact} · urgência {item.urgency}</div></div><div className="nds-card"><FieldLabel>Roteamento</FieldLabel><div className="mt-2">{queueLabel(item.queueKey)} · origem {item.source}</div></div><div className="nds-card"><FieldLabel>Política SLA</FieldLabel><div className="mt-2">{item.slaPolicy ? `${item.slaPolicy.code} · ${item.slaPolicy.firstResponseMinutes}/${item.slaPolicy.resolveMinutes} min` : "—"}</div></div><div className="nds-card"><FieldLabel>Automação</FieldLabel><div className="mt-2">{item.automation ? `${item.automation.code} · ${item.automation.detector}` : "—"}</div></div><div className="nds-card"><FieldLabel>Vínculos</FieldLabel><div className="mt-2 grid gap-1 text-slate-300"><div>Parceiro: {item.partner ? `${item.partner.code} · ${item.partner.name}` : "—"}</div><div>Unidade: {item.unit ? `${item.unit.code} · ${item.unit.name}` : "—"}</div><div>Ativo: {item.equipment ? `${item.equipment.tag} · ${item.equipment.name}` : "—"}</div><div>Integração: {item.integration ? `${item.integration.code} · ${item.integration.name}` : "—"}</div><div>Alerta: {item.occurrence ? `${item.occurrence.code} · ${item.occurrence.title}` : "—"}</div><div>Chamado: {item.maintenance ? `${item.maintenance.code} · ${item.maintenance.title}` : "—"}</div></div></div></div></Surface></div></section></AppShell>
   );
 }

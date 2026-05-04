@@ -3,20 +3,7 @@
 :root {
   color-scheme: dark;
   --app-bg: #070b10;
-  --app-panel: #0f141b;
-  --app-panel-2: #111820;
-  --app-panel-3: #151b23;
-  --app-line: rgba(255, 255, 255, 0.08);
-  --app-line-strong: rgba(255, 255, 255, 0.14);
   --app-text: #f2f5f8;
-  --app-text-soft: #c3ccd8;
-  --app-muted: #8793a3;
-  --app-faint: #596676;
-  --app-brand: #f97316;
-  --app-brand-soft: rgba(249, 115, 22, 0.16);
-  --app-success: #34d399;
-  --app-warning: #fbbf24;
-  --app-danger: #fb7185;
 }
 
 * {
@@ -26,16 +13,21 @@
 html,
 body {
   min-height: 100vh;
-  background: var(--app-bg);
-  color: var(--app-text);
+  background: var(--nova-bg, var(--app-bg));
+  color: var(--nova-text, var(--app-text));
+}
+
+html {
+  scrollbar-color: rgba(148, 163, 184, 0.30) rgba(2, 6, 12, 0.36);
+  scrollbar-gutter: stable;
 }
 
 body {
   margin: 0;
+  overflow-x: hidden;
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
-  overflow-x: hidden;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 }
@@ -52,8 +44,15 @@ textarea {
   font: inherit;
 }
 
+button,
+a[href],
+summary {
+  -webkit-tap-highlight-color: transparent;
+}
+
 ::selection {
-  background: rgba(249, 115, 22, 0.28);
+  background: color-mix(in srgb, var(--nova-primary, #f97316) 28%, transparent);
+  color: #fff;
 }
 
 ::-webkit-scrollbar {
@@ -66,106 +65,13 @@ textarea {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #222b36;
   border: 2px solid #070b10;
   border-radius: 999px;
+  background: #222b36;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: #303a47;
-}
-
-.nova-app {
-  background:
-    radial-gradient(circle at 38% -12%, rgba(249, 115, 22, 0.12), transparent 32rem),
-    linear-gradient(180deg, #090e14 0%, #070b10 55%);
-  color: var(--app-text);
-}
-
-.nova-app main {
-  color: var(--app-text);
-}
-
-.nova-app main :where(section, article, details) {
-  border-color: var(--app-line);
-}
-
-.nova-app main :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
-  min-height: 42px;
-  border: 1px solid var(--app-line-strong) !important;
-  background: #090e14 !important;
-  color: var(--app-text) !important;
-  border-radius: 14px !important;
-  outline: none;
-}
-
-.nova-app main :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea)::placeholder {
-  color: #697588 !important;
-}
-
-.nova-app main :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea):focus {
-  border-color: rgba(96, 165, 250, 0.6) !important;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.16);
-}
-
-.nova-app main form[method="GET"] {
-  align-items: end;
-}
-
-.nova-app main form[method="GET"] > button {
-  grid-column: auto !important;
-  justify-self: end;
-  min-width: 132px;
-  width: auto;
-  min-height: 42px;
-  border: 1px solid rgba(96, 165, 250, 0.28) !important;
-  background: #17213a !important;
-  color: var(--app-text) !important;
-  border-radius: 14px !important;
-  padding: 0.62rem 1rem !important;
-  font-weight: 700;
-}
-
-.nova-app main form[method="GET"] > button:hover {
-  background: #1b2946 !important;
-}
-
-@media (max-width: 640px) {
-  .nova-app main form[method="GET"] > button {
-    justify-self: stretch;
-    width: 100%;
-  }
-}
-
-.nova-app main table {
-  color: var(--app-text-soft);
-}
-
-.nova-app main thead {
-  background: #151b23 !important;
-  border-color: var(--app-line) !important;
-  color: var(--app-muted) !important;
-}
-
-.nova-app main tbody tr {
-  border-color: rgba(255, 255, 255, 0.06) !important;
-}
-
-.nova-app main tbody tr:hover {
-  background: rgba(255, 255, 255, 0.025) !important;
-}
-
-.nova-app main summary {
-  list-style: none;
-}
-
-.nova-app main summary::-webkit-details-marker {
-  display: none;
-}
-
-.nova-app main [role="status"],
-.nova-app main [role="alert"] {
-  border-radius: 14px !important;
 }
 
 .prtg-report-sheet {
@@ -236,6 +142,139 @@ textarea {
   text-align: center;
 }
 
+.nova-mobile-menu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.nova-mobile-menu:not([open]) .nova-mobile-drawer {
+  display: none;
+}
+
+.nova-mobile-drawer {
+  background:
+    radial-gradient(circle at 18% 0%, color-mix(in srgb, var(--nova-primary, #f97316) 10%, transparent), transparent 18rem),
+    linear-gradient(180deg, rgba(7, 11, 16, 0.98), rgba(8, 13, 19, 0.98));
+}
+
+.nova-mobile-drawer,
+.nds-sidebar-scroll,
+.nds-table-shell,
+.nova-table-shell,
+.nova-overflow-guard {
+  scrollbar-color: rgba(148, 163, 184, 0.26) transparent;
+}
+
+.nova-mobile-drawer::-webkit-scrollbar,
+.nds-sidebar-scroll::-webkit-scrollbar,
+.nds-table-shell::-webkit-scrollbar,
+.nova-table-shell::-webkit-scrollbar,
+.nova-overflow-guard::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.nova-mobile-drawer::-webkit-scrollbar-thumb,
+.nds-sidebar-scroll::-webkit-scrollbar-thumb,
+.nds-table-shell::-webkit-scrollbar-thumb,
+.nova-table-shell::-webkit-scrollbar-thumb,
+.nova-overflow-guard::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+  background-color: rgba(148, 163, 184, 0.26);
+}
+
+.nova-mobile-drawer::-webkit-scrollbar-track,
+.nds-sidebar-scroll::-webkit-scrollbar-track,
+.nds-table-shell::-webkit-scrollbar-track,
+.nova-table-shell::-webkit-scrollbar-track,
+.nova-overflow-guard::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.nova-skip-link {
+  position: fixed;
+  left: 10px;
+  top: 10px;
+  z-index: 9999;
+  transform: translateY(-150%);
+  border: 1px solid color-mix(in srgb, var(--nova-primary, #f97316) 22%, transparent);
+  border-radius: var(--nova-radius-control, 4px);
+  background: rgba(8, 13, 19, 0.96);
+  color: #fff;
+  padding: 7px 9px;
+  font-size: 11px;
+  font-weight: 900;
+  transition: transform 160ms ease;
+}
+
+.nova-skip-link:focus {
+  transform: translateY(0);
+}
+
+.nova-login-page {
+  position: relative;
+  isolation: isolate;
+}
+
+.nova-login-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: radial-gradient(circle at 48% 42%, black 0%, transparent 72%);
+}
+
+.nova-login-feature,
+.nova-login-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.nova-login-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--nova-primary, #f97316) 12%, transparent), transparent 18rem);
+}
+
+.nova-login-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.nova-action-form,
+.nova-form-actions,
+.nova-attachment-card,
+.nova-form-panel {
+  min-width: 0;
+}
+
+.nova-submit-spinner {
+  width: 0.95rem;
+  height: 0.95rem;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 999px;
+  animation: nova-spin 680ms linear infinite;
+}
+
+@keyframes nova-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+[role="dialog"] {
+  isolation: isolate;
+}
+
 @media print {
   @page {
     size: A4 portrait;
@@ -248,30 +287,29 @@ textarea {
     color: #263238 !important;
   }
 
-  .nova-app,
-  .nova-main,
-  .nova-content,
   .nds-shell,
   .nds-main,
-  .nds-content {
+  .nds-content,
+  .nova-login-page {
     background: #fff !important;
   }
 
-  .nova-layout,
   .nds-layout {
     display: block !important;
   }
 
-  .nova-sidebar,
-  .nova-topbar,
   .nds-sidebar,
   .nds-topbar,
+  .nova-mobile-menu,
+  .nova-form-actions,
+  .nova-table-actions,
   .report-toolbar,
-  .report-workbench > :not(.prtg-report-sheet) {
+  .report-workbench > :not(.prtg-report-sheet),
+  button,
+  [role="button"] {
     display: none !important;
   }
 
-  .nova-content,
   .nds-content {
     max-width: none !important;
     padding: 0 !important;
@@ -294,1258 +332,17 @@ textarea {
   }
 }
 
-
-/* nova mobile drawer refresh */
-.nova-mobile-menu > summary::-webkit-details-marker {
-  display: none;
-}
-
-.nova-mobile-menu:not([open]) .nova-mobile-drawer {
-  display: none;
-}
-
-.nova-mobile-drawer {
-  background:
-    radial-gradient(circle at 18% 0%, rgba(56, 189, 248, 0.10), transparent 18rem),
-    linear-gradient(180deg, rgba(7, 11, 16, 0.98), rgba(8, 13, 19, 0.98));
-}
-
-
-/* nova list visual refresh */
-.nova-app main form[method="GET"] {
-  gap: 0.9rem !important;
-  border: 1px solid rgba(255, 255, 255, 0.075);
-  border-radius: 22px;
-  background:
-    radial-gradient(circle at 12% 0%, rgba(59, 130, 246, 0.08), transparent 18rem),
-    rgba(9, 14, 20, 0.72);
-  padding: 1rem;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
-}
-
-.nova-app main .nova-table-shell {
-  scrollbar-gutter: stable;
-}
-
-.nova-app main .nova-table :where(th, td) {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.055);
-}
-
-.nova-app main .nova-table tbody tr:last-child :where(td) {
-  border-bottom: 0;
-}
-
-.nova-app main .nova-table tbody tr {
-  transition: background 150ms ease, transform 150ms ease;
-}
-
-.nova-app main .nova-table tbody tr:hover {
-  background: rgba(59, 130, 246, 0.035) !important;
-}
-
-.nova-app main .nova-filter-chip {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
-}
-
-.nova-app main .nova-kpi,
-.nova-app main .nova-surface {
-  position: relative;
-}
-
-.nova-app main .nova-surface > * {
-  position: relative;
-  z-index: 1;
-}
-
-@media (max-width: 640px) {
-  .nova-app main form[method="GET"] {
-    padding: 0.85rem;
-    border-radius: 18px;
-  }
-
-  .nova-app main .nova-table-shell {
-    border-radius: 16px;
-  }
-}
-
-
-/* nova global visual refresh */
-.nova-login-page {
-  position: relative;
-  background:
-    radial-gradient(circle at 14% 12%, rgba(14, 165, 233, 0.16), transparent 25rem),
-    radial-gradient(circle at 90% 12%, rgba(59, 130, 246, 0.12), transparent 26rem),
-    linear-gradient(135deg, #05080d 0%, #080d13 48%, #0b1119 100%);
-}
-
-.nova-login-page::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  background-size: 44px 44px;
-  mask-image: radial-gradient(circle at 48% 42%, black 0%, transparent 72%);
-}
-
-.nova-login-feature,
-.nova-login-card {
-  position: relative;
-  overflow: hidden;
-}
-
-.nova-login-card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(circle at 12% 0%, rgba(14, 165, 233, 0.12), transparent 18rem);
-}
-
-.nova-login-card > * {
-  position: relative;
-  z-index: 1;
-}
-
-.nova-app main .nova-dashboard-page > .nova-surface:first-child,
-.nova-app main .nova-detail-page > .nova-surface:first-child,
-.nova-app main .nova-monitoring-page > .nova-surface:first-child,
-.nova-app main .nova-reports-page > .nova-surface:first-child,
-.nova-app main .nova-automation-page > .nova-surface:first-child {
-  overflow: hidden;
-  border-color: rgba(125, 211, 252, 0.13) !important;
-  background:
-    radial-gradient(circle at 3% 0%, rgba(14, 165, 233, 0.13), transparent 22rem),
-    radial-gradient(circle at 96% 0%, rgba(59, 130, 246, 0.08), transparent 24rem),
-    linear-gradient(180deg, rgba(17, 24, 34, 0.96), rgba(8, 13, 19, 0.96)) !important;
-  box-shadow: 0 24px 78px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.04);
-}
-
-.nova-app main .nova-detail-page .nova-surface,
-.nova-app main .nova-monitoring-page .nova-surface,
-.nova-app main .nova-reports-page .nova-surface,
-.nova-app main .nova-automation-page .nova-surface {
-  border-radius: 24px;
-}
-
-.nova-app main :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
-  min-height: 2.75rem;
-  border-radius: 16px;
-  border-color: rgba(255, 255, 255, 0.11);
-  background-color: rgba(8, 13, 19, 0.82);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
-}
-
-.nova-app main :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea):focus {
-  border-color: rgba(56, 189, 248, 0.58) !important;
-  box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.13), inset 0 1px 0 rgba(255, 255, 255, 0.04);
-}
-
-.nova-app main textarea {
-  min-height: 7rem;
-  line-height: 1.65;
-}
-
-.nova-app main .nova-action-form {
-  border-radius: 22px;
-}
-
-.nova-app main .nova-form-submit,
-.nova-app main a[class*="bg-[#17213a]"],
-.nova-app main button[class*="bg-[#17213a]"] {
-  min-height: 2.75rem;
-  letter-spacing: -0.01em;
-}
-
-.nova-app main :where([role="dialog"], dialog, .nova-modal, .nova-drawer) {
-  border-radius: 24px;
-  border-color: rgba(255, 255, 255, 0.10);
-  background:
-    radial-gradient(circle at 10% 0%, rgba(14, 165, 233, 0.10), transparent 18rem),
-    #080d13;
-  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.46), inset 0 1px 0 rgba(255, 255, 255, 0.04);
-}
-
-.nova-app main .nova-dashboard-page .nova-kpi,
-.nova-app main .nova-monitoring-page .nova-kpi,
-.nova-app main .nova-reports-page .nova-kpi {
-  min-height: 128px;
-}
-
-.nova-app main .nova-monitoring-page .nova-table-shell,
-.nova-app main .nova-reports-page .nova-table-shell,
-.nova-app main .nova-detail-page .nova-table-shell {
-  border-radius: 22px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
-}
-
-.nova-app main .nova-detail-page dl,
-.nova-app main .nova-detail-page [class*="grid"][class*="gap-3"] {
-  scrollbar-gutter: stable;
-}
-
-.nova-app main .nova-detail-page :where(dt, .nova-field-label) {
-  color: rgb(148, 163, 184);
-  font-weight: 800;
-  letter-spacing: 0.12em;
-}
-
-.nova-app main .nova-detail-page :where(dd) {
-  color: rgb(226, 232, 240);
-}
-
-.nova-app main .nova-pill,
-.nova-app main [class*="rounded-full"][class*="uppercase"] {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-}
-
-.nova-app main .nova-surface + .nova-surface,
-.nova-app main .nova-detail-page .nova-surface + .nova-surface {
-  margin-top: 0;
-}
-
-@media (max-width: 768px) {
-  .nova-login-page {
-    padding-inline: 1rem;
-  }
-
-  .nova-app main .nova-dashboard-page > .nova-surface:first-child,
-  .nova-app main .nova-detail-page > .nova-surface:first-child,
-  .nova-app main .nova-monitoring-page > .nova-surface:first-child,
-  .nova-app main .nova-reports-page > .nova-surface:first-child,
-  .nova-app main .nova-automation-page > .nova-surface:first-child {
-    border-radius: 20px;
-  }
-
-  .nova-app main :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
-    min-height: 2.9rem;
-  }
-}
-
-
-/* nova ux deep polish */
-:root {
-  --nova-radius-sm: 12px;
-  --nova-radius-md: 16px;
-  --nova-radius-lg: 22px;
-  --nova-focus: 0 0 0 4px rgba(56, 189, 248, 0.16);
-  --nova-card-shadow: 0 18px 46px rgba(0, 0, 0, 0.22);
-  --nova-card-shadow-hover: 0 24px 58px rgba(0, 0, 0, 0.30);
-}
-
-.nova-app main {
-  isolation: isolate;
-}
-
-.nova-app main :where(.grid, .flex, section, article, aside, div) {
-  min-width: 0;
-}
-
-.nova-app main :where(a, button, input, select, textarea, summary):focus-visible {
-  outline: none !important;
-  box-shadow: var(--nova-focus) !important;
-}
-
-.nova-app main :where(button, a[href]) {
-  touch-action: manipulation;
-}
-
-.nova-app main :where(button:disabled, [aria-disabled="true"]) {
-  cursor: not-allowed;
-}
-
-.nova-app main :where(button, a[href], summary) {
-  transition-property: background-color, border-color, color, box-shadow, transform, opacity;
-  transition-duration: 160ms;
-  transition-timing-function: ease;
-}
-
-.nova-app main :where(button:not(:disabled), a[href], summary):active {
-  transform: translateY(1px);
-}
-
-.nova-surface {
-  position: relative;
-  background:
-    radial-gradient(circle at 12% 0%, rgba(56, 189, 248, 0.055), transparent 18rem),
-    linear-gradient(180deg, rgba(18, 25, 34, 0.96), rgba(11, 16, 23, 0.98)) !important;
-  box-shadow: var(--nova-card-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.035) !important;
-}
-
-.nova-surface::before {
-  content: "";
-  pointer-events: none;
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  border: 1px solid rgba(255, 255, 255, 0.025);
-}
-
-.nova-kpi,
-.nova-action-tile,
-.nova-inline-stat,
-.nova-empty,
-.nova-table-shell,
-.nova-login-feature,
-.nova-attachment-card,
-.nova-form-panel {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
-}
-
-.nova-kpi,
-.nova-action-tile {
-  position: relative;
-  overflow: hidden;
-}
-
-.nova-kpi::after,
-.nova-action-tile::after {
-  content: "";
-  pointer-events: none;
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  background: radial-gradient(circle at 20% 0%, rgba(96, 165, 250, 0.12), transparent 15rem);
-  transition: opacity 160ms ease;
-}
-
-.nova-kpi:hover,
-.nova-action-tile:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--nova-card-shadow-hover), inset 0 1px 0 rgba(255, 255, 255, 0.045);
-}
-
-.nova-kpi:hover::after,
-.nova-action-tile:hover::after {
-  opacity: 1;
-}
-
-.nova-section-intro h1,
-.nova-section-intro h2,
-.nova-section-intro h3 {
-  text-wrap: balance;
-}
-
-.nova-section-intro p,
-.nova-empty,
-.nova-action-tile,
-.nova-kpi {
-  text-wrap: pretty;
-}
-
-.nova-pill {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
-}
-
-.nova-table-shell {
-  background:
-    linear-gradient(180deg, rgba(15, 23, 42, 0.58), rgba(7, 11, 16, 0.88)) !important;
-  scrollbar-gutter: stable both-edges;
-}
-
-.nova-table {
-  width: 100%;
-}
-
-.nova-table :where(th, td),
-.nova-app main table :where(th, td) {
-  vertical-align: top;
-}
-
-.nova-table tbody tr,
-.nova-app main tbody tr {
-  transition: background-color 130ms ease, box-shadow 130ms ease;
-}
-
-.nova-table tbody tr:hover,
-.nova-app main tbody tr:hover {
-  box-shadow: inset 3px 0 0 rgba(56, 189, 248, 0.28);
-}
-
-.nova-app main :where(input[type="file"]) {
-  cursor: pointer;
-}
-
-.nova-app main :where(input[type="file"]::file-selector-button) {
-  margin-right: 0.75rem;
-  border: 0;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.92);
-  padding: 0.42rem 0.8rem;
-  color: #020617;
-  font-size: 0.75rem;
-  font-weight: 800;
-}
-
-.nova-app main :where(label) {
-  min-width: 0;
-}
-
-.nova-app main :where(form) :where(input, select, textarea) {
-  width: 100%;
-}
-
-.nova-app main :where(form) :where(input[readonly], textarea[readonly]) {
-  background: rgba(255, 255, 255, 0.035) !important;
-  color: #aab5c3 !important;
-}
-
-.nova-app main :where(form) :where(input:disabled, select:disabled, textarea:disabled) {
-  opacity: 0.62;
-  cursor: not-allowed;
-}
-
-.nova-app main :where([role="alert"], [role="status"]) {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
-}
-
-.nova-app main :where(details) > summary {
-  min-height: 42px;
-  align-items: center;
-}
-
-.nova-app main :where([data-density="compact"] .nova-kpi) {
-  min-height: 92px;
-}
-
-.nova-app main :where(.nova-overflow-guard) {
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-}
-
-.nova-login-page::before {
-  content: "";
-  position: fixed;
-  inset: -20% -10% auto -10%;
-  height: 56vh;
-  background:
-    radial-gradient(circle at 22% 20%, rgba(56, 189, 248, 0.16), transparent 22rem),
-    radial-gradient(circle at 72% 0%, rgba(99, 102, 241, 0.14), transparent 24rem);
-  filter: blur(4px);
-  opacity: 0.9;
-  pointer-events: none;
-}
-
-@media (max-width: 1024px) {
-  .nova-app main :where(.nova-section-intro) {
-    align-items: stretch;
-  }
-
-  .nova-app main :where(.nova-section-intro) > :last-child {
-    width: 100%;
-  }
-
-  .nova-app main :where(.nova-section-intro) :where(a, button) {
-    justify-content: center;
-  }
-}
-
-@media (max-width: 760px) {
-  .nova-app main {
-    --nova-card-shadow: 0 14px 34px rgba(0, 0, 0, 0.20);
-  }
-
-  .nova-content {
-    padding-left: 1rem !important;
-    padding-right: 1rem !important;
-  }
-
-  .nova-surface,
-  .nova-kpi,
-  .nova-action-tile,
-  .nova-empty,
-  .nova-table-shell {
-    border-radius: 18px !important;
-  }
-
-  .nova-section-intro {
-    gap: 0.85rem !important;
-  }
-
-  .nova-section-intro :where(h1, h2) {
-    line-height: 1.08 !important;
-  }
-
-  .nova-app main :where(form[method="GET"]) {
-    display: grid !important;
-    grid-template-columns: 1fr !important;
-  }
-
-  .nova-app main :where(form[method="GET"] button, form[method="GET"] a) {
-    width: 100%;
-  }
-
-  .nova-table-shell {
-    margin-left: -0.25rem;
-    margin-right: -0.25rem;
-    border-left-color: transparent !important;
-    border-right-color: transparent !important;
-    border-radius: 0 !important;
-  }
-
-  .nova-table,
-  .nova-app main table {
-    min-width: 720px;
-  }
-
-  .nova-empty {
-    padding: 2rem 1.25rem !important;
-    text-align: left !important;
-  }
-}
-
-@media (max-width: 520px) {
-  .nova-app main :where(.nova-pill) {
-    max-width: 100%;
-    white-space: normal;
-    text-align: left;
-  }
-
-  .nova-app main :where(.nova-kpi) {
-    min-height: auto !important;
-  }
-
-  .nova-app main :where(.nova-section-intro) :where(.flex) {
-    align-items: stretch;
-  }
-}
-
-@media print {
-  .nova-sidebar,
-  .nova-mobile-menu,
-  .nova-rail,
-  .nova-toggle-floating,
-  .nova-global-search,
-  .nova-commandbar {
-    display: none !important;
-  }
-
-  .nova-layout,
-  .nova-main,
-  .nova-content {
-    display: block !important;
-    width: 100% !important;
-    padding: 0 !important;
-    background: white !important;
-    color: black !important;
-  }
-}
-
-
-/* nova ops workflow polish */
-.nova-skip-link {
-  position: fixed;
-  left: 1rem;
-  top: 1rem;
-  z-index: 9999;
-  transform: translateY(-160%);
-  border: 1px solid rgba(125, 211, 252, 0.38);
-  border-radius: 999px;
-  background: rgba(2, 6, 23, 0.96);
-  padding: 0.65rem 0.9rem;
-  color: white;
-  font-size: 0.875rem;
-  font-weight: 900;
-  box-shadow: 0 20px 55px rgba(0, 0, 0, 0.36);
-  transition: transform 160ms ease;
-}
-
-.nova-skip-link:focus {
-  transform: translateY(0);
-}
-
-.nova-topbar {
-  position: relative;
-}
-
-.nova-topbar::after {
-  content: "";
-  pointer-events: none;
-  position: absolute;
-  inset: auto 0 -1px 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.26), transparent);
-}
-
-
-.nova-global-search {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
-}
-
-.nova-page-stack > * {
-  min-width: 0;
-}
-
-.nova-page-stack :where(.nova-surface, .nova-table-shell, .nova-kpi, .nova-action-tile, .nova-registry-metric, .nova-info-card, .nova-summary-card) {
-  transform: translateZ(0);
-}
-
-.nova-page-stack :where(.nova-registry-metric, .nova-info-card, .nova-summary-card) {
-  transition: border-color 160ms ease, background-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
-}
-
-.nova-page-stack :where(.nova-registry-metric, .nova-info-card, .nova-summary-card):hover {
-  border-color: rgba(255, 255, 255, 0.14) !important;
-  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.04);
-}
-
-.nova-filter-chip {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
-}
-
-.nova-filter-chip:hover {
-  transform: translateY(-1px);
-}
-
-.nova-table-shell {
-  position: relative;
-}
-
-.nova-table-shell::before,
-.nova-table-shell::after {
-  content: "";
-  pointer-events: none;
-  position: sticky;
-  z-index: 20;
-  display: block;
-  width: 24px;
-  height: 1px;
-}
-
-.nova-table-shell::before {
-  left: 0;
-  margin-bottom: -1px;
-  background: linear-gradient(90deg, rgba(8, 13, 19, 0.95), transparent);
-}
-
-.nova-table-shell::after {
-  right: 0;
-  margin-top: -1px;
-  margin-left: auto;
-  background: linear-gradient(270deg, rgba(8, 13, 19, 0.95), transparent);
-}
-
-.nova-table :where(th, td).nova-table-actions {
-  background: linear-gradient(90deg, rgba(10, 15, 21, 0.84), rgba(10, 15, 21, 0.98));
-}
-
-@media (min-width: 920px) {
-  .nova-table :where(th, td).nova-table-actions {
-    position: sticky;
-    right: 0;
-    z-index: 8;
-    box-shadow: -14px 0 22px rgba(0, 0, 0, 0.16);
-  }
-
-  .nova-table thead :where(th).nova-table-actions {
-    z-index: 14;
-  }
-}
-
-.nova-app main :where(input, select, textarea) {
-  min-height: 42px;
-  border-color: rgba(255, 255, 255, 0.10);
-}
-
-.nova-app main :where(textarea) {
-  min-height: 110px;
-  resize: vertical;
-}
-
-.nova-action-form {
-  min-width: 0;
-}
-
-.nova-form-actions {
-  border-top: 1px solid rgba(255, 255, 255, 0.07);
-  padding-top: 1rem;
-}
-
-.nova-form-actions :where(button, a) {
-  min-height: 44px;
-}
-
-.nova-app main :where([role="alert"]),
-.nova-app main :where([aria-live]) {
-  border-radius: 16px;
-}
-
-.nova-app main :where(details[open]) {
-  border-color: rgba(56, 189, 248, 0.16) !important;
-}
-
-.nova-page-monitoring :where(.nova-kpi, .nova-inline-stat),
-.nova-page-dashboard :where(.nova-kpi, .nova-inline-stat) {
-  min-height: 104px;
-}
-
-.nova-page-reports :where(.nova-surface),
-.nova-page-reconciliation :where(.nova-surface) {
-  background-image:
-    radial-gradient(circle at 0% 0%, rgba(129, 140, 248, 0.07), transparent 18rem),
-    linear-gradient(180deg, rgba(18, 25, 34, 0.96), rgba(11, 16, 23, 0.98)) !important;
-}
-
-.nova-app main :where(.nova-empty) {
-  background-image: radial-gradient(circle at 12% 0%, rgba(56, 189, 248, 0.075), transparent 16rem);
-}
-
-.nova-app main :where(.nova-empty)::before {
-  border-style: dashed;
-}
-
-.nova-app main :where(a[href^="/"], button):not(.nova-sidebar *):not(.nova-rail *) {
-  scroll-margin-top: 6rem;
-}
-
-@media (max-width: 1100px) {
-
-  .nova-topbar {
-    gap: 0.9rem !important;
-  }
-}
-
-@media (max-width: 760px) {
-
-  .nova-form-actions {
-    position: sticky;
-    bottom: 0.75rem;
-    z-index: 16;
-    margin-left: -0.25rem;
-    margin-right: -0.25rem;
-    border: 1px solid rgba(255, 255, 255, 0.09);
-    border-radius: 18px;
-    background: rgba(8, 13, 19, 0.94);
-    padding: 0.75rem;
-    box-shadow: 0 24px 55px rgba(0, 0, 0, 0.34);
-    backdrop-filter: blur(14px);
-  }
-
-  .nova-page-stack :where(.nova-registry-metric, .nova-info-card, .nova-summary-card):hover {
-    transform: none;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .nova-app *,
-  .nova-app *::before,
-  .nova-app *::after {
-    scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-  }
-}
-
-/* nova consistency ux polish */
-:root {
-  --nova-ring: rgba(56, 189, 248, 0.36);
-  --nova-ring-soft: rgba(56, 189, 248, 0.16);
-  --nova-surface: rgba(13, 19, 26, 0.86);
-  --nova-surface-strong: rgba(15, 23, 32, 0.94);
-  --nova-line: rgba(255, 255, 255, 0.08);
-}
-
-html {
-  scrollbar-color: rgba(148, 163, 184, 0.30) rgba(2, 6, 12, 0.36);
-  scrollbar-gutter: stable;
-}
-
-::selection {
-  background: rgba(56, 189, 248, 0.28);
-  color: #ffffff;
-}
-
-.nova-app :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
-  outline: 2px solid var(--nova-ring);
-  outline-offset: 3px;
-  box-shadow: 0 0 0 6px var(--nova-ring-soft);
-}
-
-.nova-app :where(button, a, input, select, textarea) {
-  touch-action: manipulation;
-}
-
-.nova-app :where(input, select, textarea) {
-  min-height: 2.75rem;
-  border-radius: 0.95rem;
-}
-
-.nova-app :where(input, select, textarea)::placeholder {
-  color: rgba(148, 163, 184, 0.62);
-}
-
-.nova-app :where(input, select, textarea):disabled,
-.nova-app :where(button):disabled {
-  cursor: not-allowed;
-  opacity: 0.58;
-}
-
-.nova-app :where(button, a[class*="rounded"], .nova-filter-chip, .nova-table-action) {
-  transform: translateZ(0);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .nova-app :where(button, a[class*="rounded"], .nova-filter-chip):not(:disabled):hover {
-    filter: brightness(1.055);
-  }
-
-  .nova-summary-card:hover,
-  .nova-registry-metric:hover,
-  .nova-info-card:hover,
-  .nova-kpi-card:hover,
-  .nova-panel:hover {
-    border-color: rgba(125, 211, 252, 0.18);
-    box-shadow: 0 22px 58px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.045);
-  }
-}
-
-.nova-table-shell,
-.nova-overflow-guard {
-  position: relative;
-  scrollbar-color: rgba(148, 163, 184, 0.26) rgba(2, 6, 12, 0.22);
-}
-
-.nova-table-shell::after,
-.nova-overflow-guard::after {
-  content: "";
-  pointer-events: none;
-  position: sticky;
-  right: 0;
-  display: block;
-  width: 2.25rem;
-  height: 1px;
-  margin-top: -1px;
-  margin-left: auto;
-  background: linear-gradient(90deg, transparent, rgba(8, 13, 19, 0.88));
-}
-
-.nova-table thead th {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  background: rgba(8, 13, 19, 0.96);
-  backdrop-filter: blur(14px);
-}
-
-.nova-table tbody tr {
-  transition: background-color 160ms ease, border-color 160ms ease;
-}
-
-.nova-table tbody tr:hover {
-  background: rgba(255, 255, 255, 0.026);
-}
-
-.nova-table td,
-.nova-table th {
-  vertical-align: middle;
-}
-
-.nova-table-actions {
-  position: sticky;
-  right: 0;
-  z-index: 1;
-  background: linear-gradient(90deg, rgba(8, 13, 19, 0.72), rgba(8, 13, 19, 0.98) 42%);
-  backdrop-filter: blur(12px);
-}
-
-.nova-form-actions {
-  border-radius: 1.1rem;
-}
-
-@media (max-width: 760px) {
-  .nova-form-actions {
-    position: sticky;
-    bottom: 0.75rem;
-    z-index: 30;
-    margin-inline: -0.25rem;
-    padding: 0.65rem;
-    border: 1px solid rgba(255, 255, 255, 0.09);
-    background: rgba(8, 13, 19, 0.88);
-    box-shadow: 0 20px 70px rgba(0, 0, 0, 0.42);
-    backdrop-filter: blur(18px);
-  }
-
-  .nova-content {
-    padding-inline: 1rem !important;
-  }
-
-  .nova-table-shell {
-    border-radius: 1rem;
-  }
-
-  .nova-table th,
-  .nova-table td {
-    padding-inline: 0.8rem;
-  }
-
-  .nova-table-actions {
-    min-width: 7rem;
-  }
-}
-
-.nova-mobile-drawer,
-.nova-sidebar {
-  scrollbar-color: rgba(148, 163, 184, 0.26) transparent;
-}
-
-.nova-mobile-drawer::-webkit-scrollbar,
-.nova-sidebar::-webkit-scrollbar,
-.nova-table-shell::-webkit-scrollbar,
-.nova-overflow-guard::-webkit-scrollbar {
-  height: 10px;
-  width: 10px;
-}
-
-.nova-mobile-drawer::-webkit-scrollbar-thumb,
-.nova-sidebar::-webkit-scrollbar-thumb,
-.nova-table-shell::-webkit-scrollbar-thumb,
-.nova-overflow-guard::-webkit-scrollbar-thumb {
-  border: 3px solid transparent;
-  border-radius: 999px;
-  background-clip: padding-box;
-  background-color: rgba(148, 163, 184, 0.26);
-}
-
-.nova-mobile-drawer::-webkit-scrollbar-track,
-.nova-sidebar::-webkit-scrollbar-track,
-.nova-table-shell::-webkit-scrollbar-track,
-.nova-overflow-guard::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.nova-skip-link {
-  position: fixed;
-  left: 1rem;
-  top: 1rem;
-  z-index: 9999;
-  transform: translateY(-150%);
-  border-radius: 999px;
-  border: 1px solid rgba(125, 211, 252, 0.28);
-  background: rgba(8, 13, 19, 0.96);
-  color: #e0f2fe;
-  padding: 0.65rem 0.9rem;
-  font-size: 0.85rem;
-  font-weight: 900;
-  transition: transform 160ms ease;
-}
-
-.nova-skip-link:focus {
-  transform: translateY(0);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .nova-app *,
-  .nova-app *::before,
-  .nova-app *::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
+  *,
+  *::before,
+  *::after {
     scroll-behavior: auto !important;
     transition-duration: 0.001ms !important;
-  }
-}
-
-/* nova productivity polish */
-:root {
-  --nova-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
-  --nova-glow-sky: 0 0 0 1px rgba(56, 189, 248, 0.12), 0 20px 70px rgba(3, 7, 18, 0.34);
-  --nova-glow-soft: 0 18px 55px rgba(0, 0, 0, 0.24);
-  --nova-card-bg: linear-gradient(180deg, rgba(17, 24, 33, 0.94), rgba(10, 15, 22, 0.92));
-}
-
-.nova-app {
-  text-rendering: geometricPrecision;
-}
-
-.nova-app :where(.nova-surface, .nova-panel, .nova-info-card, .nova-summary-card, .nova-kpi, .nova-kpi-card, .nova-registry-metric, .nova-login-form, .nova-upload-panel, .nova-attachment-row) {
-  background-image: var(--nova-card-bg);
-  box-shadow: var(--nova-glow-soft), inset 0 1px 0 rgba(255, 255, 255, 0.035);
-}
-
-.nova-app :where(.nova-surface, .nova-panel, .nova-info-card, .nova-summary-card, .nova-kpi, .nova-kpi-card, .nova-registry-metric, .nova-login-form, .nova-upload-panel, .nova-attachment-row) {
-  transition: border-color 180ms var(--nova-ease), box-shadow 180ms var(--nova-ease), transform 180ms var(--nova-ease), background-color 180ms var(--nova-ease);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .nova-app :where(.nova-surface, .nova-panel, .nova-info-card, .nova-summary-card, .nova-kpi, .nova-kpi-card, .nova-registry-metric, .nova-upload-panel, .nova-attachment-row):hover {
-    transform: translateY(-1px);
-    border-color: rgba(125, 211, 252, 0.18);
-    box-shadow: var(--nova-glow-sky), inset 0 1px 0 rgba(255, 255, 255, 0.045);
-  }
-}
-
-.nova-app :where(label) {
-  color: rgba(203, 213, 225, 0.92);
-}
-
-.nova-action-form {
-  min-width: 0;
-}
-
-.nova-action-notice {
-  position: relative;
-  overflow: hidden;
-  box-shadow: inset 3px 0 0 currentColor;
-}
-
-.nova-form-actions {
-  gap: 0.65rem;
-}
-
-.nova-submit-button {
-  min-height: 2.85rem;
-  letter-spacing: -0.01em;
-}
-
-.nova-submit-spinner {
-  width: 0.95rem;
-  height: 0.95rem;
-  border-radius: 999px;
-  border: 2px solid currentColor;
-  border-right-color: transparent;
-  animation: nova-spin 680ms linear infinite;
-}
-
-@keyframes nova-spin {
-  to { transform: rotate(360deg); }
-}
-
-.nova-app :where(input[type="file"]) {
-  cursor: pointer;
-}
-
-.nova-app :where(input[type="file"]::file-selector-button) {
-  cursor: pointer;
-  transition: transform 160ms var(--nova-ease), filter 160ms var(--nova-ease);
-}
-
-.nova-app :where(input[type="file"]::file-selector-button:hover) {
-  filter: brightness(0.94);
-}
-
-.nova-attachment-row {
-  overflow: hidden;
-}
-
-.nova-upload-panel {
-  position: relative;
-}
-
-.nova-upload-panel::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  border-radius: inherit;
-  background: radial-gradient(circle at 12% 0%, rgba(56, 189, 248, 0.11), transparent 16rem);
-}
-
-.nova-table-shell {
-  max-width: 100%;
-  isolation: isolate;
-}
-
-.nova-table {
-  font-variant-numeric: tabular-nums;
-}
-
-.nova-table :where(th, td) {
-  white-space: nowrap;
-}
-
-.nova-table :where(td:first-child, th:first-child) {
-  white-space: normal;
-}
-
-.nova-table tbody tr:nth-child(even) {
-  background: rgba(255, 255, 255, 0.012);
-}
-
-.nova-table tbody tr:focus-within {
-  background: rgba(56, 189, 248, 0.055);
-  outline: 1px solid rgba(56, 189, 248, 0.18);
-  outline-offset: -1px;
-}
-
-.nova-table-actions {
-  box-shadow: -18px 0 28px rgba(8, 13, 19, 0.68);
-}
-
-.nova-pill {
-  max-width: 100%;
-  text-wrap: nowrap;
-}
-
-.nova-section-intro :where(h1, h2, h3),
-.nova-page-title,
-.nova-app h1,
-.nova-app h2 {
-  text-wrap: balance;
-}
-
-.nova-app p {
-  text-wrap: pretty;
-}
-
-.nova-empty-state,
-.nova-app [data-empty="true"] {
-  background: radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.09), transparent 18rem), rgba(255, 255, 255, 0.025);
-}
-
-.nova-app :where([aria-live="polite"], [role="status"]) {
-  scroll-margin-top: 7rem;
-}
-
-.nova-app :where(dialog, [role="dialog"], .nova-modal) {
-  backdrop-filter: blur(18px);
-}
-
-.nova-app :where(.nova-filter-chip, .nova-table-action, .nova-submit-button, a[href], button) {
-  -webkit-tap-highlight-color: transparent;
-}
-
-@media (max-width: 900px) {
-  .nova-app :where(.nova-section-intro) {
-    gap: 0.9rem;
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
   }
 
-  .nova-app :where(.nova-section-intro > div:last-child) {
-    width: 100%;
-  }
-
-  .nova-app :where(.nova-section-intro > div:last-child > *) {
-    max-width: 100%;
-  }
-
-  .nova-form-actions {
-    align-items: stretch !important;
-    justify-content: stretch !important;
-  }
-
-  .nova-form-actions :where(button, a) {
-    width: 100%;
-  }
-
-  .nova-table {
-    min-width: 720px;
-  }
-}
-
-@media (max-width: 640px) {
-  .nova-app :where(.nova-surface, .nova-panel, .nova-info-card, .nova-summary-card, .nova-kpi, .nova-kpi-card, .nova-registry-metric, .nova-login-form, .nova-upload-panel, .nova-attachment-row) {
-    border-radius: 1rem !important;
-  }
-
-  .nova-app :where(.nova-content) {
-    gap: 1rem;
-  }
-
-  .nova-app :where(input, select, textarea, button) {
-    font-size: 16px;
-  }
-
-  .nova-table-shell {
-    margin-inline: -0.15rem;
-  }
-}
-
-@media print {
-  .nova-sidebar,
-  .nova-mobile-menu,
-  .nova-topbar,
-  .nova-form-actions,
-  .nova-table-actions,
-  button,
-  [role="button"] {
-    display: none !important;
-  }
-
-  .nova-layout,
-  .nova-main,
-  .nova-content {
-    display: block !important;
-    background: #fff !important;
-    color: #111827 !important;
-  }
-
-  .nova-surface,
-  .nova-panel,
-  .nova-table-shell {
-    box-shadow: none !important;
-    border-color: #d1d5db !important;
-    background: #fff !important;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
   .nova-submit-spinner {
     animation: none !important;
   }
-
-  .nova-app :where(.nova-surface, .nova-panel, .nova-info-card, .nova-summary-card, .nova-kpi, .nova-kpi-card, .nova-registry-metric, .nova-upload-panel, .nova-attachment-row):hover {
-    transform: none !important;
-  }
-}
-
-
-/* Backdrop/overlay: fica atrás do modal, mas acima da página */
-div[class*="fixed"][class*="inset-0"] {
-  z-index: 9000;
-}
-
-/* Qualquer dialog aberto precisa ser uma superfície sólida */
-[role="dialog"] {
-  position: relative !important;
-  z-index: 10000 !important;
-  isolation: isolate !important;
-  background:
-    radial-gradient(circle at top left, rgba(14, 48, 79, 0.14), transparent 34%),
-    linear-gradient(180deg, #0a121d 0%, #070b12 100%) !important;
-  border: 1px solid rgba(148, 163, 184, 0.16) !important;
-  box-shadow:
-    0 34px 110px rgba(0, 0, 0, 0.72),
-    inset 0 1px 0 rgba(255, 255, 255, 0.045) !important;
-  backdrop-filter: none !important;
-}
-
-/* Cria uma placa opaca dentro do dialog, cobrindo áreas transparentes internas */
-[role="dialog"]::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  border-radius: inherit;
-  background:
-    radial-gradient(circle at top left, rgba(14, 48, 79, 0.12), transparent 34%),
-    linear-gradient(180deg, #0a121d 0%, #070b12 100%);
-  pointer-events: none;
-}
-
-/* Todo filho direto do dialog fica acima da placa opaca */
-[role="dialog"] > * {
-  position: relative;
-  z-index: 1;
-}
-
-/* Se o modal tiver sections/cards internos translúcidos, eles também recebem fundo sólido */
-[role="dialog"] section,
-[role="dialog"] article,
-[role="dialog"] form,
-[role="dialog"] fieldset {
-  background-color: rgba(9, 16, 25, 0.96);
-}
-
-/* Containers internos grandes do wizard */
-[role="dialog"] div[class*="rounded"][class*="border"] {
-  backdrop-filter: none !important;
-}
-
-/* Evita que elementos com z-index alto do dashboard atravessem quando um dialog está aberto */
-body:has([role="dialog"]) main,
-body:has([role="dialog"]) aside,
-body:has([role="dialog"]) header,
-body:has([role="dialog"]) nav {
-  isolation: auto;
 }
