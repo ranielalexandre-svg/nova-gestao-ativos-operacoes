@@ -12,6 +12,7 @@ type NavEntry = NavItem & { adminOnly?: boolean };
 const NAV: NavEntry[] = [
   { href: "/dashboard", label: "Visão geral", short: "VG", icon: "dashboard", section: "Geral" },
 
+  { href: "/unidades", label: "Unidades", short: "UN", icon: "units", section: "Monitoramento" },
   { href: "/sensores", label: "Sensores", short: "SN", icon: "monitoring", section: "Monitoramento" },
   { href: "/mapas", label: "Mapas", short: "MP", icon: "map", section: "Monitoramento" },
   { href: "/alertas", label: "Alertas", short: "AL", icon: "incidents", section: "Monitoramento" },
@@ -24,7 +25,6 @@ const NAV: NavEntry[] = [
     section: "Gestão",
     children: [{ href: "/ativos/starlinks", label: "Starlinks", short: "ST", icon: "satellite" }],
   },
-  { href: "/unidades", label: "Unidades", short: "UN", icon: "units", section: "Gestão" },
   { href: "/parceiros", label: "Parceiros", short: "PR", icon: "partners", section: "Gestão" },
   { href: "/contratos", label: "Contratos", short: "CT", icon: "contracts", section: "Gestão" },
   { href: "/chamados", label: "Chamados", short: "CH", icon: "queue", section: "Gestão" },
@@ -150,8 +150,8 @@ function UserTopCard({
   const initial = (session.user.name || session.user.email || "N").trim().slice(0, 1).toUpperCase();
 
   return (
-    <div className="flex min-w-0 items-center gap-2 border-l border-white/10 pl-3">
-      <div className="hidden min-w-0 text-right md:block">
+    <div className="nds-topbar-user flex min-w-0 items-center gap-2 border-l border-white/10 pl-3">
+      <div className="nds-topbar-user-text hidden min-w-0 text-right md:block">
         <div className="truncate text-[11px] font-bold text-slate-50">
           {session.user.name}
         </div>
@@ -159,7 +159,7 @@ function UserTopCard({
           {roleLabel(role)} · {session.user.email}
         </div>
       </div>
-      <div className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[var(--nova-primary)] text-[10px] font-black text-white">
+      <div className="nds-topbar-avatar grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[var(--nova-primary)] text-[10px] font-black text-white">
         {initial}
       </div>
     </div>

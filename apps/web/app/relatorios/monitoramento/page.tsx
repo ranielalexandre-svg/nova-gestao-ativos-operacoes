@@ -757,25 +757,25 @@ export default async function MonitoringReportsPage({
 
               <Surface>
                 <h2 className="text-[13px] font-black text-slate-50">Prévia do relatório (DOCX)</h2>
-                <div className="nds-report-preview mt-2 p-2">
-                  <div className="relative mx-auto aspect-[0.72] max-h-[430px] overflow-hidden rounded-[3px] border border-white/[0.08] bg-[var(--nova-surface-3)]">
-                    <div className="absolute left-0 top-0 h-20 w-full bg-white/[0.08]" />
-                    <div className="absolute left-0 top-12 h-8 w-full bg-[color-mix(in_srgb,var(--nova-primary)_42%,transparent)]" />
-                    <div className="absolute left-[17%] top-[38%] text-center">
-                      <div className="text-[30px] font-black text-slate-300">
+                <div className="nds-report-preview nova-report-preview-card nova-docx-preview-shell mt-2 p-2">
+                  <div className="nova-docx-page relative mx-auto aspect-[0.72] max-h-[430px] overflow-hidden rounded-[3px] border border-slate-300 bg-white text-slate-950" style={{ backgroundColor: "#ffffff", color: "#0f172a" }}>
+                    <div className="nova-docx-header-band absolute left-0 top-0 h-20 w-full" />
+                    <div className="nova-docx-orange-band absolute left-0 top-12 h-8 w-full" />
+                    <div className="nova-docx-logo-block absolute left-[17%] top-[38%] text-center">
+                      <div className="nova-docx-logo-main text-[30px] font-black">
                         NOV<span className="text-[var(--nova-primary)]">A</span>
                       </div>
-                      <div className="mt-1 text-[10px] font-black text-slate-500">TELECOM</div>
+                      <div className="nova-docx-logo-sub mt-1 text-[10px] font-black">TELECOM</div>
                     </div>
                     <div className="absolute left-[53%] top-[31%] h-[45%] w-px bg-[var(--nova-primary)]" />
-                    <div className="absolute left-[58%] top-[45%] text-left text-slate-200">
-                      <div className="text-[12px] text-slate-500">{defaultCompetenceLabel}</div>
+                    <div className="nova-docx-cover-info absolute left-[58%] top-[45%] text-left">
+                      <div className="text-[12px] text-slate-700">{defaultCompetenceLabel}</div>
                       <div className="mt-2 text-[12px] font-medium uppercase text-[var(--nova-primary)]">INTERESSADO</div>
                       <div className="text-[13px] font-black">{defaultInterestedParty || "NOVA TELECOM"}</div>
                       <div className="mt-2 text-[12px]">{defaultIssueDateLabel}</div>
                     </div>
-                    <div className="absolute bottom-0 left-0 h-16 w-full bg-white/[0.08]" />
-                    <div className="absolute bottom-10 left-0 h-6 w-full bg-[color-mix(in_srgb,var(--nova-primary)_42%,transparent)]" />
+                    <div className="nova-docx-footer-band absolute bottom-0 left-0 h-16 w-full" />
+                    <div className="nova-docx-orange-band absolute bottom-10 left-0 h-6 w-full" />
                   </div>
                   <div className="mt-2 flex items-center justify-between rounded-[var(--nova-radius-control)] bg-[var(--nova-surface-3)] px-3 py-2 text-[11px] text-slate-300">
                     <span>‹</span>
