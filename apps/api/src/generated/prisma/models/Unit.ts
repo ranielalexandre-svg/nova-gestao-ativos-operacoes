@@ -268,6 +268,7 @@ export type UnitWhereInput = {
   maintenances?: Prisma.MaintenanceListRelationFilter
   exceptionCases?: Prisma.ExceptionCaseListRelationFilter
   activities?: Prisma.ActivityEntryListRelationFilter
+  unitOperationalInfos?: Prisma.UnitOperationalInfoListRelationFilter
 }
 
 export type UnitOrderByWithRelationInput = {
@@ -292,6 +293,7 @@ export type UnitOrderByWithRelationInput = {
   maintenances?: Prisma.MaintenanceOrderByRelationAggregateInput
   exceptionCases?: Prisma.ExceptionCaseOrderByRelationAggregateInput
   activities?: Prisma.ActivityEntryOrderByRelationAggregateInput
+  unitOperationalInfos?: Prisma.UnitOperationalInfoOrderByRelationAggregateInput
 }
 
 export type UnitWhereUniqueInput = Prisma.AtLeast<{
@@ -319,6 +321,7 @@ export type UnitWhereUniqueInput = Prisma.AtLeast<{
   maintenances?: Prisma.MaintenanceListRelationFilter
   exceptionCases?: Prisma.ExceptionCaseListRelationFilter
   activities?: Prisma.ActivityEntryListRelationFilter
+  unitOperationalInfos?: Prisma.UnitOperationalInfoListRelationFilter
 }, "id" | "code">
 
 export type UnitOrderByWithAggregationInput = {
@@ -384,6 +387,7 @@ export type UnitCreateInput = {
   maintenances?: Prisma.MaintenanceCreateNestedManyWithoutUnitInput
   exceptionCases?: Prisma.ExceptionCaseCreateNestedManyWithoutUnitInput
   activities?: Prisma.ActivityEntryCreateNestedManyWithoutUnitInput
+  unitOperationalInfos?: Prisma.UnitOperationalInfoCreateNestedManyWithoutUnitInput
 }
 
 export type UnitUncheckedCreateInput = {
@@ -407,6 +411,7 @@ export type UnitUncheckedCreateInput = {
   maintenances?: Prisma.MaintenanceUncheckedCreateNestedManyWithoutUnitInput
   exceptionCases?: Prisma.ExceptionCaseUncheckedCreateNestedManyWithoutUnitInput
   activities?: Prisma.ActivityEntryUncheckedCreateNestedManyWithoutUnitInput
+  unitOperationalInfos?: Prisma.UnitOperationalInfoUncheckedCreateNestedManyWithoutUnitInput
 }
 
 export type UnitUpdateInput = {
@@ -430,6 +435,7 @@ export type UnitUpdateInput = {
   maintenances?: Prisma.MaintenanceUpdateManyWithoutUnitNestedInput
   exceptionCases?: Prisma.ExceptionCaseUpdateManyWithoutUnitNestedInput
   activities?: Prisma.ActivityEntryUpdateManyWithoutUnitNestedInput
+  unitOperationalInfos?: Prisma.UnitOperationalInfoUpdateManyWithoutUnitNestedInput
 }
 
 export type UnitUncheckedUpdateInput = {
@@ -453,6 +459,7 @@ export type UnitUncheckedUpdateInput = {
   maintenances?: Prisma.MaintenanceUncheckedUpdateManyWithoutUnitNestedInput
   exceptionCases?: Prisma.ExceptionCaseUncheckedUpdateManyWithoutUnitNestedInput
   activities?: Prisma.ActivityEntryUncheckedUpdateManyWithoutUnitNestedInput
+  unitOperationalInfos?: Prisma.UnitOperationalInfoUncheckedUpdateManyWithoutUnitNestedInput
 }
 
 export type UnitCreateManyInput = {
@@ -628,6 +635,20 @@ export type NullableStringFieldUpdateOperationsInput = {
   set?: string | null
 }
 
+export type UnitCreateNestedOneWithoutUnitOperationalInfosInput = {
+  create?: Prisma.XOR<Prisma.UnitCreateWithoutUnitOperationalInfosInput, Prisma.UnitUncheckedCreateWithoutUnitOperationalInfosInput>
+  connectOrCreate?: Prisma.UnitCreateOrConnectWithoutUnitOperationalInfosInput
+  connect?: Prisma.UnitWhereUniqueInput
+}
+
+export type UnitUpdateOneRequiredWithoutUnitOperationalInfosNestedInput = {
+  create?: Prisma.XOR<Prisma.UnitCreateWithoutUnitOperationalInfosInput, Prisma.UnitUncheckedCreateWithoutUnitOperationalInfosInput>
+  connectOrCreate?: Prisma.UnitCreateOrConnectWithoutUnitOperationalInfosInput
+  upsert?: Prisma.UnitUpsertWithoutUnitOperationalInfosInput
+  connect?: Prisma.UnitWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UnitUpdateToOneWithWhereWithoutUnitOperationalInfosInput, Prisma.UnitUpdateWithoutUnitOperationalInfosInput>, Prisma.UnitUncheckedUpdateWithoutUnitOperationalInfosInput>
+}
+
 export type UnitCreateNestedOneWithoutEquipmentsInput = {
   create?: Prisma.XOR<Prisma.UnitCreateWithoutEquipmentsInput, Prisma.UnitUncheckedCreateWithoutEquipmentsInput>
   connectOrCreate?: Prisma.UnitCreateOrConnectWithoutEquipmentsInput
@@ -726,6 +747,7 @@ export type UnitCreateWithoutPartnerInput = {
   maintenances?: Prisma.MaintenanceCreateNestedManyWithoutUnitInput
   exceptionCases?: Prisma.ExceptionCaseCreateNestedManyWithoutUnitInput
   activities?: Prisma.ActivityEntryCreateNestedManyWithoutUnitInput
+  unitOperationalInfos?: Prisma.UnitOperationalInfoCreateNestedManyWithoutUnitInput
 }
 
 export type UnitUncheckedCreateWithoutPartnerInput = {
@@ -748,6 +770,7 @@ export type UnitUncheckedCreateWithoutPartnerInput = {
   maintenances?: Prisma.MaintenanceUncheckedCreateNestedManyWithoutUnitInput
   exceptionCases?: Prisma.ExceptionCaseUncheckedCreateNestedManyWithoutUnitInput
   activities?: Prisma.ActivityEntryUncheckedCreateNestedManyWithoutUnitInput
+  unitOperationalInfos?: Prisma.UnitOperationalInfoUncheckedCreateNestedManyWithoutUnitInput
 }
 
 export type UnitCreateOrConnectWithoutPartnerInput = {
@@ -797,6 +820,114 @@ export type UnitScalarWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Unit"> | Date | string
 }
 
+export type UnitCreateWithoutUnitOperationalInfosInput = {
+  id?: string
+  code: string
+  name: string
+  city?: string | null
+  state?: string | null
+  zabbixHost?: string | null
+  zabbixVisibleName?: string | null
+  reportContractLabel?: string | null
+  reportAddressLine?: string | null
+  reportContractedBandwidth?: string | null
+  reportNotes?: string | null
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  partner: Prisma.PartnerCreateNestedOneWithoutUnitsInput
+  equipments?: Prisma.EquipmentCreateNestedManyWithoutUnitInput
+  occurrences?: Prisma.OccurrenceCreateNestedManyWithoutUnitInput
+  maintenances?: Prisma.MaintenanceCreateNestedManyWithoutUnitInput
+  exceptionCases?: Prisma.ExceptionCaseCreateNestedManyWithoutUnitInput
+  activities?: Prisma.ActivityEntryCreateNestedManyWithoutUnitInput
+}
+
+export type UnitUncheckedCreateWithoutUnitOperationalInfosInput = {
+  id?: string
+  code: string
+  name: string
+  city?: string | null
+  state?: string | null
+  zabbixHost?: string | null
+  zabbixVisibleName?: string | null
+  reportContractLabel?: string | null
+  reportAddressLine?: string | null
+  reportContractedBandwidth?: string | null
+  reportNotes?: string | null
+  isActive?: boolean
+  partnerId: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  equipments?: Prisma.EquipmentUncheckedCreateNestedManyWithoutUnitInput
+  occurrences?: Prisma.OccurrenceUncheckedCreateNestedManyWithoutUnitInput
+  maintenances?: Prisma.MaintenanceUncheckedCreateNestedManyWithoutUnitInput
+  exceptionCases?: Prisma.ExceptionCaseUncheckedCreateNestedManyWithoutUnitInput
+  activities?: Prisma.ActivityEntryUncheckedCreateNestedManyWithoutUnitInput
+}
+
+export type UnitCreateOrConnectWithoutUnitOperationalInfosInput = {
+  where: Prisma.UnitWhereUniqueInput
+  create: Prisma.XOR<Prisma.UnitCreateWithoutUnitOperationalInfosInput, Prisma.UnitUncheckedCreateWithoutUnitOperationalInfosInput>
+}
+
+export type UnitUpsertWithoutUnitOperationalInfosInput = {
+  update: Prisma.XOR<Prisma.UnitUpdateWithoutUnitOperationalInfosInput, Prisma.UnitUncheckedUpdateWithoutUnitOperationalInfosInput>
+  create: Prisma.XOR<Prisma.UnitCreateWithoutUnitOperationalInfosInput, Prisma.UnitUncheckedCreateWithoutUnitOperationalInfosInput>
+  where?: Prisma.UnitWhereInput
+}
+
+export type UnitUpdateToOneWithWhereWithoutUnitOperationalInfosInput = {
+  where?: Prisma.UnitWhereInput
+  data: Prisma.XOR<Prisma.UnitUpdateWithoutUnitOperationalInfosInput, Prisma.UnitUncheckedUpdateWithoutUnitOperationalInfosInput>
+}
+
+export type UnitUpdateWithoutUnitOperationalInfosInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  zabbixHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  zabbixVisibleName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportContractLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportAddressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportContractedBandwidth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  partner?: Prisma.PartnerUpdateOneRequiredWithoutUnitsNestedInput
+  equipments?: Prisma.EquipmentUpdateManyWithoutUnitNestedInput
+  occurrences?: Prisma.OccurrenceUpdateManyWithoutUnitNestedInput
+  maintenances?: Prisma.MaintenanceUpdateManyWithoutUnitNestedInput
+  exceptionCases?: Prisma.ExceptionCaseUpdateManyWithoutUnitNestedInput
+  activities?: Prisma.ActivityEntryUpdateManyWithoutUnitNestedInput
+}
+
+export type UnitUncheckedUpdateWithoutUnitOperationalInfosInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  zabbixHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  zabbixVisibleName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportContractLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportAddressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportContractedBandwidth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reportNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  partnerId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  equipments?: Prisma.EquipmentUncheckedUpdateManyWithoutUnitNestedInput
+  occurrences?: Prisma.OccurrenceUncheckedUpdateManyWithoutUnitNestedInput
+  maintenances?: Prisma.MaintenanceUncheckedUpdateManyWithoutUnitNestedInput
+  exceptionCases?: Prisma.ExceptionCaseUncheckedUpdateManyWithoutUnitNestedInput
+  activities?: Prisma.ActivityEntryUncheckedUpdateManyWithoutUnitNestedInput
+}
+
 export type UnitCreateWithoutEquipmentsInput = {
   id?: string
   code: string
@@ -817,6 +948,7 @@ export type UnitCreateWithoutEquipmentsInput = {
   maintenances?: Prisma.MaintenanceCreateNestedManyWithoutUnitInput
   exceptionCases?: Prisma.ExceptionCaseCreateNestedManyWithoutUnitInput
   activities?: Prisma.ActivityEntryCreateNestedManyWithoutUnitInput
+  unitOperationalInfos?: Prisma.UnitOperationalInfoCreateNestedManyWithoutUnitInput
 }
 
 export type UnitUncheckedCreateWithoutEquipmentsInput = {
@@ -839,6 +971,7 @@ export type UnitUncheckedCreateWithoutEquipmentsInput = {
   maintenances?: Prisma.MaintenanceUncheckedCreateNestedManyWithoutUnitInput
   exceptionCases?: Prisma.ExceptionCaseUncheckedCreateNestedManyWithoutUnitInput
   activities?: Prisma.ActivityEntryUncheckedCreateNestedManyWithoutUnitInput
+  unitOperationalInfos?: Prisma.UnitOperationalInfoUncheckedCreateNestedManyWithoutUnitInput
 }
 
 export type UnitCreateOrConnectWithoutEquipmentsInput = {
@@ -877,6 +1010,7 @@ export type UnitUpdateWithoutEquipmentsInput = {
   maintenances?: Prisma.MaintenanceUpdateManyWithoutUnitNestedInput
   exceptionCases?: Prisma.ExceptionCaseUpdateManyWithoutUnitNestedInput
   activities?: Prisma.ActivityEntryUpdateManyWithoutUnitNestedInput
+  unitOperationalInfos?: Prisma.UnitOperationalInfoUpdateManyWithoutUnitNestedInput
 }
 
 export type UnitUncheckedUpdateWithoutEquipmentsInput = {
@@ -899,6 +1033,7 @@ export type UnitUncheckedUpdateWithoutEquipmentsInput = {
   maintenances?: Prisma.MaintenanceUncheckedUpdateManyWithoutUnitNestedInput
   exceptionCases?: Prisma.ExceptionCaseUncheckedUpdateManyWithoutUnitNestedInput
   activities?: Prisma.ActivityEntryUncheckedUpdateManyWithoutUnitNestedInput
+  unitOperationalInfos?: Prisma.UnitOperationalInfoUncheckedUpdateManyWithoutUnitNestedInput
 }
 
 export type UnitCreateWithoutOccurrencesInput = {
@@ -921,6 +1056,7 @@ export type UnitCreateWithoutOccurrencesInput = {
   maintenances?: Prisma.MaintenanceCreateNestedManyWithoutUnitInput
   exceptionCases?: Prisma.ExceptionCaseCreateNestedManyWithoutUnitInput
   activities?: Prisma.ActivityEntryCreateNestedManyWithoutUnitInput
+  unitOperationalInfos?: Prisma.UnitOperationalInfoCreateNestedManyWithoutUnitInput
 }
 
 export type UnitUncheckedCreateWithoutOccurrencesInput = {
@@ -943,6 +1079,7 @@ export type UnitUncheckedCreateWithoutOccurrencesInput = {
   maintenances?: Prisma.MaintenanceUncheckedCreateNestedManyWithoutUnitInput
   exceptionCases?: Prisma.ExceptionCaseUncheckedCreateNestedManyWithoutUnitInput
   activities?: Prisma.ActivityEntryUncheckedCreateNestedManyWithoutUnitInput
+  unitOperationalInfos?: Prisma.UnitOperationalInfoUncheckedCreateNestedManyWithoutUnitInput
 }
 
 export type UnitCreateOrConnectWithoutOccurrencesInput = {
@@ -981,6 +1118,7 @@ export type UnitUpdateWithoutOccurrencesInput = {
   maintenances?: Prisma.MaintenanceUpdateManyWithoutUnitNestedInput
   exceptionCases?: Prisma.ExceptionCaseUpdateManyWithoutUnitNestedInput
   activities?: Prisma.ActivityEntryUpdateManyWithoutUnitNestedInput
+  unitOperationalInfos?: Prisma.UnitOperationalInfoUpdateManyWithoutUnitNestedInput
 }
 
 export type UnitUncheckedUpdateWithoutOccurrencesInput = {
@@ -1003,6 +1141,7 @@ export type UnitUncheckedUpdateWithoutOccurrencesInput = {
   maintenances?: Prisma.MaintenanceUncheckedUpdateManyWithoutUnitNestedInput
   exceptionCases?: Prisma.ExceptionCaseUncheckedUpdateManyWithoutUnitNestedInput
   activities?: Prisma.ActivityEntryUncheckedUpdateManyWithoutUnitNestedInput
+  unitOperationalInfos?: Prisma.UnitOperationalInfoUncheckedUpdateManyWithoutUnitNestedInput
 }
 
 export type UnitCreateWithoutMaintenancesInput = {
@@ -1025,6 +1164,7 @@ export type UnitCreateWithoutMaintenancesInput = {
   occurrences?: Prisma.OccurrenceCreateNestedManyWithoutUnitInput
   exceptionCases?: Prisma.ExceptionCaseCreateNestedManyWithoutUnitInput
   activities?: Prisma.ActivityEntryCreateNestedManyWithoutUnitInput
+  unitOperationalInfos?: Prisma.UnitOperationalInfoCreateNestedManyWithoutUnitInput
 }
 
 export type UnitUncheckedCreateWithoutMaintenancesInput = {
@@ -1047,6 +1187,7 @@ export type UnitUncheckedCreateWithoutMaintenancesInput = {
   occurrences?: Prisma.OccurrenceUncheckedCreateNestedManyWithoutUnitInput
   exceptionCases?: Prisma.ExceptionCaseUncheckedCreateNestedManyWithoutUnitInput
   activities?: Prisma.ActivityEntryUncheckedCreateNestedManyWithoutUnitInput
+  unitOperationalInfos?: Prisma.UnitOperationalInfoUncheckedCreateNestedManyWithoutUnitInput
 }
 
 export type UnitCreateOrConnectWithoutMaintenancesInput = {
@@ -1085,6 +1226,7 @@ export type UnitUpdateWithoutMaintenancesInput = {
   occurrences?: Prisma.OccurrenceUpdateManyWithoutUnitNestedInput
   exceptionCases?: Prisma.ExceptionCaseUpdateManyWithoutUnitNestedInput
   activities?: Prisma.ActivityEntryUpdateManyWithoutUnitNestedInput
+  unitOperationalInfos?: Prisma.UnitOperationalInfoUpdateManyWithoutUnitNestedInput
 }
 
 export type UnitUncheckedUpdateWithoutMaintenancesInput = {
@@ -1107,6 +1249,7 @@ export type UnitUncheckedUpdateWithoutMaintenancesInput = {
   occurrences?: Prisma.OccurrenceUncheckedUpdateManyWithoutUnitNestedInput
   exceptionCases?: Prisma.ExceptionCaseUncheckedUpdateManyWithoutUnitNestedInput
   activities?: Prisma.ActivityEntryUncheckedUpdateManyWithoutUnitNestedInput
+  unitOperationalInfos?: Prisma.UnitOperationalInfoUncheckedUpdateManyWithoutUnitNestedInput
 }
 
 export type UnitCreateWithoutExceptionCasesInput = {
@@ -1129,6 +1272,7 @@ export type UnitCreateWithoutExceptionCasesInput = {
   occurrences?: Prisma.OccurrenceCreateNestedManyWithoutUnitInput
   maintenances?: Prisma.MaintenanceCreateNestedManyWithoutUnitInput
   activities?: Prisma.ActivityEntryCreateNestedManyWithoutUnitInput
+  unitOperationalInfos?: Prisma.UnitOperationalInfoCreateNestedManyWithoutUnitInput
 }
 
 export type UnitUncheckedCreateWithoutExceptionCasesInput = {
@@ -1151,6 +1295,7 @@ export type UnitUncheckedCreateWithoutExceptionCasesInput = {
   occurrences?: Prisma.OccurrenceUncheckedCreateNestedManyWithoutUnitInput
   maintenances?: Prisma.MaintenanceUncheckedCreateNestedManyWithoutUnitInput
   activities?: Prisma.ActivityEntryUncheckedCreateNestedManyWithoutUnitInput
+  unitOperationalInfos?: Prisma.UnitOperationalInfoUncheckedCreateNestedManyWithoutUnitInput
 }
 
 export type UnitCreateOrConnectWithoutExceptionCasesInput = {
@@ -1189,6 +1334,7 @@ export type UnitUpdateWithoutExceptionCasesInput = {
   occurrences?: Prisma.OccurrenceUpdateManyWithoutUnitNestedInput
   maintenances?: Prisma.MaintenanceUpdateManyWithoutUnitNestedInput
   activities?: Prisma.ActivityEntryUpdateManyWithoutUnitNestedInput
+  unitOperationalInfos?: Prisma.UnitOperationalInfoUpdateManyWithoutUnitNestedInput
 }
 
 export type UnitUncheckedUpdateWithoutExceptionCasesInput = {
@@ -1211,6 +1357,7 @@ export type UnitUncheckedUpdateWithoutExceptionCasesInput = {
   occurrences?: Prisma.OccurrenceUncheckedUpdateManyWithoutUnitNestedInput
   maintenances?: Prisma.MaintenanceUncheckedUpdateManyWithoutUnitNestedInput
   activities?: Prisma.ActivityEntryUncheckedUpdateManyWithoutUnitNestedInput
+  unitOperationalInfos?: Prisma.UnitOperationalInfoUncheckedUpdateManyWithoutUnitNestedInput
 }
 
 export type UnitCreateWithoutActivitiesInput = {
@@ -1233,6 +1380,7 @@ export type UnitCreateWithoutActivitiesInput = {
   occurrences?: Prisma.OccurrenceCreateNestedManyWithoutUnitInput
   maintenances?: Prisma.MaintenanceCreateNestedManyWithoutUnitInput
   exceptionCases?: Prisma.ExceptionCaseCreateNestedManyWithoutUnitInput
+  unitOperationalInfos?: Prisma.UnitOperationalInfoCreateNestedManyWithoutUnitInput
 }
 
 export type UnitUncheckedCreateWithoutActivitiesInput = {
@@ -1255,6 +1403,7 @@ export type UnitUncheckedCreateWithoutActivitiesInput = {
   occurrences?: Prisma.OccurrenceUncheckedCreateNestedManyWithoutUnitInput
   maintenances?: Prisma.MaintenanceUncheckedCreateNestedManyWithoutUnitInput
   exceptionCases?: Prisma.ExceptionCaseUncheckedCreateNestedManyWithoutUnitInput
+  unitOperationalInfos?: Prisma.UnitOperationalInfoUncheckedCreateNestedManyWithoutUnitInput
 }
 
 export type UnitCreateOrConnectWithoutActivitiesInput = {
@@ -1293,6 +1442,7 @@ export type UnitUpdateWithoutActivitiesInput = {
   occurrences?: Prisma.OccurrenceUpdateManyWithoutUnitNestedInput
   maintenances?: Prisma.MaintenanceUpdateManyWithoutUnitNestedInput
   exceptionCases?: Prisma.ExceptionCaseUpdateManyWithoutUnitNestedInput
+  unitOperationalInfos?: Prisma.UnitOperationalInfoUpdateManyWithoutUnitNestedInput
 }
 
 export type UnitUncheckedUpdateWithoutActivitiesInput = {
@@ -1315,6 +1465,7 @@ export type UnitUncheckedUpdateWithoutActivitiesInput = {
   occurrences?: Prisma.OccurrenceUncheckedUpdateManyWithoutUnitNestedInput
   maintenances?: Prisma.MaintenanceUncheckedUpdateManyWithoutUnitNestedInput
   exceptionCases?: Prisma.ExceptionCaseUncheckedUpdateManyWithoutUnitNestedInput
+  unitOperationalInfos?: Prisma.UnitOperationalInfoUncheckedUpdateManyWithoutUnitNestedInput
 }
 
 export type UnitCreateManyPartnerInput = {
@@ -1354,6 +1505,7 @@ export type UnitUpdateWithoutPartnerInput = {
   maintenances?: Prisma.MaintenanceUpdateManyWithoutUnitNestedInput
   exceptionCases?: Prisma.ExceptionCaseUpdateManyWithoutUnitNestedInput
   activities?: Prisma.ActivityEntryUpdateManyWithoutUnitNestedInput
+  unitOperationalInfos?: Prisma.UnitOperationalInfoUpdateManyWithoutUnitNestedInput
 }
 
 export type UnitUncheckedUpdateWithoutPartnerInput = {
@@ -1376,6 +1528,7 @@ export type UnitUncheckedUpdateWithoutPartnerInput = {
   maintenances?: Prisma.MaintenanceUncheckedUpdateManyWithoutUnitNestedInput
   exceptionCases?: Prisma.ExceptionCaseUncheckedUpdateManyWithoutUnitNestedInput
   activities?: Prisma.ActivityEntryUncheckedUpdateManyWithoutUnitNestedInput
+  unitOperationalInfos?: Prisma.UnitOperationalInfoUncheckedUpdateManyWithoutUnitNestedInput
 }
 
 export type UnitUncheckedUpdateManyWithoutPartnerInput = {
@@ -1406,6 +1559,7 @@ export type UnitCountOutputType = {
   maintenances: number
   exceptionCases: number
   activities: number
+  unitOperationalInfos: number
 }
 
 export type UnitCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1414,6 +1568,7 @@ export type UnitCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   maintenances?: boolean | UnitCountOutputTypeCountMaintenancesArgs
   exceptionCases?: boolean | UnitCountOutputTypeCountExceptionCasesArgs
   activities?: boolean | UnitCountOutputTypeCountActivitiesArgs
+  unitOperationalInfos?: boolean | UnitCountOutputTypeCountUnitOperationalInfosArgs
 }
 
 /**
@@ -1461,6 +1616,13 @@ export type UnitCountOutputTypeCountActivitiesArgs<ExtArgs extends runtime.Types
   where?: Prisma.ActivityEntryWhereInput
 }
 
+/**
+ * UnitCountOutputType without action
+ */
+export type UnitCountOutputTypeCountUnitOperationalInfosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.UnitOperationalInfoWhereInput
+}
+
 
 export type UnitSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1484,6 +1646,7 @@ export type UnitSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   maintenances?: boolean | Prisma.Unit$maintenancesArgs<ExtArgs>
   exceptionCases?: boolean | Prisma.Unit$exceptionCasesArgs<ExtArgs>
   activities?: boolean | Prisma.Unit$activitiesArgs<ExtArgs>
+  unitOperationalInfos?: boolean | Prisma.Unit$unitOperationalInfosArgs<ExtArgs>
   _count?: boolean | Prisma.UnitCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["unit"]>
 
@@ -1551,6 +1714,7 @@ export type UnitInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   maintenances?: boolean | Prisma.Unit$maintenancesArgs<ExtArgs>
   exceptionCases?: boolean | Prisma.Unit$exceptionCasesArgs<ExtArgs>
   activities?: boolean | Prisma.Unit$activitiesArgs<ExtArgs>
+  unitOperationalInfos?: boolean | Prisma.Unit$unitOperationalInfosArgs<ExtArgs>
   _count?: boolean | Prisma.UnitCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UnitIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1569,6 +1733,7 @@ export type $UnitPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     maintenances: Prisma.$MaintenancePayload<ExtArgs>[]
     exceptionCases: Prisma.$ExceptionCasePayload<ExtArgs>[]
     activities: Prisma.$ActivityEntryPayload<ExtArgs>[]
+    unitOperationalInfos: Prisma.$UnitOperationalInfoPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1986,6 +2151,7 @@ export interface Prisma__UnitClient<T, Null = never, ExtArgs extends runtime.Typ
   maintenances<T extends Prisma.Unit$maintenancesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Unit$maintenancesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MaintenancePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   exceptionCases<T extends Prisma.Unit$exceptionCasesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Unit$exceptionCasesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ExceptionCasePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   activities<T extends Prisma.Unit$activitiesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Unit$activitiesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ActivityEntryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  unitOperationalInfos<T extends Prisma.Unit$unitOperationalInfosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Unit$unitOperationalInfosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UnitOperationalInfoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2548,6 +2714,30 @@ export type Unit$activitiesArgs<ExtArgs extends runtime.Types.Extensions.Interna
   take?: number
   skip?: number
   distinct?: Prisma.ActivityEntryScalarFieldEnum | Prisma.ActivityEntryScalarFieldEnum[]
+}
+
+/**
+ * Unit.unitOperationalInfos
+ */
+export type Unit$unitOperationalInfosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the UnitOperationalInfo
+   */
+  select?: Prisma.UnitOperationalInfoSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the UnitOperationalInfo
+   */
+  omit?: Prisma.UnitOperationalInfoOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UnitOperationalInfoInclude<ExtArgs> | null
+  where?: Prisma.UnitOperationalInfoWhereInput
+  orderBy?: Prisma.UnitOperationalInfoOrderByWithRelationInput | Prisma.UnitOperationalInfoOrderByWithRelationInput[]
+  cursor?: Prisma.UnitOperationalInfoWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.UnitOperationalInfoScalarFieldEnum | Prisma.UnitOperationalInfoScalarFieldEnum[]
 }
 
 /**

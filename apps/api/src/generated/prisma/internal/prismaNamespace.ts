@@ -387,6 +387,8 @@ export const ModelName = {
   User: 'User',
   Partner: 'Partner',
   Unit: 'Unit',
+  UnitOperationalInfo: 'UnitOperationalInfo',
+  UnitOperationalSecret: 'UnitOperationalSecret',
   Equipment: 'Equipment',
   Integration: 'Integration',
   Occurrence: 'Occurrence',
@@ -414,7 +416,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "partner" | "unit" | "equipment" | "integration" | "occurrence" | "maintenance" | "documentAttachment" | "exceptionCase" | "slaPolicy" | "exceptionComment" | "automationRule" | "monitoringReportTemplate" | "automationRun" | "activityEntry"
+    modelProps: "user" | "partner" | "unit" | "unitOperationalInfo" | "unitOperationalSecret" | "equipment" | "integration" | "occurrence" | "maintenance" | "documentAttachment" | "exceptionCase" | "slaPolicy" | "exceptionComment" | "automationRule" | "monitoringReportTemplate" | "automationRun" | "activityEntry"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -637,6 +639,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.UnitCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.UnitCountAggregateOutputType> | number
+        }
+      }
+    }
+    UnitOperationalInfo: {
+      payload: Prisma.$UnitOperationalInfoPayload<ExtArgs>
+      fields: Prisma.UnitOperationalInfoFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.UnitOperationalInfoFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UnitOperationalInfoPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.UnitOperationalInfoFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UnitOperationalInfoPayload>
+        }
+        findFirst: {
+          args: Prisma.UnitOperationalInfoFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UnitOperationalInfoPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.UnitOperationalInfoFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UnitOperationalInfoPayload>
+        }
+        findMany: {
+          args: Prisma.UnitOperationalInfoFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UnitOperationalInfoPayload>[]
+        }
+        create: {
+          args: Prisma.UnitOperationalInfoCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UnitOperationalInfoPayload>
+        }
+        createMany: {
+          args: Prisma.UnitOperationalInfoCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.UnitOperationalInfoCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UnitOperationalInfoPayload>[]
+        }
+        delete: {
+          args: Prisma.UnitOperationalInfoDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UnitOperationalInfoPayload>
+        }
+        update: {
+          args: Prisma.UnitOperationalInfoUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UnitOperationalInfoPayload>
+        }
+        deleteMany: {
+          args: Prisma.UnitOperationalInfoDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.UnitOperationalInfoUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.UnitOperationalInfoUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UnitOperationalInfoPayload>[]
+        }
+        upsert: {
+          args: Prisma.UnitOperationalInfoUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UnitOperationalInfoPayload>
+        }
+        aggregate: {
+          args: Prisma.UnitOperationalInfoAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateUnitOperationalInfo>
+        }
+        groupBy: {
+          args: Prisma.UnitOperationalInfoGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.UnitOperationalInfoGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.UnitOperationalInfoCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.UnitOperationalInfoCountAggregateOutputType> | number
+        }
+      }
+    }
+    UnitOperationalSecret: {
+      payload: Prisma.$UnitOperationalSecretPayload<ExtArgs>
+      fields: Prisma.UnitOperationalSecretFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.UnitOperationalSecretFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UnitOperationalSecretPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.UnitOperationalSecretFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UnitOperationalSecretPayload>
+        }
+        findFirst: {
+          args: Prisma.UnitOperationalSecretFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UnitOperationalSecretPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.UnitOperationalSecretFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UnitOperationalSecretPayload>
+        }
+        findMany: {
+          args: Prisma.UnitOperationalSecretFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UnitOperationalSecretPayload>[]
+        }
+        create: {
+          args: Prisma.UnitOperationalSecretCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UnitOperationalSecretPayload>
+        }
+        createMany: {
+          args: Prisma.UnitOperationalSecretCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.UnitOperationalSecretCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UnitOperationalSecretPayload>[]
+        }
+        delete: {
+          args: Prisma.UnitOperationalSecretDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UnitOperationalSecretPayload>
+        }
+        update: {
+          args: Prisma.UnitOperationalSecretUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UnitOperationalSecretPayload>
+        }
+        deleteMany: {
+          args: Prisma.UnitOperationalSecretDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.UnitOperationalSecretUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.UnitOperationalSecretUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UnitOperationalSecretPayload>[]
+        }
+        upsert: {
+          args: Prisma.UnitOperationalSecretUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UnitOperationalSecretPayload>
+        }
+        aggregate: {
+          args: Prisma.UnitOperationalSecretAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateUnitOperationalSecret>
+        }
+        groupBy: {
+          args: Prisma.UnitOperationalSecretGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.UnitOperationalSecretGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.UnitOperationalSecretCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.UnitOperationalSecretCountAggregateOutputType> | number
         }
       }
     }
@@ -1614,6 +1764,54 @@ export const UnitScalarFieldEnum = {
 export type UnitScalarFieldEnum = (typeof UnitScalarFieldEnum)[keyof typeof UnitScalarFieldEnum]
 
 
+export const UnitOperationalInfoScalarFieldEnum = {
+  id: 'id',
+  unitId: 'unitId',
+  source: 'source',
+  sourceLegacyId: 'sourceLegacyId',
+  sourceUnitKey: 'sourceUnitKey',
+  sourceHash: 'sourceHash',
+  linkRole: 'linkRole',
+  sortOrder: 'sortOrder',
+  group: 'group',
+  legacyCode: 'legacyCode',
+  legacyName: 'legacyName',
+  city: 'city',
+  state: 'state',
+  partnerCode: 'partnerCode',
+  serviceType: 'serviceType',
+  connectionType: 'connectionType',
+  routerPort: 'routerPort',
+  technology: 'technology',
+  latency: 'latency',
+  macOnu: 'macOnu',
+  phone: 'phone',
+  contractIxc: 'contractIxc',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  partnerId: 'partnerId'
+} as const
+
+export type UnitOperationalInfoScalarFieldEnum = (typeof UnitOperationalInfoScalarFieldEnum)[keyof typeof UnitOperationalInfoScalarFieldEnum]
+
+
+export const UnitOperationalSecretScalarFieldEnum = {
+  id: 'id',
+  operationalInfoId: 'operationalInfoId',
+  kind: 'kind',
+  label: 'label',
+  usernameEnc: 'usernameEnc',
+  secretEnc: 'secretEnc',
+  noteEnc: 'noteEnc',
+  hasValue: 'hasValue',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type UnitOperationalSecretScalarFieldEnum = (typeof UnitOperationalSecretScalarFieldEnum)[keyof typeof UnitOperationalSecretScalarFieldEnum]
+
+
 export const EquipmentScalarFieldEnum = {
   id: 'id',
   tag: 'tag',
@@ -2049,6 +2247,8 @@ export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
   partner?: Prisma.PartnerOmit
   unit?: Prisma.UnitOmit
+  unitOperationalInfo?: Prisma.UnitOperationalInfoOmit
+  unitOperationalSecret?: Prisma.UnitOperationalSecretOmit
   equipment?: Prisma.EquipmentOmit
   integration?: Prisma.IntegrationOmit
   occurrence?: Prisma.OccurrenceOmit

@@ -22,105 +22,161 @@ model User {
   updatedAt          DateTime           @updatedAt
 }
 
-
 model Partner {
-  id             String         @id @default(cuid())
-  code           String         @unique
-  name           String
-  isActive       Boolean        @default(true)
-  units          Unit[]
-  occurrences    Occurrence[]
-  maintenances   Maintenance[]
-  exceptionCases ExceptionCase[]
-  activities     ActivityEntry[]
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  id               String                @id @default(cuid())
+  code             String                @unique
+  name             String
+  isActive         Boolean               @default(true)
+  units            Unit[]
+  occurrences      Occurrence[]
+  maintenances     Maintenance[]
+  exceptionCases   ExceptionCase[]
+  activities       ActivityEntry[]
+  operationalInfos UnitOperationalInfo[]
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
 }
 
 model Unit {
-  id             String         @id @default(cuid())
-  code           String         @unique
-  name           String
-  city           String?
-  state          String?
-  zabbixHost     String?
-  zabbixVisibleName String?
-  reportContractLabel String?
-  reportAddressLine String?
+  id                        String                @id @default(cuid())
+  code                      String                @unique
+  name                      String
+  city                      String?
+  state                     String?
+  zabbixHost                String?
+  zabbixVisibleName         String?
+  reportContractLabel       String?
+  reportAddressLine         String?
   reportContractedBandwidth String?
-  reportNotes String?
-  isActive       Boolean        @default(true)
-  partnerId      String
-  partner        Partner        @relation(fields: [partnerId], references: [id], onDelete: Restrict)
-  equipments     Equipment[]
-  occurrences    Occurrence[]
-  maintenances   Maintenance[]
-  exceptionCases ExceptionCase[]
-  activities     ActivityEntry[]
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  reportNotes               String?
+  isActive                  Boolean               @default(true)
+  partnerId                 String
+  partner                   Partner               @relation(fields: [partnerId], references: [id], onDelete: Restrict)
+  equipments                Equipment[]
+  occurrences               Occurrence[]
+  maintenances              Maintenance[]
+  exceptionCases            ExceptionCase[]
+  activities                ActivityEntry[]
+  createdAt                 DateTime              @default(now())
+  updatedAt                 DateTime              @updatedAt
+  unitOperationalInfos      UnitOperationalInfo[]
 
   @@index([partnerId])
 }
 
+model UnitOperationalInfo {
+  id             String                  @id @default(cuid())
+  unitId         String
+  unit           Unit                    @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  source         String                  @default("legacy")
+  sourceLegacyId String?
+  sourceUnitKey  String?
+  sourceHash     String?                 @unique
+  linkRole       String                  @default("primary")
+  sortOrder      Int                     @default(0)
+  group          String?
+  legacyCode     String?
+  legacyName     String?
+  city           String?
+  state          String?
+  partnerCode    String?
+  serviceType    String?
+  connectionType String?
+  routerPort     String?
+  technology     String?
+  latency        String?
+  macOnu         String?
+  phone          String?
+  contractIxc    String?
+  notes          String?
+  secrets        UnitOperationalSecret[]
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+  partner        Partner?                @relation(fields: [partnerId], references: [id])
+  partnerId      String?
+
+  @@index([unitId])
+  @@index([source])
+  @@index([sourceUnitKey])
+  @@index([partnerCode])
+  @@index([linkRole])
+}
+
+model UnitOperationalSecret {
+  id                String              @id @default(cuid())
+  operationalInfoId String
+  operationalInfo   UnitOperationalInfo @relation(fields: [operationalInfoId], references: [id], onDelete: Cascade)
+  kind              String              @default("credential")
+  label             String
+  usernameEnc       String?
+  secretEnc         String?
+  noteEnc           String?
+  hasValue          Boolean             @default(false)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@index([operationalInfoId])
+  @@index([kind])
+}
+
 model Equipment {
-  id             String         @id @default(cuid())
-  tag            String         @unique
+  id             String          @id @default(cuid())
+  tag            String          @unique
   name           String
   type           String
   serialNumber   String?
-  status         String         @default("active")
-  isActive       Boolean        @default(true)
+  status         String          @default("active")
+  isActive       Boolean         @default(true)
   unitId         String
-  unit           Unit           @relation(fields: [unitId], references: [id], onDelete: Restrict)
+  unit           Unit            @relation(fields: [unitId], references: [id], onDelete: Restrict)
   occurrences    Occurrence[]
   maintenances   Maintenance[]
   exceptionCases ExceptionCase[]
   activities     ActivityEntry[]
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 
   @@index([unitId])
 }
 
 model Integration {
-  id             String         @id @default(cuid())
-  code           String         @unique
-  name           String
-  type           String
-  baseUrl        String
-  apiPath        String?
-  authMode       String         @default("none")
-  apiTokenEnc    String?
-  usernameEnc    String?
-  passwordEnc    String?
-  isActive       Boolean        @default(true)
+  id              String                     @id @default(cuid())
+  code            String                     @unique
+  name            String
+  type            String
+  baseUrl         String
+  apiPath         String?
+  authMode        String                     @default("none")
+  apiTokenEnc     String?
+  usernameEnc     String?
+  passwordEnc     String?
+  isActive        Boolean                    @default(true)
   reportTemplates MonitoringReportTemplate[]
-  exceptionCases ExceptionCase[]
-  activities     ActivityEntry[]
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  exceptionCases  ExceptionCase[]
+  activities      ActivityEntry[]
+  createdAt       DateTime                   @default(now())
+  updatedAt       DateTime                   @updatedAt
 }
 
 model Occurrence {
-  id             String         @id @default(cuid())
-  code           String         @unique
+  id             String          @id @default(cuid())
+  code           String          @unique
   title          String
   description    String?
-  severity       String         @default("medium")
-  status         String         @default("open")
+  severity       String          @default("medium")
+  status         String          @default("open")
   source         String?
   partnerId      String?
   unitId         String?
   equipmentId    String?
-  partner        Partner?       @relation(fields: [partnerId], references: [id], onDelete: SetNull)
-  unit           Unit?          @relation(fields: [unitId], references: [id], onDelete: SetNull)
-  equipment      Equipment?     @relation(fields: [equipmentId], references: [id], onDelete: SetNull)
+  partner        Partner?        @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+  unit           Unit?           @relation(fields: [unitId], references: [id], onDelete: SetNull)
+  equipment      Equipment?      @relation(fields: [equipmentId], references: [id], onDelete: SetNull)
   maintenances   Maintenance[]
   exceptionCases ExceptionCase[]
   activities     ActivityEntry[]
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 
   @@index([partnerId])
   @@index([unitId])
@@ -130,26 +186,26 @@ model Occurrence {
 }
 
 model Maintenance {
-  id             String         @id @default(cuid())
-  code           String         @unique
+  id             String          @id @default(cuid())
+  code           String          @unique
   title          String
   description    String?
-  type           String         @default("preventive")
-  status         String         @default("planned")
+  type           String          @default("preventive")
+  status         String          @default("planned")
   scheduledAt    DateTime?
   completedAt    DateTime?
   partnerId      String?
   unitId         String?
   equipmentId    String?
   occurrenceId   String?
-  partner        Partner?       @relation(fields: [partnerId], references: [id], onDelete: SetNull)
-  unit           Unit?          @relation(fields: [unitId], references: [id], onDelete: SetNull)
-  equipment      Equipment?     @relation(fields: [equipmentId], references: [id], onDelete: SetNull)
-  occurrence     Occurrence?    @relation(fields: [occurrenceId], references: [id], onDelete: SetNull)
+  partner        Partner?        @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+  unit           Unit?           @relation(fields: [unitId], references: [id], onDelete: SetNull)
+  equipment      Equipment?      @relation(fields: [equipmentId], references: [id], onDelete: SetNull)
+  occurrence     Occurrence?     @relation(fields: [occurrenceId], references: [id], onDelete: SetNull)
   exceptionCases ExceptionCase[]
   activities     ActivityEntry[]
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 
   @@index([partnerId])
   @@index([unitId])
@@ -177,50 +233,50 @@ model DocumentAttachment {
 }
 
 model ExceptionCase {
-  id                  String             @id @default(cuid())
-  code                String             @unique
-  title               String
-  description         String?
-  kind                String             @default("generic")
-  severity            String             @default("medium")
-  status              String             @default("open")
-  source              String             @default("manual")
-  fingerprint         String?            @unique
-  queueKey            String             @default("ops-general")
-  classification      String             @default("generic")
-  impact              String             @default("medium")
-  urgency             String             @default("medium")
-  priorityScore       Int                @default(50)
-  triageStatus        String             @default("pending")
-  silencedUntil       DateTime?
-  acknowledgedAt      DateTime?
-  resolvedAt          DateTime?
-  firstResponseDueAt  DateTime?
-  resolveDueAt        DateTime?
-  breachedAt          DateTime?
-  lastActivityAt      DateTime?
-  assigneeUserId      String?
-  automationId        String?
-  slaPolicyId         String?
-  partnerId           String?
-  unitId              String?
-  equipmentId         String?
-  integrationId       String?
-  occurrenceId        String?
-  maintenanceId       String?
-  assignee            User?              @relation("ExceptionAssignee", fields: [assigneeUserId], references: [id], onDelete: SetNull)
-  automation          AutomationRule?    @relation(fields: [automationId], references: [id], onDelete: SetNull)
-  slaPolicy           SlaPolicy?         @relation(fields: [slaPolicyId], references: [id], onDelete: SetNull)
-  partner             Partner?           @relation(fields: [partnerId], references: [id], onDelete: SetNull)
-  unit                Unit?              @relation(fields: [unitId], references: [id], onDelete: SetNull)
-  equipment           Equipment?         @relation(fields: [equipmentId], references: [id], onDelete: SetNull)
-  integration         Integration?       @relation(fields: [integrationId], references: [id], onDelete: SetNull)
-  occurrence          Occurrence?        @relation(fields: [occurrenceId], references: [id], onDelete: SetNull)
-  maintenance         Maintenance?       @relation(fields: [maintenanceId], references: [id], onDelete: SetNull)
-  activities          ActivityEntry[]
-  comments            ExceptionComment[]
-  createdAt           DateTime           @default(now())
-  updatedAt           DateTime           @updatedAt
+  id                 String             @id @default(cuid())
+  code               String             @unique
+  title              String
+  description        String?
+  kind               String             @default("generic")
+  severity           String             @default("medium")
+  status             String             @default("open")
+  source             String             @default("manual")
+  fingerprint        String?            @unique
+  queueKey           String             @default("ops-general")
+  classification     String             @default("generic")
+  impact             String             @default("medium")
+  urgency            String             @default("medium")
+  priorityScore      Int                @default(50)
+  triageStatus       String             @default("pending")
+  silencedUntil      DateTime?
+  acknowledgedAt     DateTime?
+  resolvedAt         DateTime?
+  firstResponseDueAt DateTime?
+  resolveDueAt       DateTime?
+  breachedAt         DateTime?
+  lastActivityAt     DateTime?
+  assigneeUserId     String?
+  automationId       String?
+  slaPolicyId        String?
+  partnerId          String?
+  unitId             String?
+  equipmentId        String?
+  integrationId      String?
+  occurrenceId       String?
+  maintenanceId      String?
+  assignee           User?              @relation("ExceptionAssignee", fields: [assigneeUserId], references: [id], onDelete: SetNull)
+  automation         AutomationRule?    @relation(fields: [automationId], references: [id], onDelete: SetNull)
+  slaPolicy          SlaPolicy?         @relation(fields: [slaPolicyId], references: [id], onDelete: SetNull)
+  partner            Partner?           @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+  unit               Unit?              @relation(fields: [unitId], references: [id], onDelete: SetNull)
+  equipment          Equipment?         @relation(fields: [equipmentId], references: [id], onDelete: SetNull)
+  integration        Integration?       @relation(fields: [integrationId], references: [id], onDelete: SetNull)
+  occurrence         Occurrence?        @relation(fields: [occurrenceId], references: [id], onDelete: SetNull)
+  maintenance        Maintenance?       @relation(fields: [maintenanceId], references: [id], onDelete: SetNull)
+  activities         ActivityEntry[]
+  comments           ExceptionComment[]
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
 
   @@index([status])
   @@index([severity])
@@ -241,7 +297,6 @@ model ExceptionCase {
   @@index([resolveDueAt])
   @@index([breachedAt])
 }
-
 
 model SlaPolicy {
   id                   String          @id @default(cuid())
@@ -264,41 +319,41 @@ model SlaPolicy {
 }
 
 model ExceptionComment {
-  id          String        @id @default(cuid())
-  exceptionId String
-  userId      String
-  body        String
-  isInternal  Boolean       @default(true)
+  id            String        @id @default(cuid())
+  exceptionId   String
+  userId        String
+  body          String
+  isInternal    Boolean       @default(true)
   exceptionCase ExceptionCase @relation(fields: [exceptionId], references: [id], onDelete: Cascade)
-  author      User          @relation("ExceptionCommentAuthor", fields: [userId], references: [id], onDelete: Restrict)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  author        User          @relation("ExceptionCommentAuthor", fields: [userId], references: [id], onDelete: Restrict)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
   @@index([exceptionId, createdAt])
   @@index([userId])
 }
 
 model AutomationRule {
-  id                String          @id @default(cuid())
-  code              String          @unique
+  id                String                    @id @default(cuid())
+  code              String                    @unique
   name              String
   detector          String
   reportTemplateId  String?
-  severity          String          @default("high")
-  cadence           String          @default("every_5_minutes")
+  severity          String                    @default("high")
+  cadence           String                    @default("every_5_minutes")
   thresholdMinutes  Int?
-  enabled           Boolean         @default(true)
-  createExceptions  Boolean         @default(true)
-  createActivities  Boolean         @default(true)
-  resolveOnRecovery Boolean         @default(true)
+  enabled           Boolean                   @default(true)
+  createExceptions  Boolean                   @default(true)
+  createActivities  Boolean                   @default(true)
+  resolveOnRecovery Boolean                   @default(true)
   lastRunAt         DateTime?
   nextRunAt         DateTime?
   reportTemplate    MonitoringReportTemplate? @relation(fields: [reportTemplateId], references: [id], onDelete: SetNull)
   exceptionCases    ExceptionCase[]
   runs              AutomationRun[]
   activities        ActivityEntry[]
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
+  createdAt         DateTime                  @default(now())
+  updatedAt         DateTime                  @updatedAt
 
   @@index([enabled])
   @@index([detector])
@@ -336,17 +391,17 @@ model MonitoringReportTemplate {
 }
 
 model AutomationRun {
-  id           String         @id @default(cuid())
+  id           String          @id @default(cuid())
   ruleId       String
-  status       String         @default("success")
-  startedAt    DateTime       @default(now())
+  status       String          @default("success")
+  startedAt    DateTime        @default(now())
   finishedAt   DateTime?
-  hitsCount    Int            @default(0)
-  createdCount Int            @default(0)
-  updatedCount Int            @default(0)
+  hitsCount    Int             @default(0)
+  createdCount Int             @default(0)
+  updatedCount Int             @default(0)
   summary      String?
   errorMessage String?
-  rule         AutomationRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  rule         AutomationRule  @relation(fields: [ruleId], references: [id], onDelete: Cascade)
   activities   ActivityEntry[]
 
   @@index([ruleId])
@@ -355,34 +410,34 @@ model AutomationRun {
 }
 
 model ActivityEntry {
-  id            String          @id @default(cuid())
-  kind          String          @default("note")
-  source        String          @default("manual")
-  title         String
-  description   String?
-  severity      String?
-  userId        String?
-  exceptionId   String?
-  automationId  String?
+  id              String          @id @default(cuid())
+  kind            String          @default("note")
+  source          String          @default("manual")
+  title           String
+  description     String?
+  severity        String?
+  userId          String?
+  exceptionId     String?
+  automationId    String?
   automationRunId String?
-  partnerId     String?
-  unitId        String?
-  equipmentId   String?
-  integrationId String?
-  occurrenceId  String?
-  maintenanceId String?
-  actor         User?           @relation("ActivityActor", fields: [userId], references: [id], onDelete: SetNull)
-  exceptionCase ExceptionCase?  @relation(fields: [exceptionId], references: [id], onDelete: SetNull)
-  automation    AutomationRule? @relation(fields: [automationId], references: [id], onDelete: SetNull)
-  automationRun AutomationRun?  @relation(fields: [automationRunId], references: [id], onDelete: SetNull)
-  partner       Partner?        @relation(fields: [partnerId], references: [id], onDelete: SetNull)
-  unit          Unit?           @relation(fields: [unitId], references: [id], onDelete: SetNull)
-  equipment     Equipment?      @relation(fields: [equipmentId], references: [id], onDelete: SetNull)
-  integration   Integration?    @relation(fields: [integrationId], references: [id], onDelete: SetNull)
-  occurrence    Occurrence?     @relation(fields: [occurrenceId], references: [id], onDelete: SetNull)
-  maintenance   Maintenance?    @relation(fields: [maintenanceId], references: [id], onDelete: SetNull)
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  partnerId       String?
+  unitId          String?
+  equipmentId     String?
+  integrationId   String?
+  occurrenceId    String?
+  maintenanceId   String?
+  actor           User?           @relation("ActivityActor", fields: [userId], references: [id], onDelete: SetNull)
+  exceptionCase   ExceptionCase?  @relation(fields: [exceptionId], references: [id], onDelete: SetNull)
+  automation      AutomationRule? @relation(fields: [automationId], references: [id], onDelete: SetNull)
+  automationRun   AutomationRun?  @relation(fields: [automationRunId], references: [id], onDelete: SetNull)
+  partner         Partner?        @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+  unit            Unit?           @relation(fields: [unitId], references: [id], onDelete: SetNull)
+  equipment       Equipment?      @relation(fields: [equipmentId], references: [id], onDelete: SetNull)
+  integration     Integration?    @relation(fields: [integrationId], references: [id], onDelete: SetNull)
+  occurrence      Occurrence?     @relation(fields: [occurrenceId], references: [id], onDelete: SetNull)
+  maintenance     Maintenance?    @relation(fields: [maintenanceId], references: [id], onDelete: SetNull)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 
   @@index([kind])
   @@index([source])

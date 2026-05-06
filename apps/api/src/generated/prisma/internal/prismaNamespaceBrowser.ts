@@ -54,6 +54,8 @@ export const ModelName = {
   User: 'User',
   Partner: 'Partner',
   Unit: 'Unit',
+  UnitOperationalInfo: 'UnitOperationalInfo',
+  UnitOperationalSecret: 'UnitOperationalSecret',
   Equipment: 'Equipment',
   Integration: 'Integration',
   Occurrence: 'Occurrence',
@@ -129,6 +131,54 @@ export const UnitScalarFieldEnum = {
 } as const
 
 export type UnitScalarFieldEnum = (typeof UnitScalarFieldEnum)[keyof typeof UnitScalarFieldEnum]
+
+
+export const UnitOperationalInfoScalarFieldEnum = {
+  id: 'id',
+  unitId: 'unitId',
+  source: 'source',
+  sourceLegacyId: 'sourceLegacyId',
+  sourceUnitKey: 'sourceUnitKey',
+  sourceHash: 'sourceHash',
+  linkRole: 'linkRole',
+  sortOrder: 'sortOrder',
+  group: 'group',
+  legacyCode: 'legacyCode',
+  legacyName: 'legacyName',
+  city: 'city',
+  state: 'state',
+  partnerCode: 'partnerCode',
+  serviceType: 'serviceType',
+  connectionType: 'connectionType',
+  routerPort: 'routerPort',
+  technology: 'technology',
+  latency: 'latency',
+  macOnu: 'macOnu',
+  phone: 'phone',
+  contractIxc: 'contractIxc',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  partnerId: 'partnerId'
+} as const
+
+export type UnitOperationalInfoScalarFieldEnum = (typeof UnitOperationalInfoScalarFieldEnum)[keyof typeof UnitOperationalInfoScalarFieldEnum]
+
+
+export const UnitOperationalSecretScalarFieldEnum = {
+  id: 'id',
+  operationalInfoId: 'operationalInfoId',
+  kind: 'kind',
+  label: 'label',
+  usernameEnc: 'usernameEnc',
+  secretEnc: 'secretEnc',
+  noteEnc: 'noteEnc',
+  hasValue: 'hasValue',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type UnitOperationalSecretScalarFieldEnum = (typeof UnitOperationalSecretScalarFieldEnum)[keyof typeof UnitOperationalSecretScalarFieldEnum]
 
 
 export const EquipmentScalarFieldEnum = {

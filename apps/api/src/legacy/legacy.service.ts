@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import type {
@@ -6,6 +7,7 @@ import type {
   LegacyStarlink,
   LegacyUnit,
 } from "./legacy.types";
+import { decryptSecret, encryptSecret } from "../common/secrets";
 import { PrismaService } from "../prisma/prisma.service";
 
 type BundleState =
@@ -554,4 +556,410 @@ export class LegacyService {
       starlinkHistory: this.historyForStarlinks(state.bundle, starlinks),
     };
   }
+
+  private prismaOperational() {
+    return this.prisma as unknown as {
+      unit: {
+        findUnique(args: unknown): Promise<any>;
+        findMany(args: unknown): Promise<any[]>;
+      };
+      unitOperationalInfo: {
+        findMany(args: unknown): Promise<any[]>;
+        findFirst(args: unknown): Promise<any | null>;
+        upsert(args: unknown): Promise<any>;
+        update(args: unknown): Promise<any>;
+      };
+      unitOperationalSecret: {
+        deleteMany(args: unknown): Promise<any>;
+        create(args: unknown): Promise<any>;
+      };
+      activityEntry: {
+        create(args: unknown): Promise<any>;
+      };
+    };
+  }
+
+  private trimString(value: unknown) {
+    return String(value ?? "").trim();
+  }
+
+  private sourceHash(parts: Array<string | number>) {
+    return createHash("sha256").update(parts.map((part) => String(part)).join("|")).digest("hex");
+  }
+
+  private secretMask(value?: string | null) {
+    return value ? "••••••••" : "";
+  }
+
+  private extractConnectionCredential(value: string) {
+    const original = this.trimString(value);
+    if (!original) {
+      return { connectionType: "", username: "", secret: "" };
+    }
+
+    const loginMatch = original.match(/login\s*[:=]\s*([^\n\r;|-]+)/i);
+    const passwordMatch = original.match(/senha\s*[:=]\s*([^\n\r;|-]+)/i);
+    const username = this.trimString(loginMatch?.[1]);
+    const secret = this.trimString(passwordMatch?.[1]);
+
+    let connectionType = original
+      .replace(/login\s*[:=]\s*[^\n\r;|-]+/gi, "")
+      .replace(/senha\s*[:=]\s*[^\n\r;|-]+/gi, "")
+      .replace(/\s*[-|;]\s*$/g, "")
+      .replace(/\s{2,}/g, " ")
+      .trim();
+
+    connectionType = connectionType.replace(/[→>-]\s*$/g, "").trim();
+
+    return { connectionType, username, secret };
+  }
+
+  private operationalSelect(revealSecrets: boolean) {
+    return {
+      id: true,
+      source: true,
+      sourceLegacyId: true,
+      sourceUnitKey: true,
+      linkRole: true,
+      sortOrder: true,
+      group: true,
+      legacyCode: true,
+      legacyName: true,
+      city: true,
+      state: true,
+      partnerCode: true,
+      serviceType: true,
+      connectionType: true,
+      routerPort: true,
+      technology: true,
+      latency: true,
+      macOnu: true,
+      phone: true,
+      contractIxc: true,
+      notes: true,
+      createdAt: true,
+      updatedAt: true,
+      secrets: {
+        orderBy: { createdAt: "asc" },
+        select: {
+          id: true,
+          kind: true,
+          label: true,
+          usernameEnc: revealSecrets,
+          secretEnc: revealSecrets,
+          noteEnc: revealSecrets,
+          hasValue: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      },
+    };
+  }
+
+  private serializeOperationalInfo(item: any, revealSecrets: boolean) {
+    return {
+      ...item,
+      secrets: (item.secrets || []).map((secret: any) => {
+        const username = revealSecrets ? decryptSecret(secret.usernameEnc) : null;
+        const value = revealSecrets ? decryptSecret(secret.secretEnc) : null;
+        const note = revealSecrets ? decryptSecret(secret.noteEnc) : null;
+        const maskedValue = secret.hasValue ? "••••••••" : "";
+
+        return {
+          id: secret.id,
+          kind: secret.kind,
+          label: secret.label,
+          hasValue: secret.hasValue,
+          username: revealSecrets ? username : maskedValue,
+          value: revealSecrets ? value : maskedValue,
+          note: revealSecrets ? note : maskedValue,
+          revealed: revealSecrets,
+          createdAt: secret.createdAt,
+          updatedAt: secret.updatedAt,
+        };
+      }),
+    };
+  }
+
+  private async writeOperationalActivity(input: {
+    actorUserId?: string | null;
+    unitId?: string | null;
+    title: string;
+    description?: string;
+  }) {
+    const prisma = this.prismaOperational();
+
+    try {
+      await prisma.activityEntry.create({
+        data: {
+          kind: "system",
+          source: "legacy",
+          title: input.title,
+          description: input.description || null,
+          severity: "info",
+          userId: input.actorUserId || null,
+          unitId: input.unitId || null,
+        },
+      });
+    } catch {}
+  }
+
+  async getUnitOperationalData(id: string, revealSecrets = false, actorUserId?: string | null) {
+    const prisma = this.prismaOperational();
+
+    const unit = await prisma.unit.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        code: true,
+        name: true,
+        city: true,
+        state: true,
+        partner: { select: { id: true, code: true, name: true } },
+      },
+    });
+
+    if (!unit) {
+      throw new NotFoundException("Unidade não encontrada");
+    }
+
+    const items = await prisma.unitOperationalInfo.findMany({
+      where: { unitId: id },
+      orderBy: [{ linkRole: "asc" }, { sortOrder: "asc" }, { createdAt: "asc" }],
+      select: this.operationalSelect(revealSecrets),
+    });
+
+    if (revealSecrets) {
+      await this.writeOperationalActivity({
+        actorUserId,
+        unitId: id,
+        title: "Dados operacionais sensíveis revelados",
+        description: `Consulta com revelação de credenciais da unidade ${unit.code}.`,
+      });
+    }
+
+    return {
+      unit,
+      revealSecrets,
+      total: items.length,
+      items: items.map((item) => this.serializeOperationalInfo(item, revealSecrets)),
+    };
+  }
+
+  async updateUnitOperationalData(
+    unitId: string,
+    infoId: string,
+    payload: Record<string, unknown>,
+    actorUserId?: string | null,
+  ) {
+    const prisma = this.prismaOperational();
+
+    const current = await prisma.unitOperationalInfo.findFirst({
+      where: { id: infoId, unitId },
+      select: { id: true, unitId: true },
+    });
+
+    if (!current) {
+      throw new NotFoundException("Dado operacional não encontrado para a unidade");
+    }
+
+    const allowedFields = [
+      "serviceType",
+      "connectionType",
+      "routerPort",
+      "technology",
+      "latency",
+      "macOnu",
+      "phone",
+      "contractIxc",
+      "notes",
+      "partnerCode",
+    ];
+
+    const data: Record<string, string | null> = {};
+    for (const field of allowedFields) {
+      if (Object.prototype.hasOwnProperty.call(payload, field)) {
+        const value = this.trimString(payload[field]);
+        data[field] = value || null;
+      }
+    }
+
+    const updated = await prisma.unitOperationalInfo.update({
+      where: { id: infoId },
+      data,
+      select: this.operationalSelect(false),
+    });
+
+    const username = this.trimString(payload.username);
+    const secret = this.trimString(payload.secret);
+    const note = this.trimString(payload.secretNote);
+
+    if (username || secret || note) {
+      await prisma.unitOperationalSecret.deleteMany({
+        where: { operationalInfoId: infoId },
+      });
+
+      await prisma.unitOperationalSecret.create({
+        data: {
+          operationalInfoId: infoId,
+          kind: "credential",
+          label: this.trimString(payload.secretLabel) || "Credencial operacional",
+          usernameEnc: username ? encryptSecret(username) : null,
+          secretEnc: secret ? encryptSecret(secret) : null,
+          noteEnc: note ? encryptSecret(note) : null,
+          hasValue: Boolean(username || secret || note),
+        },
+      });
+    }
+
+    await this.writeOperationalActivity({
+      actorUserId,
+      unitId,
+      title: "Dados operacionais atualizados",
+      description: `Registro operacional ${infoId} atualizado manualmente.`,
+    });
+
+    return this.getUnitOperationalData(unitId, false);
+  }
+
+  async importUnitOperationalData(actorUserId?: string | null) {
+    const state = await this.loadBundle();
+
+    if (!state.available) {
+      throw new BadRequestException(state.message);
+    }
+
+    const prisma = this.prismaOperational();
+    const currentUnits = await prisma.unit.findMany({
+      orderBy: [{ partner: { code: "asc" } }, { code: "asc" }],
+      select: {
+        id: true,
+        code: true,
+        name: true,
+        city: true,
+        state: true,
+        partner: { select: { code: true, name: true } },
+      },
+    });
+
+    let matchedUnits = 0;
+    let importedLinks = 0;
+    let importedSecrets = 0;
+    let skippedUnits = 0;
+
+    for (const legacyUnit of state.bundle.normalized.units) {
+      const match = this.bestCurrentUnitMatch(legacyUnit, currentUnits);
+
+      if (!match?.unit || match.score < 35) {
+        skippedUnits += 1;
+        continue;
+      }
+
+      matchedUnits += 1;
+
+      const allLinks = [
+        ...legacyUnit.links.map((link, index) => ({ link, linkRole: "primary", sortOrder: index })),
+        ...legacyUnit.backupLinks.map((link, index) => ({ link, linkRole: "backup", sortOrder: index })),
+      ];
+
+      for (const item of allLinks) {
+        const credential = this.extractConnectionCredential(item.link.connectionType);
+        const sourceHash = this.sourceHash([
+          match.unit.id,
+          legacyUnit.key,
+          item.link.legacyId || item.sortOrder,
+          item.linkRole,
+          item.sortOrder,
+        ]);
+
+        const info = await prisma.unitOperationalInfo.upsert({
+          where: { sourceHash },
+          create: {
+            unitId: match.unit.id,
+            source: "legacy",
+            sourceLegacyId: item.link.legacyId || null,
+            sourceUnitKey: legacyUnit.key,
+            sourceHash,
+            linkRole: item.linkRole,
+            sortOrder: item.sortOrder,
+            group: legacyUnit.group || null,
+            legacyCode: legacyUnit.code || null,
+            legacyName: legacyUnit.name || null,
+            city: legacyUnit.city || null,
+            state: legacyUnit.state || null,
+            partnerCode: item.link.partnerCode || legacyUnit.partnerCode || null,
+            serviceType: item.link.serviceType || null,
+            connectionType: credential.connectionType || item.link.connectionType || null,
+            routerPort: item.link.routerPort || null,
+            technology: item.link.technology || null,
+            latency: item.link.latency || null,
+            macOnu: item.link.macOnu || null,
+            phone: item.link.phone || null,
+            contractIxc: item.link.contractIxc || null,
+            notes: item.link.notes || null,
+          },
+          update: {
+            sourceLegacyId: item.link.legacyId || null,
+            sourceUnitKey: legacyUnit.key,
+            linkRole: item.linkRole,
+            sortOrder: item.sortOrder,
+            group: legacyUnit.group || null,
+            legacyCode: legacyUnit.code || null,
+            legacyName: legacyUnit.name || null,
+            city: legacyUnit.city || null,
+            state: legacyUnit.state || null,
+            partnerCode: item.link.partnerCode || legacyUnit.partnerCode || null,
+            serviceType: item.link.serviceType || null,
+            connectionType: credential.connectionType || item.link.connectionType || null,
+            routerPort: item.link.routerPort || null,
+            technology: item.link.technology || null,
+            latency: item.link.latency || null,
+            macOnu: item.link.macOnu || null,
+            phone: item.link.phone || null,
+            contractIxc: item.link.contractIxc || null,
+            notes: item.link.notes || null,
+          },
+          select: { id: true },
+        });
+
+        await prisma.unitOperationalSecret.deleteMany({
+          where: { operationalInfoId: info.id },
+        });
+
+        if (credential.username || credential.secret) {
+          await prisma.unitOperationalSecret.create({
+            data: {
+              operationalInfoId: info.id,
+              kind: "pppoe",
+              label: "Credencial PPPoE legada",
+              usernameEnc: credential.username ? encryptSecret(credential.username) : null,
+              secretEnc: credential.secret ? encryptSecret(credential.secret) : null,
+              hasValue: Boolean(credential.username || credential.secret),
+            },
+          });
+          importedSecrets += 1;
+        }
+
+        importedLinks += 1;
+      }
+    }
+
+    await this.writeOperationalActivity({
+      actorUserId,
+      title: "Importação de dados operacionais legados",
+      description: `${importedLinks} link(s), ${importedSecrets} credencial(is), ${matchedUnits} unidade(s) casada(s), ${skippedUnits} unidade(s) ignorada(s).`,
+    });
+
+    return {
+      sourceAvailable: true,
+      generatedAt: state.bundle.generatedAt,
+      redactedSecrets: state.bundle.redactedSecrets,
+      matchedUnits,
+      skippedUnits,
+      importedLinks,
+      importedSecrets,
+      summary: state.bundle.summary,
+    };
+  }
+
 }

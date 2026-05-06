@@ -195,6 +195,7 @@ export type PartnerWhereInput = {
   maintenances?: Prisma.MaintenanceListRelationFilter
   exceptionCases?: Prisma.ExceptionCaseListRelationFilter
   activities?: Prisma.ActivityEntryListRelationFilter
+  operationalInfos?: Prisma.UnitOperationalInfoListRelationFilter
 }
 
 export type PartnerOrderByWithRelationInput = {
@@ -209,6 +210,7 @@ export type PartnerOrderByWithRelationInput = {
   maintenances?: Prisma.MaintenanceOrderByRelationAggregateInput
   exceptionCases?: Prisma.ExceptionCaseOrderByRelationAggregateInput
   activities?: Prisma.ActivityEntryOrderByRelationAggregateInput
+  operationalInfos?: Prisma.UnitOperationalInfoOrderByRelationAggregateInput
 }
 
 export type PartnerWhereUniqueInput = Prisma.AtLeast<{
@@ -226,6 +228,7 @@ export type PartnerWhereUniqueInput = Prisma.AtLeast<{
   maintenances?: Prisma.MaintenanceListRelationFilter
   exceptionCases?: Prisma.ExceptionCaseListRelationFilter
   activities?: Prisma.ActivityEntryListRelationFilter
+  operationalInfos?: Prisma.UnitOperationalInfoListRelationFilter
 }, "id" | "code">
 
 export type PartnerOrderByWithAggregationInput = {
@@ -264,6 +267,7 @@ export type PartnerCreateInput = {
   maintenances?: Prisma.MaintenanceCreateNestedManyWithoutPartnerInput
   exceptionCases?: Prisma.ExceptionCaseCreateNestedManyWithoutPartnerInput
   activities?: Prisma.ActivityEntryCreateNestedManyWithoutPartnerInput
+  operationalInfos?: Prisma.UnitOperationalInfoCreateNestedManyWithoutPartnerInput
 }
 
 export type PartnerUncheckedCreateInput = {
@@ -278,6 +282,7 @@ export type PartnerUncheckedCreateInput = {
   maintenances?: Prisma.MaintenanceUncheckedCreateNestedManyWithoutPartnerInput
   exceptionCases?: Prisma.ExceptionCaseUncheckedCreateNestedManyWithoutPartnerInput
   activities?: Prisma.ActivityEntryUncheckedCreateNestedManyWithoutPartnerInput
+  operationalInfos?: Prisma.UnitOperationalInfoUncheckedCreateNestedManyWithoutPartnerInput
 }
 
 export type PartnerUpdateInput = {
@@ -292,6 +297,7 @@ export type PartnerUpdateInput = {
   maintenances?: Prisma.MaintenanceUpdateManyWithoutPartnerNestedInput
   exceptionCases?: Prisma.ExceptionCaseUpdateManyWithoutPartnerNestedInput
   activities?: Prisma.ActivityEntryUpdateManyWithoutPartnerNestedInput
+  operationalInfos?: Prisma.UnitOperationalInfoUpdateManyWithoutPartnerNestedInput
 }
 
 export type PartnerUncheckedUpdateInput = {
@@ -306,6 +312,7 @@ export type PartnerUncheckedUpdateInput = {
   maintenances?: Prisma.MaintenanceUncheckedUpdateManyWithoutPartnerNestedInput
   exceptionCases?: Prisma.ExceptionCaseUncheckedUpdateManyWithoutPartnerNestedInput
   activities?: Prisma.ActivityEntryUncheckedUpdateManyWithoutPartnerNestedInput
+  operationalInfos?: Prisma.UnitOperationalInfoUncheckedUpdateManyWithoutPartnerNestedInput
 }
 
 export type PartnerCreateManyInput = {
@@ -386,6 +393,22 @@ export type PartnerUpdateOneRequiredWithoutUnitsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.PartnerUpdateToOneWithWhereWithoutUnitsInput, Prisma.PartnerUpdateWithoutUnitsInput>, Prisma.PartnerUncheckedUpdateWithoutUnitsInput>
 }
 
+export type PartnerCreateNestedOneWithoutOperationalInfosInput = {
+  create?: Prisma.XOR<Prisma.PartnerCreateWithoutOperationalInfosInput, Prisma.PartnerUncheckedCreateWithoutOperationalInfosInput>
+  connectOrCreate?: Prisma.PartnerCreateOrConnectWithoutOperationalInfosInput
+  connect?: Prisma.PartnerWhereUniqueInput
+}
+
+export type PartnerUpdateOneWithoutOperationalInfosNestedInput = {
+  create?: Prisma.XOR<Prisma.PartnerCreateWithoutOperationalInfosInput, Prisma.PartnerUncheckedCreateWithoutOperationalInfosInput>
+  connectOrCreate?: Prisma.PartnerCreateOrConnectWithoutOperationalInfosInput
+  upsert?: Prisma.PartnerUpsertWithoutOperationalInfosInput
+  disconnect?: Prisma.PartnerWhereInput | boolean
+  delete?: Prisma.PartnerWhereInput | boolean
+  connect?: Prisma.PartnerWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.PartnerUpdateToOneWithWhereWithoutOperationalInfosInput, Prisma.PartnerUpdateWithoutOperationalInfosInput>, Prisma.PartnerUncheckedUpdateWithoutOperationalInfosInput>
+}
+
 export type PartnerCreateNestedOneWithoutOccurrencesInput = {
   create?: Prisma.XOR<Prisma.PartnerCreateWithoutOccurrencesInput, Prisma.PartnerUncheckedCreateWithoutOccurrencesInput>
   connectOrCreate?: Prisma.PartnerCreateOrConnectWithoutOccurrencesInput
@@ -461,6 +484,7 @@ export type PartnerCreateWithoutUnitsInput = {
   maintenances?: Prisma.MaintenanceCreateNestedManyWithoutPartnerInput
   exceptionCases?: Prisma.ExceptionCaseCreateNestedManyWithoutPartnerInput
   activities?: Prisma.ActivityEntryCreateNestedManyWithoutPartnerInput
+  operationalInfos?: Prisma.UnitOperationalInfoCreateNestedManyWithoutPartnerInput
 }
 
 export type PartnerUncheckedCreateWithoutUnitsInput = {
@@ -474,6 +498,7 @@ export type PartnerUncheckedCreateWithoutUnitsInput = {
   maintenances?: Prisma.MaintenanceUncheckedCreateNestedManyWithoutPartnerInput
   exceptionCases?: Prisma.ExceptionCaseUncheckedCreateNestedManyWithoutPartnerInput
   activities?: Prisma.ActivityEntryUncheckedCreateNestedManyWithoutPartnerInput
+  operationalInfos?: Prisma.UnitOperationalInfoUncheckedCreateNestedManyWithoutPartnerInput
 }
 
 export type PartnerCreateOrConnectWithoutUnitsInput = {
@@ -503,6 +528,7 @@ export type PartnerUpdateWithoutUnitsInput = {
   maintenances?: Prisma.MaintenanceUpdateManyWithoutPartnerNestedInput
   exceptionCases?: Prisma.ExceptionCaseUpdateManyWithoutPartnerNestedInput
   activities?: Prisma.ActivityEntryUpdateManyWithoutPartnerNestedInput
+  operationalInfos?: Prisma.UnitOperationalInfoUpdateManyWithoutPartnerNestedInput
 }
 
 export type PartnerUncheckedUpdateWithoutUnitsInput = {
@@ -512,6 +538,79 @@ export type PartnerUncheckedUpdateWithoutUnitsInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  occurrences?: Prisma.OccurrenceUncheckedUpdateManyWithoutPartnerNestedInput
+  maintenances?: Prisma.MaintenanceUncheckedUpdateManyWithoutPartnerNestedInput
+  exceptionCases?: Prisma.ExceptionCaseUncheckedUpdateManyWithoutPartnerNestedInput
+  activities?: Prisma.ActivityEntryUncheckedUpdateManyWithoutPartnerNestedInput
+  operationalInfos?: Prisma.UnitOperationalInfoUncheckedUpdateManyWithoutPartnerNestedInput
+}
+
+export type PartnerCreateWithoutOperationalInfosInput = {
+  id?: string
+  code: string
+  name: string
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  units?: Prisma.UnitCreateNestedManyWithoutPartnerInput
+  occurrences?: Prisma.OccurrenceCreateNestedManyWithoutPartnerInput
+  maintenances?: Prisma.MaintenanceCreateNestedManyWithoutPartnerInput
+  exceptionCases?: Prisma.ExceptionCaseCreateNestedManyWithoutPartnerInput
+  activities?: Prisma.ActivityEntryCreateNestedManyWithoutPartnerInput
+}
+
+export type PartnerUncheckedCreateWithoutOperationalInfosInput = {
+  id?: string
+  code: string
+  name: string
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  units?: Prisma.UnitUncheckedCreateNestedManyWithoutPartnerInput
+  occurrences?: Prisma.OccurrenceUncheckedCreateNestedManyWithoutPartnerInput
+  maintenances?: Prisma.MaintenanceUncheckedCreateNestedManyWithoutPartnerInput
+  exceptionCases?: Prisma.ExceptionCaseUncheckedCreateNestedManyWithoutPartnerInput
+  activities?: Prisma.ActivityEntryUncheckedCreateNestedManyWithoutPartnerInput
+}
+
+export type PartnerCreateOrConnectWithoutOperationalInfosInput = {
+  where: Prisma.PartnerWhereUniqueInput
+  create: Prisma.XOR<Prisma.PartnerCreateWithoutOperationalInfosInput, Prisma.PartnerUncheckedCreateWithoutOperationalInfosInput>
+}
+
+export type PartnerUpsertWithoutOperationalInfosInput = {
+  update: Prisma.XOR<Prisma.PartnerUpdateWithoutOperationalInfosInput, Prisma.PartnerUncheckedUpdateWithoutOperationalInfosInput>
+  create: Prisma.XOR<Prisma.PartnerCreateWithoutOperationalInfosInput, Prisma.PartnerUncheckedCreateWithoutOperationalInfosInput>
+  where?: Prisma.PartnerWhereInput
+}
+
+export type PartnerUpdateToOneWithWhereWithoutOperationalInfosInput = {
+  where?: Prisma.PartnerWhereInput
+  data: Prisma.XOR<Prisma.PartnerUpdateWithoutOperationalInfosInput, Prisma.PartnerUncheckedUpdateWithoutOperationalInfosInput>
+}
+
+export type PartnerUpdateWithoutOperationalInfosInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  units?: Prisma.UnitUpdateManyWithoutPartnerNestedInput
+  occurrences?: Prisma.OccurrenceUpdateManyWithoutPartnerNestedInput
+  maintenances?: Prisma.MaintenanceUpdateManyWithoutPartnerNestedInput
+  exceptionCases?: Prisma.ExceptionCaseUpdateManyWithoutPartnerNestedInput
+  activities?: Prisma.ActivityEntryUpdateManyWithoutPartnerNestedInput
+}
+
+export type PartnerUncheckedUpdateWithoutOperationalInfosInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  units?: Prisma.UnitUncheckedUpdateManyWithoutPartnerNestedInput
   occurrences?: Prisma.OccurrenceUncheckedUpdateManyWithoutPartnerNestedInput
   maintenances?: Prisma.MaintenanceUncheckedUpdateManyWithoutPartnerNestedInput
   exceptionCases?: Prisma.ExceptionCaseUncheckedUpdateManyWithoutPartnerNestedInput
@@ -529,6 +628,7 @@ export type PartnerCreateWithoutOccurrencesInput = {
   maintenances?: Prisma.MaintenanceCreateNestedManyWithoutPartnerInput
   exceptionCases?: Prisma.ExceptionCaseCreateNestedManyWithoutPartnerInput
   activities?: Prisma.ActivityEntryCreateNestedManyWithoutPartnerInput
+  operationalInfos?: Prisma.UnitOperationalInfoCreateNestedManyWithoutPartnerInput
 }
 
 export type PartnerUncheckedCreateWithoutOccurrencesInput = {
@@ -542,6 +642,7 @@ export type PartnerUncheckedCreateWithoutOccurrencesInput = {
   maintenances?: Prisma.MaintenanceUncheckedCreateNestedManyWithoutPartnerInput
   exceptionCases?: Prisma.ExceptionCaseUncheckedCreateNestedManyWithoutPartnerInput
   activities?: Prisma.ActivityEntryUncheckedCreateNestedManyWithoutPartnerInput
+  operationalInfos?: Prisma.UnitOperationalInfoUncheckedCreateNestedManyWithoutPartnerInput
 }
 
 export type PartnerCreateOrConnectWithoutOccurrencesInput = {
@@ -571,6 +672,7 @@ export type PartnerUpdateWithoutOccurrencesInput = {
   maintenances?: Prisma.MaintenanceUpdateManyWithoutPartnerNestedInput
   exceptionCases?: Prisma.ExceptionCaseUpdateManyWithoutPartnerNestedInput
   activities?: Prisma.ActivityEntryUpdateManyWithoutPartnerNestedInput
+  operationalInfos?: Prisma.UnitOperationalInfoUpdateManyWithoutPartnerNestedInput
 }
 
 export type PartnerUncheckedUpdateWithoutOccurrencesInput = {
@@ -584,6 +686,7 @@ export type PartnerUncheckedUpdateWithoutOccurrencesInput = {
   maintenances?: Prisma.MaintenanceUncheckedUpdateManyWithoutPartnerNestedInput
   exceptionCases?: Prisma.ExceptionCaseUncheckedUpdateManyWithoutPartnerNestedInput
   activities?: Prisma.ActivityEntryUncheckedUpdateManyWithoutPartnerNestedInput
+  operationalInfos?: Prisma.UnitOperationalInfoUncheckedUpdateManyWithoutPartnerNestedInput
 }
 
 export type PartnerCreateWithoutMaintenancesInput = {
@@ -597,6 +700,7 @@ export type PartnerCreateWithoutMaintenancesInput = {
   occurrences?: Prisma.OccurrenceCreateNestedManyWithoutPartnerInput
   exceptionCases?: Prisma.ExceptionCaseCreateNestedManyWithoutPartnerInput
   activities?: Prisma.ActivityEntryCreateNestedManyWithoutPartnerInput
+  operationalInfos?: Prisma.UnitOperationalInfoCreateNestedManyWithoutPartnerInput
 }
 
 export type PartnerUncheckedCreateWithoutMaintenancesInput = {
@@ -610,6 +714,7 @@ export type PartnerUncheckedCreateWithoutMaintenancesInput = {
   occurrences?: Prisma.OccurrenceUncheckedCreateNestedManyWithoutPartnerInput
   exceptionCases?: Prisma.ExceptionCaseUncheckedCreateNestedManyWithoutPartnerInput
   activities?: Prisma.ActivityEntryUncheckedCreateNestedManyWithoutPartnerInput
+  operationalInfos?: Prisma.UnitOperationalInfoUncheckedCreateNestedManyWithoutPartnerInput
 }
 
 export type PartnerCreateOrConnectWithoutMaintenancesInput = {
@@ -639,6 +744,7 @@ export type PartnerUpdateWithoutMaintenancesInput = {
   occurrences?: Prisma.OccurrenceUpdateManyWithoutPartnerNestedInput
   exceptionCases?: Prisma.ExceptionCaseUpdateManyWithoutPartnerNestedInput
   activities?: Prisma.ActivityEntryUpdateManyWithoutPartnerNestedInput
+  operationalInfos?: Prisma.UnitOperationalInfoUpdateManyWithoutPartnerNestedInput
 }
 
 export type PartnerUncheckedUpdateWithoutMaintenancesInput = {
@@ -652,6 +758,7 @@ export type PartnerUncheckedUpdateWithoutMaintenancesInput = {
   occurrences?: Prisma.OccurrenceUncheckedUpdateManyWithoutPartnerNestedInput
   exceptionCases?: Prisma.ExceptionCaseUncheckedUpdateManyWithoutPartnerNestedInput
   activities?: Prisma.ActivityEntryUncheckedUpdateManyWithoutPartnerNestedInput
+  operationalInfos?: Prisma.UnitOperationalInfoUncheckedUpdateManyWithoutPartnerNestedInput
 }
 
 export type PartnerCreateWithoutExceptionCasesInput = {
@@ -665,6 +772,7 @@ export type PartnerCreateWithoutExceptionCasesInput = {
   occurrences?: Prisma.OccurrenceCreateNestedManyWithoutPartnerInput
   maintenances?: Prisma.MaintenanceCreateNestedManyWithoutPartnerInput
   activities?: Prisma.ActivityEntryCreateNestedManyWithoutPartnerInput
+  operationalInfos?: Prisma.UnitOperationalInfoCreateNestedManyWithoutPartnerInput
 }
 
 export type PartnerUncheckedCreateWithoutExceptionCasesInput = {
@@ -678,6 +786,7 @@ export type PartnerUncheckedCreateWithoutExceptionCasesInput = {
   occurrences?: Prisma.OccurrenceUncheckedCreateNestedManyWithoutPartnerInput
   maintenances?: Prisma.MaintenanceUncheckedCreateNestedManyWithoutPartnerInput
   activities?: Prisma.ActivityEntryUncheckedCreateNestedManyWithoutPartnerInput
+  operationalInfos?: Prisma.UnitOperationalInfoUncheckedCreateNestedManyWithoutPartnerInput
 }
 
 export type PartnerCreateOrConnectWithoutExceptionCasesInput = {
@@ -707,6 +816,7 @@ export type PartnerUpdateWithoutExceptionCasesInput = {
   occurrences?: Prisma.OccurrenceUpdateManyWithoutPartnerNestedInput
   maintenances?: Prisma.MaintenanceUpdateManyWithoutPartnerNestedInput
   activities?: Prisma.ActivityEntryUpdateManyWithoutPartnerNestedInput
+  operationalInfos?: Prisma.UnitOperationalInfoUpdateManyWithoutPartnerNestedInput
 }
 
 export type PartnerUncheckedUpdateWithoutExceptionCasesInput = {
@@ -720,6 +830,7 @@ export type PartnerUncheckedUpdateWithoutExceptionCasesInput = {
   occurrences?: Prisma.OccurrenceUncheckedUpdateManyWithoutPartnerNestedInput
   maintenances?: Prisma.MaintenanceUncheckedUpdateManyWithoutPartnerNestedInput
   activities?: Prisma.ActivityEntryUncheckedUpdateManyWithoutPartnerNestedInput
+  operationalInfos?: Prisma.UnitOperationalInfoUncheckedUpdateManyWithoutPartnerNestedInput
 }
 
 export type PartnerCreateWithoutActivitiesInput = {
@@ -733,6 +844,7 @@ export type PartnerCreateWithoutActivitiesInput = {
   occurrences?: Prisma.OccurrenceCreateNestedManyWithoutPartnerInput
   maintenances?: Prisma.MaintenanceCreateNestedManyWithoutPartnerInput
   exceptionCases?: Prisma.ExceptionCaseCreateNestedManyWithoutPartnerInput
+  operationalInfos?: Prisma.UnitOperationalInfoCreateNestedManyWithoutPartnerInput
 }
 
 export type PartnerUncheckedCreateWithoutActivitiesInput = {
@@ -746,6 +858,7 @@ export type PartnerUncheckedCreateWithoutActivitiesInput = {
   occurrences?: Prisma.OccurrenceUncheckedCreateNestedManyWithoutPartnerInput
   maintenances?: Prisma.MaintenanceUncheckedCreateNestedManyWithoutPartnerInput
   exceptionCases?: Prisma.ExceptionCaseUncheckedCreateNestedManyWithoutPartnerInput
+  operationalInfos?: Prisma.UnitOperationalInfoUncheckedCreateNestedManyWithoutPartnerInput
 }
 
 export type PartnerCreateOrConnectWithoutActivitiesInput = {
@@ -775,6 +888,7 @@ export type PartnerUpdateWithoutActivitiesInput = {
   occurrences?: Prisma.OccurrenceUpdateManyWithoutPartnerNestedInput
   maintenances?: Prisma.MaintenanceUpdateManyWithoutPartnerNestedInput
   exceptionCases?: Prisma.ExceptionCaseUpdateManyWithoutPartnerNestedInput
+  operationalInfos?: Prisma.UnitOperationalInfoUpdateManyWithoutPartnerNestedInput
 }
 
 export type PartnerUncheckedUpdateWithoutActivitiesInput = {
@@ -788,6 +902,7 @@ export type PartnerUncheckedUpdateWithoutActivitiesInput = {
   occurrences?: Prisma.OccurrenceUncheckedUpdateManyWithoutPartnerNestedInput
   maintenances?: Prisma.MaintenanceUncheckedUpdateManyWithoutPartnerNestedInput
   exceptionCases?: Prisma.ExceptionCaseUncheckedUpdateManyWithoutPartnerNestedInput
+  operationalInfos?: Prisma.UnitOperationalInfoUncheckedUpdateManyWithoutPartnerNestedInput
 }
 
 
@@ -801,6 +916,7 @@ export type PartnerCountOutputType = {
   maintenances: number
   exceptionCases: number
   activities: number
+  operationalInfos: number
 }
 
 export type PartnerCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -809,6 +925,7 @@ export type PartnerCountOutputTypeSelect<ExtArgs extends runtime.Types.Extension
   maintenances?: boolean | PartnerCountOutputTypeCountMaintenancesArgs
   exceptionCases?: boolean | PartnerCountOutputTypeCountExceptionCasesArgs
   activities?: boolean | PartnerCountOutputTypeCountActivitiesArgs
+  operationalInfos?: boolean | PartnerCountOutputTypeCountOperationalInfosArgs
 }
 
 /**
@@ -856,6 +973,13 @@ export type PartnerCountOutputTypeCountActivitiesArgs<ExtArgs extends runtime.Ty
   where?: Prisma.ActivityEntryWhereInput
 }
 
+/**
+ * PartnerCountOutputType without action
+ */
+export type PartnerCountOutputTypeCountOperationalInfosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.UnitOperationalInfoWhereInput
+}
+
 
 export type PartnerSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -869,6 +993,7 @@ export type PartnerSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   maintenances?: boolean | Prisma.Partner$maintenancesArgs<ExtArgs>
   exceptionCases?: boolean | Prisma.Partner$exceptionCasesArgs<ExtArgs>
   activities?: boolean | Prisma.Partner$activitiesArgs<ExtArgs>
+  operationalInfos?: boolean | Prisma.Partner$operationalInfosArgs<ExtArgs>
   _count?: boolean | Prisma.PartnerCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["partner"]>
 
@@ -906,6 +1031,7 @@ export type PartnerInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   maintenances?: boolean | Prisma.Partner$maintenancesArgs<ExtArgs>
   exceptionCases?: boolean | Prisma.Partner$exceptionCasesArgs<ExtArgs>
   activities?: boolean | Prisma.Partner$activitiesArgs<ExtArgs>
+  operationalInfos?: boolean | Prisma.Partner$operationalInfosArgs<ExtArgs>
   _count?: boolean | Prisma.PartnerCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type PartnerIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -919,6 +1045,7 @@ export type $PartnerPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     maintenances: Prisma.$MaintenancePayload<ExtArgs>[]
     exceptionCases: Prisma.$ExceptionCasePayload<ExtArgs>[]
     activities: Prisma.$ActivityEntryPayload<ExtArgs>[]
+    operationalInfos: Prisma.$UnitOperationalInfoPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1326,6 +1453,7 @@ export interface Prisma__PartnerClient<T, Null = never, ExtArgs extends runtime.
   maintenances<T extends Prisma.Partner$maintenancesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Partner$maintenancesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MaintenancePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   exceptionCases<T extends Prisma.Partner$exceptionCasesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Partner$exceptionCasesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ExceptionCasePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   activities<T extends Prisma.Partner$activitiesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Partner$activitiesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ActivityEntryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  operationalInfos<T extends Prisma.Partner$operationalInfosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Partner$operationalInfosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UnitOperationalInfoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1871,6 +1999,30 @@ export type Partner$activitiesArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   distinct?: Prisma.ActivityEntryScalarFieldEnum | Prisma.ActivityEntryScalarFieldEnum[]
+}
+
+/**
+ * Partner.operationalInfos
+ */
+export type Partner$operationalInfosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the UnitOperationalInfo
+   */
+  select?: Prisma.UnitOperationalInfoSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the UnitOperationalInfo
+   */
+  omit?: Prisma.UnitOperationalInfoOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UnitOperationalInfoInclude<ExtArgs> | null
+  where?: Prisma.UnitOperationalInfoWhereInput
+  orderBy?: Prisma.UnitOperationalInfoOrderByWithRelationInput | Prisma.UnitOperationalInfoOrderByWithRelationInput[]
+  cursor?: Prisma.UnitOperationalInfoWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.UnitOperationalInfoScalarFieldEnum | Prisma.UnitOperationalInfoScalarFieldEnum[]
 }
 
 /**

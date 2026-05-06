@@ -11,6 +11,8 @@
 export type * from './models/User.js'
 export type * from './models/Partner.js'
 export type * from './models/Unit.js'
+export type * from './models/UnitOperationalInfo.js'
+export type * from './models/UnitOperationalSecret.js'
 export type * from './models/Equipment.js'
 export type * from './models/Integration.js'
 export type * from './models/Occurrence.js'
