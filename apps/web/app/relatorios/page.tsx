@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { AppShell } from "@/components/app-shell";
-import { BarList, ChartCard, DenseTable, ReportPreviewCard, RightPanel, StatCard, Surface, TableActionCell, TableActionHeader, TableActionLink, TableCell, TableHead, TableShell, TonePill } from "@/components/ops-ui";
+import type { ReactNode } from "react";
+import { NovaLitShell } from "@/components/nova-lit/nova-lit-shell";
 import { formatShortDateTime } from "@/lib/formatters";
 import { safeApiJson } from "@/lib/noc-overview";
 import { getServerWebSession } from "@/lib/web-session";
+
+type Tone = "green" | "orange" | "blue" | "red" | "slate";
 
 type ReportUnit = {
   id: string;
@@ -31,7 +33,13 @@ type ReportTemplate = {
   unitIds: string[];
   groupIds: string[];
   integration: { code: string; name: string } | null;
-  automations: Array<{ id: string; cadence: string; enabled: boolean; lastRunAt: string | null; nextRunAt: string | null }>;
+  automations: Array<{
+    id: string;
+    cadence: string;
+    enabled: boolean;
+    lastRunAt: string | null;
+    nextRunAt: string | null;
+  }>;
 };
 
 type ReportRun = {
@@ -41,24 +49,175 @@ type ReportRun = {
   finishedAt: string | null;
   summary: string | null;
   errorMessage: string | null;
-  attachments: Array<{ id: string; name: string; url: string; mimeType: string; size: number; createdAt: string }>;
-  rule: { code: string; name: string; cadence: string; reportTemplate: { id: string; code: string; name: string } | null };
+  attachments: Array<{
+    id: string;
+    name: string;
+    url: string;
+    mimeType: string;
+    size: number;
+    createdAt: string;
+  }>;
+  rule: {
+    code: string;
+    name: string;
+    cadence: string;
+    reportTemplate: { id: string; code: string; name: string } | null;
+  };
 };
-
-function statusTone(status: string) {
-  if (["success", "completed", "done"].includes(status)) return "success";
-  if (["failed", "error"].includes(status)) return "critical";
-  if (["running", "queued"].includes(status)) return "attention";
-  return "neutral";
-}
 
 function hasText(value: string | null | undefined) {
   return Boolean(value?.trim());
 }
 
+function statusTone(status: string): Tone {
+  if (["success", "completed", "done"].includes(status)) return "green";
+  if (["failed", "error"].includes(status)) return "red";
+  if (["running", "queued"].includes(status)) return "orange";
+  return "slate";
+}
+
+function templateScope(template: ReportTemplate) {
+  const total = template.unitIds.length + template.groupIds.length;
+
+  if (total) return String(total);
+  return "manual";
+}
+
+function percent(value: number, total: number) {
+  if (!total) return 0;
+  return Math.max(0, Math.min(100, Math.round((value / total) * 100)));
+}
+
+function Badge({ tone, children }: { tone: Tone; children: ReactNode }) {
+  return <span className={`nova-reports-hub-badge is-${tone}`}>{children}</span>;
+}
+
+function StatCard({
+  label,
+  value,
+  hint,
+  tone,
+}: {
+  label: string;
+  value: ReactNode;
+  hint: string;
+  tone: Tone;
+}) {
+  return (
+    <article className={`nova-reports-hub-stat is-${tone}`}>
+      <i />
+      <span>{label}</span>
+      <strong>{value}</strong>
+      <small>{hint}</small>
+    </article>
+  );
+}
+
+function Panel({
+  eyebrow,
+  title,
+  action,
+  children,
+  className = "",
+}: {
+  eyebrow?: string;
+  title: string;
+  action?: ReactNode;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <section className={`nova-reports-hub-panel ${className}`}>
+      <div className="nova-reports-hub-panel-head">
+        <div>
+          {eyebrow ? <span>{eyebrow}</span> : null}
+          <h2>{title}</h2>
+        </div>
+        {action ? <div>{action}</div> : null}
+      </div>
+      <div className="nova-reports-hub-panel-body">{children}</div>
+    </section>
+  );
+}
+
+function ProgressLine({
+  label,
+  value,
+  total,
+  tone,
+}: {
+  label: string;
+  value: number;
+  total: number;
+  tone: Tone;
+}) {
+  const current = percent(value, total);
+
+  return (
+    <div className="nova-reports-hub-progress">
+      <div>
+        <span>{label}</span>
+        <b>{value}</b>
+      </div>
+      <i>
+        <em className={`is-${tone}`} style={{ width: `${current}%` }} />
+      </i>
+    </div>
+  );
+}
+
+function ReportShortcut({
+  title,
+  description,
+  href,
+  tone,
+}: {
+  title: string;
+  description: string;
+  href: string;
+  tone: Tone;
+}) {
+  return (
+    <Link href={href} className={`nova-reports-hub-shortcut is-${tone}`}>
+      <span>{title}</span>
+      <p>{description}</p>
+      <strong>Abrir</strong>
+    </Link>
+  );
+}
+
+function RunStatusItem({ run }: { run: ReportRun }) {
+  const attachment = run.attachments[0];
+
+  return (
+    <article className="nova-reports-hub-run">
+      <div>
+        <strong>{run.rule.reportTemplate?.name || run.rule.name}</strong>
+        <span>{formatShortDateTime(run.startedAt)} · {run.status}</span>
+      </div>
+      <div>
+        <Badge tone={statusTone(run.status)}>{run.status}</Badge>
+        {attachment ? <a href={attachment.url}>Baixar</a> : null}
+      </div>
+    </article>
+  );
+}
+
+function EmptyState({ children }: { children: ReactNode }) {
+  return (
+    <div className="nova-reports-hub-empty">
+      <b>N</b>
+      <span>{children}</span>
+    </div>
+  );
+}
+
 export default async function RelatoriosPage() {
   const session = await getServerWebSession();
-  if (!session.authenticated) redirect("/login?next=/relatorios");
+
+  if (!session.authenticated) {
+    redirect("/login?next=/relatorios");
+  }
 
   const [units, templates, runs] = await Promise.all([
     safeApiJson<ReportUnitsResponse>("/monitoring/reports/units", { total: 0, items: [] }),
@@ -69,111 +228,204 @@ export default async function RelatoriosPage() {
   const enabledTemplates = templates.filter((item) => item.enabled).length;
   const withCharts = templates.filter((item) => item.includeCharts).length;
   const lastRun = runs[0] || null;
-  const metadataBars = [
-    { label: "Contrato", value: units.items.filter((unit) => hasText(unit.reportContractLabel)).length, tone: "info" },
-    { label: "Banda", value: units.items.filter((unit) => hasText(unit.reportContractedBandwidth)).length, tone: "success" },
-    { label: "Endereço", value: units.items.filter((unit) => hasText(unit.reportAddressLine)).length, tone: "attention" },
-  ];
+  const unitsWithContract = units.items.filter((unit) => hasText(unit.reportContractLabel)).length;
+  const unitsWithBandwidth = units.items.filter((unit) => hasText(unit.reportContractedBandwidth)).length;
+  const unitsWithAddress = units.items.filter((unit) => hasText(unit.reportAddressLine)).length;
+  const readyUnits = units.items.filter(
+    (unit) =>
+      hasText(unit.reportContractLabel) &&
+      hasText(unit.reportContractedBandwidth) &&
+      hasText(unit.reportAddressLine),
+  ).length;
+
   const runStatusMap = new Map<string, number>();
 
   for (const run of runs) {
     runStatusMap.set(run.status, (runStatusMap.get(run.status) || 0) + 1);
   }
 
-  const runStatusBars = Array.from(runStatusMap.entries()).map(([status, value]) => ({
-    label: status,
-    value,
-    tone: statusTone(status),
-  }));
+  const successfulRuns = runs.filter((run) => statusTone(run.status) === "green").length;
+  const failedRuns = runs.filter((run) => statusTone(run.status) === "red").length;
 
   return (
-    <AppShell title="Relatórios / Consumo" subtitle="Biblioteca de relatórios, filtros rápidos e exportações de consumo por unidade ou grupo.">
-      <section className="nova-side-grid nova-side-grid--360">
-        <div className="grid gap-2">
-          <div className="grid gap-2 md:grid-cols-4">
-            <StatCard label="Unidades" value={units.total} detail="aptas para exportação" tone="info" />
-            <StatCard label="Modelos" value={templates.length} detail={`${enabledTemplates} ativo(s)`} tone="attention" />
-            <StatCard label="Com gráficos" value={withCharts} detail="incluem séries Zabbix" tone="success" />
-            <StatCard label="Última geração" value={lastRun ? formatShortDateTime(lastRun.startedAt) : "-"} detail={lastRun?.status || "sem execução"} tone={lastRun ? statusTone(lastRun.status) : "neutral"} />
+    <NovaLitShell activeHref="/relatorios/consumo">
+      <main className="nova-reports-hub-page">
+        <header className="nova-reports-hub-hero">
+          <div>
+            <span>Relatórios / Central</span>
+            <h1>Relatórios</h1>
+            <p>Biblioteca operacional, modelos, exportações recentes e pontos de qualidade para consumo, disponibilidade e performance.</p>
           </div>
-
-          <Surface>
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <div className="nds-label">Biblioteca</div>
-                <h2 className="mt-1 text-[15px] font-black text-white">Modelos de relatório</h2>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Link href="/relatorios/monitoramento" className="nds-button" data-variant="primary">Novo relatório</Link>
-                <Link href="/relatorios/monitoramento?source=template" className="nds-button" data-variant="secondary">Usar modelo</Link>
-              </div>
-            </div>
-            <div className="mt-2">
-              <TableShell>
-                <DenseTable>
-                  <TableHead><tr><th className="px-3 py-2">Modelo</th><th className="px-3 py-2">Origem</th><th className="px-3 py-2">Período</th><th className="px-3 py-2">Formato</th><th className="px-3 py-2">Escopo</th><th className="px-3 py-2">Status</th><TableActionHeader /></tr></TableHead>
-                  <tbody>
-                    {templates.length ? templates.map((template) => (
-                      <tr key={template.id} className="border-b border-white/6 last:border-b-0 hover:bg-white/[0.025]">
-                        <TableCell><div className="font-bold text-white">{template.name}</div><div className="mt-1 text-[10px] text-slate-500">{template.code}</div></TableCell>
-                        <TableCell className="text-slate-300">{template.integration?.name || "manual"}</TableCell>
-                        <TableCell className="text-slate-300">{template.periodPreset}</TableCell>
-                        <TableCell><TonePill tone="info">{template.outputFormat}</TonePill></TableCell>
-                        <TableCell className="text-slate-300">{template.unitIds.length || template.groupIds.length || "manual"}</TableCell>
-                        <TableCell><TonePill tone={template.enabled ? "success" : "subtle"}>{template.enabled ? "ativo" : "pausado"}</TonePill></TableCell>
-                        <TableActionCell><TableActionLink href={`/relatorios/monitoramento?templateId=${template.id}`}>Abrir</TableActionLink></TableActionCell>
-                      </tr>
-                    )) : (
-                      <tr><TableCell colSpan={7} className="text-slate-500">Nenhum modelo salvo. Gere o primeiro em Monitoramento.</TableCell></tr>
-                    )}
-                  </tbody>
-                </DenseTable>
-              </TableShell>
-            </div>
-          </Surface>
-
-          <div className="grid gap-2 lg:grid-cols-2">
-            <ChartCard title="Cobertura do relatório" subtitle="campos preenchidos nas unidades ativas" tone={metadataBars.every((item) => item.value === units.total) ? "success" : "attention"}>
-              <BarList data={metadataBars} max={Math.max(1, units.total)} emptyLabel="Nenhuma unidade ativa para exportação." />
-            </ChartCard>
-            <Surface>
-              <div className="nds-label">Unidades recentes</div>
-              <h2 className="mt-1 text-[15px] font-black text-white">Prontas para exportar</h2>
-              <div className="mt-2 grid gap-2">
-                {units.items.slice(0, 8).map((unit) => (
-                  <Link key={unit.id} href={`/relatorios/monitoramento?unitId=${unit.id}`} className="nds-card block text-[11px] hover:border-[var(--nova-primary)]/30">
-                    <div className="font-bold text-white">{unit.name}</div>
-                    <div className="mt-1 text-[10px] text-[var(--nova-text-muted)]">{unit.partner.name} · {[unit.city, unit.state].filter(Boolean).join("/") || "sem cidade"} · {unit.reportContractedBandwidth || "banda não informada"}</div>
-                  </Link>
-                ))}
-              </div>
-            </Surface>
+          <div className="nova-reports-hub-actions">
+            <Link href="/relatorios/monitoramento" className="nova-lit-button nova-lit-button-secondary">
+              Monitoramento
+            </Link>
+            <Link href="/relatorios/monitoramento?source=unit" className="nova-lit-button nova-lit-button-primary">
+              Novo relatório
+            </Link>
           </div>
-        </div>
+        </header>
 
-        <RightPanel title="Exportação" description="Resumo da próxima saída.">
-          <ReportPreviewCard title="Relatório de Consumo" format="PDF/DOCX" includeCharts units={Math.min(units.total, 12)} />
-          <div className="nds-card">
-            <div className="text-[12px] font-black text-white">Execuções por status</div>
-            <div className="mt-2">
-              <BarList data={runStatusBars} emptyLabel="Nenhuma execução registrada." />
-            </div>
-          </div>
-          <div className="nds-card">
-            <div className="text-[12px] font-black text-white">Últimos arquivos</div>
-            <div className="mt-2 grid gap-2">
-              {runs.slice(0, 4).map((run) => (
-                <div key={run.id} className="nds-card text-[11px]">
-                  <div className="flex items-center justify-between gap-2"><span className="font-bold text-white">{run.rule.reportTemplate?.name || run.rule.name}</span><TonePill tone={statusTone(run.status)}>{run.status}</TonePill></div>
-                  <div className="mt-1 text-[10px] text-[var(--nova-text-muted)]">{formatShortDateTime(run.startedAt)}</div>
-                  {run.attachments[0] ? <a href={run.attachments[0].url} className="nds-button mt-2" data-variant="secondary">Baixar arquivo</a> : null}
+        <section className="nova-reports-hub-stats" aria-label="Indicadores de relatórios">
+          <StatCard label="Unidades" value={units.total} hint="aptas para exportação" tone="blue" />
+          <StatCard label="Modelos" value={templates.length} hint={`${enabledTemplates} ativo(s)`} tone={enabledTemplates ? "green" : "slate"} />
+          <StatCard label="Com gráficos" value={withCharts} hint="incluem séries Zabbix" tone={withCharts ? "green" : "slate"} />
+          <StatCard label="Última geração" value={lastRun ? formatShortDateTime(lastRun.startedAt) : "-"} hint={lastRun?.status || "sem execução"} tone={lastRun ? statusTone(lastRun.status) : "slate"} />
+          <StatCard label="Prontas" value={readyUnits} hint="metadados completos" tone={readyUnits ? "green" : "orange"} />
+        </section>
+
+        <section className="nova-reports-hub-layout">
+          <div className="nova-reports-hub-main">
+            <Panel
+              eyebrow="Biblioteca"
+              title="Modelos de relatório"
+              action={<Badge tone="blue">{templates.length} modelo(s)</Badge>}
+            >
+              {templates.length ? (
+                <div className="nova-reports-hub-table">
+                  <div className="nova-reports-hub-table-head">
+                    <span>Modelo</span>
+                    <span>Origem</span>
+                    <span>Período</span>
+                    <span>Formato</span>
+                    <span>Escopo</span>
+                    <span>Status</span>
+                    <span>Ações</span>
+                  </div>
+                  {templates.map((template) => (
+                    <div key={template.id} className="nova-reports-hub-row">
+                      <div>
+                        <strong>{template.name}</strong>
+                        <small>{template.code}</small>
+                      </div>
+                      <div>{template.integration?.name || "manual"}</div>
+                      <div>{template.periodPreset}</div>
+                      <div><Badge tone="blue">{template.outputFormat}</Badge></div>
+                      <div>{templateScope(template)}</div>
+                      <div><Badge tone={template.enabled ? "green" : "slate"}>{template.enabled ? "ativo" : "pausado"}</Badge></div>
+                      <div>
+                        <Link href={`/relatorios/monitoramento?templateId=${template.id}`}>Abrir</Link>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-              {!runs.length ? <div className="text-[11px] text-slate-500">Nenhuma exportação encontrada.</div> : null}
-            </div>
+              ) : (
+                <EmptyState>Nenhum modelo de consumo salvo. Gere o primeiro relatório em Monitoramento.</EmptyState>
+              )}
+            </Panel>
+
+            <Panel
+              eyebrow="Rotas"
+              title="Centrais de relatório"
+              action={<Badge tone="green">4 áreas</Badge>}
+            >
+              <div className="nova-reports-hub-shortcut-grid">
+                <ReportShortcut
+                  title="Monitoramento"
+                  description="Geração guiada por unidade, grupo Zabbix ou template."
+                  href="/relatorios/monitoramento"
+                  tone="green"
+                />
+                <ReportShortcut
+                  title="Consumo"
+                  description="Biblioteca de modelos, exportações e cobertura de metadados."
+                  href="/relatorios/consumo"
+                  tone="blue"
+                />
+                <ReportShortcut
+                  title="Disponibilidade"
+                  description="SLA por unidade, vínculo Zabbix e fila de atenção."
+                  href="/relatorios/disponibilidade"
+                  tone="orange"
+                />
+                <ReportShortcut
+                  title="Performance"
+                  description="Latência, perda, temperatura e saúde técnica por unidade."
+                  href="/relatorios/performance"
+                  tone="slate"
+                />
+              </div>
+            </Panel>
+
+            <section className="nova-reports-hub-split">
+              <Panel
+                eyebrow="Unidades recentes"
+                title="Prontas para exportar"
+                action={<Badge tone="green">{readyUnits} prontas</Badge>}
+              >
+                <div className="nova-reports-hub-unit-list">
+                  {units.items.slice(0, 8).map((unit) => (
+                    <Link key={unit.id} href={`/relatorios/monitoramento?unitId=${unit.id}`}>
+                      <span>
+                        <strong>{unit.name}</strong>
+                        <small>{unit.partner.name} · {[unit.city, unit.state].filter(Boolean).join("/") || "sem cidade"}</small>
+                      </span>
+                      <b>{unit.reportContractedBandwidth || "sem banda"}</b>
+                    </Link>
+                  ))}
+                  {!units.items.length ? <EmptyState>Nenhuma unidade retornada para exportação.</EmptyState> : null}
+                </div>
+              </Panel>
+
+              <Panel
+                eyebrow="Metadados"
+                title="Cobertura operacional"
+                action={<Badge tone={readyUnits === units.total && units.total ? "green" : "orange"}>{percent(readyUnits, units.total)}%</Badge>}
+              >
+                <div className="nova-reports-hub-progress-list">
+                  <ProgressLine label="Contrato" value={unitsWithContract} total={Math.max(units.total, 1)} tone="green" />
+                  <ProgressLine label="Banda" value={unitsWithBandwidth} total={Math.max(units.total, 1)} tone="blue" />
+                  <ProgressLine label="Endereço" value={unitsWithAddress} total={Math.max(units.total, 1)} tone="orange" />
+                  <ProgressLine label="Completo" value={readyUnits} total={Math.max(units.total, 1)} tone="green" />
+                </div>
+              </Panel>
+            </section>
           </div>
-        </RightPanel>
-      </section>
-    </AppShell>
+
+          <aside className="nova-reports-hub-side">
+            <Panel eyebrow="Exportação" title="Resumo">
+              <div className="nova-reports-hub-preview">
+                <div>
+                  <b>NOVA</b>
+                  <i />
+                  <span>Relatório</span>
+                  <strong>CONSUMO</strong>
+                  <p>Banda, tráfego e séries Zabbix por unidade monitorada.</p>
+                </div>
+              </div>
+              <Link href="/relatorios/monitoramento" className="nova-reports-hub-primary-action">
+                Gerar relatório
+              </Link>
+            </Panel>
+
+            <Panel eyebrow="Histórico" title="Últimas exportações" action={<Badge tone={failedRuns ? "orange" : "blue"}>{runs.length}</Badge>}>
+              <div className="nova-reports-hub-run-list">
+                {runs.slice(0, 6).map((run) => (
+                  <RunStatusItem key={run.id} run={run} />
+                ))}
+                {!runs.length ? <EmptyState>Nenhuma execução registrada.</EmptyState> : null}
+              </div>
+            </Panel>
+
+            <Panel eyebrow="Qualidade" title="Recorte atual">
+              <div className="nova-reports-hub-progress-list">
+                <ProgressLine label="Prontos" value={readyUnits} total={Math.max(units.total, 1)} tone="green" />
+                <ProgressLine label="Com erro" value={failedRuns} total={Math.max(runs.length, 1)} tone="red" />
+                <ProgressLine label="Sucesso" value={successfulRuns} total={Math.max(runs.length, 1)} tone="blue" />
+                <ProgressLine label="Templates" value={templates.length} total={Math.max(templates.length, 1)} tone="orange" />
+              </div>
+            </Panel>
+
+            <Panel eyebrow="Ação rápida" title="Atalhos">
+              <div className="nova-reports-hub-quick">
+                <Link href="/relatorios/monitoramento"><span>Novo relatório</span><b>gerar</b></Link>
+                <Link href="/relatorios/monitoramento?source=unit"><span>Por unidade</span><b>{units.total}</b></Link>
+                <Link href="/relatorios/monitoramento?source=template"><span>Por template</span><b>{templates.length}</b></Link>
+              </div>
+            </Panel>
+          </aside>
+        </section>
+      </main>
+    </NovaLitShell>
   );
 }

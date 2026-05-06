@@ -1,0 +1,37 @@
+<svg width="170" height="70" viewBox="0 0 170 70" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">NOVA Telecom</title>
+  <desc id="desc">Logo da NOVA Telecom no padrão do mockup, com NOVA em destaque e TELECOM abaixo.</desc>
+
+  <rect width="170" height="70" fill="none"/>
+
+  <g>
+    <!-- NOVA -->
+    <text x="0" y="34"
+      fill="#F7FBFF"
+      font-family="Inter, Arial, Helvetica, sans-serif"
+      font-size="33"
+      font-weight="900"
+      letter-spacing="0.5">
+      NOV
+    </text>
+
+    <text x="74" y="34"
+      fill="#FF7A00"
+      font-family="Inter, Arial, Helvetica, sans-serif"
+      font-size="33"
+      font-weight="900"
+      letter-spacing="0.5">
+      A
+    </text>
+
+    <!-- TELECOM -->
+    <text x="1" y="56"
+      fill="#F7FBFF"
+      font-family="Inter, Arial, Helvetica, sans-serif"
+      font-size="13"
+      font-weight="700"
+      letter-spacing="5.2">
+      TELECOM
+    </text>
+  </g>
+</svg>

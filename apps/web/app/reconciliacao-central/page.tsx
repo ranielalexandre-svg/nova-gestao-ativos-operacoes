@@ -2,7 +2,7 @@ import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { ActionForm } from "@/components/action-form";
-import { AppShell } from "@/components/app-shell";
+import { NovaLitShell } from "@/components/nova-lit/nova-lit-shell";
 import {
   DenseTable,
   EmptyState,
@@ -774,10 +774,20 @@ export default async function ReconciliacaoCentralPage() {
     });
 
   return (
-    <AppShell
-      title="Reconciliação"
-      subtitle="Vínculo entre unidades, parceiros, ativos e hosts Zabbix antes da automação."
-    ><ReconciliationHero telemetry={telemetry} isAdmin={isAdmin} /><section className="grid gap-2 md:grid-cols-2 xl:grid-cols-4"><KpiTile
+    <NovaLitShell activeHref="/reconciliacao">
+      <div className="nova-reconciliacao-page nova-reconciliacao-lit-page">
+        <div className="nova-lit-page-hero nova-reconciliacao-page-hero">
+          <div>
+            <div className="nova-lit-breadcrumb">Configurações / Reconciliação</div>
+            <h1>Reconciliação</h1>
+            <p>Vínculo entre unidades, parceiros, ativos e hosts Zabbix antes da automação.</p>
+          </div>
+          <div className="nova-lit-page-actions">
+            <Link href="/importacao" className="nova-lit-secondary-action">Importação</Link>
+            <Link href="/sensores" className="nova-lit-primary-action">Sensores</Link>
+          </div>
+        </div>
+        <ReconciliationHero telemetry={telemetry} isAdmin={isAdmin} /><section className="grid gap-2 md:grid-cols-2 xl:grid-cols-4"><KpiTile
           label="Unidades lidas"
           value={telemetry.counts.units}
           meta={`${telemetry.counts.matched} com host identificado`}
@@ -797,6 +807,7 @@ export default async function ReconciliacaoCentralPage() {
           value={formatPercent(telemetry.counts.avgLossPct)}
           meta={`${telemetry.counts.withProblems} unidade(s) com problema Zabbix`}
           tone={telemetry.counts.withProblems ? "attention" : "success"}
-        /></section><LegacyImportPanel legacy={legacySummary} telemetry={telemetry} /><LegacyReconciliationPanel reconciliation={legacyReconciliation} /><section className="nova-side-grid nova-side-grid--420"><ReadyTable rows={readyRows} /><ContractPanel /></section><BacklogTable rows={backlogRows} /><SourcePanel telemetry={telemetry} /></AppShell>
+        /></section><LegacyImportPanel legacy={legacySummary} telemetry={telemetry} /><LegacyReconciliationPanel reconciliation={legacyReconciliation} /><section className="nova-side-grid nova-side-grid--420"><ReadyTable rows={readyRows} /><ContractPanel /></section><BacklogTable rows={backlogRows} /><SourcePanel telemetry={telemetry} />      </div>
+    </NovaLitShell>
   );
 }

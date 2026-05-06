@@ -1,376 +1,637 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { AppShell } from "@/components/app-shell";
-import { RightPanel, SectionIntro, StatCard, Surface, TonePill } from "@/components/ops-ui";
-import { API_BASE_URL } from "@/lib/api";
-import {
-  readStringParam,
-  resolveSearchParams,
-  type RawSearchParams,
-} from "@/lib/list-query";
+import type { ReactNode } from "react";
+import { NovaLitShell } from "@/components/nova-lit/nova-lit-shell";
 import { apiJson } from "@/lib/server-api";
+import { formatDateTime } from "@/lib/formatters";
+import {
+  emptyCommandCenter,
+  readUnitHostTelemetry,
+  safeApiJson,
+  type CommandCenter,
+  type UnitHostTelemetry,
+} from "@/lib/noc-overview";
 import { getServerWebSession, normalizeRole } from "@/lib/web-session";
 
-type CheckStatus = "ok" | "warning" | "error";
-
-type HealthCheck = {
-  name: string;
-  status: CheckStatus;
-  detail: string;
-  required: boolean;
-};
-
-type HealthReadyResponse = {
-  ok: boolean;
-  service: string;
-  database?: string;
-  timestamp?: string;
-  checks?: HealthCheck[];
-  summary?: {
-    passed: number;
-    warnings: number;
-    failed: number;
-  };
-};
+type Tone = "green" | "orange" | "blue" | "red" | "slate";
 
 type IntegrationSettings = {
-  zabbixBaseUrl: string;
-  grafanaBaseUrl: string;
-  monitoringRefreshSeconds: number;
-  integrations: Array<{
+  apiBaseUrl?: string;
+  environment?: string;
+  allowDestructiveActions?: boolean;
+  enableAutomation?: boolean;
+  enableZabbixSync?: boolean;
+  enableReports?: boolean;
+  enableCsvImport?: boolean;
+  [key: string]: unknown;
+};
+
+type MonitoringSummary = {
+  checkedAt: string;
+  counts: {
+    usersTotal: number;
+    usersActive: number;
+    partnersTotal: number;
+    partnersActive: number;
+    unitsTotal: number;
+    unitsActive: number;
+    equipmentsTotal: number;
+    equipmentsActive: number;
+    integrationsTotal: number;
+    integrationsActive: number;
+    integrationsHealthy: number;
+    integrationsFailing: number;
+  };
+  integrationChecks: Array<{
+    id: string;
     code: string;
     name: string;
     type: string;
-    baseUrl: string;
-    apiPath: string | null;
+    isActive: boolean;
+    ok: boolean;
+    message: string;
+    targetUrl: string;
+    latencyMs: number;
+    httpStatus?: number;
+    version?: string;
+    monitoredHosts?: number;
+    openProblems?: number;
+  }>;
+  zabbixSnapshots: Array<{
+    id: string;
+    code: string;
+    name: string;
+    ok: boolean;
+    targetUrl: string;
+    version?: string;
+    monitoredHosts?: number;
+    openProblems?: number;
+    message: string;
   }>;
 };
 
-function statusTone(status: CheckStatus | boolean) {
-  if (status === true || status === "ok") return "success";
-  if (status === "warning") return "attention";
-  return "critical";
-}
-
-function statusLabel(status: CheckStatus) {
-  if (status === "ok") return "OK";
-  if (status === "warning") return "Atenção";
-  return "Falha";
-}
-
-function checkLabel(name: string) {
-  const labels: Record<string, string> = {
-    database: "Banco de dados",
-    uploadDir: "Anexos",
-    JWT_SECRET: "Sessão web",
-    INTEGRATION_SECRET_KEY: "Segredos de integração",
-    api: "API",
+function emptySummary(): MonitoringSummary {
+  return {
+    checkedAt: new Date().toISOString(),
+    counts: {
+      usersTotal: 0,
+      usersActive: 0,
+      partnersTotal: 0,
+      partnersActive: 0,
+      unitsTotal: 0,
+      unitsActive: 0,
+      equipmentsTotal: 0,
+      equipmentsActive: 0,
+      integrationsTotal: 0,
+      integrationsActive: 0,
+      integrationsHealthy: 0,
+      integrationsFailing: 0,
+    },
+    integrationChecks: [],
+    zabbixSnapshots: [],
   };
-
-  return labels[name] || name;
 }
 
-function normalizeHealthPayload(raw: unknown): HealthReadyResponse | null {
-  if (raw && typeof raw === "object" && "checks" in raw) {
-    return raw as HealthReadyResponse;
-  }
-
-  const message = raw && typeof raw === "object" ? (raw as { message?: unknown }).message : null;
-  if (message && typeof message === "object" && "checks" in message) {
-    return message as HealthReadyResponse;
-  }
-
-  return null;
-}
-
-async function readHealthSnapshot() {
+async function readSettings() {
   try {
-    const response = await fetch(`${API_BASE_URL}/health/ready`, { cache: "no-store" });
-    const raw = await response.json().catch(() => null);
-    const payload = normalizeHealthPayload(raw);
-
-    return {
-      ok: response.ok && Boolean(payload?.ok),
-      status: response.status,
-      payload,
-      error: response.ok ? "" : `${response.status} ${response.statusText}`,
-    };
+    const data = await apiJson<IntegrationSettings>("/settings/integrations");
+    return { data, error: "" };
   } catch (error) {
     return {
-      ok: false,
-      status: 0,
-      payload: null,
-      error: error instanceof Error ? error.message : "API indisponível.",
-    };
-  }
-}
-
-async function readIntegrationSettings() {
-  try {
-    return {
-      data: await apiJson<IntegrationSettings>("/settings/integrations"),
-      error: "",
-    };
-  } catch (error) {
-    return {
-      data: {
-        zabbixBaseUrl: "",
-        grafanaBaseUrl: "",
-        monitoringRefreshSeconds: 0,
-        integrations: [],
-      } satisfies IntegrationSettings,
+      data: {} as IntegrationSettings,
       error: error instanceof Error ? error.message : "Configurações indisponíveis.",
     };
   }
 }
 
-const SETTINGS_TABS = [
-  { key: "geral", label: "Geral" },
-  { key: "backup", label: "Backup" },
-  { key: "seguranca", label: "Segurança" },
-  { key: "integracoes", label: "Integrações" },
-] as const;
-
-type SettingsTab = (typeof SETTINGS_TABS)[number]["key"];
-
-function readSettingsTab(value: string): SettingsTab {
-  return SETTINGS_TABS.some((tab) => tab.key === value) ? (value as SettingsTab) : "geral";
+async function readMonitoringSummary() {
+  try {
+    return await apiJson<MonitoringSummary>("/monitoring/summary");
+  } catch {
+    return emptySummary();
+  }
 }
 
-export default async function ConfiguracoesPage({
-  searchParams,
-}: {
-  searchParams?: Promise<RawSearchParams> | RawSearchParams;
-}) {
-  const session = await getServerWebSession();
-  if (!session.authenticated) redirect("/login?next=/configuracoes");
-  if (normalizeRole(session.user?.role || "") !== "admin") redirect("/dashboard");
+function toneClass(tone: Tone) {
+  return `is-${tone}`;
+}
 
-  const params = await resolveSearchParams(searchParams);
-  const activeTab = readSettingsTab(readStringParam(params, "tab", "geral"));
-  const [health, integrationSettings] = await Promise.all([
-    readHealthSnapshot(),
-    readIntegrationSettings(),
-  ]);
-  const checks = health.payload?.checks?.length
-    ? health.payload.checks
-    : [{
-        name: "api",
-        status: health.ok ? "ok" as const : "error" as const,
-        detail: health.error || "Readiness sem payload estruturado.",
-        required: true,
-      }];
-  const databaseCheck = checks.find((check) => check.name === "database");
-  const uploadCheck = checks.find((check) => check.name === "uploadDir");
-  const secretChecks = checks.filter((check) => check.name.includes("SECRET"));
-  const securityTone = secretChecks.some((check) => check.status === "error")
-    ? "critical"
-    : secretChecks.some((check) => check.status === "warning")
-      ? "attention"
-      : "success";
-  const activeIntegrations = integrationSettings.data.integrations;
-  const settingsGroups = [
-    { title: "Aparência", description: "Tema NOVA, densidade de tabelas e preferências visuais.", tone: "success" },
-    { title: "Relatórios", description: "Cabeçalho, rodapé, formatos PDF/DOCX e política de gráficos.", tone: uploadCheck?.status === "ok" ? "success" : "attention" },
-    { title: "Operação", description: "SLA, filas, severidades, automações e notificações.", tone: activeIntegrations.length ? "success" : "attention" },
-    { title: "Segurança", description: "Sessão, perfis, auditoria e integrações sensíveis.", tone: securityTone },
-  ];
-  const healthSummary = health.payload?.summary || {
-    passed: checks.filter((check) => check.status === "ok").length,
-    warnings: checks.filter((check) => check.status === "warning").length,
-    failed: checks.filter((check) => check.status === "error").length,
-  };
-  const readinessTone = healthSummary.failed
-    ? "critical"
-    : healthSummary.warnings
-      ? "attention"
-      : "success";
-  const readinessLabel = healthSummary.failed
-    ? "bloqueado"
-    : healthSummary.warnings
-      ? "atenção"
-      : "pronto";
-  const specialRules = [
-    { label: "Criar chamados automaticamente", checked: activeIntegrations.length > 0, tone: activeIntegrations.length ? "success" : "attention", href: "/automacao" },
-    { label: "Fechar chamados automaticamente", checked: false, tone: "neutral", href: "/automacao" },
-    { label: "Verificar links a cada 5 minutos", checked: health.ok, tone: health.ok ? "success" : "critical", href: "/integracoes" },
-  ];
+function boolText(value: unknown) {
+  return value ? "Ativo" : "Inativo";
+}
+
+function boolTone(value: unknown): Tone {
+  return value ? "green" : "slate";
+}
+
+function percent(value: number, total: number) {
+  if (!total) return 0;
+  return Math.max(0, Math.min(100, Math.round((value / total) * 100)));
+}
+
+function Badge({ tone, children }: { tone: Tone; children: ReactNode }) {
+  return <span className={`nova-config-badge ${toneClass(tone)}`}>{children}</span>;
+}
+
+function StatCard({
+  label,
+  value,
+  hint,
+  tone,
+}: {
+  label: string;
+  value: ReactNode;
+  hint: string;
+  tone: Tone;
+}) {
+  return (
+    <article className={`nova-config-stat ${toneClass(tone)}`}>
+      <i />
+      <span>{label}</span>
+      <strong>{value}</strong>
+      <small>{hint}</small>
+    </article>
+  );
+}
+
+function Panel({
+  eyebrow,
+  title,
+  action,
+  children,
+  className = "",
+}: {
+  eyebrow?: string;
+  title: string;
+  action?: ReactNode;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <section className={`nova-config-panel ${className}`}>
+      <div className="nova-config-panel-head">
+        <div>
+          {eyebrow ? <span>{eyebrow}</span> : null}
+          <h2>{title}</h2>
+        </div>
+        {action ? <div>{action}</div> : null}
+      </div>
+      <div className="nova-config-panel-body">{children}</div>
+    </section>
+  );
+}
+
+function ProgressLine({
+  label,
+  value,
+  total,
+  tone,
+  detail,
+}: {
+  label: string;
+  value: number;
+  total: number;
+  tone: Tone;
+  detail?: string;
+}) {
+  const current = percent(value, total);
 
   return (
-    <AppShell title="Configurações do Sistema" subtitle="Parâmetros do produto, regras operacionais e governança do ambiente.">
-      <section className="nova-side-grid nova-side-grid--360">
-        <div className="grid gap-2">
-          <div className="grid gap-2 md:grid-cols-4">
-            <StatCard label="API" value={health.ok ? "OK" : "Falha"} detail={health.status ? `HTTP ${health.status}` : "sem resposta"} tone={statusTone(health.ok)} />
-            <StatCard label="Banco" value={databaseCheck ? statusLabel(databaseCheck.status) : "-"} detail={databaseCheck?.detail || "sem leitura"} tone={statusTone(databaseCheck?.status || "error")} />
-            <StatCard label="Anexos" value={uploadCheck ? statusLabel(uploadCheck.status) : "-"} detail={uploadCheck?.detail || "sem leitura"} tone={statusTone(uploadCheck?.status || "error")} />
-            <StatCard label="Integrações" value={activeIntegrations.length} detail="ativas no ambiente" tone={activeIntegrations.length ? "success" : "attention"} />
-          </div>
+    <div className="nova-config-progress-line">
+      <div>
+        <span>{label}</span>
+        <b>{value}</b>
+      </div>
+      <div className="nova-config-progress-track">
+        <i className={toneClass(tone)} style={{ width: `${current}%` }} />
+      </div>
+      {detail ? <small>{detail}</small> : null}
+    </div>
+  );
+}
 
-          <div className="grid gap-2 md:grid-cols-2">
-            {settingsGroups.map((group) => (
-              <Surface key={group.title}>
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <div className="nds-label">Configuração</div>
-                    <h2 className="mt-1 text-[15px] font-black text-white">{group.title}</h2>
-                    <p className="mt-1 text-[11px] leading-5 text-slate-400">{group.description}</p>
-                  </div>
-                  <TonePill tone={group.tone}>{group.tone}</TonePill>
-                </div>
-              </Surface>
-            ))}
-          </div>
+function SettingRow({
+  label,
+  value,
+  tone,
+  detail,
+}: {
+  label: string;
+  value: ReactNode;
+  tone: Tone;
+  detail: string;
+}) {
+  return (
+    <div className="nova-config-setting-row">
+      <span>
+        <b>{label}</b>
+        <small>{detail}</small>
+      </span>
+      <Badge tone={tone}>{value}</Badge>
+    </div>
+  );
+}
 
-          <Surface>
-            <SectionIntro
+function ShortcutCard({
+  title,
+  description,
+  href,
+  tone,
+}: {
+  title: string;
+  description: string;
+  href: string;
+  tone: Tone;
+}) {
+  return (
+    <Link href={href} className={`nova-config-shortcut ${toneClass(tone)}`}>
+      <span>{title}</span>
+      <p>{description}</p>
+      <strong>Abrir</strong>
+    </Link>
+  );
+}
+
+function healthTone(ok: boolean): Tone {
+  return ok ? "green" : "red";
+}
+
+function telemetryCoverage(telemetry: UnitHostTelemetry) {
+  return percent(telemetry.counts.matched, telemetry.counts.units);
+}
+
+type OperationalSnapshot = {
+  openOccurrences: number;
+  criticalOpenOccurrences: number;
+  overdueMaintenances: number;
+  dueTodayMaintenances: number;
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object";
+}
+
+function readNumberField(source: unknown, key: string) {
+  if (!isRecord(source)) return 0;
+  const value = source[key];
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+function firstNumberFrom(candidates: unknown[], key: string) {
+  for (const candidate of candidates) {
+    const value = readNumberField(candidate, key);
+    if (value) return value;
+  }
+
+  return 0;
+}
+
+function readOperationalSnapshot(commandCenter: CommandCenter): OperationalSnapshot {
+  const root = commandCenter as unknown as Record<string, unknown>;
+  const candidates = [
+    root.occurrences,
+    root.operationalPressure,
+    root.pressure,
+    root.summary,
+    root.metrics,
+    root,
+  ];
+
+  return {
+    openOccurrences: firstNumberFrom(candidates, "openOccurrences"),
+    criticalOpenOccurrences: firstNumberFrom(candidates, "criticalOpenOccurrences"),
+    overdueMaintenances: firstNumberFrom(candidates, "overdueMaintenances"),
+    dueTodayMaintenances: firstNumberFrom(candidates, "dueTodayMaintenances"),
+  };
+}
+
+export default async function ConfiguracoesPage() {
+  const session = await getServerWebSession();
+
+  if (!session.authenticated) {
+    redirect("/login?next=/configuracoes");
+  }
+
+  if (normalizeRole(session.user?.role || "") !== "admin") {
+    redirect("/dashboard");
+  }
+
+  const [settingsResult, summary, commandCenter, telemetry] = await Promise.all([
+    readSettings(),
+    readMonitoringSummary(),
+    safeApiJson<CommandCenter>("/monitoring/command-center", emptyCommandCenter()),
+    readUnitHostTelemetry({ timeoutMs: 2_500 }),
+  ]);
+
+  const settings = settingsResult.data;
+  const settingsError = settingsResult.error;
+  const activeIntegrations = summary.counts.integrationsActive;
+  const integrationHealth = percent(summary.counts.integrationsHealthy, activeIntegrations || summary.counts.integrationsTotal);
+  const zabbixSnapshot = summary.zabbixSnapshots[0];
+  const operationalSnapshot = readOperationalSnapshot(commandCenter);
+  const criticalPressure =
+    operationalSnapshot.criticalOpenOccurrences +
+    operationalSnapshot.overdueMaintenances +
+    summary.counts.integrationsFailing;
+  const securityItems = [
+    {
+      label: "Ações destrutivas",
+      value: boolText(settings.allowDestructiveActions),
+      tone: settings.allowDestructiveActions ? "orange" : "green",
+      detail: "devem exigir confirmação e auditoria",
+    },
+    {
+      label: "Automação",
+      value: boolText(settings.enableAutomation),
+      tone: boolTone(settings.enableAutomation),
+      detail: "rotinas e geração automática de casos",
+    },
+    {
+      label: "Sync Zabbix",
+      value: boolText(settings.enableZabbixSync),
+      tone: boolTone(settings.enableZabbixSync),
+      detail: "escrita controlada em hosts reconciliados",
+    },
+    {
+      label: "Relatórios",
+      value: boolText(settings.enableReports),
+      tone: boolTone(settings.enableReports),
+      detail: "exportação operacional e consumo",
+    },
+    {
+      label: "Importação CSV",
+      value: boolText(settings.enableCsvImport),
+      tone: boolTone(settings.enableCsvImport),
+      detail: "cargas controladas por preview",
+    },
+  ] as const;
+
+  return (
+    <NovaLitShell activeHref="/configuracoes">
+      <main className="nova-config-page">
+        <header className="nova-config-hero">
+          <div>
+            <span>Configurações / Sistema</span>
+            <h1>Sistema</h1>
+            <p>Parâmetros do produto, integrações, segurança operacional e governança do ambiente.</p>
+          </div>
+          <div className="nova-config-actions">
+            <Link href="/integracoes" className="nova-lit-button nova-lit-button-secondary">
+              Integrações
+            </Link>
+            <Link href="/usuarios" className="nova-lit-button nova-lit-button-primary">
+              Usuários
+            </Link>
+          </div>
+        </header>
+
+        <section className="nova-config-stats" aria-label="Indicadores do sistema">
+          <StatCard
+            label="Ambiente"
+            value={String(settings.environment || "local")}
+            hint={settings.apiBaseUrl ? "API configurada" : "API padrão"}
+            tone={settingsError ? "orange" : "blue"}
+          />
+          <StatCard
+            label="Integrações"
+            value={summary.counts.integrationsTotal}
+            hint={`${summary.counts.integrationsActive} ativa(s)`}
+            tone={summary.counts.integrationsActive ? "green" : "slate"}
+          />
+          <StatCard
+            label="Saúde"
+            value={`${integrationHealth}%`}
+            hint={`${summary.counts.integrationsFailing} falha(s)`}
+            tone={summary.counts.integrationsFailing ? "orange" : "green"}
+          />
+          <StatCard
+            label="Usuários"
+            value={summary.counts.usersTotal}
+            hint={`${summary.counts.usersActive} ativo(s)`}
+            tone="blue"
+          />
+          <StatCard
+            label="Pressão"
+            value={criticalPressure}
+            hint="críticos, vencidos e falhas"
+            tone={criticalPressure ? "orange" : "green"}
+          />
+        </section>
+
+        <section className="nova-config-layout">
+          <div className="nova-config-main">
+            <Panel
               eyebrow="Sistema"
-              title="Preferências centrais"
-              description="Configuração visual e operacional no formato de tabs e toggles da prancha."
-              compact
-            />
-            <div className="nova-settings-tabs mt-2">
-              {SETTINGS_TABS.map((tab) => (
-                <Link
-                  key={tab.key}
-                  href={`/configuracoes?tab=${tab.key}`}
-                  className="nova-settings-tab"
-                  data-active={activeTab === tab.key ? "true" : "false"}
-                >
-                  {tab.label}
-                </Link>
-              ))}
-            </div>
-            {activeTab === "geral" ? (
-              <div className="mt-2 nova-side-grid nova-side-grid--320 nova-side-grid--lg">
-                <div className="grid gap-2">
-                  {specialRules.map((rule) => (
-                    <Link key={rule.label} href={rule.href} className="nova-settings-toggle-row">
-                      <div className="min-w-0">
-                        <div className="text-[12px] font-black text-white">{rule.label}</div>
-                        <div className="mt-1 text-[10px] text-[var(--nova-text-muted)]">Abrir configuração relacionada</div>
+              title="Central de governança"
+              action={<Badge tone={settingsError ? "orange" : "green"}>{settingsError ? "atenção" : "online"}</Badge>}
+            >
+              {settingsError ? (
+                <div className="nova-config-warning">
+                  {settingsError}
+                </div>
+              ) : null}
+
+              <div className="nova-config-command-grid">
+                <article>
+                  <span>Ocorrências abertas</span>
+                  <strong>{operationalSnapshot.openOccurrences}</strong>
+                  <small>{operationalSnapshot.criticalOpenOccurrences} crítica(s)</small>
+                </article>
+                <article>
+                  <span>Manutenções vencidas</span>
+                  <strong>{operationalSnapshot.overdueMaintenances}</strong>
+                  <small>{operationalSnapshot.dueTodayMaintenances} para hoje</small>
+                </article>
+                <article>
+                  <span>Unidades monitoradas</span>
+                  <strong>{summary.counts.unitsTotal}</strong>
+                  <small>{summary.counts.unitsActive} ativa(s)</small>
+                </article>
+                <article>
+                  <span>Ativos técnicos</span>
+                  <strong>{summary.counts.equipmentsTotal}</strong>
+                  <small>{summary.counts.equipmentsActive} em operação</small>
+                </article>
+              </div>
+            </Panel>
+
+            <Panel
+              eyebrow="Atalhos"
+              title="Áreas administrativas"
+              action={<Badge tone="blue">admin</Badge>}
+            >
+              <div className="nova-config-shortcut-grid">
+                <ShortcutCard
+                  title="Usuários"
+                  description="Convites, papéis, status e reset de acesso."
+                  href="/usuarios"
+                  tone="green"
+                />
+                <ShortcutCard
+                  title="Perfis"
+                  description="Matriz de permissões e distribuição de papéis."
+                  href="/perfis"
+                  tone="blue"
+                />
+                <ShortcutCard
+                  title="Integrações"
+                  description="Conectores, endpoints, credenciais e testes."
+                  href="/integracoes"
+                  tone="orange"
+                />
+                <ShortcutCard
+                  title="Importação"
+                  description="Templates CSV, preview e upsert controlado."
+                  href="/importacao"
+                  tone="slate"
+                />
+                <ShortcutCard
+                  title="Reconciliação"
+                  description="Vínculo entre cadastro, legado e Zabbix."
+                  href="/reconciliacao"
+                  tone="blue"
+                />
+                <ShortcutCard
+                  title="Automação"
+                  description="Regras, detectores, cadência e execuções."
+                  href="/automacao"
+                  tone="orange"
+                />
+              </div>
+            </Panel>
+
+            <Panel
+              eyebrow="Políticas"
+              title="Chaves operacionais"
+              action={<Badge tone="slate">{Object.keys(settings).length} chave(s)</Badge>}
+            >
+              <div className="nova-config-settings-grid">
+                {securityItems.map((item) => (
+                  <SettingRow
+                    key={item.label}
+                    label={item.label}
+                    value={item.value}
+                    tone={item.tone as Tone}
+                    detail={item.detail}
+                  />
+                ))}
+              </div>
+            </Panel>
+
+            <Panel
+              eyebrow="Conectores"
+              title="Saúde das integrações"
+              action={<Badge tone="blue">{formatDateTime(summary.checkedAt)}</Badge>}
+            >
+              {summary.integrationChecks.length ? (
+                <div className="nova-config-health-list">
+                  {summary.integrationChecks.map((check) => (
+                    <article key={check.id} className={`nova-config-health-row ${check.ok ? "is-ok" : "is-bad"}`}>
+                      <div>
+                        <strong>{check.code} - {check.name}</strong>
+                        <span>{check.targetUrl || check.message}</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <TonePill tone={rule.tone}>{rule.checked ? "ativo" : "manual"}</TonePill>
-                        <span className="nds-toggle" data-checked={rule.checked ? "true" : "false"} aria-hidden="true" />
+                      <div>
+                        <Badge tone={healthTone(check.ok)}>{check.ok ? "conectado" : "falha"}</Badge>
+                        <small>{check.httpStatus ? `HTTP ${check.httpStatus}` : check.ok ? "OK" : "-"} · {check.latencyMs} ms</small>
                       </div>
-                    </Link>
+                    </article>
                   ))}
                 </div>
-                <div className="nds-card">
-                  <div className="nds-label">Informações do sistema</div>
-                  <div className="mt-2 grid gap-2 text-[11px] text-[var(--nova-text-muted)]">
-                    <div className="flex items-center justify-between gap-2"><span>Serviço</span><span className="text-slate-100">{health.payload?.service || "API NOVA"}</span></div>
-                    <div className="flex items-center justify-between gap-2"><span>Ambiente</span><span className="text-slate-100">Produção</span></div>
-                    <div className="flex items-center justify-between gap-2"><span>Readiness</span><TonePill tone={readinessTone}>{readinessLabel}</TonePill></div>
-                    <div className="flex items-center justify-between gap-2"><span>Integrações</span><span className="text-slate-100">{activeIntegrations.length}</span></div>
-                  </div>
+              ) : (
+                <div className="nova-config-empty">
+                  <b>Nenhuma integração retornada</b>
+                  <span>Cadastre ou ative um conector para alimentar monitoramento e relatórios.</span>
                 </div>
-              </div>
-            ) : null}
-            {activeTab === "backup" ? (
-              <div className="mt-2 grid gap-2 md:grid-cols-2 xl:grid-cols-4">
-                <Link href="/importacao" className="nds-card block">
-                  <div className="nds-label">Importação</div>
-                  <div className="mt-1 text-[12px] font-black text-white">Validar CSV</div>
-                </Link>
-                <Link href="/export/units" className="nds-card block">
-                  <div className="nds-label">Exportação</div>
-                  <div className="mt-1 text-[12px] font-black text-white">Unidades CSV</div>
-                </Link>
-                <Link href="/export/equipments" className="nds-card block">
-                  <div className="nds-label">Exportação</div>
-                  <div className="mt-1 text-[12px] font-black text-white">Ativos CSV</div>
-                </Link>
-                <Link href="/export/partners" className="nds-card block">
-                  <div className="nds-label">Exportação</div>
-                  <div className="mt-1 text-[12px] font-black text-white">Parceiros CSV</div>
-                </Link>
-              </div>
-            ) : null}
-            {activeTab === "seguranca" ? (
-              <div className="mt-2 grid gap-2 md:grid-cols-3">
-                <div className="nds-card"><div className="nds-label">Segredos</div><div className="mt-1 text-[12px] font-black text-white">{secretChecks.length}</div></div>
-                <Link href="/perfis" className="nds-card block"><div className="nds-label">Permissões</div><div className="mt-1 text-[12px] font-black text-white">Gerenciar perfis</div></Link>
-                <Link href="/usuarios" className="nds-card block"><div className="nds-label">Acesso</div><div className="mt-1 text-[12px] font-black text-white">Gerenciar usuários</div></Link>
-              </div>
-            ) : null}
-            {activeTab === "integracoes" ? (
-              <div className="mt-2 grid gap-2">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <TonePill tone={activeIntegrations.length ? "info" : "attention"}>{activeIntegrations.length} ativa(s)</TonePill>
-                  <Link href="/integracoes" className="nds-button" data-variant="secondary">Gerenciar</Link>
-                </div>
-                {activeIntegrations.length ? activeIntegrations.map((integration) => (
-                  <div key={integration.code} className="nds-card nova-settings-integration-row text-[11px]">
-                    <div className="font-black text-white">{integration.code}</div>
-                    <div className="min-w-0">
-                      <div className="truncate text-slate-200">{integration.name}</div>
-                      <div className="mt-1 truncate text-[10px] text-slate-500">{integration.baseUrl}</div>
-                    </div>
-                    <TonePill tone="info">{integration.type}</TonePill>
-                  </div>
-                )) : (
-                  <div className="nds-empty text-[11px] text-slate-500">
-                    Nenhuma integração ativa encontrada.
-                  </div>
-                )}
-              </div>
-            ) : null}
-          </Surface>
-
-          <Surface>
-            <SectionIntro
-              eyebrow="Readiness"
-              title="Saúde do ambiente"
-              description="Verificação real usada antes do corte: API, banco, anexos e segredos mínimos."
-              actions={<TonePill tone={readinessTone}>{readinessLabel}</TonePill>}
-              compact
-            />
-            <div className="mt-2 grid gap-2 lg:grid-cols-3">
-              <div className="nds-card">
-                <div className="nds-label">Checks OK</div>
-                <div className="mt-1 text-[18px] font-black text-white">{healthSummary.passed}</div>
-              </div>
-              <div className="nds-card">
-                <div className="nds-label">Atenção</div>
-                <div className="mt-1 text-[18px] font-black text-[var(--nova-warning)]">{healthSummary.warnings}</div>
-              </div>
-              <div className="nds-card">
-                <div className="nds-label">Falhas</div>
-                <div className="mt-1 text-[18px] font-black text-[color:var(--nova-danger)]">{healthSummary.failed}</div>
-              </div>
-            </div>
-            <div className="mt-2 overflow-hidden rounded-[6px] border border-white/[0.08]">
-              {checks.map((check) => (
-                <div key={check.name} className="nova-settings-health-row border-b border-white/[0.06] bg-[var(--nova-surface-3)] px-3 py-2 text-[11px] last:border-b-0">
-                  <div className="font-bold text-slate-100">{checkLabel(check.name)}</div>
-                  <TonePill tone={statusTone(check.status)}>{statusLabel(check.status)}</TonePill>
-                  <div className="text-slate-400">{check.detail}</div>
-                </div>
-              ))}
-            </div>
-            {health.payload?.timestamp ? (
-              <div className="mt-2 text-[10px] text-slate-500">
-                Última leitura: {new Date(health.payload.timestamp).toLocaleString("pt-BR")}
-              </div>
-            ) : null}
-          </Surface>
-
-        </div>
-
-        <RightPanel title="Ações rápidas" description="Rotas administrativas relacionadas.">
-          <Link href="/usuarios" className="nds-card block text-[12px] font-bold text-white hover:border-[var(--nova-primary)]/30">Usuários</Link>
-          <Link href="/perfis" className="nds-card block text-[12px] font-bold text-white hover:border-[var(--nova-primary)]/30">Perfis</Link>
-          <div className="nds-card text-[11px] leading-5 text-slate-300">
-            <div className="nds-label">API interna</div>
-            <div className="mt-2 break-all text-slate-100">{API_BASE_URL}</div>
+              )}
+            </Panel>
           </div>
-          <div className="nds-card border-[color-mix(in_srgb,var(--nova-primary)_28%,transparent)] bg-[var(--nova-primary-soft)] text-[11px] leading-5 text-slate-100">
-            Configurações destrutivas devem continuar protegidas por confirmação explícita e auditoria.
-          </div>
-        </RightPanel>
-      </section>
-    </AppShell>
+
+          <aside className="nova-config-side">
+            <Panel eyebrow="Segurança" title="Recorte atual">
+              <ProgressLine
+                label="Integrações ativas"
+                value={summary.counts.integrationsActive}
+                total={Math.max(summary.counts.integrationsTotal, 1)}
+                tone="green"
+              />
+              <ProgressLine
+                label="Integrações saudáveis"
+                value={summary.counts.integrationsHealthy}
+                total={Math.max(summary.counts.integrationsActive, 1)}
+                tone={summary.counts.integrationsFailing ? "orange" : "blue"}
+              />
+              <ProgressLine
+                label="Cobertura Zabbix"
+                value={telemetry.counts.matched}
+                total={Math.max(telemetry.counts.units, 1)}
+                tone="orange"
+                detail={`${telemetryCoverage(telemetry)}% das unidades com host`}
+              />
+              <ProgressLine
+                label="Sync pronto"
+                value={telemetry.counts.syncReady}
+                total={Math.max(telemetry.counts.units, 1)}
+                tone="green"
+              />
+            </Panel>
+
+            <Panel eyebrow="Zabbix" title="Fonte principal">
+              {zabbixSnapshot ? (
+                <div className="nova-config-zabbix-card">
+                  <div>
+                    <strong>{zabbixSnapshot.code} - {zabbixSnapshot.name}</strong>
+                    <Badge tone={zabbixSnapshot.ok ? "green" : "orange"}>
+                      {zabbixSnapshot.ok ? "lendo" : "atenção"}
+                    </Badge>
+                  </div>
+                  <p>{zabbixSnapshot.targetUrl || zabbixSnapshot.message}</p>
+                  <div className="nova-config-mini-grid">
+                    <span>
+                      <b>{zabbixSnapshot.version || "-"}</b>
+                      versão
+                    </span>
+                    <span>
+                      <b>{zabbixSnapshot.monitoredHosts ?? 0}</b>
+                      hosts
+                    </span>
+                    <span>
+                      <b>{zabbixSnapshot.openProblems ?? 0}</b>
+                      problemas
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div className="nova-config-empty is-small">
+                  <b>Sem snapshot Zabbix</b>
+                  <span>Configure o conector em Integrações.</span>
+                </div>
+              )}
+            </Panel>
+
+            <Panel eyebrow="Rotina" title="Regras rápidas">
+              <div className="nova-config-rules">
+                <div>
+                  <b>Segredos</b>
+                  <span>Não são exibidos em tela; atualização preserva valor em branco.</span>
+                </div>
+                <div>
+                  <b>Sync Zabbix</b>
+                  <span>Escrita apenas com host inequívoco e tag explícita.</span>
+                </div>
+                <div>
+                  <b>Importação</b>
+                  <span>Preview antes do upsert e lotes pequenos para auditoria.</span>
+                </div>
+                <div>
+                  <b>Relatórios</b>
+                  <span>Exportações ficam registradas no histórico operacional.</span>
+                </div>
+              </div>
+            </Panel>
+          </aside>
+        </section>
+      </main>
+    </NovaLitShell>
   );
 }

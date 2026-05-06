@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { AppShell } from "@/components/app-shell";
+import { NovaLitShell } from "@/components/nova-lit/nova-lit-shell";
 import { ActionForm } from "@/components/action-form";
 import { FormSubmitButton } from "@/components/form-submit-button";
 import {
@@ -159,10 +159,8 @@ export default async function NovaUnidadePage({
   }
 
   return (
-    <AppShell
-      title="Nova unidade"
-      subtitle="Cadastro guiado para criar a unidade, vincular parceiro e preparar o monitoramento."
-    ><div className="nds-surface w-full"><div className="flex items-start justify-between gap-2 border-b border-white/[0.08] px-3 py-2 sm:px-3"><SectionIntro
+    <NovaLitShell activeHref="/unidades">
+      <div className="nova-unit-create-lit-page"><div className="nds-surface w-full"><div className="flex items-start justify-between gap-2 border-b border-white/[0.08] px-3 py-2 sm:px-3"><SectionIntro
             eyebrow="Cadastro guiado"
             title="Nova unidade"
             description="Fluxo curto para identificar, vincular e revisar antes de criar."
@@ -359,6 +357,7 @@ export default async function NovaUnidadePage({
             data-variant="secondary"
           >
             Cancelar
-          </Link></div></div></AppShell>
+          </Link></div></div>      </div>
+    </NovaLitShell>
   );
 }

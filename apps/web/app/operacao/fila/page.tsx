@@ -1,7 +1,7 @@
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { AppShell } from "@/components/app-shell";
+import { NovaLitShell } from "@/components/nova-lit/nova-lit-shell";
 import { ActionForm } from "@/components/action-form";
 import {
   ConnectedRoutesPanel,
@@ -240,7 +240,8 @@ export default async function FilaOperacionalPage({
   ];
 
   return (
-    <AppShell title="Fila" subtitle="Triagem, prioridade e despacho."><RegistryHero
+    <NovaLitShell activeHref="/operacao/fila">
+      <div className="nova-operation-queue-lit-page"><RegistryHero
         eyebrow="Workbench"
         title="Fila de execução do turno"
         description="Reconhecimento, atribuição e tratativa."
@@ -376,6 +377,7 @@ export default async function FilaOperacionalPage({
             title="Rotas que completam o despacho"
             description="Estas rotas continuam o trabalho da fila sem virar navegação paralela."
             routes={connectedRoutes}
-          /></div></div><ListPagination pathname="/operacao/fila" searchParams={params} meta={response.meta} /></AppShell>
+          /></div></div><ListPagination pathname="/operacao/fila" searchParams={params} meta={response.meta} />      </div>
+    </NovaLitShell>
   );
 }

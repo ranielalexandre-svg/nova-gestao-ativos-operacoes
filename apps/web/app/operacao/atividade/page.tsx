@@ -2,7 +2,7 @@ import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { ActionForm } from "@/components/action-form";
-import { AppShell } from "@/components/app-shell";
+import { NovaLitShell } from "@/components/nova-lit/nova-lit-shell";
 import { ListPagination } from "@/components/list-pagination";
 import {
   DenseTable,
@@ -208,10 +208,8 @@ export default async function AtividadePage({
   const criticalCount = response.items.filter((item) => ["high", "critical"].includes(item.severity || "")).length;
 
   return (
-    <AppShell
-      title="Atividade"
-      subtitle="Operadores, automações, exceções e vínculos."
-    ><RegistryHero
+    <NovaLitShell activeHref="/operacao/atividade">
+      <div className="nova-operation-activity-lit-page"><RegistryHero
         eyebrow="Activity Desk"
         title="Linha do tempo operacional"
         description="Decisões, automações, vínculos e registros manuais."
@@ -354,6 +352,7 @@ export default async function AtividadePage({
                   ))}
                 </select></div><div className="lg:col-span-4"><FieldLabel>Descrição</FieldLabel><textarea name="description" placeholder="Contexto, decisão, evidência ou próximo passo" className={`${inputClass} min-h-28`} /></div></div></ActionForm></Surface>
       ) : null}
-    </AppShell>
+          </div>
+    </NovaLitShell>
   );
 }

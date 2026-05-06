@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { AppShell } from "@/components/app-shell";
+import { NovaLitShell } from "@/components/nova-lit/nova-lit-shell";
 import { ActionForm } from "@/components/action-form";
 import { FormSubmitButton } from "@/components/form-submit-button";
 import {
@@ -136,10 +136,8 @@ export default async function NovoAtivoPage({
   }
 
   return (
-    <AppShell
-      title="Novo ativo"
-      subtitle="Cadastro guiado para vincular ativo, unidade e rastreabilidade."
-    ><div className="nds-surface w-full"><div className="flex items-start justify-between gap-2 border-b border-white/[0.08] px-3 py-2 sm:px-3"><SectionIntro
+    <NovaLitShell activeHref="/ativos">
+      <div className="nova-equipment-create-lit-page"><div className="nds-surface w-full"><div className="flex items-start justify-between gap-2 border-b border-white/[0.08] px-3 py-2 sm:px-3"><SectionIntro
             eyebrow="Cadastro guiado"
             title="Novo ativo"
             description="Cadastro de ativo."
@@ -275,6 +273,7 @@ export default async function NovoAtivoPage({
             data-variant="secondary"
           >
             Cancelar
-          </Link></div></div></AppShell>
+          </Link></div></div>      </div>
+    </NovaLitShell>
   );
 }

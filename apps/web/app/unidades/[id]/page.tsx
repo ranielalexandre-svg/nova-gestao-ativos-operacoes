@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { ActionForm } from "@/components/action-form";
-import { AppShell } from "@/components/app-shell";
+import { NovaLitShell } from "@/components/nova-lit/nova-lit-shell";
 import { AttachmentPanel } from "@/components/attachment-panel";
 import { EntityEditModal } from "@/components/entity-edit-modal";
 import { OperationalDeletePanel } from "@/components/operational-delete-panel";
@@ -498,7 +498,12 @@ function monitoringWindowDescription(windowPreset: MonitoringWindowPreset) {
 }
 
 function unitMonitoringHref(unitId: string, windowPreset: MonitoringWindowPreset, extra?: Record<string, string>) {
-  const query = new URLSearchParams({ mw: windowPreset, ...(extra || {}) });
+  const query = new URLSearchParams({ mw: windowPreset, monitoring: "1", ...(extra || {}) });
+  return `/unidades/${unitId}?${query.toString()}`;
+}
+
+function unitLegacyHref(unitId: string, windowPreset: MonitoringWindowPreset) {
+  const query = new URLSearchParams({ mw: windowPreset, legacy: "1" });
   return `/unidades/${unitId}?${query.toString()}`;
 }
 
@@ -1685,16 +1690,20 @@ export default async function UnidadeDetailPage({
   const currentRefresh = Number.parseInt(readStringParam(resolvedSearchParams, "refresh", "0"), 10);
   const nextRefreshToken = String(Number.isFinite(currentRefresh) && currentRefresh >= 0 ? currentRefresh + 1 : 1);
 
+  const loadMonitoring = focusMode || readStringParam(resolvedSearchParams, "monitoring") === "1";
+  const loadLegacy = readStringParam(resolvedSearchParams, "legacy") === "1";
+
   const [unit, zabbixSnapshot, monitoringReportBase, partnersResponse] = await Promise.all([
     apiJson<UnitDetail>(`/units/${resolvedParams.id}`),
-    readUnitZabbixSnapshot(resolvedParams.id),
-    readUnitMonitoringReport(resolvedParams.id, "30d"),
+    loadMonitoring ? readUnitZabbixSnapshot(resolvedParams.id) : Promise.resolve(null),
+    loadMonitoring ? readUnitMonitoringReport(resolvedParams.id, monitoringWindow) : Promise.resolve(null),
     apiJson<PaginatedResponse<PartnerOption>>(
       "/partners?page=1&pageSize=100&sortBy=code&sortDir=asc",
     ),
   ]);
-  const monitoringReport = narrowMonitoringReport(monitoringReportBase, monitoringWindow);
-  const legacyProfile = (await getLegacyUnitProfileForUnit(unit)) satisfies LegacyUnitProfile | null;
+
+  const monitoringReport = loadMonitoring ? narrowMonitoringReport(monitoringReportBase, monitoringWindow) : null;
+  const legacyProfile: LegacyUnitProfile | null = loadLegacy ? await getLegacyUnitProfileForUnit(unit) : null;
   const role = normalizeRole(session.user?.role || "");
   const isAdmin = isAdminRole(role);
   const canEditAttachments = canEditAttachmentsForRole(role);
@@ -1917,11 +1926,8 @@ export default async function UnidadeDetailPage({
 
   if (focusMode) {
     return (
-      <AppShell
-        title={`Monitoramento · ${unit.name}`}
-        subtitle={`${locationLabel(unit)} · ${unit.partner.name}${showUnitCode ? ` · ${unit.code}` : ""}.`}
-        hidePageHeader
-      ><Surface><div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between"><div><div className="nds-label">Modo foco</div><div className="mt-1 text-[11px] text-slate-300">
+      <NovaLitShell activeHref="/unidades">
+      <div className="nova-unit-detail-lit-page"><Surface><div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between"><div><div className="nds-label">Modo foco</div><div className="mt-1 text-[11px] text-slate-300">
                 Monitoramento da unidade.
               </div></div><div className="flex flex-wrap gap-2"><Link
                 href={unitMonitoringHref(unit.id, monitoringWindow)}
@@ -1969,16 +1975,14 @@ export default async function UnidadeDetailPage({
               ><input type="hidden" name="unitId" value={unit.id} /></ActionForm>
             ) : null
           }
-        /></AppShell>
+        />      </div>
+    </NovaLitShell>
     );
   }
 
   return (
-    <AppShell
-      title={unit.name}
-      subtitle={`${locationLabel(unit)} · ${unit.partner.name}${showUnitCode ? ` · ${unit.code}` : ""}.`}
-      hidePageHeader
-    >
+    <NovaLitShell activeHref="/unidades">
+      <div className="nova-unit-detail-lit-page">
       {created ? (
         <Surface className="nds-notice-success"><div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between"><SectionIntro
               eyebrow="Cadastro concluído"
@@ -2051,7 +2055,34 @@ export default async function UnidadeDetailPage({
             ) : null}
           </>
         }
-      /><UnitMonitoringVisualPanel
+      />{!loadMonitoring ? (
+        <Surface className="nds-card">
+          <div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
+            <SectionIntro
+              eyebrow="Monitoramento sob demanda"
+              title="Painel pesado não carregado na abertura"
+              description="A unidade abre mais rápido. Carregue gráficos e snapshot Zabbix apenas quando precisar analisar telemetria."
+              compact
+            />
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href={unitMonitoringHref(unit.id, monitoringWindow)}
+                className="nds-button"
+                data-variant="primary"
+              >
+                Carregar monitoramento
+              </Link>
+              <Link
+                href={unitMonitoringHref(unit.id, monitoringWindow, { focus: "monitoring" })}
+                className="nds-button"
+                data-variant="secondary"
+              >
+                Modo foco
+              </Link>
+            </div>
+          </div>
+        </Surface>
+      ) : null}<UnitMonitoringVisualPanel
         unit={unit}
         report={monitoringReport}
         snapshot={zabbixSnapshot}
@@ -2070,7 +2101,27 @@ export default async function UnidadeDetailPage({
             ><input type="hidden" name="unitId" value={unit.id} /></ActionForm>
           ) : null
         }
-      /><LegacyUnitBlock profile={legacyProfile} /><AttachmentPanel
+      />{loadLegacy ? (
+        <LegacyUnitBlock profile={legacyProfile} />
+      ) : (
+        <Surface className="nds-card">
+          <div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
+            <SectionIntro
+              eyebrow="Legado"
+              title="Dados legados sob demanda"
+              description="Contatos, vínculos antigos e histórico Starlink ficam fora da abertura inicial para manter a página rápida."
+              compact
+            />
+            <Link
+              href={unitLegacyHref(unit.id, monitoringWindow)}
+              className="nds-button"
+              data-variant="secondary"
+            >
+              Carregar legado
+            </Link>
+          </div>
+        </Surface>
+      )}<AttachmentPanel
         entityPath="units"
         entityId={unit.id}
         entityLabel="unidade"
@@ -2192,6 +2243,7 @@ export default async function UnidadeDetailPage({
                 description="Chamados ligadas à unidade serão listadas aqui."
               />
             )}
-          </div></Surface></section></AppShell>
+          </div></Surface></section>      </div>
+    </NovaLitShell>
   );
 }

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { AppShell } from "@/components/app-shell";
+import { NovaLitShell } from "@/components/nova-lit/nova-lit-shell";
 import { RecentMaintenancesPanel, RecentOccurrencesPanel } from "@/components/recent-ops-panels";
 import { UnitWatchlistPanel } from "@/components/unit-watchlist-panel";
 import {
@@ -147,7 +147,8 @@ export default async function OperacaoPage() {
   ];
 
   return (
-    <AppShell title="Operação" subtitle="Triagem e resposta imediata."><section className="grid gap-2"><Surface><SectionIntro
+    <NovaLitShell activeHref="/operacao">
+      <div className="nova-operation-lit-page"><section className="grid gap-2"><Surface><SectionIntro
             eyebrow="Operação"
             title="Triagem, backlog e resposta imediata"
             description="SLA, responsável, risco de host e atalhos operacionais."
@@ -201,6 +202,7 @@ export default async function OperacaoPage() {
             commandCenter={commandCenter}
             title="Chamados ligados ao turno"
             description="Ações abertas, vencidas ou concluídas há pouco, ainda relevantes para o contexto."
-          /></section><Surface><SectionIntro eyebrow="Fluxo" title="Execução" description="Destinos operacionais." compact /><div className="mt-2 grid gap-2 md:grid-cols-2 xl:grid-cols-4"><InlineStat label="Automações ativas" value={automationSummary.counts.enabledRules} tone="neutral" /><InlineStat label="Falhas em 24h" value={automationSummary.counts.failedRuns24h} tone={automationSummary.counts.failedRuns24h > 0 ? "attention" : "success"} /><InlineStat label="Hosts sem vínculo" value={telemetry.counts.unmapped} tone={telemetry.counts.unmapped > 0 ? "attention" : "neutral"} /><InlineStat label="Hosts prontos para sync" value={telemetry.counts.syncReady} tone={telemetry.counts.syncReady > 0 ? "success" : "neutral"} /></div></Surface></section></AppShell>
+          /></section><Surface><SectionIntro eyebrow="Fluxo" title="Execução" description="Destinos operacionais." compact /><div className="mt-2 grid gap-2 md:grid-cols-2 xl:grid-cols-4"><InlineStat label="Automações ativas" value={automationSummary.counts.enabledRules} tone="neutral" /><InlineStat label="Falhas em 24h" value={automationSummary.counts.failedRuns24h} tone={automationSummary.counts.failedRuns24h > 0 ? "attention" : "success"} /><InlineStat label="Hosts sem vínculo" value={telemetry.counts.unmapped} tone={telemetry.counts.unmapped > 0 ? "attention" : "neutral"} /><InlineStat label="Hosts prontos para sync" value={telemetry.counts.syncReady} tone={telemetry.counts.syncReady > 0 ? "success" : "neutral"} /></div></Surface></section>      </div>
+    </NovaLitShell>
   );
 }

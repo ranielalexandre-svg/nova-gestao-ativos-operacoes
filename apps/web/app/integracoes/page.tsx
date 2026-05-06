@@ -1,21 +1,9 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { AppShell } from "@/components/app-shell";
 import { ActionForm } from "@/components/action-form";
-import { ListPagination } from "@/components/list-pagination";
-import {
-  DenseTable,
-  EmptyState,
-  FieldLabel,
-  KpiTile,
-  SectionIntro,
-  Surface,
-  TableCell,
-  TableHead,
-  TableShell,
-  TonePill,
-} from "@/components/ops-ui";
+import { NovaLitShell } from "@/components/nova-lit/nova-lit-shell";
 import { apiJson } from "@/lib/server-api";
 import {
   getActionErrorMessage,
@@ -32,6 +20,8 @@ import {
 import { formatDateTime } from "@/lib/formatters";
 import { readUnitHostTelemetry, type UnitHostTelemetry } from "@/lib/noc-overview";
 import { getServerWebSession, normalizeRole } from "@/lib/web-session";
+
+type Tone = "green" | "orange" | "blue" | "red" | "slate";
 
 type IntegrationRow = {
   id: string;
@@ -125,6 +115,36 @@ type BulkZabbixSyncResult = {
   }>;
 };
 
+function emptySummary(): MonitoringSummary {
+  return {
+    checkedAt: new Date().toISOString(),
+    counts: {
+      usersTotal: 0,
+      usersActive: 0,
+      partnersTotal: 0,
+      partnersActive: 0,
+      unitsTotal: 0,
+      unitsActive: 0,
+      equipmentsTotal: 0,
+      equipmentsActive: 0,
+      integrationsTotal: 0,
+      integrationsActive: 0,
+      integrationsHealthy: 0,
+      integrationsFailing: 0,
+    },
+    integrationChecks: [],
+    zabbixSnapshots: [],
+  };
+}
+
+async function readMonitoringSummary() {
+  try {
+    return await apiJson<MonitoringSummary>("/monitoring/summary");
+  } catch {
+    return emptySummary();
+  }
+}
+
 async function syncReadyUnitsAction(
   state: ActionFeedbackState,
   formData: FormData,
@@ -147,14 +167,115 @@ async function syncReadyUnitsAction(
     revalidatePath("/sensores");
     revalidatePath("/unidades");
     revalidatePath("/ativos");
+    revalidatePath("/reconciliacao");
 
     return {
       status: result.ok ? "success" : "error",
-      message: `${result.synced} sincronizada(s), ${result.skipped} ignorada(s), ${result.failed} falha(s). ${result.pending.unmapped} sem host, ${result.pending.ambiguous} ambígua(s), ${result.pending.withoutExplicitTag} sem tag explícita.`,
+      message: `${result.synced} sincronizada(s), ${result.skipped} ignorada(s), ${result.failed} falha(s). ${result.pending.unmapped} sem host, ${result.pending.ambiguous} ambigua(s), ${result.pending.withoutExplicitTag} sem tag explicita.`,
     };
   } catch (error) {
     return { status: "error", message: getActionErrorMessage(error) };
   }
+}
+
+function toneClass(tone: Tone) {
+  if (tone === "green") return "is-green";
+  if (tone === "orange") return "is-orange";
+  if (tone === "blue") return "is-blue";
+  if (tone === "red") return "is-red";
+  return "is-slate";
+}
+
+function Badge({ tone, children }: { tone: Tone; children: ReactNode }) {
+  return <span className={`nova-integracoes-badge ${toneClass(tone)}`}>{children}</span>;
+}
+
+function StatCard({
+  label,
+  value,
+  hint,
+  tone,
+}: {
+  label: string;
+  value: ReactNode;
+  hint: string;
+  tone: Tone;
+}) {
+  return (
+    <article className={`nova-integracoes-stat ${toneClass(tone)}`}>
+      <div className="nova-integracoes-dot" />
+      <span>{label}</span>
+      <strong>{value}</strong>
+      <p>{hint}</p>
+    </article>
+  );
+}
+
+function Panel({
+  eyebrow,
+  title,
+  action,
+  children,
+  className = "",
+}: {
+  eyebrow?: string;
+  title: string;
+  action?: ReactNode;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <section className={`nova-integracoes-panel ${className}`}>
+      <div className="nova-integracoes-panel-head">
+        <div>
+          {eyebrow ? <span>{eyebrow}</span> : null}
+          <h2>{title}</h2>
+        </div>
+        {action ? <div className="nova-integracoes-panel-action">{action}</div> : null}
+      </div>
+      <div className="nova-integracoes-panel-body">{children}</div>
+    </section>
+  );
+}
+
+function EmptyBlock({ title, description }: { title: string; description: string }) {
+  return (
+    <div className="nova-integracoes-empty">
+      <div>N</div>
+      <strong>{title}</strong>
+      <p>{description}</p>
+    </div>
+  );
+}
+
+function progressPercent(value: number, total: number) {
+  if (!total) return 0;
+  return Math.max(0, Math.min(100, Math.round((value / total) * 100)));
+}
+
+function ProgressLine({
+  label,
+  value,
+  total,
+  tone,
+}: {
+  label: string;
+  value: number;
+  total: number;
+  tone: Tone;
+}) {
+  const percent = progressPercent(value, total);
+  return (
+    <div className="nova-integracoes-progress-line">
+      <div>
+        <span>{label}</span>
+        <strong>{value}</strong>
+      </div>
+      <div className="nova-integracoes-progress-track">
+        <i className={toneClass(tone)} style={{ width: `${percent}%` }} />
+      </div>
+    </div>
+  );
 }
 
 function typeLabel(type: string) {
@@ -163,7 +284,7 @@ function typeLabel(type: string) {
 }
 
 function authLabel(value: string) {
-  if (value === "userpass") return "usuário/senha";
+  if (value === "userpass") return "usuario/senha";
   if (value === "token") return "token";
   return "sem auth";
 }
@@ -172,61 +293,109 @@ function truncateUrl(value: string) {
   return value.replace(/^https?:\/\//, "");
 }
 
-function healthTone(ok?: boolean) {
-  if (typeof ok === "undefined") return "neutral";
-  return ok ? "success" : "critical";
+function healthTone(ok?: boolean): Tone {
+  if (typeof ok === "undefined") return "slate";
+  return ok ? "green" : "red";
 }
 
 function statusLabel(check?: IntegrationCheck) {
   if (!check) return "sem teste";
   const status = check.httpStatus ? `HTTP ${check.httpStatus}` : check.ok ? "ok" : "falha";
-  return `${status} · ${check.latencyMs}ms`;
+  return `${status} - ${check.latencyMs}ms`;
+}
+
+function matchLabel(item: UnitHostTelemetry["items"][number]) {
+  if (item.match.status === "unmatched") return "sem host";
+  if (item.match.status === "ambiguous") return "ambiguo";
+  if (!item.match.syncReady) return "sem tag";
+  return "pronto";
+}
+
+function matchTone(item: UnitHostTelemetry["items"][number]): Tone {
+  if (item.match.syncReady) return "green";
+  if (item.match.status === "matched") return "orange";
+  if (item.match.status === "ambiguous") return "orange";
+  return "slate";
+}
+
+function locationLine(unit: UnitHostTelemetry["items"][number]["unit"]) {
+  return [unit.city, unit.state].filter(Boolean).join(" / ") || "sem cidade/UF";
+}
+
+function hrefWithParams(
+  pathname: string,
+  params: RawSearchParams,
+  updates: Record<string, string | number | undefined>,
+) {
+  const query = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (Array.isArray(value)) {
+      value.forEach((item) => {
+        if (item) query.append(key, String(item));
+      });
+      return;
+    }
+
+    if (value) query.set(key, String(value));
+  });
+
+  Object.entries(updates).forEach(([key, value]) => {
+    if (typeof value === "undefined" || value === "") {
+      query.delete(key);
+      return;
+    }
+
+    query.set(key, String(value));
+  });
+
+  const serialized = query.toString();
+  return serialized ? `${pathname}?${serialized}` : pathname;
 }
 
 function IntegrationHealthStrip({ checks }: { checks: IntegrationCheck[] }) {
   if (!checks.length) {
     return (
-      <Surface>
-        <EmptyState title="Sem saúde de integrações" description="Nenhum teste de conector foi retornado pela API." />
-      </Surface>
+      <Panel eyebrow="Saude" title="Conectores ativos">
+        <EmptyBlock
+          title="Sem saude de integracoes"
+          description="Nenhum teste de conector foi retornado pela API."
+        />
+      </Panel>
     );
   }
 
   return (
-    <Surface>
-      <SectionIntro
-        eyebrow="Saúde"
-        title="Conectores ativos"
-        description="Status, latência e alvo operacional em cards compactos."
-        compact
-      />
-      <div className="nova-integration-health-grid mt-2">
+    <Panel
+      eyebrow="Saude"
+      title="Conectores ativos"
+      action={<Badge tone="blue">{checks.length} fonte(s)</Badge>}
+    >
+      <div className="nova-integracoes-health-grid">
         {checks.slice(0, 6).map((check) => (
-          <div key={`health-${check.id}`} className="nova-integration-health-card" data-ok={check.ok ? "true" : "false"}>
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0">
-                <div className="truncate text-[12px] font-black text-white">{check.code}</div>
-                <div className="mt-1 truncate text-[10px] text-[var(--nova-text-muted)]">{check.name}</div>
+          <article key={`health-${check.id}`} className={`nova-integracoes-health ${check.ok ? "is-ok" : "is-bad"}`}>
+            <div className="nova-integracoes-health-top">
+              <div>
+                <strong>{check.code}</strong>
+                <p>{check.name}</p>
               </div>
-              <TonePill tone={check.ok ? "success" : "critical"}>{check.ok ? "conectado" : "falha"}</TonePill>
+              <Badge tone={check.ok ? "green" : "red"}>{check.ok ? "conectado" : "falha"}</Badge>
             </div>
-            <div className="mt-2 grid grid-cols-2 gap-2">
-              <div className="nova-integration-mini">
-                <span>Latência</span>
+            <div className="nova-integracoes-mini-grid">
+              <div>
+                <span>Latencia</span>
                 <strong>{check.latencyMs} ms</strong>
               </div>
-              <div className="nova-integration-mini">
+              <div>
                 <span>Status</span>
                 <strong>{check.httpStatus || (check.ok ? "OK" : "-")}</strong>
               </div>
             </div>
-            <div className="mt-2 truncate border-t border-white/[0.07] pt-2 text-[10px] text-[var(--nova-text-muted)]">
-              {check.targetUrl || check.message}
-            </div>
-          </div>
+            <p className="nova-integracoes-truncate">{check.targetUrl || check.message}</p>
+          </article>
         ))}
       </div>
-    </Surface>
+    </Panel>
   );
 }
 
@@ -248,59 +417,109 @@ function ConnectorConfigForm({
   const zabbixWithoutAuth = integration.type === "zabbix" && integration.authMode === "none";
 
   return (
-    <div className="nova-side-grid nova-side-grid--320"><ActionForm
+    <div className="nova-integracoes-config-grid">
+      <ActionForm
         action={updateAction}
-        className="nds-card grid gap-2 md:grid-cols-2"
-        noticeClassName="md:col-span-2"
-        submitClassName="md:col-span-2"
+        className="nova-integracoes-form-card"
+        noticeClassName="nova-integracoes-form-wide"
+        submitClassName="nova-integracoes-form-wide"
         submitLabel="Salvar conector"
         pendingLabel="Salvando..."
         variant="secondary"
-      ><input type="hidden" name="id" value={integration.id} /><label className="grid gap-1.5"><FieldLabel>Código</FieldLabel><input name="code" defaultValue={integration.code} /></label><label className="grid gap-1.5"><FieldLabel>Nome</FieldLabel><input name="name" defaultValue={integration.name} /></label><label className="grid gap-1.5"><FieldLabel>Tipo</FieldLabel><select name="type" defaultValue={integration.type}><option value="zabbix">zabbix</option><option value="generic_http">generic_http</option></select></label><label className="grid gap-1.5"><FieldLabel>Autenticação</FieldLabel><select name="authMode" defaultValue={integration.authMode}><option value="none">none</option><option value="token">token</option><option value="userpass">userpass</option></select></label><label className="grid gap-1.5 md:col-span-2"><FieldLabel>Base URL</FieldLabel><input name="baseUrl" defaultValue={integration.baseUrl} /></label><label className="grid gap-1.5 md:col-span-2"><FieldLabel>Caminho</FieldLabel><input name="apiPath" defaultValue={integration.apiPath || ""} placeholder="Opcional" /></label><label className="grid gap-1.5 md:col-span-2"><FieldLabel>Novo API token</FieldLabel><input name="apiToken" placeholder="Opcional, deixa em branco para preservar" /></label><label className="grid gap-1.5"><FieldLabel>Novo usuário</FieldLabel><input name="username" placeholder="Opcional" /></label><label className="grid gap-1.5"><FieldLabel>Nova senha</FieldLabel><input name="password" type="password" placeholder="Opcional" /></label><label className="flex items-center gap-2 text-[11px] text-slate-300 md:col-span-2"><input type="checkbox" name="isActive" defaultChecked={integration.isActive} />
-          Ativo
-        </label><div className="text-[11px] leading-5 text-slate-500 md:col-span-2">
-          Segredos não são exibidos. Deixe token, usuário e senha em branco para preservar os valores atuais.
-        </div>
+      >
+        <input type="hidden" name="id" value={integration.id} />
+
+        <label>
+          <span>Codigo</span>
+          <input name="code" defaultValue={integration.code} />
+        </label>
+
+        <label>
+          <span>Nome</span>
+          <input name="name" defaultValue={integration.name} />
+        </label>
+
+        <label>
+          <span>Tipo</span>
+          <select name="type" defaultValue={integration.type}>
+            <option value="zabbix">zabbix</option>
+            <option value="generic_http">generic_http</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Autenticacao</span>
+          <select name="authMode" defaultValue={integration.authMode}>
+            <option value="none">none</option>
+            <option value="token">token</option>
+            <option value="userpass">userpass</option>
+          </select>
+        </label>
+
+        <label className="nova-integracoes-form-wide">
+          <span>Base URL</span>
+          <input name="baseUrl" defaultValue={integration.baseUrl} />
+        </label>
+
+        <label className="nova-integracoes-form-wide">
+          <span>Caminho</span>
+          <input name="apiPath" defaultValue={integration.apiPath || ""} placeholder="Opcional" />
+        </label>
+
+        <label className="nova-integracoes-form-wide">
+          <span>Novo API token</span>
+          <input name="apiToken" placeholder="Opcional, deixe em branco para preservar" />
+        </label>
+
+        <label>
+          <span>Novo usuario</span>
+          <input name="username" placeholder="Opcional" />
+        </label>
+
+        <label>
+          <span>Nova senha</span>
+          <input name="password" type="password" placeholder="Opcional" />
+        </label>
+
+        <label className="nova-integracoes-check nova-integracoes-form-wide">
+          <input type="checkbox" name="isActive" defaultChecked={integration.isActive} />
+          <span>Ativo</span>
+        </label>
+
+        <p className="nova-integracoes-form-note nova-integracoes-form-wide">
+          Segredos nao sao exibidos. Deixe token, usuario e senha em branco para preservar os valores atuais.
+        </p>
+
         {zabbixWithoutAuth ? (
-          <div className="nds-notice-warning rounded-[var(--nova-radius-card)] border px-3 py-2 text-[11px] leading-5 md:col-span-2">
-            Este conector Zabbix está em <span className="font-semibold">sem auth</span>. Leitura de
-            versão ainda funciona, mas <span className="font-semibold">host.get</span>, telemetria e
-            sincronização de host exigem <span className="font-semibold">token</span> ou{" "}
-            <span className="font-semibold">usuário/senha</span>.
+          <div className="nova-integracoes-warning nova-integracoes-form-wide">
+            Este conector Zabbix esta sem autenticacao. A leitura de versao pode funcionar, mas hosts,
+            telemetria e sincronizacao exigem token ou usuario/senha.
           </div>
         ) : null}
-      </ActionForm><ActionForm
+      </ActionForm>
+
+      <ActionForm
         action={testAction}
-        className="nds-card grid gap-2"
+        className="nova-integracoes-test-card"
         submitLabel="Testar agora"
         pendingLabel="Testando..."
         variant="secondary"
-      ><input type="hidden" name="id" value={integration.id} /><div><div className="text-[12px] font-black text-slate-50">Teste real</div><p className="mt-1 text-[11px] leading-5 text-slate-400">
-            Valida reachability e, no Zabbix autenticado, consulta versão, hosts e problemas.
-          </p></div><div className="nova-micro-card px-3 py-2 text-[11px] text-slate-300">
+      >
+        <input type="hidden" name="id" value={integration.id} />
+        <div>
+          <strong>Teste real</strong>
+          <p>
+            Valida reachability e, no Zabbix autenticado, consulta versao, hosts e problemas.
+          </p>
+        </div>
+        <div className="nova-integracoes-code-card">
           {integration.type === "zabbix"
             ? "apiinfo.version + host.get + problem.get"
             : "GET simples no endpoint configurado"}
-        </div></ActionForm></div>
+        </div>
+      </ActionForm>
+    </div>
   );
-}
-
-function matchLabel(item: UnitHostTelemetry["items"][number]) {
-  if (item.match.status === "unmatched") return "sem host";
-  if (item.match.status === "ambiguous") return "ambíguo";
-  if (!item.match.syncReady) return "sem tag explícita";
-  return "pronto";
-}
-
-function matchTone(item: UnitHostTelemetry["items"][number]) {
-  if (item.match.syncReady) return "success";
-  if (item.match.status === "matched") return "attention";
-  if (item.match.status === "ambiguous") return "attention";
-  return "subtle";
-}
-
-function locationLine(unit: UnitHostTelemetry["items"][number]["unit"]) {
-  return [unit.city, unit.state].filter(Boolean).join(" / ") || "sem cidade/UF";
 }
 
 function ZabbixReadinessPanel({
@@ -322,89 +541,103 @@ function ZabbixReadinessPanel({
   const sourceFailures = telemetry.sources.filter((source) => !source.ok).length;
 
   return (
-    <Surface><div className="nova-side-grid nova-side-grid--360 xl:items-start"><SectionIntro
-          eyebrow="Zabbix"
-          title="Sincronização e vínculo de hosts"
-          description="Integrações concentra credenciais, teste, contrato de vínculo e atualização segura dos hosts."
-          actions={
-            <TonePill tone={sourceFailures ? "attention" : "success"}>
-              {sourceFailures ? `${sourceFailures} fonte(s) com alerta` : "fontes ok"}
-            </TonePill>
-          }
-          compact
-        />
+    <Panel
+      eyebrow="Zabbix"
+      title="Sincronizacao e vinculo de hosts"
+      action={
+        <div className="nova-integracoes-actions">
+          <Badge tone={sourceFailures ? "orange" : "green"}>
+            {sourceFailures ? `${sourceFailures} fonte(s) com alerta` : "fontes ok"}
+          </Badge>
+          {isAdmin ? (
+            <ActionForm
+              action={syncReadyUnitsAction}
+              className="nova-integracoes-inline-action"
+              submitLabel="Sincronizar prontos"
+              pendingLabel="Sincronizando..."
+              variant="secondary"
+            >
+              <span>{telemetry.counts.syncReady} unidade(s)</span>
+            </ActionForm>
+          ) : null}
+        </div>
+      }
+    >
+      <div className="nova-integracoes-kpis">
+        <StatCard label="Prontas" value={telemetry.counts.syncReady} hint="host certo e tag explicita" tone={telemetry.counts.syncReady ? "green" : "slate"} />
+        <StatCard label="Vinculadas" value={telemetry.counts.matched} hint={`${matchedNotReady} pedem tag`} tone={matchedNotReady ? "orange" : "green"} />
+        <StatCard label="Sem host" value={telemetry.counts.unmapped} hint="sem candidato confiavel" tone={telemetry.counts.unmapped ? "orange" : "green"} />
+        <StatCard label="Ambiguas" value={telemetry.counts.ambiguous} hint="mais de um candidato" tone={telemetry.counts.ambiguous ? "orange" : "green"} />
+        <StatCard label="Bloqueadas" value={blocked} hint="fora do lote automatico" tone={blocked ? "orange" : "green"} />
+      </div>
 
-        {isAdmin ? (
-          <ActionForm
-            action={syncReadyUnitsAction}
-            className="nds-card"
-            submitLabel="Sincronizar prontos"
-            pendingLabel="Sincronizando..."
-            variant="secondary"
-          ><div className="text-[12px] font-black text-slate-50">
-              Lote seguro: {telemetry.counts.syncReady} unidade(s)
-            </div><p className="mt-1 text-[11px] leading-5 text-slate-400">
-              Apenas hosts com vínculo explícito entram no lote.
-            </p></ActionForm>
-        ) : (
-          <div className="nds-card"><div className="text-[12px] font-black text-slate-50">Leitura administrativa</div><p className="mt-1 text-[11px] leading-5 text-slate-400">
-              Configuração e escrita no Zabbix ficam restritas ao admin.
-            </p></div>
-        )}
-      </div><div className="mt-2 grid gap-2 md:grid-cols-2 xl:grid-cols-5"><KpiTile
-          label="Prontas"
-          value={telemetry.counts.syncReady}
-          meta="host certo e tag explícita"
-          tone={telemetry.counts.syncReady ? "success" : "neutral"}
-        /><KpiTile
-          label="Vinculadas"
-          value={telemetry.counts.matched}
-          meta={`${matchedNotReady} pedem tag explícita`}
-          tone={matchedNotReady ? "attention" : "success"}
-        /><KpiTile
-          label="Sem host"
-          value={telemetry.counts.unmapped}
-          meta="sem candidato confiável"
-          tone={telemetry.counts.unmapped ? "attention" : "success"}
-        /><KpiTile
-          label="Ambíguas"
-          value={telemetry.counts.ambiguous}
-          meta="mais de um candidato"
-          tone={telemetry.counts.ambiguous ? "attention" : "success"}
-        /><KpiTile
-          label="Bloqueadas"
-          value={blocked}
-          meta="fora do lote automático"
-          tone={blocked ? "attention" : "success"}
-        /></div><div className="mt-2 nova-side-grid nova-side-grid--380"><div>
+      <div className="nova-integracoes-zabbix-grid">
+        <div className="nova-integracoes-table-wrap">
           {pendingRows.length ? (
-            <TableShell><DenseTable><TableHead><tr><th className="px-3 py-2">Unidade</th><th className="px-3 py-2">Host</th><th className="px-3 py-2">Estado</th><th className="px-3 py-2">Ação</th></tr></TableHead><tbody>
-                  {pendingRows.map((item) => (
-                    <tr key={`sync-pending-${item.unit.id}`} className="border-b border-white/6 last:border-b-0"><TableCell><Link href={`/unidades/${item.unit.id}`} className="font-semibold text-slate-50 hover:text-white">
-                          {item.unit.code}
-                        </Link><div className="mt-1 max-w-[300px] text-[11px] text-slate-300">{item.unit.name}</div><div className="mt-1 text-[10px] text-[var(--nova-text-muted)]">{locationLine(item.unit)}</div></TableCell><TableCell><div className="max-w-[320px] truncate text-[11px] font-medium text-slate-100">
-                          {item.match.hostName || item.match.host || "sem host confiável"}
-                        </div><div className="mt-1 text-[10px] text-[var(--nova-text-muted)]">
-                          {item.match.integrationCode
-                            ? `${item.match.integrationCode} · ${item.match.confidence}%`
-                            : `${item.match.candidates} candidato(s)`}
-                        </div></TableCell><TableCell><TonePill tone={matchTone(item)}>{matchLabel(item)}</TonePill></TableCell><TableCell><div className="font-mono text-[10px] text-slate-400">nova.unit_code={item.unit.code}</div></TableCell></tr>
-                  ))}
-                </tbody></DenseTable></TableShell>
+            <table className="nova-integracoes-table">
+              <thead>
+                <tr>
+                  <th>Unidade</th>
+                  <th>Host</th>
+                  <th>Estado</th>
+                  <th>Acao</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pendingRows.map((item) => (
+                  <tr key={`sync-pending-${item.unit.id}`}>
+                    <td>
+                      <Link href={`/unidades/${item.unit.id}`}>{item.unit.code}</Link>
+                      <small>{item.unit.name}</small>
+                      <small>{locationLine(item.unit)}</small>
+                    </td>
+                    <td>
+                      <strong>{item.match.hostName || item.match.host || "sem host confiavel"}</strong>
+                      <small>
+                        {item.match.integrationCode
+                          ? `${item.match.integrationCode} - ${item.match.confidence}%`
+                          : `${item.match.candidates} candidato(s)`}
+                      </small>
+                    </td>
+                    <td><Badge tone={matchTone(item)}>{matchLabel(item)}</Badge></td>
+                    <td><code>nova.unit_code={item.unit.code}</code></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           ) : (
-            <EmptyState
-              title="Nenhum bloqueio de sincronização"
-              description="As unidades ativas no recorte estão aptas ou não há telemetria carregada."
+            <EmptyBlock
+              title="Nenhum bloqueio de sincronizacao"
+              description="As unidades ativas no recorte estao aptas ou nao ha telemetria carregada."
             />
           )}
-        </div><div className="grid content-start gap-2"><div className="nds-card"><div className="text-[12px] font-black text-slate-50">Contrato usado pelo portal</div><div className="mt-2 grid gap-2"><div className="nds-card"><div className="nds-label">Tag principal</div><div className="mt-1 font-mono text-[11px] text-slate-100">nova.unit_code</div></div><div className="nds-card"><div className="nds-label">Inventário</div><div className="mt-1 text-[11px] text-slate-100">unidade, parceiro, cidade, serial e MAC</div></div><div className="nds-card"><div className="nds-label">Escrita</div><div className="mt-1 text-[11px] text-slate-100">somente host inequívoco</div></div></div></div>
+        </div>
+
+        <aside className="nova-integracoes-side-stack">
+          <div className="nova-integracoes-note-card">
+            <span>Contrato usado pelo portal</span>
+            <strong>nova.unit_code</strong>
+            <p>Somente host inequívoco recebe escrita automatica. Sem tag explicita, a tela apenas monitora e sugere ajuste.</p>
+          </div>
 
           {telemetry.sources.map((source) => (
-            <div key={`zbx-source-${source.id}`} className="nds-card"><div className="flex items-start justify-between gap-2"><div className="min-w-0"><div className="text-[12px] font-black text-slate-50">{source.code} · {source.name}</div><div className="mt-1 truncate text-[10px] text-[var(--nova-text-muted)]">{source.targetUrl || "sem URL"}</div></div><TonePill tone={source.ok ? "success" : "attention"}>
-                  {source.ok ? "lendo" : "alerta"}
-                </TonePill></div><div className="mt-2 grid grid-cols-3 gap-2"><div className="nds-card"><div className="nds-label">Hosts</div><div className="mt-1 font-semibold text-slate-50">{source.totalHosts}</div></div><div className="nds-card"><div className="nds-label">Match</div><div className="mt-1 font-semibold text-slate-50">{source.matchedUnits}</div></div><div className="nds-card"><div className="nds-label">Versão</div><div className="mt-1 truncate font-semibold text-slate-50">{source.version || "-"}</div></div></div><div className="mt-2 text-[11px] leading-5 text-slate-400">{source.message}</div></div>
+            <div key={`zbx-source-${source.id}`} className="nova-integracoes-source-card">
+              <div>
+                <strong>{source.code} - {source.name}</strong>
+                <Badge tone={source.ok ? "green" : "orange"}>{source.ok ? "lendo" : "alerta"}</Badge>
+              </div>
+              <p>{source.targetUrl || "sem URL"}</p>
+              <div className="nova-integracoes-mini-grid">
+                <div><span>Hosts</span><strong>{source.totalHosts}</strong></div>
+                <div><span>Match</span><strong>{source.matchedUnits}</strong></div>
+                <div><span>Versao</span><strong>{source.version || "-"}</strong></div>
+              </div>
+              <p>{source.message}</p>
+            </div>
           ))}
-        </div></div></Surface>
+        </aside>
+      </div>
+    </Panel>
   );
 }
 
@@ -416,21 +649,31 @@ function ReadOnlyIntegrations({
   telemetry: UnitHostTelemetry;
 }) {
   return (
-    <><ZabbixReadinessPanel telemetry={telemetry} isAdmin={false} /><Surface><SectionIntro
-          eyebrow="Conectores"
-          title="Leitura disponível"
-          description="Endpoints e credenciais."
-          actions={<TonePill tone="neutral">{formatDateTime(summary.checkedAt)}</TonePill>}
-          compact
-        /><div className="mt-2 grid gap-2">
+    <>
+      <ZabbixReadinessPanel telemetry={telemetry} isAdmin={false} />
+
+      <Panel
+        eyebrow="Conectores"
+        title="Leitura disponivel"
+        action={<Badge tone="slate">{formatDateTime(summary.checkedAt)}</Badge>}
+      >
+        <div className="nova-integracoes-list">
           {summary.integrationChecks.length ? (
             summary.integrationChecks.map((check) => (
-              <div key={check.id} className="nds-card"><div className="flex flex-wrap items-start justify-between gap-2"><div className="min-w-0"><div className="text-[12px] font-black text-slate-50">{check.code} · {check.name}</div><div className="mt-1 truncate text-[10px] text-[var(--nova-text-muted)]">{check.targetUrl}</div></div><TonePill tone={check.ok ? "success" : "attention"}>{statusLabel(check)}</TonePill></div></div>
+              <div key={check.id} className="nova-integracoes-row-card">
+                <div>
+                  <strong>{check.code} - {check.name}</strong>
+                  <p>{check.targetUrl}</p>
+                </div>
+                <Badge tone={check.ok ? "green" : "orange"}>{statusLabel(check)}</Badge>
+              </div>
             ))
           ) : (
-            <EmptyState title="Nenhum conector ativo" description="Cadastre uma integração como admin para iniciar a leitura." />
+            <EmptyBlock title="Nenhum conector ativo" description="Cadastre uma integracao como admin para iniciar a leitura." />
           )}
-        </div></Surface></>
+        </div>
+      </Panel>
+    </>
   );
 }
 
@@ -484,6 +727,7 @@ export default async function IntegracoesPage({
 
       revalidatePath("/integracoes");
       revalidatePath("/sensores");
+      revalidatePath("/monitoramento");
       return { status: "success", message: "Conector criado com sucesso." };
     } catch (error) {
       return { status: "error", message: getActionErrorMessage(error) };
@@ -521,6 +765,7 @@ export default async function IntegracoesPage({
 
       revalidatePath("/integracoes");
       revalidatePath("/sensores");
+      revalidatePath("/monitoramento");
       return { status: "success", message: "Conector atualizado com sucesso." };
     } catch (error) {
       return { status: "error", message: getActionErrorMessage(error) };
@@ -551,10 +796,11 @@ export default async function IntegracoesPage({
 
       revalidatePath("/integracoes");
       revalidatePath("/sensores");
+      revalidatePath("/monitoramento");
 
       return {
         status: result.ok ? "success" : "error",
-        message: `${result.message} · ${result.latencyMs}ms`,
+        message: `${result.message} - ${result.latencyMs}ms`,
       };
     } catch (error) {
       return { status: "error", message: getActionErrorMessage(error) };
@@ -562,50 +808,41 @@ export default async function IntegracoesPage({
   }
 
   const [summary, telemetry] = await Promise.all([
-    apiJson<MonitoringSummary>("/monitoring/summary"),
+    readMonitoringSummary(),
     readUnitHostTelemetry({ timeoutMs: 2_500 }),
   ]);
 
+  const zabbixSources = summary.zabbixSnapshots.length;
+  const healthTotal = Math.max(1, summary.counts.integrationsActive);
+  const healthPercent = progressPercent(summary.counts.integrationsHealthy, healthTotal);
+
   if (!isAdmin) {
     return (
-      <AppShell
-        title="Integrações"
-        subtitle="Leitura dos conectores e contrato de vínculo com o Zabbix."
-      ><Surface><SectionIntro
-            eyebrow="Integrações"
-            title="Conectores sem sair para o dashboard"
-            description="Você continua nesta rota para entender o estado das fontes; edição e sincronização ficam com admin."
-            actions={
-              <Link
-                href="/sensores"
-                className="nds-button"
-                data-variant="secondary"
-              >
-                Ver monitoramento
-              </Link>
-            }
-            compact
-          /></Surface><section className="grid gap-2 md:grid-cols-2 xl:grid-cols-4"><KpiTile
-            label="Conectores"
-            value={summary.counts.integrationsTotal}
-            meta={`${summary.counts.integrationsActive} ativos`}
-            tone={summary.counts.integrationsActive ? "info" : "neutral"}
-          /><KpiTile
-            label="Saudáveis"
-            value={summary.counts.integrationsHealthy}
-            meta={`${summary.counts.integrationsFailing} falhando`}
-            tone={summary.counts.integrationsFailing ? "attention" : "success"}
-          /><KpiTile
-            label="Zabbix"
-            value={summary.zabbixSnapshots.length}
-            meta="snapshot(s) ativos"
-            tone={summary.zabbixSnapshots.length ? "success" : "neutral"}
-          /><KpiTile
-            label="Unidades"
-            value={telemetry.counts.units}
-            meta={`${telemetry.counts.matched} com host`}
-            tone={telemetry.counts.unmapped || telemetry.counts.ambiguous ? "attention" : "success"}
-          /></section><IntegrationHealthStrip checks={summary.integrationChecks} /><ReadOnlyIntegrations summary={summary} telemetry={telemetry} /></AppShell>
+      <NovaLitShell activeHref="/integracoes">
+        <main className="nova-integracoes-page">
+          <header className="nova-integracoes-hero">
+            <div>
+              <span>Configuracoes / Integracoes</span>
+              <h1>Integrações</h1>
+              <p>Leitura dos conectores e contrato de vinculo com o Zabbix.</p>
+            </div>
+            <div className="nova-integracoes-hero-actions">
+              <Link href="/sensores" className="nova-lit-button nova-lit-button-secondary">Ver sensores</Link>
+            </div>
+          </header>
+
+          <section className="nova-integracoes-kpis">
+            <StatCard label="Conectores" value={summary.counts.integrationsTotal} hint={`${summary.counts.integrationsActive} ativos`} tone={summary.counts.integrationsActive ? "blue" : "slate"} />
+            <StatCard label="Saudaveis" value={summary.counts.integrationsHealthy} hint={`${summary.counts.integrationsFailing} falhando`} tone={summary.counts.integrationsFailing ? "orange" : "green"} />
+            <StatCard label="Zabbix" value={zabbixSources} hint="snapshot(s) ativos" tone={zabbixSources ? "green" : "slate"} />
+            <StatCard label="Unidades" value={telemetry.counts.units} hint={`${telemetry.counts.matched} com host`} tone={telemetry.counts.unmapped || telemetry.counts.ambiguous ? "orange" : "green"} />
+            <StatCard label="Saude" value={`${healthPercent}%`} hint="conectores ativos OK" tone={summary.counts.integrationsFailing ? "orange" : "green"} />
+          </section>
+
+          <IntegrationHealthStrip checks={summary.integrationChecks} />
+          <ReadOnlyIntegrations summary={summary} telemetry={telemetry} />
+        </main>
+      </NovaLitShell>
     );
   }
 
@@ -621,94 +858,262 @@ export default async function IntegracoesPage({
     })}`,
   );
 
+  const total = integrationsResponse.meta.total;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const checkById = new Map(summary.integrationChecks.map((item) => [item.id, item]));
   const zabbixById = new Map(summary.zabbixSnapshots.map((item) => [item.id, item]));
 
   return (
-    <AppShell
-      title="Integrações"
-      subtitle="Conectores, endpoints e credenciais que alimentam o monitoramento."
-    ><Surface><div className="nova-action-toolbar"><SectionIntro
-            eyebrow="Configuração"
-            title="Conectores, credenciais e sync"
-            description="Aqui ficam endpoint, teste, contrato de host e sincronização segura. Monitoramento fica livre para o dashboard NOC."
-            compact
-          /><div className="flex flex-wrap gap-2 xl:justify-end"><Link
-              href="/sensores"
-              className="nds-button"
-              data-variant="secondary"
-            >
-              Ver monitoramento
-            </Link><a
-              href="#novo-conector"
-              className="nds-button"
-              data-variant="primary"
-            >
-              Novo conector
-            </a></div></div></Surface><section className="grid gap-2 md:grid-cols-2 xl:grid-cols-4"><KpiTile label="Conectores" value={summary.counts.integrationsTotal} meta={`${summary.counts.integrationsActive} ativos`} tone={summary.counts.integrationsActive ? "info" : "neutral"} /><KpiTile label="Saudáveis" value={summary.counts.integrationsHealthy} meta={`${summary.counts.integrationsFailing} falhando`} tone={summary.counts.integrationsFailing ? "attention" : "success"} /><KpiTile label="Zabbix" value={summary.zabbixSnapshots.length} meta="snapshot(s) ativos" tone={summary.zabbixSnapshots.length ? "success" : "neutral"} /><KpiTile label="Filtro atual" value={integrationsResponse.meta.total} meta="resultado(s)" tone={integrationsResponse.meta.total ? "info" : "neutral"} /></section><IntegrationHealthStrip checks={summary.integrationChecks} /><ZabbixReadinessPanel telemetry={telemetry} isAdmin={isAdmin} /><Surface><SectionIntro
-          eyebrow="Consulta"
-          title="Buscar conectores"
-          description="Filtros persistem na URL para retornar à mesma visão de configuração."
-          actions={
-            <Link href="/integracoes" className="nds-button" data-variant="secondary">
-              Limpar
-            </Link>
-          }
-          compact
-        /><form method="GET" className="nova-filter-grid nova-filter-grid--six mt-2"><label className="grid gap-1.5 xl:col-span-2"><FieldLabel>Busca</FieldLabel><input name="q" defaultValue={q} placeholder="Código, nome, tipo ou URL" /></label><label className="grid gap-1.5"><FieldLabel>Tipo</FieldLabel><select name="type" defaultValue={type}><option value="all">Todos</option><option value="zabbix">zabbix</option><option value="generic_http">generic_http</option></select></label><label className="grid gap-1.5"><FieldLabel>Status</FieldLabel><select name="active" defaultValue={active}><option value="all">Todos</option><option value="true">Ativos</option><option value="false">Inativos</option></select></label><label className="grid gap-1.5"><FieldLabel>Ordenar por</FieldLabel><select name="sortBy" defaultValue={sortBy}><option value="code">Código</option><option value="name">Nome</option><option value="type">Tipo</option><option value="createdAt">Cadastro</option></select></label><label className="grid gap-1.5"><FieldLabel>Direção</FieldLabel><select name="sortDir" defaultValue={sortDir}><option value="asc">Ascendente</option><option value="desc">Descendente</option></select></label><label className="grid gap-1.5 md:col-span-1 xl:col-span-2"><FieldLabel>Página</FieldLabel><select name="pageSize" defaultValue={String(pageSize)}><option value="10">10 por página</option><option value="20">20 por página</option><option value="50">50 por página</option></select></label><button className="nds-button md:col-span-1 xl:col-span-4" data-variant="primary">Aplicar filtros</button></form></Surface><Surface><SectionIntro
-          eyebrow="Base"
-          title="Conectores cadastrados"
-          description="Conectores e testes."
-          compact
-        /><div className="mt-2">
-          {integrationsResponse.items.length ? (
-            <div className="grid gap-2">
-              {integrationsResponse.items.map((integration) => {
-                const check = checkById.get(integration.id);
-                const zabbix = zabbixById.get(integration.id);
+    <NovaLitShell activeHref="/integracoes">
+      <main className="nova-integracoes-page">
+        <header className="nova-integracoes-hero">
+          <div>
+            <span>Configuracoes / Integracoes</span>
+            <h1>Integrações</h1>
+            <p>Conectores, endpoints, credenciais e sincronizacao segura que alimentam o monitoramento.</p>
+          </div>
+          <div className="nova-integracoes-hero-actions">
+            <Link href="/sensores" className="nova-lit-button nova-lit-button-secondary">Ver sensores</Link>
+            <a href="#novo-conector" className="nova-lit-button nova-lit-button-primary">Novo conector</a>
+          </div>
+        </header>
 
-                return (
-                  <article
-                    key={integration.id}
-                    className="nds-card"
-                  ><div className="nova-integration-card-row border-b border-white/[0.08] pb-2"><div className="min-w-0"><div className="text-[12px] font-black text-slate-50">
-                          {integration.code} · {integration.name}
-                        </div><div className="mt-1 truncate text-[11px] text-slate-500">
-                          {truncateUrl(integration.baseUrl)}
-                          {integration.apiPath || ""}
-                        </div></div><div className="text-[11px] text-slate-300">{typeLabel(integration.type)}</div><div className="text-[11px] text-slate-400">{authLabel(integration.authMode)}</div><div><TonePill tone={integration.isActive ? "success" : "subtle"}>
-                          {integration.isActive ? "ativo" : "inativo"}
-                        </TonePill></div><div className="flex items-center gap-2 lg:justify-end"><TonePill tone={healthTone(check?.ok)}>{statusLabel(check)}</TonePill></div></div><div className="pt-2">
-                      {zabbix ? (
-                        <div className="mb-2 grid gap-2 md:grid-cols-3"><div className="nova-micro-card px-2 py-2"><div className="nds-label">Versão</div><div className="mt-1 text-[13px] font-black text-slate-50">{zabbix.version || "-"}</div></div><div className="nova-micro-card px-2 py-2"><div className="nds-label">Hosts</div><div className="mt-1 text-[13px] font-black text-slate-50">{zabbix.monitoredHosts ?? "-"}</div></div><div className="nova-micro-card px-2 py-2"><div className="nds-label">Problemas</div><div className="mt-1 text-[13px] font-black text-slate-50">{zabbix.openProblems ?? "-"}</div></div></div>
-                      ) : null}
+        <section className="nova-integracoes-kpis">
+          <StatCard label="Conectores" value={summary.counts.integrationsTotal} hint={`${summary.counts.integrationsActive} ativos`} tone={summary.counts.integrationsActive ? "blue" : "slate"} />
+          <StatCard label="Saudaveis" value={summary.counts.integrationsHealthy} hint={`${summary.counts.integrationsFailing} falhando`} tone={summary.counts.integrationsFailing ? "orange" : "green"} />
+          <StatCard label="Zabbix" value={zabbixSources} hint="snapshot(s) ativos" tone={zabbixSources ? "green" : "slate"} />
+          <StatCard label="Filtro atual" value={total} hint="resultado(s)" tone={total ? "blue" : "slate"} />
+          <StatCard label="Sync pronto" value={telemetry.counts.syncReady} hint="hosts com tag explicita" tone={telemetry.counts.syncReady ? "green" : "slate"} />
+        </section>
 
-                      <ConnectorConfigForm
-                        integration={integration}
-                        updateAction={updateIntegration}
-                        testAction={testIntegration}
-                      /></div></article>
-                );
-              })}
-            </div>
-          ) : (
-            <EmptyState
-              title="Nenhum conector encontrado"
-              description="Ajuste filtros ou cadastre um novo conector para alimentar o monitoramento."
-            />
-          )}
-        </div></Surface><ListPagination pathname="/integracoes" searchParams={params} meta={integrationsResponse.meta} /><Surface id="novo-conector"><SectionIntro
-          eyebrow="Administração"
-          title="Novo conector"
-          description="Endpoint e credenciais de monitoramento."
-          compact
-        /><ActionForm
-          action={createIntegration}
-          className="mt-2 grid gap-2 md:grid-cols-2 xl:grid-cols-6"
-          noticeClassName="md:col-span-2 xl:col-span-6"
-          submitClassName="md:col-span-2 xl:col-span-6"
-          submitLabel="Criar conector"
-          pendingLabel="Criando..."
-        ><label className="grid gap-1.5"><FieldLabel>Código</FieldLabel><input name="code" placeholder="ZBX" /></label><label className="grid gap-1.5"><FieldLabel>Nome</FieldLabel><input name="name" placeholder="Zabbix principal" /></label><label className="grid gap-1.5"><FieldLabel>Tipo</FieldLabel><select name="type" defaultValue="zabbix"><option value="zabbix">zabbix</option><option value="generic_http">generic_http</option></select></label><label className="grid gap-1.5"><FieldLabel>Autenticação</FieldLabel><select name="authMode" defaultValue="none"><option value="none">none</option><option value="token">token</option><option value="userpass">userpass</option></select></label><label className="grid gap-1.5 xl:col-span-2"><FieldLabel>Base URL</FieldLabel><input name="baseUrl" placeholder="https://sensores.exemplo/zabbix" /></label><label className="grid gap-1.5 md:col-span-2"><FieldLabel>Caminho opcional</FieldLabel><input name="apiPath" placeholder="/api_jsonrpc.php" /></label><label className="grid gap-1.5 md:col-span-2"><FieldLabel>API token</FieldLabel><input name="apiToken" placeholder="Opcional" /></label><label className="grid gap-1.5"><FieldLabel>Usuário</FieldLabel><input name="username" placeholder="Opcional" /></label><label className="grid gap-1.5"><FieldLabel>Senha</FieldLabel><input name="password" type="password" placeholder="Opcional" /></label></ActionForm></Surface></AppShell>
+        <IntegrationHealthStrip checks={summary.integrationChecks} />
+        <ZabbixReadinessPanel telemetry={telemetry} isAdmin={isAdmin} />
+
+        <div className="nova-integracoes-layout">
+          <div className="nova-integracoes-main">
+            <Panel
+              eyebrow="Consulta"
+              title="Buscar conectores"
+              action={<Link href="/integracoes" className="nova-lit-button nova-lit-button-secondary">Limpar</Link>}
+            >
+              <form method="GET" className="nova-integracoes-filter">
+                <label className="is-wide">
+                  <span>Busca</span>
+                  <input name="q" defaultValue={q} placeholder="Codigo, nome, tipo ou URL" />
+                </label>
+
+                <label>
+                  <span>Tipo</span>
+                  <select name="type" defaultValue={type}>
+                    <option value="all">Todos</option>
+                    <option value="zabbix">zabbix</option>
+                    <option value="generic_http">generic_http</option>
+                  </select>
+                </label>
+
+                <label>
+                  <span>Status</span>
+                  <select name="active" defaultValue={active}>
+                    <option value="all">Todos</option>
+                    <option value="true">Ativos</option>
+                    <option value="false">Inativos</option>
+                  </select>
+                </label>
+
+                <label>
+                  <span>Ordem</span>
+                  <select name="sortBy" defaultValue={sortBy}>
+                    <option value="code">Codigo</option>
+                    <option value="name">Nome</option>
+                    <option value="type">Tipo</option>
+                    <option value="createdAt">Cadastro</option>
+                  </select>
+                </label>
+
+                <label>
+                  <span>Direcao</span>
+                  <select name="sortDir" defaultValue={sortDir}>
+                    <option value="asc">Asc</option>
+                    <option value="desc">Desc</option>
+                  </select>
+                </label>
+
+                <label>
+                  <span>Linhas</span>
+                  <select name="pageSize" defaultValue={String(pageSize)}>
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                  </select>
+                </label>
+
+                <button className="nova-lit-button nova-lit-button-primary" type="submit">Filtrar</button>
+              </form>
+            </Panel>
+
+            <Panel
+              eyebrow="Base"
+              title="Conectores cadastrados"
+              action={<Badge tone="blue">{integrationsResponse.items.length} linha(s)</Badge>}
+            >
+              {integrationsResponse.items.length ? (
+                <div className="nova-integracoes-list">
+                  {integrationsResponse.items.map((integration) => {
+                    const check = checkById.get(integration.id);
+                    const zabbix = zabbixById.get(integration.id);
+
+                    return (
+                      <article key={integration.id} className="nova-integracoes-connector">
+                        <div className="nova-integracoes-connector-head">
+                          <div>
+                            <strong>{integration.code} - {integration.name}</strong>
+                            <p>{truncateUrl(integration.baseUrl)}{integration.apiPath || ""}</p>
+                          </div>
+                          <div className="nova-integracoes-connector-tags">
+                            <Badge tone="blue">{typeLabel(integration.type)}</Badge>
+                            <Badge tone="slate">{authLabel(integration.authMode)}</Badge>
+                            <Badge tone={integration.isActive ? "green" : "slate"}>{integration.isActive ? "ativo" : "inativo"}</Badge>
+                            <Badge tone={healthTone(check?.ok)}>{statusLabel(check)}</Badge>
+                          </div>
+                        </div>
+
+                        {zabbix ? (
+                          <div className="nova-integracoes-zabbix-summary">
+                            <div><span>Versao</span><strong>{zabbix.version || "-"}</strong></div>
+                            <div><span>Hosts</span><strong>{zabbix.monitoredHosts ?? "-"}</strong></div>
+                            <div><span>Problemas</span><strong>{zabbix.openProblems ?? "-"}</strong></div>
+                          </div>
+                        ) : null}
+
+                        <ConnectorConfigForm
+                          integration={integration}
+                          updateAction={updateIntegration}
+                          testAction={testIntegration}
+                        />
+                      </article>
+                    );
+                  })}
+                </div>
+              ) : (
+                <EmptyBlock
+                  title="Nenhum conector encontrado"
+                  description="Ajuste os filtros ou cadastre um novo conector para alimentar o monitoramento."
+                />
+              )}
+
+              <div className="nova-integracoes-pagination">
+                <span>Pagina {page} de {totalPages} - {total} conector(es)</span>
+                <div>
+                  <Link
+                    aria-disabled={page <= 1}
+                    className={page <= 1 ? "is-disabled" : ""}
+                    href={page <= 1 ? "#" : hrefWithParams("/integracoes", params, { page: page - 1 })}
+                  >
+                    Anterior
+                  </Link>
+                  <Link
+                    aria-disabled={page >= totalPages}
+                    className={page >= totalPages ? "is-disabled" : ""}
+                    href={page >= totalPages ? "#" : hrefWithParams("/integracoes", params, { page: page + 1 })}
+                  >
+                    Proxima
+                  </Link>
+                </div>
+              </div>
+            </Panel>
+          </div>
+
+          <aside className="nova-integracoes-side">
+            <Panel eyebrow="Rotina" title="Governanca">
+              <ProgressLine label="Ativos" value={summary.counts.integrationsActive} total={summary.counts.integrationsTotal} tone="green" />
+              <ProgressLine label="Saudaveis" value={summary.counts.integrationsHealthy} total={summary.counts.integrationsActive} tone="blue" />
+              <ProgressLine label="Falhando" value={summary.counts.integrationsFailing} total={summary.counts.integrationsActive} tone="red" />
+              <ProgressLine label="Prontos sync" value={telemetry.counts.syncReady} total={telemetry.counts.units} tone="orange" />
+            </Panel>
+
+            <Panel eyebrow="Acao rapida" title="Atalhos">
+              <div className="nova-integracoes-shortcuts">
+                <Link href="/sensores"><span>Sensores</span><strong>abrir</strong></Link>
+                <Link href="/monitoramento"><span>Monitoramento</span><strong>abrir</strong></Link>
+                <Link href="/reconciliacao"><span>Reconciliação</span><strong>abrir</strong></Link>
+                <Link href="/automacao"><span>Automação</span><strong>abrir</strong></Link>
+              </div>
+            </Panel>
+
+            <Panel eyebrow="Contrato" title="Zabbix seguro">
+              <div className="nova-integracoes-rule">
+                <p>1. O portal localiza o host por código, nome, serial, MAC e tag.</p>
+                <p>2. A escrita só ocorre quando existe match inequívoco.</p>
+                <p>3. A tag recomendada é <code>nova.unit_code</code>.</p>
+                <p>4. Sem tag explícita, a tela monitora e bloqueia sync automático.</p>
+              </div>
+            </Panel>
+          </aside>
+        </div>
+
+        <Panel eyebrow="Administracao" title="Novo conector" className="nova-integracoes-new" action={<Badge tone="green">admin</Badge>}>
+          <ActionForm
+            action={createIntegration}
+            className="nova-integracoes-create-form"
+            noticeClassName="nova-integracoes-form-wide-all"
+            submitClassName="nova-integracoes-form-wide-all"
+            submitLabel="Criar conector"
+            pendingLabel="Criando..."
+          >
+            <label>
+              <span>Codigo</span>
+              <input name="code" placeholder="ZBX" />
+            </label>
+
+            <label>
+              <span>Nome</span>
+              <input name="name" placeholder="Zabbix principal" />
+            </label>
+
+            <label>
+              <span>Tipo</span>
+              <select name="type" defaultValue="zabbix">
+                <option value="zabbix">zabbix</option>
+                <option value="generic_http">generic_http</option>
+              </select>
+            </label>
+
+            <label>
+              <span>Autenticacao</span>
+              <select name="authMode" defaultValue="none">
+                <option value="none">none</option>
+                <option value="token">token</option>
+                <option value="userpass">userpass</option>
+              </select>
+            </label>
+
+            <label className="is-double">
+              <span>Base URL</span>
+              <input name="baseUrl" placeholder="https://sensores.exemplo/zabbix" />
+            </label>
+
+            <label className="is-double">
+              <span>Caminho opcional</span>
+              <input name="apiPath" placeholder="/api_jsonrpc.php" />
+            </label>
+
+            <label className="is-double">
+              <span>API token</span>
+              <input name="apiToken" placeholder="Opcional" />
+            </label>
+
+            <label>
+              <span>Usuario</span>
+              <input name="username" placeholder="Opcional" />
+            </label>
+
+            <label>
+              <span>Senha</span>
+              <input name="password" type="password" placeholder="Opcional" />
+            </label>
+          </ActionForm>
+        </Panel>
+      </main>
+    </NovaLitShell>
   );
 }

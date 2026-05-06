@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { AppShell } from "@/components/app-shell";
+import { NovaLitShell } from "@/components/nova-lit/nova-lit-shell";
 import { AttachmentPanel } from "@/components/attachment-panel";
 import { EntityEditModal } from "@/components/entity-edit-modal";
 import { OperationalDeletePanel } from "@/components/operational-delete-panel";
@@ -379,11 +379,8 @@ export default async function ParceiroDetailPage({
   ];
 
   return (
-    <AppShell
-      title="Detalhes do parceiro"
-      subtitle="Ficha operacional com unidades atendidas, contatos legados e edição controlada."
-      hidePageHeader
-    >
+    <NovaLitShell activeHref="/parceiros">
+      <div className="nova-partner-detail-lit-page">
       {created ? <CreatedNotice from={from} /> : null}
 
       <RegistryDetailHero
@@ -593,6 +590,7 @@ export default async function ParceiroDetailPage({
                 description="Ações vinculadas a este parceiro aparecem aqui."
               />
             )}
-          </div></Surface></section></AppShell>
+          </div></Surface></section>      </div>
+    </NovaLitShell>
   );
 }

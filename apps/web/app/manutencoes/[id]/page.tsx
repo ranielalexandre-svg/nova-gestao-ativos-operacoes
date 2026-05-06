@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { AppShell } from "@/components/app-shell";
+import { NovaLitShell } from "@/components/nova-lit/nova-lit-shell";
 import { LinkedHostPanel } from "@/components/linked-host-panel";
 import {
   ConnectedRoutesPanel,
@@ -125,10 +125,8 @@ export default async function ManutencaoDetailPage({
   ];
 
   return (
-    <AppShell
-      title={`${maintenance.code} · ${maintenance.title}`}
-      subtitle="Ficha operacional do chamado, vínculo técnico e janela de execução."
-    ><RegistryDetailHero
+    <NovaLitShell activeHref="/chamados">
+      <div className="nova-maintenance-detail-lit-page"><RegistryDetailHero
         eyebrow="Chamado"
         title={maintenance.title}
         description={maintenance.description || "Sem descrição complementar registrada."}
@@ -314,6 +312,7 @@ export default async function ManutencaoDetailPage({
                   description="O chamado ainda não aponta para parceiro, unidade, ativo ou alerta."
                 />
               ) : null}
-            </div></Surface></div></section></AppShell>
+            </div></Surface></div></section>      </div>
+    </NovaLitShell>
   );
 }

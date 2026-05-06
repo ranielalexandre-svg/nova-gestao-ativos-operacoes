@@ -1,7 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { ActionForm } from "@/components/action-form";
-import { AppShell } from "@/components/app-shell";
+import { NovaLitShell } from "@/components/nova-lit/nova-lit-shell";
 import {
   DenseTable,
   EmptyState,
@@ -130,10 +130,8 @@ export default async function OperacaoSlaPage() {
   const caseCount = items.reduce((sum, item) => sum + item._count.exceptionCases, 0);
 
   return (
-    <AppShell
-      title="Políticas de SLA"
-      subtitle="Contratos operacionais de prazo, severidade e fila para exceções."
-    ><RegistryHero
+    <NovaLitShell activeHref="/operacao/sla">
+      <div className="nova-operation-sla-lit-page"><RegistryHero
         eyebrow="Policy Desk"
         title="SLA como contrato visível, não como formulário escondido"
         description="Severidade, fila e impacto no backlog."
@@ -243,6 +241,7 @@ export default async function OperacaoSlaPage() {
             ))}
           </div></Surface>
       ) : null}
-    </AppShell>
+          </div>
+    </NovaLitShell>
   );
 }

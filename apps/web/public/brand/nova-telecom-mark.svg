@@ -1,0 +1,24 @@
+<svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">NOVA</title>
+  <desc id="desc">Marca compacta NOVA.</desc>
+
+  <rect x="0.5" y="0.5" width="43" height="43" rx="12" fill="#07182B" stroke="rgba(110,170,255,0.35)"/>
+
+  <text x="8" y="28"
+    fill="#F7FBFF"
+    font-family="Inter, Arial, Helvetica, sans-serif"
+    font-size="17"
+    font-weight="900"
+    letter-spacing="0.2">
+    NOV
+  </text>
+
+  <text x="29.8" y="28"
+    fill="#FF7A00"
+    font-family="Inter, Arial, Helvetica, sans-serif"
+    font-size="17"
+    font-weight="900"
+    letter-spacing="0.2">
+    A
+  </text>
+</svg>

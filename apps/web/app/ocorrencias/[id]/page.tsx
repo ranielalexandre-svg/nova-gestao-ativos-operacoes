@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { AppShell } from "@/components/app-shell";
+import { NovaLitShell } from "@/components/nova-lit/nova-lit-shell";
 import { AttachmentPanel } from "@/components/attachment-panel";
 import { LinkedHostPanel } from "@/components/linked-host-panel";
 import {
@@ -142,10 +142,8 @@ export default async function OcorrenciaDetailPage({
   ];
 
   return (
-    <AppShell
-      title={`${occurrence.code} · ${occurrence.title}`}
-      subtitle="Ficha operacional do alerta, vínculos e ações relacionadas."
-    ><RegistryDetailHero
+    <NovaLitShell activeHref="/alertas">
+      <div className="nova-occurrence-detail-lit-page"><RegistryDetailHero
         eyebrow="Alerta"
         title={occurrence.title}
         description={occurrence.description || "Sem descrição complementar registrada."}
@@ -347,6 +345,7 @@ export default async function OcorrenciaDetailPage({
               description="Chamados vinculados ao alerta."
             />
           )}
-        </div></Surface></AppShell>
+        </div></Surface>      </div>
+    </NovaLitShell>
   );
 }

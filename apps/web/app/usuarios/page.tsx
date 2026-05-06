@@ -1,28 +1,11 @@
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { AppShell } from "@/components/app-shell";
+import type { ReactNode } from "react";
 import { ActionForm } from "@/components/action-form";
 import { ListPagination } from "@/components/list-pagination";
+import { NovaLitShell } from "@/components/nova-lit/nova-lit-shell";
 import { OperationalDeletePanel } from "@/components/operational-delete-panel";
-import {
-  DenseTable,
-  EmptyState,
-  FieldLabel,
-  SectionIntro,
-  Surface,
-  TableActionAnchor,
-  TableActionCell,
-  TableActionHeader,
-  TableCell,
-  TableHead,
-  TableShell,
-  TonePill,
-} from "@/components/ops-ui";
-import {
-  RegistryHero,
-  RegistrySummaryStrip,
-} from "@/components/registry-shell";
 import { apiJson } from "@/lib/server-api";
 import {
   getActionErrorMessage,
@@ -37,8 +20,10 @@ import {
   type RawSearchParams,
 } from "@/lib/list-query";
 import { formatDateTime } from "@/lib/formatters";
-import { isAdminRole, ROLE_OPTIONS, roleLabel, roleTone } from "@/lib/role-policy";
+import { isAdminRole, ROLE_OPTIONS, roleLabel } from "@/lib/role-policy";
 import { getServerWebSession } from "@/lib/web-session";
+
+type Tone = "green" | "orange" | "blue" | "red" | "slate";
 
 type UserRow = {
   id: string;
@@ -48,6 +33,168 @@ type UserRow = {
   isActive: boolean;
   createdAt: string;
 };
+
+function roleToneLocal(role: string): Tone {
+  if (role === "admin") return "green";
+  if (role === "editor") return "blue";
+  if (role === "operator") return "orange";
+  if (role === "viewer") return "slate";
+  return "slate";
+}
+
+function statusTone(isActive: boolean): Tone {
+  return isActive ? "green" : "red";
+}
+
+function Badge({ tone, children }: { tone: Tone; children: ReactNode }) {
+  return <span className={`nova-users-badge is-${tone}`}>{children}</span>;
+}
+
+function Dot({ tone }: { tone: Tone }) {
+  return <span className={`nova-users-dot is-${tone}`} />;
+}
+
+function MetricCard({
+  label,
+  value,
+  detail,
+  tone,
+}: {
+  label: string;
+  value: string | number;
+  detail: string;
+  tone: Tone;
+}) {
+  return (
+    <div className="nova-users-metric">
+      <div className="nova-users-metric__head">
+        <span>{label}</span>
+        <Dot tone={tone} />
+      </div>
+      <strong>{value}</strong>
+      <small>{detail}</small>
+    </div>
+  );
+}
+
+async function createUser(
+  _prevState: ActionFeedbackState,
+  formData: FormData,
+): Promise<ActionFeedbackState> {
+  "use server";
+
+  try {
+    if (!isAdminRole((await getServerWebSession()).user?.role || "")) {
+      return { status: "error", message: "Acesso negado." };
+    }
+
+    await apiJson("/users", {
+      method: "POST",
+      body: JSON.stringify({
+        name: String(formData.get("name") || ""),
+        email: String(formData.get("email") || ""),
+        role: String(formData.get("role") || ""),
+        password: String(formData.get("password") || ""),
+      }),
+    });
+
+    revalidatePath("/usuarios");
+    return { status: "success", message: "Usuário criado com sucesso." };
+  } catch (error) {
+    return { status: "error", message: getActionErrorMessage(error) };
+  }
+}
+
+async function updateUser(
+  _prevState: ActionFeedbackState,
+  formData: FormData,
+): Promise<ActionFeedbackState> {
+  "use server";
+
+  try {
+    if (!isAdminRole((await getServerWebSession()).user?.role || "")) {
+      return { status: "error", message: "Acesso negado." };
+    }
+
+    const id = String(formData.get("id") || "");
+
+    await apiJson(`/users/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        name: String(formData.get("name") || ""),
+        role: String(formData.get("role") || ""),
+        isActive: formData.get("isActive") === "on",
+      }),
+    });
+
+    revalidatePath("/usuarios");
+    return { status: "success", message: "Usuário atualizado com sucesso." };
+  } catch (error) {
+    return { status: "error", message: getActionErrorMessage(error) };
+  }
+}
+
+async function resetPassword(
+  _prevState: ActionFeedbackState,
+  formData: FormData,
+): Promise<ActionFeedbackState> {
+  "use server";
+
+  try {
+    if (!isAdminRole((await getServerWebSession()).user?.role || "")) {
+      return { status: "error", message: "Acesso negado." };
+    }
+
+    const id = String(formData.get("id") || "");
+
+    await apiJson(`/users/${id}/password`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        password: String(formData.get("password") || ""),
+      }),
+    });
+
+    revalidatePath("/usuarios");
+    return { status: "success", message: "Senha redefinida com sucesso." };
+  } catch (error) {
+    return { status: "error", message: getActionErrorMessage(error) };
+  }
+}
+
+async function deleteUser(
+  _prevState: ActionFeedbackState,
+  formData: FormData,
+): Promise<ActionFeedbackState> {
+  "use server";
+
+  const id = String(formData.get("id") || "");
+
+  try {
+    const actionSession = await getServerWebSession();
+    if (!isAdminRole(actionSession.user?.role || "")) {
+      return { status: "error", message: "Acesso negado." };
+    }
+
+    if (id === actionSession.user?.id) {
+      return { status: "error", message: "Você não pode excluir o próprio usuário logado." };
+    }
+
+    if (formData.get("confirmDelete") !== "yes") {
+      return { status: "error", message: "Confirme a exclusão para continuar." };
+    }
+
+    await apiJson(`/users/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ isActive: false }),
+    });
+
+    revalidatePath("/usuarios");
+  } catch (error) {
+    return { status: "error", message: getActionErrorMessage(error) };
+  }
+
+  redirect("/usuarios?active=true");
+}
 
 export default async function UsuariosPage({
   searchParams,
@@ -73,96 +220,6 @@ export default async function UsuariosPage({
   const page = readPositiveIntParam(params, "page", 1);
   const pageSize = readPositiveIntParam(params, "pageSize", 10);
 
-  async function updateUser(
-    _prevState: ActionFeedbackState,
-    formData: FormData,
-  ): Promise<ActionFeedbackState> {
-    "use server";
-
-    try {
-      if (!isAdminRole((await getServerWebSession()).user?.role || "")) {
-        return { status: "error", message: "Acesso negado." };
-      }
-
-      const id = String(formData.get("id") || "");
-
-      await apiJson(`/users/${id}`, {
-        method: "PATCH",
-        body: JSON.stringify({
-          name: String(formData.get("name") || ""),
-          role: String(formData.get("role") || ""),
-          isActive: formData.get("isActive") === "on",
-        }),
-      });
-
-      revalidatePath("/usuarios");
-      return { status: "success", message: "Usuário atualizado com sucesso." };
-    } catch (error) {
-      return { status: "error", message: getActionErrorMessage(error) };
-    }
-  }
-
-  async function resetPassword(
-    _prevState: ActionFeedbackState,
-    formData: FormData,
-  ): Promise<ActionFeedbackState> {
-    "use server";
-
-    try {
-      if (!isAdminRole((await getServerWebSession()).user?.role || "")) {
-        return { status: "error", message: "Acesso negado." };
-      }
-
-      const id = String(formData.get("id") || "");
-
-      await apiJson(`/users/${id}/password`, {
-        method: "PATCH",
-        body: JSON.stringify({
-          password: String(formData.get("password") || ""),
-        }),
-      });
-
-      revalidatePath("/usuarios");
-      return { status: "success", message: "Senha redefinida com sucesso." };
-    } catch (error) {
-      return { status: "error", message: getActionErrorMessage(error) };
-    }
-  }
-
-  async function deleteUser(
-    _prevState: ActionFeedbackState,
-    formData: FormData,
-  ): Promise<ActionFeedbackState> {
-    "use server";
-
-    const id = String(formData.get("id") || "");
-
-    try {
-      const actionSession = await getServerWebSession();
-      if (!isAdminRole(actionSession.user?.role || "")) {
-        return { status: "error", message: "Acesso negado." };
-      }
-
-      if (id === actionSession.user?.id) {
-        return { status: "error", message: "Você não pode excluir o próprio usuário logado." };
-      }
-      if (formData.get("confirmDelete") !== "yes") {
-        return { status: "error", message: "Confirme a exclusão para continuar." };
-      }
-
-      await apiJson(`/users/${id}`, {
-        method: "PATCH",
-        body: JSON.stringify({ isActive: false }),
-      });
-
-      revalidatePath("/usuarios");
-    } catch (error) {
-      return { status: "error", message: getActionErrorMessage(error) };
-    }
-
-    redirect("/usuarios?active=true");
-  }
-
   const response = await apiJson<PaginatedResponse<UserRow>>(
     `/users${buildApiQuery({
       q,
@@ -175,204 +232,382 @@ export default async function UsuariosPage({
     })}`,
   );
 
-  const activeOnPage = response.items.filter((user) => user.isActive).length;
   const currentUserId = session.user?.id || "";
+  const activeOnPage = response.items.filter((user) => user.isActive).length;
+  const inactiveOnPage = response.items.filter((user) => !user.isActive).length;
   const adminOnPage = response.items.filter((user) => user.role === "admin").length;
   const editorOnPage = response.items.filter((user) => user.role === "editor").length;
   const operatorOnPage = response.items.filter((user) => user.role === "operator").length;
   const viewerOnPage = response.items.filter((user) => user.role === "viewer").length;
 
   return (
-    <AppShell
-      title="Usuários"
-      subtitle="Gestão administrativa de acesso."
-    ><RegistryHero
-        eyebrow="Access Control"
-        title="Usuários, papéis e status sem ocupar a operação"
-        description="Usuários, acessos e permissões."
-      /><RegistrySummaryStrip
-        items={[
-          {
-            label: "Usuários",
-            value: response.meta.total,
-            meta: "resultado filtrado",
-            tone: "info",
-          },
-          {
-            label: "Ativos",
-            value: activeOnPage,
-            meta: "nesta página",
-            tone: activeOnPage ? "success" : "neutral",
-          },
-          {
-            label: "Admins",
-            value: adminOnPage,
-            meta: `${editorOnPage} editor(es), ${operatorOnPage} operador(es)`,
-            tone: adminOnPage ? "success" : "attention",
-          },
-          {
-            label: "Leitores",
-            value: viewerOnPage,
-            meta: "acesso somente leitura",
-            tone: viewerOnPage ? "attention" : "neutral",
-          },
-        ]}
-        noteTitle="Menos formulário aberto"
-        noteCopy="A lista é o centro da tela; criação, edição e senha ficam no mesmo contexto para não disputar atenção com a revisão dos usuários."
-      /><Surface><SectionIntro
-          eyebrow="Filtros"
-          title="Refine pessoa, papel e estado"
-          description="Busca por nome ou e-mail, com role, status e ordenação preservados na URL."
-          actions={
-            <Link
-              href="/usuarios"
-              className="nds-button"
-              data-variant="secondary"
-            >
-              Limpar filtros
-            </Link>
-          }
-          compact
-        /><form method="GET" className="nova-filter-grid nova-filter-grid--users mt-2"><div className="grid gap-1.5"><FieldLabel htmlFor="users-q" label="Busca" /><input
-              id="users-q"
-              name="q"
-              defaultValue={q}
-              placeholder="Nome ou e-mail"
-            /></div><div className="grid gap-1.5"><FieldLabel htmlFor="users-role" label="Papel" /><select
-              id="users-role"
-              name="role"
-              defaultValue={role}
-            ><option value="all">Todos os papéis</option>
-                    {ROLE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select></div><div className="grid gap-1.5"><FieldLabel htmlFor="users-active" label="Status" /><select
-              id="users-active"
-              name="active"
-              defaultValue={active}
-            ><option value="all">Todos</option><option value="true">Ativos</option><option value="false">Excluídos</option></select></div><div className="grid gap-1.5"><FieldLabel htmlFor="users-sort-by" label="Ordenar por" /><select
-              id="users-sort-by"
-              name="sortBy"
-              defaultValue={sortBy}
-            ><option value="createdAt">Cadastro</option><option value="name">Nome</option><option value="email">E-mail</option><option value="role">Papel</option></select></div><div className="grid gap-1.5"><FieldLabel htmlFor="users-sort-dir" label="Direção" /><select
-              id="users-sort-dir"
-              name="sortDir"
-              defaultValue={sortDir}
-            ><option value="desc">Descendente</option><option value="asc">Ascendente</option></select></div><div className="grid gap-1.5"><FieldLabel htmlFor="users-page-size" label="Página" /><select
-              id="users-page-size"
-              name="pageSize"
-              defaultValue={String(pageSize)}
-            ><option value="10">10 por página</option><option value="20">20 por página</option><option value="50">50 por página</option></select></div><button className="nds-button xl:self-end" data-variant="primary">
-            Aplicar filtros
-          </button></form></Surface><Surface><SectionIntro
-          eyebrow="Acessos"
-          title="Usuários cadastrados"
-          description={`${response.meta.total} usuário(s) encontrados nesta visão.`}
-          actions={<TonePill tone="neutral">{response.items.length} linhas</TonePill>}
-          compact
-        /><div className="mt-2">
-          {response.items.length ? (
-            <TableShell><DenseTable><TableHead><tr><th className="px-3 py-2">Usuário</th><th className="px-3 py-2">Papel</th><th className="px-3 py-2">Status</th><th className="px-3 py-2">Criado em</th><TableActionHeader>Ajuste</TableActionHeader></tr></TableHead><tbody>
-                  {response.items.map((user) => (
-                    <tr
-                      key={user.id}
-                      className="border-b border-white/6 last:border-b-0 hover:bg-white/[0.025]"
-                    ><TableCell><div className="font-medium text-white">{user.name}</div><div className="mt-1 text-[10px] text-slate-500">{user.email}</div></TableCell><TableCell><TonePill tone={roleTone(user.role)}>{roleLabel(user.role)}</TonePill></TableCell><TableCell><TonePill tone={user.isActive ? "success" : "critical"}>
-                          {user.isActive ? "ativo" : "inativo"}
-                        </TonePill></TableCell><TableCell className="text-slate-400">{formatDateTime(user.createdAt)}</TableCell><TableActionCell><TableActionAnchor href={`#user-${user.id}`}>
-                          Ajustar acesso
-                        </TableActionAnchor></TableActionCell></tr>
-                  ))}
-                </tbody></DenseTable></TableShell>
-          ) : (
-            <EmptyState
-              title="Nenhum usuário encontrado"
-              description="Ajuste a busca ou limpe os filtros para voltar à base completa."
-              action={
-                <Link
-                  href="/usuarios"
-                  className="nds-button"
-                  data-variant="secondary"
-                >
-                  Limpar filtros
-                </Link>
-              }
-            />
-          )}
-        </div></Surface><ListPagination pathname="/usuarios" searchParams={params} meta={response.meta} />
+    <NovaLitShell activeHref="/usuarios">
+      <main className="nova-users-page">
+        <section className="nova-users-hero">
+          <div>
+            <span>Configurações / Usuários</span>
+            <h1>Usuários</h1>
+            <p>Gestão administrativa de acesso, papéis, status e senhas do ambiente operacional.</p>
+          </div>
+          <div className="nova-users-hero__actions">
+            <Link href="/perfis" className="nova-users-button is-secondary">Perfis</Link>
+            <Link href="#novo-usuario" className="nova-users-button is-primary">Novo usuário</Link>
+          </div>
+        </section>
 
-      {response.items.length ? (
-        <Surface><SectionIntro
-            eyebrow="Administração"
-            title="Editar acesso e senha"
-            description="Edição e revisão de acesso."
-            compact
-          /><div className="mt-2 grid gap-2">
-            {response.items.map((user) => (
-              <details
-                key={user.id}
-                id={`user-${user.id}`}
-                className="nds-card nova-user-admin-card"
-              ><summary className="flex cursor-pointer list-none flex-col gap-2 md:flex-row md:items-center md:justify-between"><div><div className="text-[13px] font-black text-white">{user.name}</div><div className="mt-1 text-[11px] text-slate-400">{user.email}</div></div><div className="flex flex-wrap gap-2"><TonePill tone={roleTone(user.role)}>{roleLabel(user.role)}</TonePill><TonePill tone={user.isActive ? "success" : "critical"}>
-                      {user.isActive ? "ativo" : "inativo"}
-                    </TonePill><TonePill tone="neutral">editar</TonePill></div></summary><div className="mt-2 flex justify-end border-t border-white/[0.08] pt-2"><OperationalDeletePanel
-                      action={deleteUser}
-                      entityId={user.id}
-                      entityLabel="usuário"
-                      entityName={`${user.name} - ${user.email}`}
-                      blockedReason={
-                        user.id === currentUserId
-                          ? "Você não pode excluir o próprio usuário logado."
-                          : !user.isActive
-                            ? "Este usuário já está inativo."
-                            : undefined
-                      }
-                    /></div><div className="mt-2 grid gap-2 xl:grid-cols-2"><ActionForm
-                    action={updateUser}
-                    className="nds-card grid gap-2"
-                    submitLabel="Salvar usuário"
-                    pendingLabel="Salvando..."
-                    variant="secondary"
-                  ><div className="text-[12px] font-black text-white">Dados de acesso</div><input type="hidden" name="id" value={user.id} /><div className="grid gap-1.5"><FieldLabel htmlFor={`edit-name-${user.id}`} label="Nome" /><input
-                        id={`edit-name-${user.id}`}
-                        name="name"
-                        defaultValue={user.name}
-                      /></div><div className="grid gap-1.5"><FieldLabel htmlFor={`edit-role-${user.id}`} label="Papel" /><select
-                        id={`edit-role-${user.id}`}
-                        name="role"
-                        defaultValue={user.role}
-                      >
+        <section className="nova-users-metrics">
+          <MetricCard
+            label="Usuários"
+            value={response.meta.total}
+            detail="resultado filtrado"
+            tone="blue"
+          />
+          <MetricCard
+            label="Ativos"
+            value={activeOnPage}
+            detail={`${inactiveOnPage} inativo(s) nesta página`}
+            tone={activeOnPage ? "green" : "slate"}
+          />
+          <MetricCard
+            label="Admins"
+            value={adminOnPage}
+            detail={`${editorOnPage} editor(es)`}
+            tone={adminOnPage ? "green" : "orange"}
+          />
+          <MetricCard
+            label="Operadores"
+            value={operatorOnPage}
+            detail="execução operacional"
+            tone={operatorOnPage ? "orange" : "slate"}
+          />
+          <MetricCard
+            label="Leitores"
+            value={viewerOnPage}
+            detail="acesso somente leitura"
+            tone={viewerOnPage ? "blue" : "slate"}
+          />
+        </section>
+
+        <section className="nova-users-layout">
+          <div className="nova-users-main">
+            <section className="nova-users-card">
+              <div className="nova-users-section-head">
+                <div>
+                  <span>Filtros</span>
+                  <h2>Refine pessoa, papel e estado</h2>
+                  <p>Busca por nome ou e-mail, com papel, status e ordenação preservados na URL.</p>
+                </div>
+                <Link href="/usuarios" className="nova-users-button is-secondary">Limpar</Link>
+              </div>
+
+              <form method="GET" className="nova-users-filter-grid">
+                <label className="is-wide">
+                  <span>Busca</span>
+                  <input name="q" defaultValue={q} placeholder="Nome ou e-mail" />
+                </label>
+
+                <label>
+                  <span>Papel</span>
+                  <select name="role" defaultValue={role}>
+                    <option value="all">Todos os papéis</option>
+                    {ROLE_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label>
+                  <span>Status</span>
+                  <select name="active" defaultValue={active}>
+                    <option value="all">Todos</option>
+                    <option value="true">Ativos</option>
+                    <option value="false">Excluídos</option>
+                  </select>
+                </label>
+
+                <label>
+                  <span>Ordem</span>
+                  <select name="sortBy" defaultValue={sortBy}>
+                    <option value="createdAt">Cadastro</option>
+                    <option value="name">Nome</option>
+                    <option value="email">E-mail</option>
+                    <option value="role">Papel</option>
+                  </select>
+                </label>
+
+                <label>
+                  <span>Direção</span>
+                  <select name="sortDir" defaultValue={sortDir}>
+                    <option value="desc">Desc</option>
+                    <option value="asc">Asc</option>
+                  </select>
+                </label>
+
+                <label>
+                  <span>Linhas</span>
+                  <select name="pageSize" defaultValue={String(pageSize)}>
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                  </select>
+                </label>
+
+                <button className="nova-users-button is-primary">Aplicar filtros</button>
+              </form>
+            </section>
+
+            <section className="nova-users-card">
+              <div className="nova-users-section-head">
+                <div>
+                  <span>Acessos</span>
+                  <h2>Usuários cadastrados</h2>
+                  <p>{response.meta.total} usuário(s) encontrado(s) nesta visão.</p>
+                </div>
+                <Badge tone="blue">{response.items.length} linhas</Badge>
+              </div>
+
+              <div className="nova-users-table-wrap">
+                <table className="nova-users-table">
+                  <thead>
+                    <tr>
+                      <th>Usuário</th>
+                      <th>Papel</th>
+                      <th>Status</th>
+                      <th>Criado em</th>
+                      <th>Ajuste</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {response.items.length ? response.items.map((user) => (
+                      <tr key={user.id}>
+                        <td>
+                          <strong>{user.name}</strong>
+                          <small>{user.email}</small>
+                        </td>
+                        <td>
+                          <Badge tone={roleToneLocal(user.role)}>{roleLabel(user.role)}</Badge>
+                        </td>
+                        <td>
+                          <Badge tone={statusTone(user.isActive)}>{user.isActive ? "ativo" : "inativo"}</Badge>
+                        </td>
+                        <td>{formatDateTime(user.createdAt)}</td>
+                        <td>
+                          <a className="nova-users-row-action" href={`#user-${user.id}`}>Ajustar</a>
+                        </td>
+                      </tr>
+                    )) : (
+                      <tr>
+                        <td colSpan={5}>
+                          <div className="nova-users-empty">
+                            <strong>Nenhum usuário encontrado</strong>
+                            <span>Ajuste a busca ou limpe os filtros para voltar à base completa.</span>
+                            <Link href="/usuarios" className="nova-users-button is-secondary">Limpar filtros</Link>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="nova-users-pagination">
+                <ListPagination pathname="/usuarios" searchParams={params} meta={response.meta} />
+              </div>
+            </section>
+
+            {response.items.length ? (
+              <section className="nova-users-card">
+                <div className="nova-users-section-head">
+                  <div>
+                    <span>Administração</span>
+                    <h2>Editar acesso e senha</h2>
+                    <p>Edição, reset e bloqueio lógico no mesmo contexto da revisão.</p>
+                  </div>
+                </div>
+
+                <div className="nova-users-admin-list">
+                  {response.items.map((user) => (
+                    <details key={user.id} id={`user-${user.id}`} className="nova-users-admin-card">
+                      <summary>
+                        <div>
+                          <strong>{user.name}</strong>
+                          <small>{user.email}</small>
+                        </div>
+                        <div className="nova-users-summary-badges">
+                          <Badge tone={roleToneLocal(user.role)}>{roleLabel(user.role)}</Badge>
+                          <Badge tone={statusTone(user.isActive)}>{user.isActive ? "ativo" : "inativo"}</Badge>
+                          <Badge tone="slate">editar</Badge>
+                        </div>
+                      </summary>
+
+                      <div className="nova-users-delete-line">
+                        <OperationalDeletePanel
+                          action={deleteUser}
+                          entityId={user.id}
+                          entityLabel="usuário"
+                          entityName={`${user.name} - ${user.email}`}
+                          blockedReason={
+                            user.id === currentUserId
+                              ? "Você não pode excluir o próprio usuário logado."
+                              : !user.isActive
+                                ? "Este usuário já está inativo."
+                                : undefined
+                          }
+                        />
+                      </div>
+
+                      <div className="nova-users-edit-grid">
+                        <ActionForm
+                          action={updateUser}
+                          className="nova-users-form-panel"
+                          submitLabel="Salvar usuário"
+                          pendingLabel="Salvando..."
+                          variant="secondary"
+                        >
+                          <h3>Dados de acesso</h3>
+                          <input type="hidden" name="id" value={user.id} />
+
+                          <label>
+                            <span>Nome</span>
+                            <input name="name" defaultValue={user.name} />
+                          </label>
+
+                          <label>
+                            <span>Papel</span>
+                            <select name="role" defaultValue={user.role}>
                               {ROLE_OPTIONS.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select></div><label className="flex items-center gap-2 text-[11px] text-slate-300"><input
-                        type="checkbox"
-                        name="isActive"
-                        defaultChecked={user.isActive}
-                        className="h-4 w-4 rounded border-white/20 bg-[var(--nova-surface-3)]"
-                      />
-                      Usuário ativo
-                    </label></ActionForm><ActionForm
-                    action={resetPassword}
-                    className="nds-card grid gap-2"
-                    submitLabel="Redefinir senha"
-                    pendingLabel="Salvando..."
-                    variant="secondary"
-                  ><div className="text-[12px] font-black text-white">Senha</div><input type="hidden" name="id" value={user.id} /><div className="grid gap-1.5"><FieldLabel htmlFor={`reset-password-${user.id}`} label="Nova senha" /><input
-                        id={`reset-password-${user.id}`}
-                        name="password"
-                        type="password"
-                        placeholder="Nova senha"
-                      /></div><div className="text-[10px] text-slate-500">
-                      Criado em {formatDateTime(user.createdAt)}
-                    </div></ActionForm></div></details>
-            ))}
-          </div></Surface>
-      ) : null}
-    </AppShell>
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+
+                          <label className="nova-users-check">
+                            <input type="checkbox" name="isActive" defaultChecked={user.isActive} />
+                            <span>Usuário ativo</span>
+                          </label>
+                        </ActionForm>
+
+                        <ActionForm
+                          action={resetPassword}
+                          className="nova-users-form-panel"
+                          submitLabel="Redefinir senha"
+                          pendingLabel="Salvando..."
+                          variant="secondary"
+                        >
+                          <h3>Senha</h3>
+                          <input type="hidden" name="id" value={user.id} />
+
+                          <label>
+                            <span>Nova senha</span>
+                            <input name="password" type="password" placeholder="Mínimo de 8 caracteres" />
+                          </label>
+
+                          <p>Criado em {formatDateTime(user.createdAt)}</p>
+                        </ActionForm>
+                      </div>
+                    </details>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+          </div>
+
+          <aside className="nova-users-side">
+            <section className="nova-users-card" id="novo-usuario">
+              <div className="nova-users-section-head">
+                <div>
+                  <span>Novo acesso</span>
+                  <h2>Criar usuário</h2>
+                  <p>Convide operadores, editores e leitores com senha inicial provisória.</p>
+                </div>
+                <Badge tone="green">admin</Badge>
+              </div>
+
+              <ActionForm
+                action={createUser}
+                className="nova-users-create-form"
+                submitLabel="Criar usuário"
+                pendingLabel="Criando..."
+                variant="secondary"
+              >
+                <label>
+                  <span>Nome</span>
+                  <input name="name" placeholder="Nome completo" />
+                </label>
+
+                <label>
+                  <span>E-mail</span>
+                  <input name="email" type="email" placeholder="usuario@nova.local" />
+                </label>
+
+                <label>
+                  <span>Papel</span>
+                  <select name="role" defaultValue="viewer">
+                    {ROLE_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label>
+                  <span>Senha inicial</span>
+                  <input name="password" type="password" placeholder="Mínimo de 8 caracteres" />
+                </label>
+              </ActionForm>
+            </section>
+
+            <section className="nova-users-card">
+              <div className="nova-users-section-head">
+                <div>
+                  <span>Governança</span>
+                  <h2>Distribuição de papéis</h2>
+                </div>
+              </div>
+
+              <div className="nova-users-role-list">
+                <div><span>Administradores</span><strong>{adminOnPage}</strong></div>
+                <div><span>Editores</span><strong>{editorOnPage}</strong></div>
+                <div><span>Operadores</span><strong>{operatorOnPage}</strong></div>
+                <div><span>Leitores</span><strong>{viewerOnPage}</strong></div>
+              </div>
+            </section>
+
+            <section className="nova-users-card">
+              <div className="nova-users-section-head">
+                <div>
+                  <span>Regras rápidas</span>
+                  <h2>Controle de acesso</h2>
+                </div>
+              </div>
+
+              <div className="nova-users-rules">
+                <div>
+                  <strong>Admin</strong>
+                  <span>gerencia usuários, perfis e configurações</span>
+                </div>
+                <div>
+                  <strong>Editor</strong>
+                  <span>mantém cadastros e registros operacionais</span>
+                </div>
+                <div>
+                  <strong>Operator</strong>
+                  <span>atua na rotina e filas técnicas</span>
+                </div>
+                <div>
+                  <strong>Viewer</strong>
+                  <span>somente consulta e relatórios</span>
+                </div>
+              </div>
+            </section>
+          </aside>
+        </section>
+      </main>
+    </NovaLitShell>
   );
 }

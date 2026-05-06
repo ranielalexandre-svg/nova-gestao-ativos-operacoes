@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { AppShell } from "@/components/app-shell";
+import { NovaLitShell } from "@/components/nova-lit/nova-lit-shell";
 import { AttachmentPanel } from "@/components/attachment-panel";
 import { EntityEditModal } from "@/components/entity-edit-modal";
 import { OperationalDeletePanel } from "@/components/operational-delete-panel";
@@ -434,11 +434,8 @@ export default async function AtivoDetailPage({
   ];
 
   return (
-    <AppShell
-      title="Detalhes do ativo"
-      subtitle="Ativo vinculado a uma unidade; use a unidade para contexto operacional e monitoramento."
-      hidePageHeader
-    >
+    <NovaLitShell activeHref="/ativos">
+      <div className="nova-equipment-detail-lit-page">
       {created ? <CreatedNotice from={from} /> : null}
 
       <RegistryDetailHero
@@ -622,6 +619,7 @@ export default async function AtivoDetailPage({
                 description="Ações preventivas ou corretivas vinculadas a este ativo aparecem aqui."
               />
             )}
-          </div></Surface></section></AppShell>
+          </div></Surface></section>      </div>
+    </NovaLitShell>
   );
 }

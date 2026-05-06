@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
-import { AppShell } from "@/components/app-shell";
+import { NovaLitShell } from "@/components/nova-lit/nova-lit-shell";
 import {
   DenseTable,
   FieldLabel,
@@ -510,15 +510,11 @@ export default async function MonitoringReportsPage({
   );
 
   return (
-    <AppShell
-      title="Gerar relatório de consumo"
-      subtitle="Selecione o período, as unidades e revise os dados antes de exportar."
-      hidePageHeader
-    >
-      <div className="nova-monitoring-report-page grid gap-2">
+    <NovaLitShell activeHref="/relatorios/monitoramento">
+      <div className="nova-monitoring-report-page nova-monitoring-report-lit-page grid gap-2">
         <PageHeader
           eyebrow="Relatórios / Monitoramento"
-          title="Gerar relatório de consumo"
+          title="Gerar relatório de monitoramento"
           subtitle="Selecione o período, as unidades e revise os dados antes de exportar."
           actions={(
             <>
@@ -993,6 +989,6 @@ export default async function MonitoringReportsPage({
           </aside>
         </div>
       </div>
-    </AppShell>
+    </NovaLitShell>
   );
 }

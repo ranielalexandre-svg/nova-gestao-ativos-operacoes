@@ -1,107 +1,317 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { AppShell } from "@/components/app-shell";
-import { BarList, ChartCard, DenseTable, RightPanel, StackedMeter, StatCard, Surface, TableActionCell, TableActionHeader, TableActionLink, TableCell, TableHead, TableShell, TonePill } from "@/components/ops-ui";
-import { formatMs, formatPercent, healthLabel, healthTone, readUnitHostTelemetry, telemetryCoveragePct } from "@/lib/noc-overview";
+import { NovaLitShell } from "@/components/nova-lit/nova-lit-shell";
+import {
+  formatMs,
+  formatPercent,
+  healthLabel,
+  safeApiJson,
+  telemetryCoveragePct,
+  type UnitHostTelemetry,
+} from "@/lib/noc-overview";
 import { getServerWebSession } from "@/lib/web-session";
 
-function availabilityPct(units: number, down: number) {
-  if (!units) return 0;
-  return Math.max(0, ((units - down) / units) * 100);
+type Tone = "green" | "orange" | "blue" | "red" | "slate";
+
+const emptyTelemetry = {
+  generatedAt: new Date(0).toISOString(),
+  sources: [],
+  counts: {
+    units: 0,
+    matched: 0,
+    ambiguous: 0,
+    unmapped: 0,
+    online: 0,
+    degraded: 0,
+    down: 0,
+    withProblems: 0,
+    syncReady: 0,
+    avgLatencyMs: null,
+    avgLossPct: null,
+    maxTemperatureC: null,
+  },
+  items: [],
+} as unknown as UnitHostTelemetry;
+
+
+function availabilityPct(monitoredUnits: number, down: number) {
+  if (!monitoredUnits) return 0;
+  return Math.max(0, ((monitoredUnits - down) / monitoredUnits) * 100);
+}
+
+function pct(value: number) {
+  return `${value.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`;
+}
+
+function toneFromHealth(value: string): Tone {
+  if (value === "online") return "green";
+  if (value === "down") return "red";
+  if (value === "degraded" || value === "ambiguous") return "orange";
+  if (value === "unmapped" || value === "unknown") return "slate";
+  return "blue";
+}
+
+function availabilityTone(value: number): Tone {
+  if (value >= 99) return "green";
+  if (value >= 95) return "orange";
+  return "red";
+}
+
+function MetricCard({
+  label,
+  value,
+  detail,
+  tone,
+}: {
+  label: string;
+  value: string | number;
+  detail: string;
+  tone: Tone;
+}) {
+  return (
+    <div className={`nova-lit-metric-card is-${tone}`}>
+      <div className="nova-lit-metric-card__dot" />
+      <span>{label}</span>
+      <strong>{value}</strong>
+      <small>{detail}</small>
+    </div>
+  );
+}
+
+function Badge({ tone, children }: { tone: Tone; children: React.ReactNode }) {
+  return <span className={`nova-lit-badge is-${tone}`}>{children}</span>;
+}
+
+function Bar({
+  label,
+  value,
+  max,
+  tone,
+  href,
+}: {
+  label: string;
+  value: number;
+  max: number;
+  tone: Tone;
+  href: string;
+}) {
+  const width = max ? Math.max(2, Math.min(100, (value / max) * 100)) : 0;
+  return (
+    <Link href={href} className="nova-availability-bar">
+      <div className="nova-availability-bar__head">
+        <span>{label}</span>
+        <strong>{value}</strong>
+      </div>
+      <div className="nova-availability-bar__track">
+        <div className={`nova-availability-bar__fill is-${tone}`} style={{ width: `${width}%` }} />
+      </div>
+    </Link>
+  );
 }
 
 export default async function RelatorioDisponibilidadePage() {
   const session = await getServerWebSession();
   if (!session.authenticated) redirect("/login?next=/relatorios/disponibilidade");
 
-  const telemetry = await readUnitHostTelemetry({ timeoutMs: 1500 });
-  const availability = availabilityPct(telemetry.counts.units, telemetry.counts.down);
+  const telemetry = await safeApiJson<UnitHostTelemetry>("/monitoring/unit-hosts?mode=fast", emptyTelemetry);
+  const availabilityBase = telemetry.counts.matched;
+  const availability = availabilityPct(availabilityBase, telemetry.counts.down);
   const coverage = telemetryCoveragePct(telemetry);
-  const attentionRows = telemetry.items.filter((item) => item.health !== "online").slice(0, 12);
+  const attentionRows = telemetry.items.filter((item) => item.health !== "online").slice(0, 10);
+  const visibleRows = telemetry.items.slice(0, 18);
   const attention = telemetry.counts.degraded + telemetry.counts.ambiguous;
-  const healthSegments = [
-    { label: "online", value: telemetry.counts.online, tone: "success" },
-    { label: "atenção", value: attention, tone: "attention" },
-    { label: "offline", value: telemetry.counts.down, tone: "critical" },
-    { label: "sem vínculo", value: telemetry.counts.unmapped, tone: "subtle" },
-  ];
-  const interruptionBars = [
-    { label: "Offline", value: telemetry.counts.down, tone: "critical", href: "/sensores?health=down" },
-    { label: "Degradado", value: telemetry.counts.degraded, tone: "attention", href: "/sensores?health=degraded" },
-    { label: "Ambíguo", value: telemetry.counts.ambiguous, tone: "attention", href: "/sensores?health=ambiguous" },
-    { label: "Sem vínculo", value: telemetry.counts.unmapped, tone: "subtle", href: "/sensores?health=unmapped" },
+  const totalRisk = telemetry.counts.down + attention + telemetry.counts.unmapped;
+
+  const segments = [
+    { label: "Online", value: telemetry.counts.online, tone: "green" as const },
+    { label: "Atenção", value: attention, tone: "orange" as const },
+    { label: "Offline", value: telemetry.counts.down, tone: "red" as const },
+    { label: "Sem vínculo", value: telemetry.counts.unmapped, tone: "slate" as const },
   ];
 
   return (
-    <AppShell title="Relatórios / Disponibilidade" subtitle="SLA por unidade, vínculo Zabbix e indisponibilidade operacional.">
-      <section className="nova-side-grid nova-side-grid--360">
-        <div className="grid gap-2">
-          <div className="grid gap-2 md:grid-cols-4">
-            <StatCard label="SLA estimado" value={`${availability.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`} detail="baseado em hosts online/offline" tone={availability >= 99 ? "success" : availability >= 95 ? "attention" : "critical"} />
-            <StatCard label="Cobertura" value={`${coverage}%`} detail="unidades com host confiável" tone={coverage >= 90 ? "success" : "attention"} />
-            <StatCard label="Offline" value={telemetry.counts.down} detail="unidades indisponíveis" tone={telemetry.counts.down ? "critical" : "success"} />
-            <StatCard label="Atenção" value={telemetry.counts.degraded + telemetry.counts.ambiguous} detail="degradado ou ambíguo" tone="attention" />
+    <NovaLitShell activeHref="/relatorios/disponibilidade">
+      <main className="nova-lit-page nova-availability-page">
+        <section className="nova-lit-hero">
+          <div>
+            <span className="nova-lit-eyebrow">Relatórios / Disponibilidade</span>
+            <h1>Relatório de disponibilidade</h1>
+            <p>SLA por unidade, vínculo Zabbix, perda, latência e indisponibilidade operacional.</p>
           </div>
-
-          <div className="grid gap-2 lg:grid-cols-2">
-            <ChartCard title="SLA consolidado" subtitle="estado atual das unidades monitoradas" tone={availability >= 99 ? "success" : availability >= 95 ? "attention" : "critical"}>
-              <StackedMeter segments={healthSegments} total={telemetry.counts.units} emptyLabel="Sem telemetria carregada." />
-            </ChartCard>
-            <ChartCard title="Indisponibilidade" subtitle="unidades por condição de risco" tone={telemetry.counts.down ? "critical" : "info"}>
-              <BarList data={interruptionBars} max={Math.max(1, telemetry.counts.units)} emptyLabel="Nenhuma unidade fora da normalidade." />
-            </ChartCard>
+          <div className="nova-lit-hero__actions">
+            <Link href="/sensores" className="nds-button" data-variant="secondary">Ver sensores</Link>
+            <Link href="/relatorios/monitoramento" className="nds-button" data-variant="primary">Gerar relatório</Link>
           </div>
+        </section>
 
-          <Surface>
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <div className="nds-label">SLA por unidade</div>
-                <h2 className="mt-1 text-[15px] font-black text-white">Disponibilidade operacional</h2>
+        <section className="nova-lit-metrics-grid is-five">
+          <MetricCard
+            label="SLA estimado"
+            value={availabilityBase ? pct(availability) : "0%"}
+            detail={availabilityBase ? "baseado em hosts online/offline" : "sem host vinculado"}
+            tone={availabilityBase ? availabilityTone(availability) : "orange"}
+          />
+          <MetricCard label="Cobertura" value={`${coverage}%`} detail="unidades com host confiável" tone={coverage >= 90 ? "green" : "orange"} />
+          <MetricCard label="Offline" value={telemetry.counts.down} detail="unidades indisponíveis" tone={telemetry.counts.down ? "red" : "green"} />
+          <MetricCard label="Atenção" value={attention} detail="degradado ou ambíguo" tone={attention ? "orange" : "green"} />
+          <MetricCard label="Sem vínculo" value={telemetry.counts.unmapped} detail="sem host confiável" tone={telemetry.counts.unmapped ? "orange" : "green"} />
+        </section>
+
+        <section className="nova-lit-layout">
+          <div className="nova-lit-main-col">
+            <section className="nova-lit-panel nova-availability-summary">
+              <div className="nova-lit-panel__head">
+                <div>
+                  <span className="nova-lit-eyebrow">SLA consolidado</span>
+                  <h2>Estado atual da disponibilidade</h2>
+                </div>
+                <Badge tone={availabilityBase ? availabilityTone(availability) : "orange"}>
+                  {availabilityBase ? pct(availability) : "sem base"}
+                </Badge>
               </div>
-              <Link href="/relatorios/monitoramento" className="nds-button" data-variant="primary">Gerar relatório</Link>
-            </div>
-            <div className="mt-2">
-              <TableShell>
-                <DenseTable>
-                  <TableHead><tr><th className="px-3 py-2">Unidade</th><th className="px-3 py-2">Parceiro</th><th className="px-3 py-2">Host</th><th className="px-3 py-2">Latência</th><th className="px-3 py-2">Perda</th><th className="px-3 py-2">Status</th><TableActionHeader /></tr></TableHead>
-                  <tbody>
-                    {telemetry.items.slice(0, 20).map((item) => (
-                      <tr key={item.unit.id} className="border-b border-white/6 last:border-b-0 hover:bg-white/[0.025]">
-                        <TableCell><div className="font-bold text-white">{item.unit.name}</div><div className="mt-1 text-[10px] text-[var(--nova-text-muted)]">{item.unit.code}</div></TableCell>
-                        <TableCell className="text-slate-300">{item.partner.name}</TableCell>
-                        <TableCell className="text-slate-300">{item.match.hostName || item.match.host || "sem host"}</TableCell>
-                        <TableCell className="text-slate-300">{formatMs(item.metrics.latencyMs)}</TableCell>
-                        <TableCell className="text-slate-300">{formatPercent(item.metrics.lossPct)}</TableCell>
-                        <TableCell><TonePill tone={healthTone(item.health)}>{healthLabel(item.health)}</TonePill></TableCell>
-                        <TableActionCell><TableActionLink href={`/unidades/${item.unit.id}`}>Abrir</TableActionLink></TableActionCell>
-                      </tr>
-                    ))}
-                  </tbody>
-                </DenseTable>
-              </TableShell>
-            </div>
-          </Surface>
-        </div>
 
-        <RightPanel title="Resumo SLA" description="Pontos que entram no relatório.">
-          <div className="nds-card text-[11px] text-slate-400">
-            <div className="flex justify-between gap-2"><span>Unidades avaliadas</span><span className="font-bold text-white">{telemetry.counts.units}</span></div>
-            <div className="mt-2 flex justify-between gap-2"><span>Com host vinculado</span><span className="font-bold text-white">{telemetry.counts.matched}</span></div>
-            <div className="mt-2 flex justify-between gap-2"><span>Com problema</span><span className="font-bold text-white">{telemetry.counts.withProblems}</span></div>
+              <div className="nova-availability-meter">
+                {segments.map((segment) => {
+                  const width = telemetry.counts.units ? Math.max(2, (segment.value / telemetry.counts.units) * 100) : 0;
+                  return (
+                    <div
+                      key={segment.label}
+                      className={`nova-availability-meter__segment is-${segment.tone}`}
+                      style={{ width: `${width}%` }}
+                      title={`${segment.label}: ${segment.value}`}
+                    />
+                  );
+                })}
+              </div>
+
+              <div className="nova-availability-legend">
+                {segments.map((segment) => (
+                  <div key={segment.label}>
+                    <i className={`is-${segment.tone}`} />
+                    <span>{segment.label}</span>
+                    <strong>{segment.value}</strong>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section className="nova-lit-panel">
+              <div className="nova-lit-panel__head">
+                <div>
+                  <span className="nova-lit-eyebrow">SLA por unidade</span>
+                  <h2>Disponibilidade operacional</h2>
+                </div>
+                <Badge tone="blue">{visibleRows.length} linhas</Badge>
+              </div>
+
+              <div className="nova-lit-table-wrap">
+                <table className="nova-lit-table">
+                  <thead>
+                    <tr>
+                      <th>Unidade</th>
+                      <th>Parceiro</th>
+                      <th>Host</th>
+                      <th>Latência</th>
+                      <th>Perda</th>
+                      <th>Status</th>
+                      <th>Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {visibleRows.length ? visibleRows.map((item) => (
+                      <tr key={item.unit.id}>
+                        <td>
+                          <strong>{item.unit.name}</strong>
+                          <small>{item.unit.code}</small>
+                        </td>
+                        <td>
+                          <strong>{item.partner.name}</strong>
+                          <small>{item.unit.city || "Sem cidade"}{item.unit.state ? `/${item.unit.state}` : ""}</small>
+                        </td>
+                        <td>
+                          <strong>{item.match.hostName || item.match.host || "Sem host"}</strong>
+                          <small>{item.match.status === "matched" ? "host correlacionado" : "vínculo pendente"}</small>
+                        </td>
+                        <td>{formatMs(item.metrics.latencyMs)}</td>
+                        <td>{formatPercent(item.metrics.lossPct)}</td>
+                        <td><Badge tone={toneFromHealth(item.health)}>{healthLabel(item.health)}</Badge></td>
+                        <td><Link href={`/unidades/${item.unit.id}`} className="nova-lit-row-action">Abrir</Link></td>
+                      </tr>
+                    )) : (
+                      <tr>
+                        <td colSpan={7}>
+                          <div className="nova-lit-empty">
+                            <strong>Nenhuma unidade encontrada</strong>
+                            <span>A telemetria ainda não retornou dados para este recorte.</span>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </section>
           </div>
-          <div className="nds-card">
-            <div className="text-[12px] font-black text-white">Fila de atenção</div>
-            <div className="mt-2 grid gap-2">
-              {attentionRows.length ? attentionRows.map((item) => (
-                <Link key={item.unit.id} href={`/unidades/${item.unit.id}`} className="nds-card block text-[11px] hover:border-[var(--nova-primary)]/30">
-                  <div className="font-bold text-white">{item.unit.name}</div>
-                  <div className="mt-2"><TonePill tone={healthTone(item.health)}>{healthLabel(item.health)}</TonePill></div>
-                </Link>
-              )) : <div className="text-[11px] text-slate-500">Nenhuma unidade fora da normalidade.</div>}
-            </div>
-          </div>
-        </RightPanel>
-      </section>
-    </AppShell>
+
+          <aside className="nova-lit-side-col">
+            <section className="nova-lit-panel">
+              <div className="nova-lit-panel__head">
+                <div>
+                  <span className="nova-lit-eyebrow">Indisponibilidade</span>
+                  <h2>Condições de risco</h2>
+                </div>
+                <Badge tone={totalRisk ? "orange" : "green"}>{totalRisk}</Badge>
+              </div>
+              <div className="nova-availability-bars">
+                <Bar label="Offline" value={telemetry.counts.down} max={Math.max(1, telemetry.counts.units)} tone="red" href="/sensores?health=down" />
+                <Bar label="Degradado" value={telemetry.counts.degraded} max={Math.max(1, telemetry.counts.units)} tone="orange" href="/sensores?health=degraded" />
+                <Bar label="Ambíguo" value={telemetry.counts.ambiguous} max={Math.max(1, telemetry.counts.units)} tone="orange" href="/sensores?health=ambiguous" />
+                <Bar label="Sem vínculo" value={telemetry.counts.unmapped} max={Math.max(1, telemetry.counts.units)} tone="slate" href="/sensores?health=unmapped" />
+              </div>
+            </section>
+
+            <section className="nova-lit-panel">
+              <div className="nova-lit-panel__head">
+                <div>
+                  <span className="nova-lit-eyebrow">Resumo SLA</span>
+                  <h2>Pontos do relatório</h2>
+                </div>
+              </div>
+              <div className="nova-availability-kv">
+                <div><span>Unidades avaliadas</span><strong>{telemetry.counts.units}</strong></div>
+                <div><span>Com host vinculado</span><strong>{telemetry.counts.matched}</strong></div>
+                <div><span>Com problema</span><strong>{telemetry.counts.withProblems}</strong></div>
+                <div><span>Cobertura técnica</span><strong>{coverage}%</strong></div>
+              </div>
+            </section>
+
+            <section className="nova-lit-panel">
+              <div className="nova-lit-panel__head">
+                <div>
+                  <span className="nova-lit-eyebrow">Fila de atenção</span>
+                  <h2>Prioridade operacional</h2>
+                </div>
+                <Badge tone={attentionRows.length ? "orange" : "green"}>{attentionRows.length}</Badge>
+              </div>
+              <div className="nova-lit-list">
+                {attentionRows.length ? attentionRows.map((item) => (
+                  <Link key={item.unit.id} href={`/unidades/${item.unit.id}`} className="nova-lit-list-item">
+                    <div>
+                      <strong>{item.unit.name}</strong>
+                      <small>{item.partner.name} · {item.unit.city || "Sem cidade"}{item.unit.state ? `/${item.unit.state}` : ""}</small>
+                    </div>
+                    <Badge tone={toneFromHealth(item.health)}>{healthLabel(item.health)}</Badge>
+                  </Link>
+                )) : (
+                  <div className="nova-lit-empty compact">
+                    <strong>Nenhuma unidade fora da normalidade.</strong>
+                  </div>
+                )}
+              </div>
+            </section>
+          </aside>
+        </section>
+      </main>
+    </NovaLitShell>
   );
 }

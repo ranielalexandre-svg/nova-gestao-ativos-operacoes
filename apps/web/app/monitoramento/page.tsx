@@ -1,51 +1,31 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { AppShell } from "@/components/app-shell";
-import {
-  BarList,
-  ChartCard,
-  DenseTable,
-  EmptyState,
-  FieldLabel,
-  RightPanel,
-  StackedMeter,
-  StatCard,
-  Surface,
-  TableCell,
-  TableHead,
-  TableShell,
-  TonePill,
-} from "@/components/ops-ui";
+import { NovaLitShell } from "@/components/nova-lit/nova-lit-shell";
+import { formatDateTime } from "@/lib/formatters";
 import {
   buildApiQuery,
   readStringParam,
   resolveSearchParams,
+  withParams,
   type RawSearchParams,
 } from "@/lib/list-query";
-import { formatDateTime } from "@/lib/formatters";
 import {
   emptyCommandCenter,
   formatMs,
   formatPercent,
   formatTemperature,
-  healthLabel,
-  healthTone,
-  metricTone,
-  readUnitHostTelemetry,
   safeApiJson,
-  targetLabel,
   unitAlertScore,
   type CommandCenter,
-  type RecentMaintenance,
-  type RecentOccurrence,
   type UnitHostTelemetry,
   type UnitHostTelemetryItem,
 } from "@/lib/noc-overview";
-import { getServerWebSession, normalizeRole } from "@/lib/web-session";
+import { getServerWebSession } from "@/lib/web-session";
 
+type Tone = "green" | "orange" | "blue" | "red" | "slate";
 type MonitorView = "overview" | "units" | "partners" | "sensors" | "events";
 
-type MonitorFilters = {
+type MonitorState = {
   q: string;
   health: string;
   partner: string;
@@ -63,113 +43,86 @@ type PartnerRow = {
   problems: number;
   avgLatencyMs: number | null;
   avgLossPct: number | null;
+  latencies: number[];
+  losses: number[];
 };
 
-function cx(...parts: Array<string | false | null | undefined>) {
-  return parts.filter(Boolean).join(" ");
-}
+const emptyTelemetry = {
+  generatedAt: new Date(0).toISOString(),
+  sources: [],
+  counts: {
+    units: 0,
+    matched: 0,
+    ambiguous: 0,
+    unmapped: 0,
+    online: 0,
+    degraded: 0,
+    down: 0,
+    withProblems: 0,
+    syncReady: 0,
+    avgLatencyMs: null,
+    avgLossPct: null,
+    maxTemperatureC: null,
+  },
+  items: [],
+} as unknown as UnitHostTelemetry;
 
-function formatEpoch(value: string) {
-  const timestamp = Number(value);
-  if (!Number.isFinite(timestamp) || timestamp <= 0) return "-";
-  return new Date(timestamp * 1000).toLocaleString("pt-BR");
-}
-
-function cityLine(item: UnitHostTelemetryItem) {
-  return [item.unit.city, item.unit.state].filter(Boolean).join(" / ") || "-";
-}
-
-function healthSegments(telemetry: UnitHostTelemetry) {
-  return [
-    { label: "online", value: telemetry.counts.online, tone: "success" },
-    { label: "atenção", value: telemetry.counts.degraded + telemetry.counts.ambiguous, tone: "attention" },
-    { label: "offline", value: telemetry.counts.down, tone: "critical" },
-    { label: "sem vínculo", value: telemetry.counts.unmapped, tone: "subtle" },
-  ];
-}
-
-function metricBars(
-  telemetry: UnitHostTelemetry,
-  valueFor: (item: UnitHostTelemetryItem) => number | null,
-  warning: number,
-  critical: number,
-) {
-  return telemetry.items
-    .map((item) => ({ item, value: valueFor(item) }))
-    .filter((entry): entry is { item: UnitHostTelemetryItem; value: number } => typeof entry.value === "number" && Number.isFinite(entry.value))
-    .sort((a, b) => b.value - a.value)
-    .slice(0, 6)
-    .map(({ item, value }) => ({
-      label: item.unit.code,
-      value,
-      tone: metricTone(value, warning, critical),
-      meta: item.unit.name,
-      href: `/unidades/${item.unit.id}`,
-    }));
-}
-
-function sensorCoverageBars(telemetry: UnitHostTelemetry) {
-  return [
-    { label: "Ping", value: telemetry.items.filter((item) => item.metrics.ping).length, tone: "success" },
-    { label: "Latência", value: telemetry.items.filter((item) => typeof item.metrics.latencyMs === "number").length, tone: "info" },
-    { label: "Perda", value: telemetry.items.filter((item) => typeof item.metrics.lossPct === "number").length, tone: "attention" },
-    { label: "Temperatura", value: telemetry.items.filter((item) => typeof item.metrics.temperatureC === "number").length, tone: "critical" },
-  ];
-}
-
-function severityTone(value: string) {
-  const severity = Number(value);
-  if (severity >= 5) return "critical";
-  if (severity >= 3) return "attention";
-  if (severity >= 2) return "info";
-  return "neutral";
-}
-
-function normalizeMonitorView(value: string): MonitorView {
+function normalizeView(value: string): MonitorView {
   if (value === "units" || value === "partners" || value === "sensors" || value === "events") return value;
   return "overview";
 }
 
-function monitorHref(filters: MonitorFilters, patch: Partial<MonitorFilters>) {
-  const next = { ...filters, ...patch };
-  return `/sensores${buildApiQuery({
-    view: next.view !== "overview" ? next.view : undefined,
-    q: next.q || undefined,
-    health: next.health !== "all" ? next.health : undefined,
-    partner: next.partner !== "all" ? next.partner : undefined,
-    sort: next.sort !== "risk" ? next.sort : undefined,
-  })}`;
+function stateParams(state: MonitorState): RawSearchParams {
+  return {
+    q: state.q || undefined,
+    health: state.health !== "all" ? state.health : undefined,
+    partner: state.partner !== "all" ? state.partner : undefined,
+    sort: state.sort !== "risk" ? state.sort : undefined,
+    view: state.view !== "overview" ? state.view : undefined,
+  };
 }
 
-function countsFromItems(items: UnitHostTelemetryItem[]) {
-  const latencies = items
-    .map((item) => item.metrics.latencyMs)
-    .filter((item): item is number => typeof item === "number" && Number.isFinite(item));
-  const losses = items
-    .map((item) => item.metrics.lossPct)
-    .filter((item): item is number => typeof item === "number" && Number.isFinite(item));
-  const temperatures = items
-    .map((item) => item.metrics.temperatureC)
-    .filter((item): item is number => typeof item === "number" && Number.isFinite(item));
+function cityLine(item: UnitHostTelemetryItem) {
+  return [item.unit.city, item.unit.state].filter(Boolean).join("/") || "Sem cidade/UF";
+}
 
-  return {
-    units: items.length,
-    matched: items.filter((item) => item.match.status === "matched").length,
-    ambiguous: items.filter((item) => item.match.status === "ambiguous").length,
-    unmapped: items.filter((item) => item.match.status === "unmatched").length,
-    online: items.filter((item) => item.health === "online").length,
-    degraded: items.filter((item) => item.health === "degraded").length,
-    down: items.filter((item) => item.health === "down").length,
-    withProblems: items.filter((item) => item.problems.length > 0).length,
-    syncReady: items.filter((item) => item.match.syncReady).length,
-    avgLatencyMs: latencies.length
-      ? Math.round(latencies.reduce((sum, item) => sum + item, 0) / latencies.length)
-      : null,
-    avgLossPct: losses.length
-      ? Number((losses.reduce((sum, item) => sum + item, 0) / losses.length).toFixed(2))
-      : null,
-    maxTemperatureC: temperatures.length ? Math.max(...temperatures) : null,
-  };
+function partnerLabel(partner: UnitHostTelemetryItem["partner"]) {
+  return `${partner.code} · ${partner.name}`;
+}
+
+function healthLabel(value: string) {
+  if (value === "online") return "Online";
+  if (value === "degraded") return "Atenção";
+  if (value === "down") return "Offline";
+  return "Sem leitura";
+}
+
+function healthTone(value: string): Tone {
+  if (value === "online") return "green";
+  if (value === "degraded") return "orange";
+  if (value === "down") return "red";
+  return "slate";
+}
+
+function matchLabel(value: string) {
+  if (value === "matched") return "Vinculado";
+  if (value === "ambiguous") return "Ambíguo";
+  if (value === "unmatched") return "Sem vínculo";
+  return value || "Sem vínculo";
+}
+
+function matchTone(value: string): Tone {
+  if (value === "matched") return "green";
+  if (value === "ambiguous") return "orange";
+  if (value === "unmatched") return "slate";
+  return "slate";
+}
+
+function metricTone(value: number | null | undefined, warning: number, critical: number): Tone {
+  if (typeof value !== "number" || !Number.isFinite(value)) return "slate";
+  if (value >= critical) return "red";
+  if (value >= warning) return "orange";
+  return "green";
 }
 
 function itemSearchText(item: UnitHostTelemetryItem) {
@@ -194,39 +147,73 @@ function itemSearchText(item: UnitHostTelemetryItem) {
     .toLowerCase();
 }
 
+function countsFromItems(items: UnitHostTelemetryItem[]) {
+  const latencies = items
+    .map((item) => item.metrics.latencyMs)
+    .filter((item): item is number => typeof item === "number" && Number.isFinite(item));
+
+  const losses = items
+    .map((item) => item.metrics.lossPct)
+    .filter((item): item is number => typeof item === "number" && Number.isFinite(item));
+
+  const temperatures = items
+    .map((item) => item.metrics.temperatureC)
+    .filter((item): item is number => typeof item === "number" && Number.isFinite(item));
+
+  return {
+    units: items.length,
+    matched: items.filter((item) => item.match.status === "matched").length,
+    ambiguous: items.filter((item) => item.match.status === "ambiguous").length,
+    unmapped: items.filter((item) => item.match.status !== "matched").length,
+    online: items.filter((item) => item.health === "online").length,
+    degraded: items.filter((item) => item.health === "degraded").length,
+    down: items.filter((item) => item.health === "down").length,
+    withProblems: items.filter((item) => item.problems.length > 0).length,
+    syncReady: items.filter((item) => item.match.syncReady).length,
+    avgLatencyMs: latencies.length ? Math.round(latencies.reduce((sum, item) => sum + item, 0) / latencies.length) : null,
+    avgLossPct: losses.length ? Number((losses.reduce((sum, item) => sum + item, 0) / losses.length).toFixed(2)) : null,
+    maxTemperatureC: temperatures.length ? Math.max(...temperatures) : null,
+  };
+}
+
 function sortItems(items: UnitHostTelemetryItem[], sort: string) {
   const sorted = items.slice();
+
   if (sort === "latency") return sorted.sort((a, b) => (b.metrics.latencyMs ?? -1) - (a.metrics.latencyMs ?? -1));
   if (sort === "loss") return sorted.sort((a, b) => (b.metrics.lossPct ?? -1) - (a.metrics.lossPct ?? -1));
+  if (sort === "temperature") return sorted.sort((a, b) => (b.metrics.temperatureC ?? -1) - (a.metrics.temperatureC ?? -1));
   if (sort === "partner") return sorted.sort((a, b) => a.partner.code.localeCompare(b.partner.code) || a.unit.code.localeCompare(b.unit.code));
   if (sort === "code") return sorted.sort((a, b) => a.unit.code.localeCompare(b.unit.code));
+
   return sorted.sort((a, b) => unitAlertScore(b) - unitAlertScore(a) || a.unit.code.localeCompare(b.unit.code));
 }
 
-function filterTelemetry(telemetry: UnitHostTelemetry, filters: MonitorFilters) {
-  const query = filters.q.toLowerCase();
+function filterTelemetry(telemetry: UnitHostTelemetry, state: MonitorState) {
+  const query = state.q.toLowerCase();
+
   const items = telemetry.items.filter((item) => {
     const matchesQuery = query ? itemSearchText(item).includes(query) : true;
-    const matchesPartner = filters.partner !== "all" ? item.partner.id === filters.partner : true;
+    const matchesPartner = state.partner !== "all" ? item.partner.id === state.partner : true;
     const matchesHealth =
-      filters.health === "all"
+      state.health === "all"
         ? true
-        : filters.health === "problem"
+        : state.health === "problem"
           ? item.problems.length > 0
-          : filters.health === "high-latency"
+          : state.health === "high-latency"
             ? (item.metrics.latencyMs ?? 0) >= 150
-            : filters.health === "high-loss"
+            : state.health === "high-loss"
               ? (item.metrics.lossPct ?? 0) >= 3
-              : filters.health === "temperature"
+              : state.health === "temperature"
                 ? (item.metrics.temperatureC ?? 0) >= 55
-                : filters.health === "unmapped"
+                : state.health === "unmapped"
                   ? item.match.status !== "matched"
-                  : item.health === filters.health;
+                  : item.health === state.health;
 
     return matchesQuery && matchesPartner && matchesHealth;
   });
 
-  const sorted = sortItems(items, filters.sort);
+  const sorted = sortItems(items, state.sort);
+
   return {
     ...telemetry,
     counts: countsFromItems(sorted),
@@ -241,7 +228,7 @@ function partnersFromTelemetry(telemetry: UnitHostTelemetry) {
 }
 
 function partnerRowsFromTelemetry(telemetry: UnitHostTelemetry): PartnerRow[] {
-  const rows = new Map<string, PartnerRow & { latencies: number[]; losses: number[] }>();
+  const rows = new Map<string, PartnerRow>();
 
   for (const item of telemetry.items) {
     const current = rows.get(item.partner.id) || {
@@ -264,8 +251,10 @@ function partnerRowsFromTelemetry(telemetry: UnitHostTelemetry): PartnerRow[] {
     current.down += item.health === "down" ? 1 : 0;
     current.unmapped += item.match.status !== "matched" ? 1 : 0;
     current.problems += item.problems.length;
+
     if (typeof item.metrics.latencyMs === "number") current.latencies.push(item.metrics.latencyMs);
     if (typeof item.metrics.lossPct === "number") current.losses.push(item.metrics.lossPct);
+
     rows.set(item.partner.id, current);
   }
 
@@ -278,242 +267,253 @@ function partnerRowsFromTelemetry(telemetry: UnitHostTelemetry): PartnerRow[] {
     .sort((a, b) => b.down - a.down || b.degraded - a.degraded || b.problems - a.problems || a.partner.code.localeCompare(b.partner.code));
 }
 
-function metricMarkerClass(tone: string) {
-  if (tone === "success") return "success";
-  if (tone === "attention") return "attention";
-  if (tone === "critical") return "critical";
-  if (tone === "info") return "info";
-  return "neutral";
+function sourceFailures(telemetry: UnitHostTelemetry) {
+  return telemetry.sources.filter((source) => !source.ok).length;
 }
 
-function MetricCard({ label, value, tone = "neutral" }: { label: string; value: string | number; tone?: string }) {
-  return (
-    <div className="nova-stat-card nds-stat-card"><div className="nds-label">{label}</div><div className="mt-2 flex items-end justify-between gap-2"><div className="text-[20px] font-black leading-none text-slate-50">{value}</div><span className="nds-dot" data-tone={metricMarkerClass(tone)} aria-hidden="true" /></div></div>
-  );
+function percent(value: number, total: number) {
+  if (!total) return 0;
+  return Math.round((value / total) * 100);
 }
 
-function Summary({ telemetry, commandCenter }: { telemetry: UnitHostTelemetry; commandCenter: CommandCenter }) {
-  const sourceFailures = telemetry.sources.filter((source) => !source.ok).length;
-  return (
-    <section className="grid gap-2 md:grid-cols-2 xl:grid-cols-6">
-      <StatCard label="Unidades" value={telemetry.counts.units} detail={formatDateTime(telemetry.generatedAt)} tone="info" />
-      <StatCard label="Online" value={telemetry.counts.online} detail="hosts respondendo" tone="success" />
-      <StatCard label="Atenção" value={telemetry.counts.degraded} detail="degradação detectada" tone={telemetry.counts.degraded ? "attention" : "neutral"} />
-      <StatCard label="Offline" value={telemetry.counts.down} detail="sem resposta" tone={telemetry.counts.down ? "critical" : "neutral"} />
-      <StatCard label="Eventos" value={telemetry.counts.withProblems + commandCenter.metrics.criticalOpenOccurrences} detail={`${commandCenter.metrics.openOccurrences} alertas`} tone={telemetry.counts.withProblems ? "attention" : "neutral"} />
-      <StatCard label="Vínculo" value={`${telemetry.counts.matched}/${telemetry.counts.units}`} detail={sourceFailures ? `${sourceFailures} fonte(s) alerta` : "fontes ok"} tone={telemetry.counts.unmapped || telemetry.counts.ambiguous || sourceFailures ? "attention" : "success"} />
-    </section>
-  );
+function Dot({ tone = "blue" }: { tone?: Tone }) {
+  return <span className={`nova-lit-dot nova-lit-dot-${tone}`} />;
 }
 
-function Filters({ filters, partners, count }: { filters: MonitorFilters; partners: Array<UnitHostTelemetryItem["partner"]>; count: number }) {
+function KpiCard({
+  label,
+  value,
+  hint,
+  tone,
+}: {
+  label: string;
+  value: string;
+  hint: string;
+  tone: Tone;
+}) {
   return (
-    <Surface><form method="GET" className="nova-filter-grid nova-filter-grid--monitoring"><input type="hidden" name="view" value={filters.view} /><label className="grid gap-1.5"><FieldLabel>Busca</FieldLabel><input name="q" defaultValue={filters.q} placeholder="Unidade, parceiro, host, serial" /></label><label className="grid gap-1.5"><FieldLabel>Parceiro</FieldLabel><select name="partner" defaultValue={filters.partner}><option value="all">Todos</option>
-            {partners.map((partner) => (
-              <option key={partner.id} value={partner.id}>{partner.code} · {partner.name}</option>
-            ))}
-          </select></label><label className="grid gap-1.5"><FieldLabel>Estado</FieldLabel><select name="health" defaultValue={filters.health}><option value="all">Todos</option><option value="down">Offline</option><option value="degraded">Atenção</option><option value="online">Online</option><option value="problem">Com evento</option><option value="high-latency">Alta latência</option><option value="high-loss">Perda alta</option><option value="temperature">Temperatura alta</option><option value="unmapped">Sem vínculo</option></select></label><label className="grid gap-1.5"><FieldLabel>Ordenação</FieldLabel><select name="sort" defaultValue={filters.sort}><option value="risk">Risco</option><option value="latency">Latência</option><option value="loss">Perda</option><option value="partner">Parceiro</option><option value="code">Código</option></select></label><button className="nds-button xl:self-end" data-variant="primary">Aplicar</button><Link href="/sensores" className="nds-button xl:self-end" data-variant="secondary">
-          Limpar
-        </Link></form><div className="mt-2 text-[10px] font-semibold text-slate-500">{count} unidade(s)</div></Surface>
-  );
-}
-
-function Tabs({ filters, telemetry }: { filters: MonitorFilters; telemetry: UnitHostTelemetry }) {
-  const partnerCount = new Set(telemetry.items.map((item) => item.partner.id)).size;
-  const eventCount = telemetry.items.reduce((sum, item) => sum + item.problems.length, 0);
-  const tabs: Array<{ view: MonitorView; label: string; count: number }> = [
-    { view: "overview", label: "Visão geral", count: telemetry.counts.units },
-    { view: "units", label: "Unidades", count: telemetry.items.length },
-    { view: "partners", label: "Parceiros", count: partnerCount },
-    { view: "sensors", label: "Sensores", count: telemetry.items.filter((item) => item.metrics.ping || item.metrics.latencyMs !== null || item.metrics.lossPct !== null).length },
-    { view: "events", label: "Eventos", count: eventCount },
-  ];
-
-  return (
-    <Surface className="p-2"><nav className="grid gap-2 md:grid-cols-5" aria-label="Visões de monitoramento">
-        {tabs.map((tab) => {
-          const active = filters.view === tab.view;
-          return (
-            <Link
-              key={tab.view}
-              href={monitorHref(filters, { view: tab.view })}
-              aria-current={active ? "page" : undefined}
-              data-active={active ? "true" : "false"}
-              className={cx(
-                "nova-view-tab flex min-h-[30px] items-center justify-between gap-2 rounded-[4px] border px-2 py-1 text-[11px] font-black transition",
-              )}
-            ><span>{tab.label}</span><TonePill tone={active ? "primary" : "neutral"}>{tab.count}</TonePill></Link>
-          );
-        })}
-      </nav></Surface>
-  );
-}
-
-function UnitName({ item }: { item: UnitHostTelemetryItem }) {
-  return (
-    <div><Link href={`/unidades/${item.unit.id}`} className="font-semibold text-slate-50 hover:text-white">
-        {item.unit.code}
-      </Link><div className="mt-1 max-w-[280px] text-[11px] text-slate-300">{item.unit.name}</div><div className="mt-1 text-[10px] text-slate-500">{cityLine(item)}</div></div>
-  );
-}
-
-function UnitsTable({ telemetry, limit }: { telemetry: UnitHostTelemetry; limit?: number }) {
-  const rows = typeof limit === "number" ? telemetry.items.slice(0, limit) : telemetry.items;
-  return (
-    <Surface><div className="flex flex-wrap items-center justify-between gap-2"><h2 className="text-[13px] font-black text-slate-50">Unidades</h2><TonePill tone="neutral">{rows.length}</TonePill></div><div className="mt-2">
-        {rows.length ? (
-          <TableShell><DenseTable><TableHead><tr><th className="px-3 py-2">Unidade</th><th className="px-3 py-2">Parceiro</th><th className="px-3 py-2">Host</th><th className="px-3 py-2">Ping</th><th className="px-3 py-2">Perda</th><th className="px-3 py-2">Latência</th><th className="px-3 py-2">Temp.</th><th className="px-3 py-2">Eventos</th><th className="px-3 py-2">Ativos</th></tr></TableHead><tbody>
-                {rows.map((item) => (
-                  <tr key={item.unit.id} className="border-b border-white/6 last:border-b-0"><TableCell><UnitName item={item} /></TableCell><TableCell><div className="font-medium text-slate-100">{item.partner.code}</div><div className="mt-1 max-w-[220px] text-[10px] text-slate-500">{item.partner.name}</div></TableCell><TableCell><div className="flex flex-wrap gap-2"><TonePill tone={healthTone(item.health)}>{healthLabel(item.health)}</TonePill>
-                        {item.match.syncReady ? <TonePill tone="success">tag ok</TonePill> : null}
-                      </div><div className="mt-2 max-w-[280px] truncate text-[11px] font-medium text-slate-100">
-                        {item.match.hostName || item.match.host || "-"}
-                      </div><div className="mt-1 text-[10px] text-slate-500">{item.match.integrationCode || "-"} · {item.match.confidence}%</div></TableCell><TableCell><TonePill tone={item.metrics.ping?.ok === false ? "critical" : item.metrics.ping?.ok ? "success" : "neutral"}>
-                        {item.metrics.ping?.ok === false ? "down" : item.metrics.ping?.ok ? "up" : "-"}
-                      </TonePill></TableCell><TableCell><TonePill tone={metricTone(item.metrics.lossPct, 3, 10)}>{formatPercent(item.metrics.lossPct)}</TonePill></TableCell><TableCell><TonePill tone={metricTone(item.metrics.latencyMs, 150, 700)}>{formatMs(item.metrics.latencyMs)}</TonePill></TableCell><TableCell><TonePill tone={metricTone(item.metrics.temperatureC, 55, 70)}>{formatTemperature(item.metrics.temperatureC)}</TonePill></TableCell><TableCell><TonePill tone={item.problems.length ? "attention" : "success"}>{item.problems.length}</TonePill>
-                      {item.problems[0] ? <div className="mt-1 max-w-[260px] truncate text-[10px] text-slate-500">{item.problems[0].name}</div> : null}
-                    </TableCell><TableCell><div className="max-w-[220px] text-[10px] leading-4 text-slate-400">
-                        {item.equipments.length ? item.equipments.slice(0, 3).map((equipment) => equipment.tag).join(", ") : "-"}
-                      </div></TableCell></tr>
-                ))}
-              </tbody></DenseTable></TableShell>
-        ) : (
-          <EmptyState title="Sem unidades" description="Nenhuma unidade encontrada para o filtro atual." />
-        )}
-      </div></Surface>
-  );
-}
-
-function Overview({ telemetry }: { telemetry: UnitHostTelemetry }) {
-  const priority = telemetry.items.slice(0, 6);
-  return (
-    <section className="nova-side-grid nova-side-grid--300">
-      <div className="grid gap-2">
-        <div className="grid gap-2 lg:grid-cols-3">
-          <ChartCard title="Ping / disponibilidade" subtitle={`${telemetry.counts.online}/${telemetry.counts.units} online`} tone={telemetry.counts.down ? "critical" : "success"}>
-            <StackedMeter segments={healthSegments(telemetry)} total={telemetry.counts.units} emptyLabel="Sem telemetria carregada." />
-          </ChartCard>
-          <ChartCard title="Latência média" subtitle={formatMs(telemetry.counts.avgLatencyMs)} tone={metricTone(telemetry.counts.avgLatencyMs, 150, 700)}>
-            <BarList data={metricBars(telemetry, (item) => item.metrics.latencyMs, 150, 700)} emptyLabel="Nenhuma leitura de latência disponível." valueFormatter={(value) => formatMs(value)} />
-          </ChartCard>
-          <ChartCard title="Perda de pacote" subtitle={formatPercent(telemetry.counts.avgLossPct)} tone={metricTone(telemetry.counts.avgLossPct, 3, 10)}>
-            <BarList data={metricBars(telemetry, (item) => item.metrics.lossPct, 3, 10)} emptyLabel="Nenhuma leitura de perda disponível." valueFormatter={(value) => formatPercent(value)} />
-          </ChartCard>
-        </div>
-        <UnitsTable telemetry={{ ...telemetry, items: priority, counts: countsFromItems(priority) }} />
+    <article className="nova-lit-card nova-monitor-kpi">
+      <div className="nova-lit-card-head">
+        <span>{label}</span>
+        <Dot tone={tone} />
       </div>
-      <RightPanel title="Telemetria" description="Resumo do filtro atual">
-        <MetricCard label="Disponibilidade" value={`${telemetry.counts.online}/${telemetry.counts.units}`} tone={telemetry.counts.down ? "critical" : telemetry.counts.degraded ? "attention" : "success"} />
-        <MetricCard label="Perda média" value={formatPercent(telemetry.counts.avgLossPct)} tone={metricTone(telemetry.counts.avgLossPct, 3, 10)} />
-        <MetricCard label="Latência média" value={formatMs(telemetry.counts.avgLatencyMs)} tone={metricTone(telemetry.counts.avgLatencyMs, 150, 700)} />
-        <MetricCard label="Temperatura máx." value={formatTemperature(telemetry.counts.maxTemperatureC)} tone={metricTone(telemetry.counts.maxTemperatureC, 55, 70)} />
-        <Link href="/relatorios/monitoramento" className="nds-button" data-variant="primary">
-          Gerar relatório
-        </Link>
-      </RightPanel>
-    </section>
+      <strong>{value}</strong>
+      <p>{hint}</p>
+    </article>
   );
 }
 
-function PartnersTable({ rows }: { rows: PartnerRow[] }) {
-  return (
-    <Surface><div className="flex flex-wrap items-center justify-between gap-2"><h2 className="text-[13px] font-black text-slate-50">Parceiros</h2><TonePill tone="neutral">{rows.length}</TonePill></div><div className="mt-2">
-        {rows.length ? (
-          <TableShell><DenseTable><TableHead><tr><th className="px-3 py-2">Parceiro</th><th className="px-3 py-2">Unidades</th><th className="px-3 py-2">Estado</th><th className="px-3 py-2">Eventos</th><th className="px-3 py-2">Telemetria</th><th className="px-3 py-2">Ações</th></tr></TableHead><tbody>
-                {rows.map((row) => (
-                  <tr key={row.partner.id} className="border-b border-white/6 last:border-b-0"><TableCell><Link href={`/parceiros/${row.partner.id}`} className="font-semibold text-slate-50 hover:text-white">{row.partner.code}</Link><div className="mt-1 max-w-[280px] text-[11px] text-slate-300">{row.partner.name}</div></TableCell><TableCell>{row.units}</TableCell><TableCell><div className="flex flex-wrap gap-1"><TonePill tone="success">{row.online} on</TonePill><TonePill tone={row.degraded ? "attention" : "neutral"}>{row.degraded} atenção</TonePill><TonePill tone={row.down ? "critical" : "neutral"}>{row.down} off</TonePill><TonePill tone={row.unmapped ? "subtle" : "neutral"}>{row.unmapped} sem vínculo</TonePill></div></TableCell><TableCell><TonePill tone={row.problems ? "attention" : "success"}>{row.problems}</TonePill></TableCell><TableCell><div className="text-[11px] text-slate-300">{formatMs(row.avgLatencyMs)}</div><div className="mt-1 text-[10px] text-slate-500">perda {formatPercent(row.avgLossPct)}</div></TableCell><TableCell><div className="flex flex-wrap gap-2"><Link href={`/parceiros/${row.partner.id}`} className="nds-button" data-variant="secondary">Abrir</Link><Link href={`/sensores?view=units&partner=${row.partner.id}`} className="nds-button" data-variant="secondary">Unidades</Link></div></TableCell></tr>
-                ))}
-              </tbody></DenseTable></TableShell>
-        ) : (
-          <EmptyState title="Sem parceiros" description="Nenhum parceiro encontrado para o filtro atual." />
-        )}
-      </div></Surface>
-  );
+function Badge({ tone, children }: { tone: Tone; children: string }) {
+  return <span className={`nova-monitor-badge is-${tone}`}>{children}</span>;
 }
 
-function SensorsView({ telemetry }: { telemetry: UnitHostTelemetry }) {
+function ProgressLine({ label, value, tone }: { label: string; value: number; tone: Tone }) {
+  const safe = Math.max(0, Math.min(100, value));
+
   return (
-    <div className="grid gap-2">
-      <section className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
-        <ChartCard title="Ping" subtitle={`${telemetry.counts.online}/${telemetry.counts.units} online`} tone={telemetry.counts.down ? "critical" : "success"}>
-          <StackedMeter segments={healthSegments(telemetry)} total={telemetry.counts.units} emptyLabel="Sem telemetria carregada." />
-        </ChartCard>
-        <ChartCard title="Loss" subtitle={formatPercent(telemetry.counts.avgLossPct)} tone={metricTone(telemetry.counts.avgLossPct, 3, 10)}>
-          <BarList data={metricBars(telemetry, (item) => item.metrics.lossPct, 3, 10)} emptyLabel="Nenhuma leitura de perda disponível." valueFormatter={(value) => formatPercent(value)} />
-        </ChartCard>
-        <ChartCard title="Latência" subtitle={formatMs(telemetry.counts.avgLatencyMs)} tone={metricTone(telemetry.counts.avgLatencyMs, 150, 700)}>
-          <BarList data={metricBars(telemetry, (item) => item.metrics.latencyMs, 150, 700)} emptyLabel="Nenhuma leitura de latência disponível." valueFormatter={(value) => formatMs(value)} />
-        </ChartCard>
-        <ChartCard title="Temperatura" subtitle={formatTemperature(telemetry.counts.maxTemperatureC)} tone={metricTone(telemetry.counts.maxTemperatureC, 55, 70)}>
-          <BarList data={metricBars(telemetry, (item) => item.metrics.temperatureC, 55, 70)} emptyLabel="Nenhuma leitura de temperatura disponível." valueFormatter={(value) => formatTemperature(value)} />
-        </ChartCard>
-      </section>
-      <Surface>
-        <div className="flex items-start justify-between gap-2">
-          <div>
-            <div className="nds-label">Sensores</div>
-            <h2 className="mt-2 text-[13px] font-black text-slate-50">Cobertura por tipo de item</h2>
-          </div>
-          <TonePill tone="neutral">{telemetry.counts.units}</TonePill>
-        </div>
-        <div className="mt-2">
-          <BarList data={sensorCoverageBars(telemetry)} max={Math.max(1, telemetry.counts.units)} emptyLabel="Nenhum item técnico mapeado." />
-        </div>
-      </Surface>
-      <UnitsTable telemetry={telemetry} />
+    <div className="nova-monitor-progress">
+      <div>
+        <span>{label}</span>
+        <b>{safe}%</b>
+      </div>
+      <i>
+        <em className={`is-${tone}`} style={{ width: `${safe}%` }} />
+      </i>
     </div>
   );
 }
 
-function EventsView({ telemetry, commandCenter }: { telemetry: UnitHostTelemetry; commandCenter: CommandCenter }) {
-  const problems = telemetry.items.flatMap((item) => item.problems.map((problem) => ({ ...problem, unit: item.unit, partner: item.partner })));
+function EmptyState({ label }: { label: string }) {
   return (
-    <div className="grid gap-2"><Surface><div className="flex flex-wrap items-center justify-between gap-2"><h2 className="text-[13px] font-black text-slate-50">Eventos Zabbix</h2><TonePill tone={problems.length ? "attention" : "success"}>{problems.length}</TonePill></div><div className="mt-2">
-          {problems.length ? (
-            <TableShell><DenseTable><TableHead><tr><th className="px-3 py-2">Unidade</th><th className="px-3 py-2">Evento</th><th className="px-3 py-2">Severidade</th><th className="px-3 py-2">Ack</th><th className="px-3 py-2">Horário</th></tr></TableHead><tbody>
-                  {problems.slice(0, 30).map((problem) => (
-                    <tr key={`${problem.unit.id}-${problem.eventid}`} className="border-b border-white/6 last:border-b-0"><TableCell><Link href={`/unidades/${problem.unit.id}`} className="font-semibold text-slate-50 hover:text-white">{problem.unit.code}</Link><div className="mt-1 text-[10px] text-slate-500">{problem.partner.name}</div></TableCell><TableCell><div className="max-w-[620px] font-medium leading-5 text-slate-50">{problem.name}</div><div className="mt-1 text-[10px] text-slate-500">{problem.eventid}</div></TableCell><TableCell><TonePill tone={severityTone(problem.severity)}>{problem.severity}</TonePill></TableCell><TableCell><TonePill tone={problem.acknowledged === "1" ? "success" : "attention"}>{problem.acknowledged === "1" ? "sim" : "não"}</TonePill></TableCell><TableCell className="text-slate-400">{formatEpoch(problem.clock)}</TableCell></tr>
-                  ))}
-                </tbody></DenseTable></TableShell>
-          ) : (
-            <EmptyState title="Sem eventos ativos" description="Nenhum problema ativo retornado pelo Zabbix." />
-          )}
-        </div></Surface><section className="grid gap-2 xl:grid-cols-2"><RecentList title="Alertas" href="/alertas" items={commandCenter.recentOccurrences} kind="occurrence" /><RecentList title="Chamados" href="/chamados" items={commandCenter.recentMaintenances} kind="maintenance" /></section></div>
+    <div className="nova-monitor-empty">
+      <div>N</div>
+      <strong>{label}</strong>
+      <span>Ajuste os filtros ou aguarde nova leitura das fontes de monitoramento.</span>
+    </div>
   );
 }
 
-function RecentList({
-  title,
-  href,
-  items,
-  kind,
-}: {
-  title: string;
-  href: string;
-  items: Array<RecentOccurrence | RecentMaintenance>;
-  kind: "occurrence" | "maintenance";
-}) {
+function UnitRows({ items }: { items: UnitHostTelemetryItem[] }) {
   return (
-    <Surface><div className="flex items-center justify-between gap-2"><h2 className="text-[13px] font-black text-slate-50">{title}</h2><Link href={href} className="nds-button" data-variant="secondary">Ver todas</Link></div><div className="mt-2 grid gap-2">
-        {items.length ? items.slice(0, 6).map((item) => (
-          <Link key={item.id} href={`/${kind === "occurrence" ? "alertas" : "chamados"}/${item.id}`} className="nds-card block transition"><div className="flex items-start justify-between gap-2"><div className="min-w-0"><div className="truncate text-[12px] font-bold text-slate-50">{item.code} · {item.title}</div><div className="mt-1 truncate text-[10px] text-slate-500">{targetLabel(item)}</div></div><TonePill tone={"severity" in item && item.severity === "critical" ? "critical" : "attention"}>{"severity" in item ? item.severity : item.status}</TonePill></div></Link>
-        )) : <EmptyState title="Sem registros" description="Nenhum registro recente." />}
-      </div></Surface>
-  );
-}
+    <div className="nova-monitor-table is-units">
+      <div className="nova-monitor-table-head">
+        <span>Unidade</span>
+        <span>Parceiro</span>
+        <span>Saúde</span>
+        <span>Ping</span>
+        <span>Perda</span>
+        <span>Latência</span>
+        <span>Temp.</span>
+        <span>Ações</span>
+      </div>
 
-function Sources({ telemetry, isAdmin }: { telemetry: UnitHostTelemetry; isAdmin: boolean }) {
-  const failures = telemetry.sources.filter((source) => !source.ok);
-  if (!failures.length && !isAdmin) return null;
+      {items.length ? items.map((item) => (
+        <div className={`nova-monitor-row is-${healthTone(item.health)}`} key={item.unit.id}>
+          <div>
+            <Link href={`/unidades/${item.unit.id}`} className="nova-monitor-target-link">{item.unit.code} · {item.unit.name}</Link>
+            <small>{cityLine(item)} · {matchLabel(item.match.status)}</small>
+          </div>
 
-  return (
-    <Surface><div className="flex flex-wrap items-center justify-between gap-2"><div className="flex flex-wrap gap-2">
-          {telemetry.sources.map((source) => (
-            <TonePill key={source.id} tone={source.ok ? "success" : "attention"}>{source.code}: {source.ok ? "ok" : "alerta"}</TonePill>
-          ))}
+          <div>
+            <b>{item.partner.code}</b>
+            <small>{item.partner.name}</small>
+          </div>
+
+          <div>
+            <Badge tone={healthTone(item.health)}>{healthLabel(item.health)}</Badge>
+            <small>{item.problems.length ? `${item.problems.length} evento(s)` : "sem evento ativo"}</small>
+          </div>
+
+          <div>
+            <b>{item.metrics.ping ? "OK" : "-"}</b>
+            <small>{item.match.hostName || item.match.host || "sem host"}</small>
+          </div>
+
+          <div>
+            <b className={`is-metric-${metricTone(item.metrics.lossPct, 3, 8)}`}>{formatPercent(item.metrics.lossPct)}</b>
+            <small>perda média</small>
+          </div>
+
+          <div>
+            <b className={`is-metric-${metricTone(item.metrics.latencyMs, 150, 300)}`}>{formatMs(item.metrics.latencyMs)}</b>
+            <small>última coleta</small>
+          </div>
+
+          <div>
+            <b className={`is-metric-${metricTone(item.metrics.temperatureC, 55, 70)}`}>{formatTemperature(item.metrics.temperatureC)}</b>
+            <small>{item.equipments.length} ativo(s)</small>
+          </div>
+
+          <div>
+            <Link href={`/unidades/${item.unit.id}`}>Abrir</Link>
+          </div>
         </div>
-        {isAdmin ? <Link href="/integracoes" className="nds-button" data-variant="secondary">Integrações</Link> : null}
-      </div></Surface>
+      )) : (
+        <EmptyState label="Nenhuma unidade no recorte" />
+      )}
+    </div>
+  );
+}
+
+function PartnerRows({ rows }: { rows: PartnerRow[] }) {
+  return (
+    <div className="nova-monitor-table is-partners">
+      <div className="nova-monitor-table-head">
+        <span>Parceiro</span>
+        <span>Unidades</span>
+        <span>Online</span>
+        <span>Atenção</span>
+        <span>Offline</span>
+        <span>Vínculo</span>
+        <span>Latência</span>
+        <span>Ações</span>
+      </div>
+
+      {rows.length ? rows.map((row) => (
+        <div className={`nova-monitor-row is-${row.down ? "red" : row.degraded || row.problems ? "orange" : "green"}`} key={row.partner.id}>
+          <div>
+            <Link href={`/parceiros/${row.partner.id}`} className="nova-monitor-target-link">{partnerLabel(row.partner)}</Link>
+            <small>{row.problems ? `${row.problems} evento(s)` : "sem evento recente"}</small>
+          </div>
+          <div><b>{row.units}</b><small>locais</small></div>
+          <div><b>{row.online}</b><small>online</small></div>
+          <div><b>{row.degraded}</b><small>atenção</small></div>
+          <div><b>{row.down}</b><small>offline</small></div>
+          <div><b>{row.units - row.unmapped}/{row.units}</b><small>com host</small></div>
+          <div><b>{formatMs(row.avgLatencyMs)}</b><small>{formatPercent(row.avgLossPct)} perda</small></div>
+          <div><Link href={`/unidades?partner=${row.partner.id}`}>Abrir</Link></div>
+        </div>
+      )) : (
+        <EmptyState label="Nenhum parceiro no recorte" />
+      )}
+    </div>
+  );
+}
+
+function EventRows({ items }: { items: UnitHostTelemetryItem[] }) {
+  const events = items.flatMap((item) =>
+    item.problems.map((problem, index) => ({
+      item,
+      problem,
+      index,
+    })),
+  );
+
+  return (
+    <div className="nova-monitor-table is-events">
+      <div className="nova-monitor-table-head">
+        <span>Evento</span>
+        <span>Unidade</span>
+        <span>Parceiro</span>
+        <span>Saúde</span>
+        <span>Latência</span>
+        <span>Perda</span>
+        <span>Vínculo</span>
+        <span>Ações</span>
+      </div>
+
+      {events.length ? events.map(({ item, problem, index }) => (
+        <div className={`nova-monitor-row is-${healthTone(item.health)}`} key={`${item.unit.id}-${index}-${problem.name || problem.severity || "evento"}`}>
+          <div>
+            <strong>{problem.name || "Evento ativo"}</strong>
+            <small>{problem.severity || "sem severidade informada"}</small>
+          </div>
+          <div>
+            <Link href={`/unidades/${item.unit.id}`} className="nova-monitor-target-link">{item.unit.code} · {item.unit.name}</Link>
+            <small>{cityLine(item)}</small>
+          </div>
+          <div><b>{item.partner.code}</b><small>{item.partner.name}</small></div>
+          <div><Badge tone={healthTone(item.health)}>{healthLabel(item.health)}</Badge></div>
+          <div><b>{formatMs(item.metrics.latencyMs)}</b><small>latência</small></div>
+          <div><b>{formatPercent(item.metrics.lossPct)}</b><small>perda</small></div>
+          <div><Badge tone={matchTone(item.match.status)}>{matchLabel(item.match.status)}</Badge></div>
+          <div><Link href={`/sensores?q=${encodeURIComponent(item.unit.code)}`}>Abrir</Link></div>
+        </div>
+      )) : (
+        <EmptyState label="Nenhum evento no recorte" />
+      )}
+    </div>
+  );
+}
+
+function SensorRows({ items }: { items: UnitHostTelemetryItem[] }) {
+  return (
+    <div className="nova-monitor-table is-sensors">
+      <div className="nova-monitor-table-head">
+        <span>Host</span>
+        <span>Unidade</span>
+        <span>Vínculo</span>
+        <span>Ping</span>
+        <span>Perda</span>
+        <span>Latência</span>
+        <span>Temp.</span>
+        <span>Ações</span>
+      </div>
+
+      {items.length ? items.map((item) => (
+        <div className={`nova-monitor-row is-${matchTone(item.match.status)}`} key={item.unit.id}>
+          <div>
+            <strong>{item.match.hostName || item.match.host || "Sem host"}</strong>
+            <small>{item.match.host || "host não informado"}</small>
+          </div>
+          <div>
+            <Link href={`/unidades/${item.unit.id}`} className="nova-monitor-target-link">{item.unit.code} · {item.unit.name}</Link>
+            <small>{cityLine(item)}</small>
+          </div>
+          <div>
+            <Badge tone={matchTone(item.match.status)}>{matchLabel(item.match.status)}</Badge>
+            <small>{item.match.syncReady ? "pronto para sync" : "sem sync automático"}</small>
+          </div>
+          <div><b>{item.metrics.ping ? "OK" : "-"}</b><small>ICMP</small></div>
+          <div><b>{formatPercent(item.metrics.lossPct)}</b><small>última leitura</small></div>
+          <div><b>{formatMs(item.metrics.latencyMs)}</b><small>resposta</small></div>
+          <div><b>{formatTemperature(item.metrics.temperatureC)}</b><small>ambiente</small></div>
+          <div><Link href={`/sensores?q=${encodeURIComponent(item.unit.code)}`}>Abrir</Link></div>
+        </div>
+      )) : (
+        <EmptyState label="Nenhum sensor no recorte" />
+      )}
+    </div>
   );
 }
 
@@ -523,34 +523,252 @@ export default async function MonitoramentoPage({
   searchParams?: Promise<RawSearchParams> | RawSearchParams;
 }) {
   const session = await getServerWebSession();
-  if (!session.authenticated) redirect("/login?next=/sensores");
-
-  const [telemetry, commandCenter] = await Promise.all([
-    readUnitHostTelemetry({ timeoutMs: 2_500, fast: true }),
-    safeApiJson<CommandCenter>("/monitoring/command-center", emptyCommandCenter()),
-  ]);
+  if (!session.authenticated) redirect("/login?next=/monitoramento");
 
   const params = await resolveSearchParams(searchParams);
-  const filters: MonitorFilters = {
-    q: readStringParam(params, "q"),
+  const state: MonitorState = {
+    q: readStringParam(params, "q", ""),
     health: readStringParam(params, "health", "all"),
     partner: readStringParam(params, "partner", "all"),
     sort: readStringParam(params, "sort", "risk"),
-    view: normalizeMonitorView(readStringParam(params, "view", "overview")),
+    view: normalizeView(readStringParam(params, "view", "overview")),
   };
-  const isAdmin = normalizeRole(session.user?.role || "") === "admin";
-  const partners = partnersFromTelemetry(telemetry);
-  const filteredTelemetry = filterTelemetry(telemetry, filters);
-  const partnerRows = partnerRowsFromTelemetry(filteredTelemetry);
+
+  const [rawTelemetry, commandCenter] = await Promise.all([
+    safeApiJson<UnitHostTelemetry>("/monitoring/unit-hosts?mode=fast", emptyTelemetry),
+    safeApiJson<CommandCenter>("/monitoring/command-center", emptyCommandCenter()),
+  ]);
+
+  const telemetry = filterTelemetry(rawTelemetry, state);
+  const partners = partnersFromTelemetry(rawTelemetry);
+  const partnerRows = partnerRowsFromTelemetry(telemetry);
+  const currentParams = stateParams(state);
+  const eventCount = telemetry.items.reduce((sum, item) => sum + item.problems.length, 0);
+  const sourceFailureCount = sourceFailures(rawTelemetry);
+  const linkedPercent = percent(telemetry.counts.matched, telemetry.counts.units);
+  const healthPercent = percent(telemetry.counts.online, telemetry.counts.units);
+  const visibleTitle =
+    state.view === "partners"
+      ? "Parceiros monitorados"
+      : state.view === "events"
+        ? "Eventos recentes"
+        : state.view === "sensors"
+          ? "Sensores correlacionados"
+          : "Unidades monitoradas";
+
+  const kpis = [
+    { label: "Unidades", value: String(telemetry.counts.units), hint: "recorte filtrado", tone: "blue" as const },
+    { label: "Online", value: String(telemetry.counts.online), hint: "hosts saudáveis", tone: telemetry.counts.online ? "green" as const : "slate" as const },
+    { label: "Atenção", value: String(telemetry.counts.degraded), hint: "degradadas", tone: telemetry.counts.degraded ? "orange" as const : "green" as const },
+    { label: "Offline", value: String(telemetry.counts.down), hint: "sem resposta", tone: telemetry.counts.down ? "red" as const : "slate" as const },
+    { label: "Eventos", value: String(eventCount + commandCenter.metrics.criticalOpenOccurrences), hint: `${commandCenter.metrics.openOccurrences} alertas NOC`, tone: eventCount ? "orange" as const : "blue" as const },
+  ];
 
   return (
-    <AppShell title="Sensores" subtitle="Telemetria Zabbix por unidade, parceiro e ativo."><div className="nova-monitoring-page grid gap-2"><Summary telemetry={filteredTelemetry} commandCenter={commandCenter} /><Sources telemetry={telemetry} isAdmin={isAdmin} /><Tabs filters={filters} telemetry={filteredTelemetry} /><Filters filters={filters} partners={partners} count={filteredTelemetry.counts.units} />
+    <NovaLitShell activeHref="/monitoramento">
+      <div className="nova-lit-page-heading nova-monitor-heading">
+        <div>
+          <h1>Monitoramento</h1>
+          <p className="nova-lit-page-subtitle">Cobertura, saúde, latência, perda, sensores e eventos consolidados por unidade.</p>
+        </div>
 
-      {filters.view === "overview" ? <Overview telemetry={filteredTelemetry} /> : null}
-      {filters.view === "units" ? <UnitsTable telemetry={filteredTelemetry} /> : null}
-      {filters.view === "partners" ? <PartnersTable rows={partnerRows} /> : null}
-      {filters.view === "sensors" ? <SensorsView telemetry={filteredTelemetry} /> : null}
-      {filters.view === "events" ? <EventsView telemetry={filteredTelemetry} commandCenter={commandCenter} /> : null}
-          </div></AppShell>
+        <div className="nova-lit-page-actions">
+          <Link href="/sensores" className="nova-lit-button nova-lit-button-secondary">Sensores</Link>
+          <Link href="/relatorios/monitoramento" className="nova-lit-button nova-lit-button-primary">Gerar relatório</Link>
+        </div>
+      </div>
+
+      <section className="nova-monitor-kpi-grid" aria-label="Indicadores de monitoramento">
+        {kpis.map((kpi) => (
+          <KpiCard key={kpi.label} {...kpi} />
+        ))}
+      </section>
+
+      <section className="nova-monitor-view-strip" aria-label="Visões de monitoramento">
+        <Link href={withParams("/monitoramento", currentParams, { view: "overview" })} className={state.view === "overview" ? "is-active" : ""}>
+          Visão geral <b>{telemetry.counts.units}</b>
+        </Link>
+        <Link href={withParams("/monitoramento", currentParams, { view: "units" })} className={state.view === "units" ? "is-active" : ""}>
+          Unidades <b>{telemetry.items.length}</b>
+        </Link>
+        <Link href={withParams("/monitoramento", currentParams, { view: "partners" })} className={state.view === "partners" ? "is-active" : ""}>
+          Parceiros <b>{partnerRows.length}</b>
+        </Link>
+        <Link href={withParams("/monitoramento", currentParams, { view: "sensors" })} className={state.view === "sensors" ? "is-active" : ""}>
+          Sensores <b>{telemetry.counts.matched}</b>
+        </Link>
+        <Link href={withParams("/monitoramento", currentParams, { view: "events" })} className={state.view === "events" ? "is-active" : ""}>
+          Eventos <b>{eventCount}</b>
+        </Link>
+      </section>
+
+      <form action="/monitoramento" className="nova-lit-card nova-monitor-filters">
+        <label className="nova-monitor-search">
+          <span>Busca</span>
+          <input name="q" defaultValue={state.q} placeholder="Unidade, parceiro, host, cidade, serial ou ativo" />
+        </label>
+
+        <label className="nova-monitor-field">
+          <span>Parceiro</span>
+          <select name="partner" defaultValue={state.partner}>
+            <option value="all">Todos</option>
+            {partners.map((partner) => (
+              <option key={partner.id} value={partner.id}>{partner.code} · {partner.name}</option>
+            ))}
+          </select>
+        </label>
+
+        <label className="nova-monitor-field">
+          <span>Estado</span>
+          <select name="health" defaultValue={state.health}>
+            <option value="all">Todos</option>
+            <option value="online">Online</option>
+            <option value="degraded">Atenção</option>
+            <option value="down">Offline</option>
+            <option value="problem">Com evento</option>
+            <option value="high-latency">Alta latência</option>
+            <option value="high-loss">Perda alta</option>
+            <option value="temperature">Temperatura alta</option>
+            <option value="unmapped">Sem vínculo</option>
+          </select>
+        </label>
+
+        <label className="nova-monitor-field">
+          <span>Ordem</span>
+          <select name="sort" defaultValue={state.sort}>
+            <option value="risk">Risco</option>
+            <option value="latency">Latência</option>
+            <option value="loss">Perda</option>
+            <option value="temperature">Temperatura</option>
+            <option value="partner">Parceiro</option>
+            <option value="code">Código</option>
+          </select>
+        </label>
+
+        <input type="hidden" name="view" value={state.view} />
+        <button type="submit">Filtrar</button>
+        <Link href="/monitoramento">Limpar</Link>
+      </form>
+
+      <section className="nova-monitor-main-grid">
+        <div className="nova-lit-card nova-monitor-table-card">
+          <div className="nova-monitor-section-title">
+            <div>
+              <span>Network Desk</span>
+              <h2>{visibleTitle}</h2>
+            </div>
+            <div>
+              <small>{formatDateTime(rawTelemetry.generatedAt)}</small>
+              <Link href="/sensores">Fonte</Link>
+            </div>
+          </div>
+
+          {state.view === "partners" ? (
+            <PartnerRows rows={partnerRows} />
+          ) : state.view === "events" ? (
+            <EventRows items={telemetry.items} />
+          ) : state.view === "sensors" ? (
+            <SensorRows items={telemetry.items} />
+          ) : (
+            <UnitRows items={telemetry.items} />
+          )}
+        </div>
+
+        <aside className="nova-monitor-right-col">
+          <section className="nova-lit-card nova-monitor-coverage">
+            <div className="nova-lit-title-row">
+              <h2>Cobertura</h2>
+              <span className="nova-lit-pill nova-lit-pill-blue">{linkedPercent}%</span>
+            </div>
+            <div className="nova-monitor-ring-wrap">
+              <div className="nova-monitor-ring" style={{ "--value": `${linkedPercent}%` } as React.CSSProperties}>
+                <strong>{linkedPercent}%</strong>
+                <span>com host</span>
+              </div>
+            </div>
+            <p>{telemetry.counts.matched} de {telemetry.counts.units} unidade(s) com host correlacionado.</p>
+          </section>
+
+          <section className="nova-lit-card nova-monitor-health">
+            <div className="nova-lit-title-row">
+              <h2>Saúde</h2>
+              <span className="nova-lit-pill nova-lit-pill-green">{healthPercent}%</span>
+            </div>
+            <div className="nova-monitor-progress-list">
+              <ProgressLine label="Online" value={percent(telemetry.counts.online, telemetry.counts.units)} tone="green" />
+              <ProgressLine label="Atenção" value={percent(telemetry.counts.degraded, telemetry.counts.units)} tone="orange" />
+              <ProgressLine label="Offline" value={percent(telemetry.counts.down, telemetry.counts.units)} tone="red" />
+              <ProgressLine label="Sem vínculo" value={percent(telemetry.counts.unmapped, telemetry.counts.units)} tone="slate" />
+            </div>
+          </section>
+
+          <section className="nova-lit-card nova-monitor-quick">
+            <span>Ação rápida</span>
+            <Link href={withParams("/monitoramento", currentParams, { health: "down", page: undefined })}>Offline <b>{telemetry.counts.down}</b></Link>
+            <Link href={withParams("/monitoramento", currentParams, { health: "problem", page: undefined })}>Com evento <b>{eventCount}</b></Link>
+            <Link href={withParams("/monitoramento", currentParams, { health: "unmapped", page: undefined })}>Sem vínculo <b>{telemetry.counts.unmapped}</b></Link>
+          </section>
+
+          <section className="nova-lit-card nova-monitor-metrics">
+            <div className="nova-lit-title-row">
+              <h2>Métricas</h2>
+              <span className="nova-lit-pill nova-lit-pill-orange">{sourceFailureCount} falhas</span>
+            </div>
+            <div className="nova-monitor-status-list">
+              <article>
+                <Dot tone="blue" />
+                <strong>Latência média</strong>
+                <b>{formatMs(telemetry.counts.avgLatencyMs)}</b>
+              </article>
+              <article>
+                <Dot tone="orange" />
+                <strong>Perda média</strong>
+                <b>{formatPercent(telemetry.counts.avgLossPct)}</b>
+              </article>
+              <article>
+                <Dot tone="red" />
+                <strong>Temperatura máx.</strong>
+                <b>{formatTemperature(telemetry.counts.maxTemperatureC)}</b>
+              </article>
+              <article>
+                <Dot tone="green" />
+                <strong>Sync pronto</strong>
+                <b>{telemetry.counts.syncReady}</b>
+              </article>
+            </div>
+          </section>
+
+          <section className="nova-lit-card nova-monitor-sources">
+            <div className="nova-lit-title-row">
+              <h2>Fontes</h2>
+              <span className="nova-lit-pill nova-lit-pill-blue">{rawTelemetry.sources.length}</span>
+            </div>
+            <div className="nova-monitor-source-list">
+              {rawTelemetry.sources.length ? rawTelemetry.sources.map((source) => (
+                <article key={source.code}>
+                  <Dot tone={source.ok ? "green" : "orange"} />
+                  <div>
+                    <strong>{source.name || source.code}</strong>
+                    <span>{source.ok ? "fonte saudável" : source.message || "atenção na coleta"}</span>
+                  </div>
+                </article>
+              )) : (
+                <div className="nova-monitor-list-empty">Nenhuma fonte carregada.</div>
+              )}
+            </div>
+          </section>
+        </aside>
+      </section>
+
+      <section className="nova-lit-card nova-monitor-pagination">
+        <span>
+          {telemetry.items.length} unidade(s) no recorte · {telemetry.counts.withProblems} com evento · {commandCenter.metrics.overdueMaintenances} chamado(s) vencido(s)
+        </span>
+        <div>
+          <Link href="/relatorios/monitoramento">Relatório</Link>
+          <Link href="/sensores">Sensores</Link>
+        </div>
+      </section>
+    </NovaLitShell>
   );
 }
