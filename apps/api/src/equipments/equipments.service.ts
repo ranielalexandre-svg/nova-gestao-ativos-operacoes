@@ -110,6 +110,22 @@ export class EquipmentsService {
       where.status = query.status.trim().toLowerCase();
     }
 
+    if (query.type?.trim()) {
+      const requestedType = query.type.trim().toLowerCase();
+
+      if (requestedType === "outros" || requestedType === "other") {
+        where.NOT = {
+          OR: [
+            { type: { contains: "starlink", mode: "insensitive" } },
+            { type: { contains: "onu", mode: "insensitive" } },
+            { type: { contains: "switch", mode: "insensitive" } },
+          ],
+        };
+      } else {
+        where.type = { contains: requestedType, mode: "insensitive" };
+      }
+    }
+
     if (query.active === "true") {
       where.isActive = true;
     } else if (query.active === "false") {

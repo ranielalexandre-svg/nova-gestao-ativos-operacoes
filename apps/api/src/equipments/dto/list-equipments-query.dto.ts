@@ -11,6 +11,10 @@ export class ListEquipmentsQueryDto extends PaginationQueryDto {
   status?: string;
 
   @IsOptional()
+  @IsString()
+  type?: string;
+
+  @IsOptional()
   @IsIn(["all", "true", "false"])
   active?: "all" | "true" | "false";
 

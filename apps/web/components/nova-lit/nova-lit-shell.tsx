@@ -136,6 +136,9 @@ const MENU_SECTIONS: NavSection[] = [
         children: [
           { label: "Todos os ativos", href: "/ativos", icon: "assets" },
           { label: "Starlinks", href: "/ativos/starlinks", icon: "assets" },
+          { label: "ONUs", href: "/ativos/onus", icon: "assets" },
+          { label: "Switches", href: "/ativos/switches", icon: "assets" },
+          { label: "Outros / SAD", href: "/ativos/outros", icon: "assets" },
         ],
       },
       { label: "Parceiros", href: "/parceiros", icon: "partners" },

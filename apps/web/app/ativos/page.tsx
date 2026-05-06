@@ -20,6 +20,7 @@ import { getServerWebSession, normalizeRole } from "@/lib/web-session";
 type Tone = "green" | "orange" | "blue" | "red" | "slate";
 type StatusFilter = "all" | "active" | "stock" | "repair" | "retired";
 type ActiveFilter = "all" | "true" | "false";
+type TypeFilter = "all" | "starlink" | "onu" | "switch" | "outros";
 type SortBy = "createdAt" | "tag" | "name" | "type" | "status";
 type SortDir = "asc" | "desc";
 
@@ -56,6 +57,7 @@ type AtivosState = {
   unitId: string;
   status: StatusFilter;
   active: ActiveFilter;
+  type: TypeFilter;
   sortBy: SortBy;
   sortDir: SortDir;
   page: number;
@@ -64,6 +66,7 @@ type AtivosState = {
 
 const statusOptions = ["all", "active", "stock", "repair", "retired"] as const;
 const activeOptions = ["all", "true", "false"] as const;
+const typeOptions = ["all", "starlink", "onu", "switch", "outros"] as const;
 const sortByOptions = ["createdAt", "tag", "name", "type", "status"] as const;
 const sortDirOptions = ["asc", "desc"] as const;
 const pageSizeOptions = [10, 20, 50] as const;
@@ -82,6 +85,14 @@ function statusLabel(value: string) {
   if (value === "repair") return "Reparo";
   if (value === "retired") return "Retirado";
   return value || "Sem status";
+}
+
+function assetTypeLabel(value: string) {
+  if (value === "starlink") return "Starlinks";
+  if (value === "onu") return "ONUs";
+  if (value === "switch") return "Switches";
+  if (value === "outros") return "Outros / SAD";
+  return "Todos os tipos";
 }
 
 function statusTone(value: string, isActive: boolean): Tone {
@@ -169,6 +180,7 @@ function stateParams(state: AtivosState): RawSearchParams {
     unitId: state.unitId || undefined,
     status: state.status,
     active: state.active,
+    type: state.type !== "all" ? state.type : undefined,
     sortBy: state.sortBy,
     sortDir: state.sortDir,
     page: String(state.page),
@@ -250,6 +262,7 @@ export default async function AtivosPage({
     unitId: readStringParam(params, "unitId", ""),
     status: stringOption(statusOptions, readStringParam(params, "status", "all"), "all"),
     active: stringOption(activeOptions, readStringParam(params, "active", "true"), "true"),
+    type: stringOption(typeOptions, readStringParam(params, "type", "all"), "all"),
     sortBy: stringOption(sortByOptions, readStringParam(params, "sortBy", "createdAt"), "createdAt"),
     sortDir: stringOption(sortDirOptions, readStringParam(params, "sortDir", "desc"), "desc"),
     page: readPositiveIntParam(params, "page", 1),
@@ -322,6 +335,7 @@ export default async function AtivosPage({
         </div>
 
         <div className="nova-lit-page-actions">
+          <Link href="/ativos/onus" className="nova-lit-button nova-lit-button-secondary">ONUs</Link>
           <Link href="/ativos/starlinks" className="nova-lit-button nova-lit-button-secondary">Starlinks</Link>
           {isAdmin ? <Link href="/ativos/nova" className="nova-lit-button nova-lit-button-primary">Novo ativo</Link> : null}
         </div>
@@ -348,6 +362,17 @@ export default async function AtivosPage({
                 {unit.code} - {unit.name}
               </option>
             ))}
+          </select>
+        </label>
+
+        <label className="nova-assets-field">
+          <span>Tipo</span>
+          <select name="type" defaultValue={state.type}>
+            <option value="all">Todos</option>
+            <option value="starlink">Starlinks</option>
+            <option value="onu">ONUs</option>
+            <option value="switch">Switches</option>
+            <option value="outros">Outros / SAD</option>
           </select>
         </label>
 
@@ -393,7 +418,7 @@ export default async function AtivosPage({
           <div className="nova-assets-section-title">
             <div>
               <span>Inventário</span>
-              <h2>Base técnica</h2>
+              <h2>{assetTypeLabel(state.type)}</h2>
             </div>
             <div>
               <small>{rows.length} linhas</small>
@@ -477,6 +502,9 @@ export default async function AtivosPage({
           <section className="nova-lit-card nova-assets-quick">
             <span>Ação rápida</span>
             <Link href="/ativos/starlinks">Starlinks <b>{starlinksOnPage}</b></Link>
+            <Link href="/ativos/onus">ONUs <b>{rows.filter((item) => item.type.toLowerCase().includes("onu")).length}</b></Link>
+            <Link href="/ativos/switches">Switches <b>{rows.filter((item) => item.type.toLowerCase().includes("switch")).length}</b></Link>
+            <Link href="/ativos/outros">Outros / SAD <b>{rows.filter((item) => !["starlink", "onu", "switch"].some((kind) => item.type.toLowerCase().includes(kind))).length}</b></Link>
             <Link href="/sensores">Sensores <b>{monitoredOnPage}</b></Link>
             <Link href="/importacao?resource=equipments">Importar <b>CSV</b></Link>
           </section>
