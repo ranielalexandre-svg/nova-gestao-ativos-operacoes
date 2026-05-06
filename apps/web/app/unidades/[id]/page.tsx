@@ -7,6 +7,7 @@ import { NovaLitShell } from "@/components/nova-lit/nova-lit-shell";
 import { AttachmentPanel } from "@/components/attachment-panel";
 import { EntityEditModal } from "@/components/entity-edit-modal";
 import { OperationalDeletePanel } from "@/components/operational-delete-panel";
+import { OperationalSecretActions } from "@/components/unidades/operational-secret-actions";
 import { RegistryDetailHero } from "@/components/registry-shell";
 import {
   DenseTable,
@@ -301,6 +302,60 @@ type LegacyUnitProfile = {
     serialNumber: string;
     source: string;
   }>;
+};
+
+type UnitOperationalSecret = {
+  id: string;
+  kind: string;
+  label: string;
+  hasValue: boolean;
+  username: string | null;
+  value: string | null;
+  note: string | null;
+  revealed: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type UnitOperationalItem = {
+  id: string;
+  source: string;
+  sourceLegacyId: string | null;
+  sourceUnitKey: string | null;
+  linkRole: string;
+  sortOrder: number;
+  group: string | null;
+  legacyCode: string | null;
+  legacyName: string | null;
+  city: string | null;
+  state: string | null;
+  partnerCode: string | null;
+  serviceType: string | null;
+  connectionType: string | null;
+  routerPort: string | null;
+  technology: string | null;
+  latency: string | null;
+  macOnu: string | null;
+  phone: string | null;
+  contractIxc: string | null;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+  secrets: UnitOperationalSecret[];
+};
+
+type UnitOperationalDataResponse = {
+  unit: {
+    id: string;
+    code: string;
+    name: string;
+    city: string | null;
+    state: string | null;
+    partner: { id: string; code: string; name: string };
+  };
+  revealSecrets: boolean;
+  total: number;
+  items: UnitOperationalItem[];
 };
 
 async function syncZabbixAction(
@@ -1460,6 +1515,143 @@ function UnitMonitoringVisualPanel({
   );
 }
 
+
+function operationalRoleLabel(role: string) {
+  if (role === "backup") return "Backup / contingência";
+  if (role === "primary") return "Link principal";
+  return role || "Link operacional";
+}
+
+function OperationalSecretRow({ secret }: { secret: UnitOperationalSecret }) {
+  return (
+    <div className="nds-card text-[11px] text-[var(--nova-text-muted)]">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <div className="font-black text-slate-50">{secret.label || "Credencial"}</div>
+          <div className="mt-1 text-[10px] uppercase tracking-[0.18em] text-slate-500">
+            {secret.kind || "credential"}
+          </div>
+        </div>
+        <TonePill tone={secret.revealed ? "attention" : "info"}>
+          {secret.revealed ? "revelado" : "mascarado"}
+        </TonePill>
+      </div>
+
+      <div className="mt-2 grid gap-2 md:grid-cols-2">
+        <div>
+          Usuário/login: <span className="break-all text-slate-200">{secret.username || "-"}</span>
+        </div>
+        <div>
+          Senha/valor: <span className="break-all text-slate-200">{secret.value || "-"}</span>
+        </div>
+        {secret.note ? (
+          <div className="md:col-span-2">
+            Nota: <span className="break-all text-slate-200">{secret.note}</span>
+          </div>
+        ) : null}
+      </div>
+
+      <OperationalSecretActions
+        username={secret.username}
+        value={secret.value}
+        revealed={secret.revealed}
+      />
+    </div>
+  );
+}
+
+function OperationalDataCard({
+  unitId,
+  item,
+  isAdmin,
+  updateAction,
+}: {
+  unitId: string;
+  item: UnitOperationalItem;
+  isAdmin: boolean;
+  updateAction: (formData: FormData) => Promise<void>;
+}) {
+  return (
+    <div className="nds-card"><div className="flex flex-wrap items-center justify-between gap-2"><div><div className="text-[12px] font-black text-slate-50">{operationalRoleLabel(item.linkRole)}</div><div className="mt-1 text-[10px] uppercase tracking-[0.18em] text-slate-500">
+            {[item.source, item.partnerCode].filter(Boolean).join(" · ") || "manual"}
+          </div></div><TonePill tone={item.secrets.length ? "attention" : "info"}>{item.secrets.length ? `${item.secrets.length} credencial` : "sem segredo"}</TonePill></div><div className="mt-2 grid gap-2 text-[11px] text-[var(--nova-text-muted)] md:grid-cols-2"><div>Servico: <span className="text-slate-200">{item.serviceType || "-"}</span></div><div>Conexao: <span className="text-slate-200">{item.connectionType || "-"}</span></div><div>Porta RB: <span className="text-slate-200">{item.routerPort || "-"}</span></div><div>Tecnologia: <span className="text-slate-200">{item.technology || "-"}</span></div><div>Latencia: <span className="text-slate-200">{item.latency || "-"}</span></div><div>Acionamento: <span className="text-slate-200">{item.phone || "-"}</span></div><div>Contrato IXC: <span className="text-slate-200">{item.contractIxc || "-"}</span></div><div>Origem: <span className="text-slate-200">{item.legacyCode || item.legacyName || item.sourceLegacyId || "-"}</span></div><div className="md:col-span-2">MAC/ONU: <span className="break-all text-slate-200">{item.macOnu || "-"}</span></div>{item.notes ? <div className="md:col-span-2">Observacao: <span className="text-slate-200">{item.notes}</span></div> : null}</div>
+
+      {item.secrets.length ? (
+        <div className="mt-2 grid gap-2">
+          {item.secrets.map((secret) => (
+            <OperationalSecretRow key={secret.id} secret={secret} />
+          ))}
+        </div>
+      ) : null}
+
+      {isAdmin ? (
+        <details className="mt-2 rounded-[var(--nova-radius-card)] border border-white/[0.08] bg-white/[0.02] p-2"><summary className="cursor-pointer text-[11px] font-black text-slate-100">Editar dados operacionais e credenciais</summary><form action={updateAction} className="mt-2 grid gap-2"><input type="hidden" name="unitId" value={unitId} /><input type="hidden" name="infoId" value={item.id} /><div className="grid gap-2 md:grid-cols-2"><label className="grid gap-1.5"><span className={editLabelClass}>Parceiro</span><input name="partnerCode" defaultValue={item.partnerCode || ""} className={editInputClass} /></label><label className="grid gap-1.5"><span className={editLabelClass}>Servico</span><input name="serviceType" defaultValue={item.serviceType || ""} className={editInputClass} /></label><label className="grid gap-1.5"><span className={editLabelClass}>Conexao</span><input name="connectionType" defaultValue={item.connectionType || ""} className={editInputClass} /></label><label className="grid gap-1.5"><span className={editLabelClass}>Porta RB</span><input name="routerPort" defaultValue={item.routerPort || ""} className={editInputClass} /></label><label className="grid gap-1.5"><span className={editLabelClass}>Tecnologia</span><input name="technology" defaultValue={item.technology || ""} className={editInputClass} /></label><label className="grid gap-1.5"><span className={editLabelClass}>Latencia</span><input name="latency" defaultValue={item.latency || ""} className={editInputClass} /></label><label className="grid gap-1.5"><span className={editLabelClass}>Telefone/acionamento</span><input name="phone" defaultValue={item.phone || ""} className={editInputClass} /></label><label className="grid gap-1.5"><span className={editLabelClass}>Contrato IXC</span><input name="contractIxc" defaultValue={item.contractIxc || ""} className={editInputClass} /></label><label className="grid gap-1.5 md:col-span-2"><span className={editLabelClass}>MAC/ONU</span><input name="macOnu" defaultValue={item.macOnu || ""} className={editInputClass} /></label><label className="grid gap-1.5 md:col-span-2"><span className={editLabelClass}>Observacoes</span><textarea name="notes" defaultValue={item.notes || ""} className={editTextareaClass} rows={3} /></label></div><div className="nds-card grid gap-2 md:grid-cols-3"><label className="grid gap-1.5"><span className={editLabelClass}>Rotulo da credencial</span><input name="secretLabel" placeholder="Credencial operacional" className={editInputClass} /></label><label className="grid gap-1.5"><span className={editLabelClass}>Usuario/login</span><input name="username" placeholder="preencha para substituir" className={editInputClass} /></label><label className="grid gap-1.5"><span className={editLabelClass}>Senha/valor</span><input name="secret" placeholder="preencha para substituir" className={editInputClass} /></label><label className="grid gap-1.5 md:col-span-3"><span className={editLabelClass}>Nota sensivel</span><input name="secretNote" placeholder="observacao opcional criptografada" className={editInputClass} /></label></div><div className="flex justify-end"><button type="submit" className="nds-button" data-variant="primary">Salvar dados operacionais</button></div></form></details>
+      ) : null}
+    </div>
+  );
+}
+
+function OperationalDataBlock({
+  unitId,
+  data,
+  isAdmin,
+  revealSecrets,
+  updateAction,
+}: {
+  unitId: string;
+  data: UnitOperationalDataResponse | null;
+  isAdmin: boolean;
+  revealSecrets: boolean;
+  updateAction: (formData: FormData) => Promise<void>;
+}) {
+  if (!data || !data.items.length) return null;
+
+  const primaryCount = data.items.filter((item) => item.linkRole === "primary").length;
+  const backupCount = data.items.filter((item) => item.linkRole === "backup").length;
+  const secretCount = data.items.reduce((sum, item) => sum + item.secrets.length, 0);
+  const revealHref = `/unidades/${unitId}?legacy=1&operationalReveal=1`;
+  const hideHref = `/unidades/${unitId}?legacy=1`;
+
+  return (
+    <Surface><SectionIntro
+        eyebrow="Dados operacionais"
+        title="Links, acionamento e credenciais reais"
+        description="Dados persistidos a partir do legado SQLite, editaveis no cadastro da unidade e mascarados por padrao."
+        actions={
+          <div className="flex flex-wrap gap-2">
+            <TonePill tone="success">{data.total} registro(s)</TonePill>
+            {secretCount ? <TonePill tone="attention">{secretCount} segredo(s)</TonePill> : null}
+            {isAdmin ? (
+              <Link
+                href={revealSecrets ? hideHref : revealHref}
+                className="nds-button"
+                data-variant={revealSecrets ? "secondary" : "primary"}
+              >
+                {revealSecrets ? "Ocultar segredos" : "Revelar segredos"}
+              </Link>
+            ) : null}
+          </div>
+        }
+        compact
+      /><div className="mt-2 grid gap-2 md:grid-cols-3"><div className="nds-card"><div className="nds-label">Principais</div><div className="mt-1 text-[22px] font-semibold text-slate-50">{primaryCount}</div></div><div className="nds-card"><div className="nds-label">Backup</div><div className="mt-1 text-[22px] font-semibold text-slate-50">{backupCount}</div></div><div className="nds-card"><div className="nds-label">Credenciais</div><div className="mt-1 text-[22px] font-semibold text-slate-50">{secretCount}</div></div></div><div className="mt-2 grid gap-2">
+        {data.items.map((item) => (
+          <OperationalDataCard
+            key={item.id}
+            unitId={unitId}
+            item={item}
+            isAdmin={isAdmin}
+            updateAction={updateAction}
+          />
+        ))}
+      </div>{revealSecrets ? (
+        <div className="mt-2 rounded-[var(--nova-radius-card)] border border-amber-300/20 bg-amber-300/[0.06] px-3 py-2 text-[11px] leading-5 text-amber-100">
+          Credenciais reveladas apenas para administradores. A consulta gera auditoria no backend.
+        </div>
+      ) : null}</Surface>
+  );
+}
+
+
 function LegacyLinkCard({
   title,
   link,
@@ -1681,6 +1873,45 @@ export default async function UnidadeDetailPage({
     redirect("/unidades?active=true");
   }
 
+
+  async function updateOperationalData(formData: FormData) {
+    "use server";
+
+    const unitId = String(formData.get("unitId") || "");
+    const infoId = String(formData.get("infoId") || "");
+
+    try {
+      const actionSession = await getServerWebSession();
+      if (normalizeRole(actionSession.user?.role || "") !== "admin") {
+        return;
+      }
+
+      await apiJson(`/legacy/units/${unitId}/operational-data/${infoId}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          partnerCode: String(formData.get("partnerCode") || ""),
+          serviceType: String(formData.get("serviceType") || ""),
+          connectionType: String(formData.get("connectionType") || ""),
+          routerPort: String(formData.get("routerPort") || ""),
+          technology: String(formData.get("technology") || ""),
+          latency: String(formData.get("latency") || ""),
+          macOnu: String(formData.get("macOnu") || ""),
+          phone: String(formData.get("phone") || ""),
+          contractIxc: String(formData.get("contractIxc") || ""),
+          notes: String(formData.get("notes") || ""),
+          secretLabel: String(formData.get("secretLabel") || ""),
+          username: String(formData.get("username") || ""),
+          secret: String(formData.get("secret") || ""),
+          secretNote: String(formData.get("secretNote") || ""),
+        }),
+      });
+
+      revalidatePath(`/unidades/${unitId}`);
+    } catch {}
+
+    redirect(`/unidades/${unitId}?legacy=1`);
+  }
+
   const resolvedParams = await params;
   const resolvedSearchParams = await resolveSearchParams(searchParams);
   const created = readStringParam(resolvedSearchParams, "created") === "1";
@@ -1692,20 +1923,25 @@ export default async function UnidadeDetailPage({
 
   const loadMonitoring = focusMode || readStringParam(resolvedSearchParams, "monitoring") === "1";
   const loadLegacy = readStringParam(resolvedSearchParams, "legacy") === "1";
+  const role = normalizeRole(session.user?.role || "");
+  const isAdmin = isAdminRole(role);
+  const revealOperationalSecrets = isAdmin && readStringParam(resolvedSearchParams, "operationalReveal") === "1";
 
-  const [unit, zabbixSnapshot, monitoringReportBase, partnersResponse] = await Promise.all([
+  const [unit, zabbixSnapshot, monitoringReportBase, partnersResponse, operationalDataResponse] = await Promise.all([
     apiJson<UnitDetail>(`/units/${resolvedParams.id}`),
     loadMonitoring ? readUnitZabbixSnapshot(resolvedParams.id) : Promise.resolve(null),
     loadMonitoring ? readUnitMonitoringReport(resolvedParams.id, monitoringWindow) : Promise.resolve(null),
     apiJson<PaginatedResponse<PartnerOption>>(
       "/partners?page=1&pageSize=100&sortBy=code&sortDir=asc",
     ),
+    apiJson<UnitOperationalDataResponse>(
+      `/legacy/units/${resolvedParams.id}/operational-data${revealOperationalSecrets ? "/reveal" : ""}`,
+    ).catch(() => null),
   ]);
 
   const monitoringReport = loadMonitoring ? narrowMonitoringReport(monitoringReportBase, monitoringWindow) : null;
   const legacyProfile: LegacyUnitProfile | null = loadLegacy ? await getLegacyUnitProfileForUnit(unit) : null;
-  const role = normalizeRole(session.user?.role || "");
-  const isAdmin = isAdminRole(role);
+  const operationalData = operationalDataResponse;
   const canEditAttachments = canEditAttachmentsForRole(role);
   const sensorCount = zabbixSensorCount(zabbixSnapshot);
   const showUnitCode = !isRedundantLabel(unit.code, unit.name);
@@ -2101,27 +2337,37 @@ export default async function UnidadeDetailPage({
             ><input type="hidden" name="unitId" value={unit.id} /></ActionForm>
           ) : null
         }
-      />{loadLegacy ? (
-        <LegacyUnitBlock profile={legacyProfile} />
-      ) : (
-        <Surface className="nds-card">
-          <div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
-            <SectionIntro
-              eyebrow="Legado"
-              title="Dados legados sob demanda"
-              description="Contatos, vínculos antigos e histórico Starlink ficam fora da abertura inicial para manter a página rápida."
-              compact
+        />{loadLegacy ? (
+          operationalData?.items.length ? (
+            <OperationalDataBlock
+              unitId={unit.id}
+              data={operationalData}
+              isAdmin={isAdmin}
+              revealSecrets={revealOperationalSecrets}
+              updateAction={updateOperationalData}
             />
-            <Link
-              href={unitLegacyHref(unit.id, monitoringWindow)}
-              className="nds-button"
-              data-variant="secondary"
-            >
-              Carregar legado
-            </Link>
-          </div>
-        </Surface>
-      )}<AttachmentPanel
+          ) : (
+            <LegacyUnitBlock profile={legacyProfile} />
+          )
+        ) : (
+          <Surface className="nds-card">
+            <div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
+              <SectionIntro
+                eyebrow="Legado"
+                title="Dados legados sob demanda"
+                description="Contatos, vínculos antigos e histórico Starlink ficam fora da abertura inicial para manter a página rápida."
+                compact
+              />
+              <Link
+                href={unitLegacyHref(unit.id, monitoringWindow)}
+                className="nds-button"
+                data-variant="secondary"
+              >
+                Carregar legado
+              </Link>
+            </div>
+          </Surface>
+        )}<AttachmentPanel
         entityPath="units"
         entityId={unit.id}
         entityLabel="unidade"
