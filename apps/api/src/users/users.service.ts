@@ -91,6 +91,27 @@ export class UsersService {
     };
   }
 
+  async getUserById(id: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException("Usuário não encontrado");
+    }
+
+    return user;
+  }
+
   async createUser(payload: CreateUserDto) {
     const email = payload.email.trim().toLowerCase();
     const name = payload.name.trim();

@@ -19,6 +19,11 @@ export class UsersController {
     return this.usersService.listUsers(query);
   }
 
+  @Get(":id")
+  getUserById(@Param("id") id: string) {
+    return this.usersService.getUserById(id);
+  }
+
   @Post()
   createUser(@Body() body: CreateUserDto) {
     return this.usersService.createUser(body);
