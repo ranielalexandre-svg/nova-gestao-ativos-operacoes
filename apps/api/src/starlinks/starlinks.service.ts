@@ -111,6 +111,8 @@ export class StarlinksService {
         unitName: item.unit.name,
         partnerName: item.unit.partner.name,
         documentsCount: attachmentsByEquipmentId.get(item.id) || 0,
+        operationalDataCount: legacyCounts.rows,
+        operationalSecretsCount: legacyCounts.secrets,
         legacyDataCount: legacyCounts.rows,
         legacySecretsCount: legacyCounts.secrets,
       };

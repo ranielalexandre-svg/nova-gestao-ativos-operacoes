@@ -359,7 +359,7 @@ export default async function AtivoDetailPage({
   ]);
   const starlinkOperationalData = isStarlinkEquipment(equipment)
     ? await apiJson<StarlinkOperationalResponse>(
-        `/starlinks/${equipment.id}/legacy-data${starlinkReveal ? "/reveal" : ""}`,
+        `/starlinks/${equipment.id}/operational-data${starlinkReveal ? "/reveal" : ""}`,
       ).catch(() => null)
     : null;
   const monitor = monitorResponse.items.find((item) => item.unit.id === equipment.unit.id);
@@ -412,7 +412,7 @@ export default async function AtivoDetailPage({
       redirect(`/ativos/${equipmentId}`);
     }
 
-    await apiJson(`/starlinks/${equipmentId}/legacy-data/${infoId}`, {
+    await apiJson(`/starlinks/${equipmentId}/operational-data/${infoId}`, {
       method: "PATCH",
       body: JSON.stringify({
         antennaId: String(formData.get("antennaId") || ""),
