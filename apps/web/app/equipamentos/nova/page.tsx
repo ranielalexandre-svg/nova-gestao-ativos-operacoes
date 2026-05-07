@@ -206,7 +206,7 @@ export default async function NovoAtivoPage({
           {step === 2 ? (
             <WizardPanel
               title="Vínculo"
-              description="Associe o ativo à unidade correta. É esse vínculo que permite ler parceiro, legado e monitoramento sem duplicar contexto."
+              description="Associe o ativo à unidade correta. É esse vínculo que permite ler parceiro, dados operacionais e monitoramento sem duplicar contexto."
             ><form method="GET" className="grid gap-2"><input type="hidden" name="step" value="3" /><input type="hidden" name="tag" value={tag} /><input type="hidden" name="name" value={name} /><input type="hidden" name="type" value={type} /><div className="grid gap-2 md:grid-cols-2"><div className="grid gap-1.5"><FieldLabel htmlFor="equipment-unit" label="Unidade" hint="Obrigatório" /><select
                       id="equipment-unit"
                       name="unitId"
@@ -218,7 +218,7 @@ export default async function NovoAtivoPage({
                           {unit.code} - {unit.name}
                         </option>
                       ))}
-                    </select></div><div className="grid gap-1.5"><FieldLabel htmlFor="equipment-serial" label="Serial / MAC" hint="Ajuda no match com legado/Zabbix" /><input
+                    </select></div><div className="grid gap-1.5"><FieldLabel htmlFor="equipment-serial" label="Serial / MAC" hint="Ajuda no match com operação/Zabbix" /><input
                       id="equipment-serial"
                       name="serialNumber"
                       defaultValue={serialNumber}
@@ -254,7 +254,7 @@ export default async function NovoAtivoPage({
                     label="Unidade"
                     value={selectedUnit ? `${selectedUnit.code} - ${selectedUnit.name}` : "-"}
                   /></div><div className="nds-card text-[11px] leading-5 text-slate-400">
-                  Ao salvar, o ativo já aparece no inventário e passa a herdar o contexto operacional da unidade: parceiro, cidade, legado e monitoramento.
+                  Ao salvar, o ativo já aparece no inventário e passa a herdar o contexto operacional da unidade: parceiro, cidade, dados operacionais e monitoramento.
                 </div><div className="flex items-center justify-between gap-2 border-t border-white/[0.08] pt-2"><Link
                     href={buildWizardHref(2, wizardValues)}
                     className="nds-button"
