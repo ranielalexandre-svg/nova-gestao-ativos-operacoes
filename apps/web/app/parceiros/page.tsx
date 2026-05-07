@@ -11,10 +11,6 @@ import {
   type PaginatedResponse,
   type RawSearchParams,
 } from "@/lib/list-query";
-import {
-  getLegacyPartnerDeskForPartners,
-  type LegacyPartnerDeskItem,
-} from "@/lib/legacy-catalog";
 import { getServerWebSession, normalizeRole } from "@/lib/web-session";
 
 type Tone = "green" | "orange" | "blue" | "red" | "slate";
@@ -22,13 +18,27 @@ type ActiveFilter = "all" | "true" | "false";
 type SortBy = "createdAt" | "code" | "name";
 type SortDir = "asc" | "desc";
 
+type PartnerOperationalContact = {
+  id: string;
+  city: string | null;
+  name: string | null;
+  role: string | null;
+  phone: string | null;
+  notes: string | null;
+  isPrimary: boolean;
+  source: string;
+  sourceLegacyId: string | null;
+};
+
 type PartnerRow = {
   id: string;
   code: string;
   name: string;
   isActive: boolean;
   createdAt: string;
-  _count: { units: number };
+  primaryContact: PartnerOperationalContact | null;
+  legacyContactCount: number;
+  _count: { units: number; operationalContacts?: number };
 };
 
 type ParceirosState = {
@@ -53,22 +63,22 @@ function pageSizeOption(value: number) {
   return pageSizeOptions.includes(value as (typeof pageSizeOptions)[number]) ? value : 10;
 }
 
-function firstPhones(item?: LegacyPartnerDeskItem) {
-  if (!item?.phones.length) return "Sem telefone legado";
-  return item.phones.slice(0, 2).join(" · ");
+function firstPhones(item?: PartnerOperationalContact | null) {
+  if (!item?.phone) return "Sem telefone persistido";
+  return item.phone;
 }
 
-function contactCaption(item?: LegacyPartnerDeskItem) {
-  if (!item?.contactName) return "Contato principal não encontrado";
-  return [item.contactName, item.contactRole].filter(Boolean).join(" · ");
+function contactCaption(item?: PartnerOperationalContact | null) {
+  if (!item?.name) return "Contato principal não cadastrado";
+  return [item.name, item.role].filter(Boolean).join(" · ");
 }
 
-function coverageLabel(item?: LegacyPartnerDeskItem) {
-  return item?.coverage || "Cobertura não importada";
+function coverageLabel(item?: PartnerOperationalContact | null) {
+  return item?.notes || item?.city || (item ? "Contato persistido" : "Sem cobertura persistida");
 }
 
-function cityBase(item?: LegacyPartnerDeskItem) {
-  return item?.cityBase || "Sem cidade base";
+function cityBase(item?: PartnerOperationalContact | null) {
+  return item?.city || "Sem cidade base";
 }
 
 function statusTone(isActive: boolean): Tone {
@@ -211,31 +221,23 @@ export default async function ParceirosPage({
     error = cause instanceof Error ? cause.message : "Não foi possível carregar os parceiros.";
   }
 
-  const legacyDesk = await getLegacyPartnerDeskForPartners(
-    response.items.map((partner) => ({
-      id: partner.id,
-      code: partner.code,
-      name: partner.name,
-    })),
-  ).catch(() => ({ items: {} as Record<string, LegacyPartnerDeskItem> }));
-
-  const legacyByPartnerId = legacyDesk.items;
   const rows = response.items;
   const activeOnPage = rows.filter((partner) => partner.isActive).length;
-  const withContactOnPage = rows.filter((partner) => legacyByPartnerId[partner.id]?.phones.length).length;
-  const withCoverageOnPage = rows.filter((partner) => legacyByPartnerId[partner.id]?.coverage).length;
-  const backupCoverageOnPage = rows.reduce(
-    (sum, partner) => sum + (legacyByPartnerId[partner.id]?.backupUnitCount || 0),
+  const withContactOnPage = rows.filter((partner) => (partner.legacyContactCount || 0) > 0 || Boolean(partner.primaryContact?.phone)).length;
+  const withCoverageOnPage = rows.filter((partner) => Boolean(partner.primaryContact?.city || partner.primaryContact?.notes)).length;
+  const persistedContactsOnPage = rows.reduce(
+    (sum, partner) => sum + (partner.legacyContactCount || partner._count.operationalContacts || 0),
     0,
   );
+  const backupCoverageOnPage = persistedContactsOnPage;
   const totalUnitsOnPage = rows.reduce((sum, partner) => sum + partner._count.units, 0);
   const currentParams = stateParams(state);
 
   const kpis = [
     { label: "Parceiros", value: String(response.meta.total), hint: "resultado filtrado", tone: "blue" as const },
     { label: "Ativos", value: String(activeOnPage), hint: `${percent(activeOnPage, rows.length)}% nesta página`, tone: activeOnPage ? "green" as const : "slate" as const },
-    { label: "Com contato", value: String(withContactOnPage), hint: "telefone legado", tone: withContactOnPage ? "green" as const : "orange" as const },
-    { label: "Cobertura", value: String(withCoverageOnPage), hint: `${backupCoverageOnPage} contingência(s)`, tone: withCoverageOnPage ? "blue" as const : "slate" as const },
+    { label: "Com contato", value: String(withContactOnPage), hint: "telefone persistido", tone: withContactOnPage ? "green" as const : "orange" as const },
+    { label: "Cobertura", value: String(withCoverageOnPage), hint: `${backupCoverageOnPage} contato(s)`, tone: withCoverageOnPage ? "blue" as const : "slate" as const },
     { label: "Unidades", value: String(totalUnitsOnPage), hint: "locais vinculados", tone: totalUnitsOnPage ? "blue" as const : "slate" as const },
   ];
 
@@ -330,7 +332,7 @@ export default async function ParceirosPage({
             </div>
 
             {rows.length ? rows.map((partner) => {
-              const legacy = legacyByPartnerId[partner.id];
+              const primaryContact = partner.primaryContact;
 
               return (
                 <div className={`nova-partners-row is-${statusTone(partner.isActive)}`} key={partner.id}>
@@ -340,19 +342,19 @@ export default async function ParceirosPage({
                   </div>
 
                   <div>
-                    <b>{cityBase(legacy)}</b>
-                    <small>{legacy?.matched ? "base legada vinculada" : "sem match legado"}</small>
+                    <b>{cityBase(primaryContact)}</b>
+                    <small>{(partner.legacyContactCount || 0) ? "contato persistido" : "sem contato persistido"}</small>
                   </div>
 
                   <div>
-                    <b>{contactCaption(legacy)}</b>
-                    <small>{firstPhones(legacy)}</small>
+                    <b>{contactCaption(primaryContact)}</b>
+                    <small>{firstPhones(primaryContact)}</small>
                   </div>
 
                   <div>
-                    <b>{coverageLabel(legacy)}</b>
+                    <b>{coverageLabel(primaryContact)}</b>
                     <small>
-                      {legacy?.backupUnitCount ? `${legacy.backupUnitCount} unidade(s) em contingência` : "sem contingência registrada"}
+                      {partner.legacyContactCount ? `${partner.legacyContactCount} contato(s) persistido(s)` : "sem contato operacional"}
                     </small>
                   </div>
 
@@ -386,7 +388,7 @@ export default async function ParceirosPage({
               <ProgressLine label="Ativos" value={percent(activeOnPage, rows.length)} tone="green" />
               <ProgressLine label="Com contato" value={percent(withContactOnPage, rows.length)} tone="blue" />
               <ProgressLine label="Cobertura" value={percent(withCoverageOnPage, rows.length)} tone="green" />
-              <ProgressLine label="Contingência" value={backupCoverageOnPage ? 100 : 0} tone="orange" />
+              <ProgressLine label="Contatos persistidos" value={backupCoverageOnPage ? 100 : 0} tone="orange" />
             </div>
           </section>
 
@@ -400,7 +402,7 @@ export default async function ParceirosPage({
           <section className="nova-lit-card nova-partners-coverage">
             <div className="nova-lit-title-row">
               <h2>Recorte atual</h2>
-              <span className="nova-lit-pill nova-lit-pill-orange">{backupCoverageOnPage} contingência</span>
+              <span className="nova-lit-pill nova-lit-pill-orange">{backupCoverageOnPage} contato(s)</span>
             </div>
             <div className="nova-partners-status-list">
               <article>
@@ -415,7 +417,7 @@ export default async function ParceirosPage({
               </article>
               <article>
                 <Dot tone="orange" />
-                <strong>Cobertura</strong>
+                <strong>Com cobertura</strong>
                 <b>{withCoverageOnPage}</b>
               </article>
             </div>
