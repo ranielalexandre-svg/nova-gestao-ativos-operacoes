@@ -481,8 +481,8 @@ function unitMonitoringHref(unitId: string, windowPreset: MonitoringWindowPreset
   return `/unidades/${unitId}?${query.toString()}`;
 }
 
-function unitLegacyHref(unitId: string, windowPreset: MonitoringWindowPreset) {
-  const query = new URLSearchParams({ mw: windowPreset, legacy: "1" });
+function unitOperationalHref(unitId: string, windowPreset: MonitoringWindowPreset) {
+  const query = new URLSearchParams({ mw: windowPreset, operational: "1" });
   return `/unidades/${unitId}?${query.toString()}`;
 }
 
@@ -1533,8 +1533,8 @@ function OperationalDataBlock({
   const primaryCount = data.items.filter((item) => item.linkRole === "primary").length;
   const backupCount = data.items.filter((item) => item.linkRole === "backup").length;
   const secretCount = data.items.reduce((sum, item) => sum + item.secrets.length, 0);
-  const revealHref = `/unidades/${unitId}?legacy=1&operationalReveal=1`;
-  const hideHref = `/unidades/${unitId}?legacy=1`;
+  const revealHref = `/unidades/${unitId}?operational=1&operationalReveal=1`;
+  const hideHref = `/unidades/${unitId}?operational=1`;
 
   return (
     <Surface><SectionIntro
@@ -1711,7 +1711,7 @@ export default async function UnidadeDetailPage({
       revalidatePath(`/unidades/${unitId}`);
     } catch {}
 
-    redirect(`/unidades/${unitId}?legacy=1`);
+    redirect(`/unidades/${unitId}?operational=1`);
   }
 
   const resolvedParams = await params;
@@ -1724,7 +1724,9 @@ export default async function UnidadeDetailPage({
   const nextRefreshToken = String(Number.isFinite(currentRefresh) && currentRefresh >= 0 ? currentRefresh + 1 : 1);
 
   const loadMonitoring = focusMode || readStringParam(resolvedSearchParams, "monitoring") === "1";
-  const loadLegacy = readStringParam(resolvedSearchParams, "legacy") === "1";
+  const loadOperationalData =
+    readStringParam(resolvedSearchParams, "operational") === "1" ||
+    readStringParam(resolvedSearchParams, "legacy") === "1";
   const role = normalizeRole(session.user?.role || "");
   const isAdmin = isAdminRole(role);
   const revealOperationalSecrets = isAdmin && readStringParam(resolvedSearchParams, "operationalReveal") === "1";
@@ -2138,7 +2140,7 @@ export default async function UnidadeDetailPage({
             ><input type="hidden" name="unitId" value={unit.id} /></ActionForm>
           ) : null
         }
-        />{loadLegacy ? (
+        />{loadOperationalData ? (
           operationalData?.items.length ? (
             <OperationalDataBlock
               unitId={unit.id}
@@ -2167,7 +2169,7 @@ export default async function UnidadeDetailPage({
                 compact
               />
               <Link
-                href={unitLegacyHref(unit.id, monitoringWindow)}
+                href={unitOperationalHref(unit.id, monitoringWindow)}
                 className="nds-button"
                 data-variant="secondary"
               >
