@@ -24,7 +24,6 @@ import {
 } from "@/components/ops-ui";
 import { apiJson } from "@/lib/server-api";
 import { getActionErrorMessage, type ActionFeedbackState } from "@/lib/action-state";
-import { getLegacyUnitProfileForUnit } from "@/lib/legacy-catalog";
 import {
   readStringParam,
   resolveSearchParams,
@@ -228,81 +227,6 @@ type UnitMonitoringReport = {
 
 type MonitoringWindowPreset = "1h" | "6h" | "1d" | "7d" | "30d";
 
-type LegacyLink = {
-  legacyId: string;
-  partnerCode: string;
-  serviceType: string;
-  connectionType: string;
-  routerPort: string;
-  technology: string;
-  latency: string;
-  macOnu: string;
-  phone: string;
-  notes: string;
-  contractIxc: string;
-};
-
-type LegacyPartnerContact = {
-  legacyId: string;
-  city: string;
-  name: string;
-  role: string;
-  phone: string;
-  notes: string;
-};
-
-type LegacyStarlink = {
-  legacyId: string;
-  antennaId: string;
-  email: string;
-  plan: string;
-  card: string;
-  localName: string;
-  kitSerial: string;
-  antennaSerial: string;
-  ipvpn: string;
-  installer: string;
-  installedAt: string;
-  notes: string;
-};
-
-type LegacyStarlinkHistory = {
-  legacyId: string;
-  starlinkLegacyId: string;
-  action: string;
-  details: string;
-  user: string;
-  datetime: string;
-};
-
-type LegacyUnitProfile = {
-  sourceAvailable: boolean;
-  message?: string;
-  generatedAt?: string;
-  redactedSecrets?: boolean;
-  unit: {
-    code: string;
-    name: string;
-    group: string;
-    city: string;
-    state: string;
-    phones: string[];
-    contracts: string[];
-    notes: string[];
-  } | null;
-  links: LegacyLink[];
-  backupLinks: LegacyLink[];
-  partnerContacts: LegacyPartnerContact[];
-  starlinks: LegacyStarlink[];
-  starlinkHistory: LegacyStarlinkHistory[];
-  equipments: Array<{
-    tag: string;
-    name: string;
-    type: string;
-    serialNumber: string;
-    source: string;
-  }>;
-};
 
 type UnitOperationalSecret = {
   id: string;
@@ -1652,128 +1576,6 @@ function OperationalDataBlock({
 }
 
 
-function LegacyLinkCard({
-  title,
-  link,
-}: {
-  title: string;
-  link: LegacyLink;
-}) {
-  return (
-    <div className="nds-card"><div className="flex flex-wrap items-center justify-between gap-2"><div className="text-[12px] font-black text-slate-50">{title}</div><TonePill tone="info">{link.partnerCode}</TonePill></div><div className="mt-2 grid gap-2 text-[11px] text-[var(--nova-text-muted)] md:grid-cols-2"><div>Serviço: <span className="text-slate-200">{link.serviceType || "-"}</span></div><div>Conexão: <span className="text-slate-200">{link.connectionType || "-"}</span></div><div>Porta RB: <span className="text-slate-200">{link.routerPort || "-"}</span></div><div>Tecnologia: <span className="text-slate-200">{link.technology || "-"}</span></div><div>Latência: <span className="text-slate-200">{link.latency || "-"}</span></div><div>Acionamento: <span className="text-slate-200">{link.phone || "-"}</span></div><div>Contrato IXC: <span className="text-slate-200">{link.contractIxc || "-"}</span></div><div className="md:col-span-2">
-          MAC/ONU: <span className="break-all text-slate-200">{link.macOnu || "-"}</span></div>
-        {link.notes ? (
-          <div className="md:col-span-2">
-            Observação: <span className="text-slate-200">{link.notes}</span></div>
-        ) : null}
-      </div></div>
-  );
-}
-
-function LegacyUnitBlock({ profile }: { profile: LegacyUnitProfile | null }) {
-  if (!profile) return null;
-
-  if (!profile.sourceAvailable) {
-    return (
-      <Surface><SectionIntro
-          eyebrow="Legado"
-          title="Base legada pronta para conectar"
-          description={profile.message || "Gere o arquivo legado para exibir transporte, contatos e Starlinks nesta tela."}
-          compact
-        /></Surface>
-    );
-  }
-
-  const hasLegacy =
-    profile.links.length ||
-    profile.backupLinks.length ||
-    profile.partnerContacts.length ||
-    profile.starlinks.length ||
-    profile.equipments.length;
-
-  if (!hasLegacy) return null;
-
-  return (
-    <Surface><SectionIntro
-        eyebrow="Legado operacional"
-        title="Acionamento, transporte e contingência"
-        description="Dados importados dos SQLite de contatos, parceiros e Starlinks para apoiar reconciliação operacional."
-        actions={
-          profile.redactedSecrets ? (
-            <TonePill tone="attention">segredos ocultos</TonePill>
-          ) : (
-            <TonePill tone="success">completo</TonePill>
-          )
-        }
-        compact
-      /><div className="mt-2 nova-side-grid nova-side-grid--360"><div className="grid gap-2">
-          {profile.links.map((link, index) => (
-            <LegacyLinkCard
-              key={`legacy-link-${link.legacyId}-${index}`}
-              title={index === 0 ? "Link principal" : `Link principal ${index + 1}`}
-              link={link}
-            />
-          ))}
-
-          {profile.backupLinks.map((link, index) => (
-            <LegacyLinkCard
-              key={`legacy-backup-${link.legacyId}-${index}`}
-              title={index === 0 ? "Backup / contingência" : `Backup ${index + 1}`}
-              link={link}
-            />
-          ))}
-
-          {profile.starlinks.length ? (
-            <div className="nds-card"><div className="flex flex-wrap items-center justify-between gap-2"><div className="text-[12px] font-black text-slate-50">Starlink</div><TonePill tone="info">{profile.starlinks.length}</TonePill></div><div className="mt-2 grid gap-2">
-                {profile.starlinks.map((item) => (
-                  <div key={item.legacyId} className="nds-card text-[11px] text-[var(--nova-text-muted)]"><div className="font-medium text-slate-100">
-                      {item.antennaId || item.kitSerial || "Starlink"}
-                    </div><div className="mt-1">Local: <span className="text-slate-200">{item.localName || "-"}</span></div><div>IP VPN: <span className="text-slate-200">{item.ipvpn || "-"}</span></div><div>Kit: <span className="break-all text-slate-200">{item.kitSerial || "-"}</span></div><div>Antena: <span className="break-all text-slate-200">{item.antennaSerial || "-"}</span></div><div>Instalação: <span className="text-slate-200">{item.installedAt || "-"}</span></div>
-                    {item.notes ? <div className="mt-1 text-slate-300">{item.notes}</div> : null}
-                  </div>
-                ))}
-              </div></div>
-          ) : null}
-        </div><div className="grid content-start gap-2">
-          {profile.unit ? (
-            <div className="nds-card"><div className="text-[12px] font-black text-slate-50">Resumo legado</div><div className="mt-2 grid gap-2 text-[11px] text-[var(--nova-text-muted)]"><div>Grupo: <span className="text-slate-200">{profile.unit.group || "-"}</span></div><div>Contratos: <span className="text-slate-200">{profile.unit.contracts.join(", ") || "-"}</span></div><div>Telefones: <span className="text-slate-200">{profile.unit.phones.join(", ") || "-"}</span></div></div></div>
-          ) : null}
-
-          <div className="nds-card"><div className="text-[12px] font-black text-slate-50">Contatos do parceiro</div><div className="mt-2 grid gap-2">
-              {profile.partnerContacts.length ? (
-                profile.partnerContacts.slice(0, 6).map((contact) => (
-                  <div key={contact.legacyId} className="nds-card"><div className="text-[11px] font-bold text-slate-100">{contact.name || "Contato"}</div><div className="mt-1 text-[10px] text-[var(--nova-text-muted)]">
-                      {[contact.role, contact.city].filter(Boolean).join(" · ") || "Sem cargo/cidade"}
-                    </div><div className="mt-1 text-[11px] text-slate-300">{contact.phone || "-"}</div>
-                    {contact.notes ? <div className="mt-1 text-[10px] text-[var(--nova-text-muted)]">{contact.notes}</div> : null}
-                  </div>
-                ))
-              ) : (
-                <div className="text-[11px] text-[var(--nova-text-muted)]">Nenhum contato legado vinculado.</div>
-              )}
-            </div></div>
-
-          {profile.equipments.length ? (
-            <div className="nds-card"><div className="flex flex-wrap items-center justify-between gap-2"><div className="text-[12px] font-black text-slate-50">Ativos legados</div><TonePill tone="success">{profile.equipments.length}</TonePill></div><div className="mt-2 grid gap-2">
-                {profile.equipments.slice(0, 8).map((equipment) => (
-                  <div key={`${equipment.source}-${equipment.tag}-${equipment.serialNumber}`} className="nds-card"><div className="text-[11px] font-bold text-slate-100">{equipment.tag || equipment.name || "Ativo legado"}</div><div className="mt-1 text-[10px] text-[var(--nova-text-muted)]">
-                      {[equipment.type, equipment.source].filter(Boolean).join(" · ") || "Sem tipo"}
-                    </div><div className="mt-1 break-all text-[11px] text-slate-300">{equipment.serialNumber || "Sem serial/MAC"}</div></div>
-                ))}
-              </div></div>
-          ) : null}
-
-          {profile.starlinkHistory.length ? (
-            <div className="nds-card"><div className="text-[12px] font-black text-slate-50">Histórico Starlink</div><div className="mt-2 grid gap-2">
-                {profile.starlinkHistory.map((item) => (
-                  <div key={item.legacyId} className="text-[11px] text-[var(--nova-text-muted)]"><span className="text-slate-200">{item.action}</span> · {item.datetime}
-                  </div>
-                ))}
-              </div></div>
-          ) : null}
-        </div></div></Surface>
-  );
-}
 
 export default async function UnidadeDetailPage({
   params,
@@ -1940,7 +1742,6 @@ export default async function UnidadeDetailPage({
   ]);
 
   const monitoringReport = loadMonitoring ? narrowMonitoringReport(monitoringReportBase, monitoringWindow) : null;
-  const legacyProfile: LegacyUnitProfile | null = loadLegacy ? await getLegacyUnitProfileForUnit(unit) : null;
   const operationalData = operationalDataResponse;
   const canEditAttachments = canEditAttachmentsForRole(role);
   const sensorCount = zabbixSensorCount(zabbixSnapshot);
@@ -2347,15 +2148,22 @@ export default async function UnidadeDetailPage({
               updateAction={updateOperationalData}
             />
           ) : (
-            <LegacyUnitBlock profile={legacyProfile} />
+            <Surface>
+              <SectionIntro
+                eyebrow="Dados operacionais"
+                title="Sem dados persistidos nesta unidade"
+                description="Nenhum link operacional persistido foi encontrado para esta unidade. Use a importação operacional ou edite os dados no cadastro da unidade."
+                compact
+              />
+            </Surface>
           )
         ) : (
           <Surface className="nds-card">
             <div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
               <SectionIntro
                 eyebrow="Legado"
-                title="Dados legados sob demanda"
-                description="Contatos, vínculos antigos e histórico Starlink ficam fora da abertura inicial para manter a página rápida."
+                title="Dados operacionais sob demanda"
+                description="Links, acionamento e credenciais persistidos ficam fora da abertura inicial para manter a página rápida."
                 compact
               />
               <Link
