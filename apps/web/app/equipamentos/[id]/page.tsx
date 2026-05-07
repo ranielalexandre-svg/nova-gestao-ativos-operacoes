@@ -25,7 +25,6 @@ import {
   getActionErrorMessage,
   type ActionFeedbackState,
 } from "@/lib/action-state";
-import { getLegacyEquipmentProfileForEquipment } from "@/lib/legacy-catalog";
 import { apiJson } from "@/lib/server-api";
 import {
   readStringParam,
@@ -103,48 +102,6 @@ type UnitOption = {
   partner: { id: string; code: string; name: string };
 };
 
-type LegacyStarlink = {
-  legacyId: string;
-  antennaId: string;
-  email: string;
-  plan: string;
-  card: string;
-  localName: string;
-  kitSerial: string;
-  antennaSerial: string;
-  ipvpn: string;
-  installer: string;
-  installedAt: string;
-  notes: string;
-};
-
-type LegacyStarlinkHistory = {
-  legacyId: string;
-  starlinkLegacyId: string;
-  action: string;
-  details: string;
-  user: string;
-  datetime: string;
-};
-
-type LegacyEquipmentProfile = {
-  sourceAvailable: boolean;
-  message?: string;
-  generatedAt?: string;
-  redactedSecrets?: boolean;
-  equipment: {
-    tag: string;
-    name: string;
-    type: string;
-    serialNumber: string;
-    status: string;
-    unitCode: string;
-    partnerCode: string;
-    source: string;
-  } | null;
-  starlinks: LegacyStarlink[];
-  starlinkHistory: LegacyStarlinkHistory[];
-};
 
 type StarlinkOperationalItem = {
   id: string;
@@ -237,8 +194,8 @@ function StarlinkOperationalBlock({
     <Surface>
       <SectionIntro
         eyebrow="Starlink"
-        title="Dados legados persistidos"
-        description="E-mail, senha, cartão, serial, IP VPN, plano e instalação importados do legado SQLite. Segredos ficam mascarados por padrão."
+        title="Dados operacionais persistidos"
+        description="E-mail, senha, cartão, serial, IP VPN, plano e instalação persistidos no banco. Segredos ficam mascarados por padrão."
         actions={
           <div className="flex flex-wrap gap-2">
             <TonePill tone="success">{data.total} registro(s)</TonePill>
@@ -263,10 +220,10 @@ function StarlinkOperationalBlock({
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
                 <div className="text-[12px] font-black text-slate-50">
-                  {item.antennaId ? `Antena ${item.antennaId}` : item.kitSerial || "Starlink legado"}
+                  {item.antennaId ? `Antena ${item.antennaId}` : item.kitSerial || "Starlink operacional"}
                 </div>
                 <div className="mt-1 text-[10px] uppercase tracking-[0.18em] text-slate-500">
-                  legado {item.legacyId} · {item.source}
+                  {item.source} · {item.legacyId}
                 </div>
               </div>
               <TonePill tone={item.revealed ? "attention" : "info"}>
@@ -298,7 +255,7 @@ function StarlinkOperationalBlock({
             {isAdmin ? (
               <details className="mt-3 rounded-2xl border border-white/10 bg-black/15 p-3">
                 <summary className="cursor-pointer text-[11px] font-black text-slate-100">
-                  Editar dados Starlink legados
+                  Editar dados Starlink operacionals
                 </summary>
                 <form action={action} className="mt-3 grid gap-2">
                   <input type="hidden" name="equipmentId" value={equipment.id} />
@@ -371,55 +328,6 @@ function StarlinkOperationalBlock({
   );
 }
 
-function LegacyEquipmentBlock({ profile }: { profile: LegacyEquipmentProfile | null }) {
-  if (!profile) return null;
-
-  if (!profile.sourceAvailable) {
-    return (
-      <Surface><SectionIntro
-          eyebrow="Legado"
-          title="Base legada pronta para conectar"
-          description={profile.message || "Gere o arquivo legado para exibir origem técnica e histórico Starlink deste ativo."}
-          compact
-        /></Surface>
-    );
-  }
-
-  const hasLegacy = Boolean(profile.equipment || profile.starlinks.length || profile.starlinkHistory.length);
-  if (!hasLegacy) return null;
-
-  return (
-    <Surface><SectionIntro
-        eyebrow="Legado operacional"
-        title="Origem técnica e Starlink"
-        description="Leitura dos SQLite para preservar serial, IP VPN, kit e histórico sem gravar campos novos no Prisma."
-        actions={profile.redactedSecrets ? <TonePill tone="attention">segredos ocultos</TonePill> : null}
-        compact
-      /><div className="mt-2 nova-side-grid nova-side-grid--380"><div className="grid gap-2 md:grid-cols-2">
-          {profile.equipment ? (
-            <><div className="nds-card"><div className="nds-label">Origem</div><div className="mt-1 text-[12px] font-medium text-slate-100">{profile.equipment.source || "-"}</div></div><div className="nds-card"><div className="nds-label">Parceiro legado</div><div className="mt-1 text-[12px] font-medium text-slate-100">{profile.equipment.partnerCode || "-"}</div></div><div className="nds-card md:col-span-2"><div className="nds-label">Serial/MAC legado</div><div className="mt-1 break-all text-[12px] font-medium text-slate-100">{profile.equipment.serialNumber || "-"}</div></div></>
-          ) : null}
-
-          {profile.starlinks.map((item) => (
-            <div key={item.legacyId} className="nds-card md:col-span-2"><div className="flex flex-wrap items-center justify-between gap-2"><div className="text-[12px] font-black text-slate-50">
-                  {item.antennaId || item.kitSerial || "Starlink legado"}
-                </div><TonePill tone="info">starlink</TonePill></div><div className="mt-2 grid gap-2 text-[11px] leading-5 text-slate-400 md:grid-cols-2"><div>Local: <span className="text-slate-200">{item.localName || "-"}</span></div><div>Plano: <span className="text-slate-200">{item.plan || "-"}</span></div><div>IP VPN: <span className="text-slate-200">{item.ipvpn || "-"}</span></div><div>Instalador: <span className="text-slate-200">{item.installer || "-"}</span></div><div className="md:col-span-2">Kit: <span className="break-all text-slate-200">{item.kitSerial || "-"}</span></div><div className="md:col-span-2">Antena: <span className="break-all text-slate-200">{item.antennaSerial || "-"}</span></div>
-                {item.notes ? <div className="md:col-span-2 text-slate-300">{item.notes}</div> : null}
-              </div></div>
-          ))}
-        </div><div className="nds-card"><div className="text-[12px] font-black text-slate-50">Histórico importado</div><div className="mt-2 grid gap-2">
-            {profile.starlinkHistory.length ? (
-              profile.starlinkHistory.map((item) => (
-                <div key={item.legacyId} className="nova-micro-card"><div className="text-[12px] font-medium text-slate-100">{item.action || "Registro"}</div><div className="mt-1 text-[10px] text-slate-500">{item.datetime || "-"}</div>
-                  {item.details ? <div className="mt-2 text-[11px] leading-5 text-slate-400">{item.details}</div> : null}
-                </div>
-              ))
-            ) : (
-              <div className="text-[11px] leading-5 text-slate-500">Nenhum histórico Starlink vinculado a este ativo.</div>
-            )}
-          </div></div></div></Surface>
-  );
-}
 
 export default async function AtivoDetailPage({
   params,
@@ -449,7 +357,6 @@ export default async function AtivoDetailPage({
       "/units?page=1&pageSize=100&sortBy=code&sortDir=asc",
     ),
   ]);
-  const legacyProfile = (await getLegacyEquipmentProfileForEquipment(equipment)) satisfies LegacyEquipmentProfile | null;
   const starlinkOperationalData = isStarlinkEquipment(equipment)
     ? await apiJson<StarlinkOperationalResponse>(
         `/starlinks/${equipment.id}/legacy-data${starlinkReveal ? "/reveal" : ""}`,
@@ -805,7 +712,14 @@ export default async function AtivoDetailPage({
               description="Quando a unidade estiver vinculada a um host Zabbix, o resumo do ativo mostra a telemetria aqui."
             />
           )}
-        </Surface></section><LegacyEquipmentBlock profile={legacyProfile} /><StarlinkOperationalBlock
+        </Surface></section><Surface>
+          <SectionIntro
+            eyebrow="Dados operacionais"
+            title="Sem dados persistidos para este ativo"
+            description="Nenhum dado operacional persistido foi encontrado para este ativo. Para Starlinks, use a importação operacional e o bloco Starlink persistido."
+            compact
+          />
+        </Surface><StarlinkOperationalBlock
         equipment={equipment}
         data={starlinkOperationalData}
         isAdmin={isAdmin}
