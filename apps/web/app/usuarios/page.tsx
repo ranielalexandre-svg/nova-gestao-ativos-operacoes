@@ -394,7 +394,7 @@ export default async function UsuariosPage({
                         </td>
                         <td>{formatDateTime(user.createdAt)}</td>
                         <td>
-                          <a className="nova-users-row-action" href={`#user-${user.id}`}>Ajustar</a>
+                          <Link className="nova-users-row-action" href={`/usuarios/${user.id}`}>Abrir</Link>
                         </td>
                       </tr>
                     )) : (
