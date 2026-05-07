@@ -101,6 +101,10 @@ export default async function NovoParceiroPage({
         body: JSON.stringify({
           code: String(formData.get("code") || ""),
           name: String(formData.get("name") || ""),
+          cityBase: String(formData.get("cityBase") || ""),
+          contactName: String(formData.get("contactName") || ""),
+          contactPhone: String(formData.get("contactPhone") || ""),
+          coverage: String(formData.get("coverage") || ""),
         }),
       });
 
@@ -118,7 +122,7 @@ export default async function NovoParceiroPage({
       <div className="nova-partner-create-lit-page"><div className="nds-surface w-full"><div className="flex items-start justify-between gap-2 border-b border-white/[0.08] px-3 py-2 sm:px-3"><SectionIntro
             eyebrow="Cadastro guiado"
             title="Novo parceiro"
-            description="Fluxo direto para criar a estrutura parceira e preparar contato/cobertura para a próxima etapa de dados."
+            description="Fluxo direto para criar a estrutura parceira e persistir contato/cobertura inicial."
             compact
           /><Link
             href="/parceiros"
@@ -199,7 +203,7 @@ export default async function NovoParceiroPage({
                       defaultValue={coverage}
                       placeholder="24h, cidades atendidas, central"
                     /></div></div><div className="rounded-[6px] border border-[var(--nova-primary)]/20 bg-[var(--nova-primary-soft)] p-2 text-[11px] leading-5 text-slate-300">
-                  Use esta etapa para conferir contato e cobertura antes de criar o parceiro. A ficha fica preparada para receber a cobertura completa na próxima camada.
+                  Use esta etapa para conferir contato e cobertura antes de criar o parceiro. Esses dados serão salvos como contato operacional inicial.
                 </div><div className="flex items-center justify-between gap-2 border-t border-white/[0.08] pt-2"><Link
                     href={buildWizardHref(1, wizardValues)}
                     className="nds-button"
@@ -221,8 +225,8 @@ export default async function NovoParceiroPage({
                 submitLabel="Criar parceiro"
                 pendingLabel="Criando parceiro..."
                 hideSubmit
-              ><input type="hidden" name="code" value={code} /><input type="hidden" name="name" value={name} /><div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3"><SummaryItem label="Código" value={code} /><SummaryItem label="Nome" value={name} /><SummaryItem label="Cidade base" value={cityBase || "preparado"} /><SummaryItem label="Contato" value={contactName || "preparado"} /><SummaryItem label="Telefone" value={contactPhone || "preparado"} /><SummaryItem label="Cobertura" value={coverage || "preparado"} /></div><div className="nds-card text-[11px] leading-5 text-slate-400">
-                  O parceiro será criado com a identificação principal. Contato, cidade base e cobertura permanecem visíveis como contexto operacional para a próxima etapa.
+              ><input type="hidden" name="code" value={code} /><input type="hidden" name="name" value={name} /><input type="hidden" name="cityBase" value={cityBase} /><input type="hidden" name="contactName" value={contactName} /><input type="hidden" name="contactPhone" value={contactPhone} /><input type="hidden" name="coverage" value={coverage} /><div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3"><SummaryItem label="Código" value={code} /><SummaryItem label="Nome" value={name} /><SummaryItem label="Cidade base" value={cityBase || "não informado"} /><SummaryItem label="Contato" value={contactName || "não informado"} /><SummaryItem label="Telefone" value={contactPhone || "não informado"} /><SummaryItem label="Cobertura" value={coverage || "não informado"} /></div><div className="nds-card text-[11px] leading-5 text-slate-400">
+                  O parceiro será criado com identificação principal e, quando informado, o contato operacional ficará persistido no banco.
                 </div><div className="flex items-center justify-between gap-2 border-t border-white/[0.08] pt-2"><Link
                     href={buildWizardHref(2, wizardValues)}
                     className="nds-button"
