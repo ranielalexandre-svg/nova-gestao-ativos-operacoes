@@ -10,6 +10,7 @@
  */
 export type * from './models/User.js'
 export type * from './models/Partner.js'
+export type * from './models/PartnerOperationalContact.js'
 export type * from './models/Unit.js'
 export type * from './models/UnitOperationalInfo.js'
 export type * from './models/UnitOperationalSecret.js'

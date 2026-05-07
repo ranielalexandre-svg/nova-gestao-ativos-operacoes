@@ -35,6 +35,27 @@ model Partner {
   operationalInfos UnitOperationalInfo[]
   createdAt        DateTime              @default(now())
   updatedAt        DateTime              @updatedAt
+  operationalContacts PartnerOperationalContact[]
+}
+
+model PartnerOperationalContact {
+  id             String   @id @default(cuid())
+  partnerId      String
+  partner        Partner  @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  source         String   @default("legacy_sqlite")
+  sourceLegacyId String?
+  city           String?
+  name           String?
+  role           String?
+  phone          String?
+  notes          String?
+  isPrimary      Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([source, sourceLegacyId])
+  @@index([partnerId])
+  @@index([source])
 }
 
 model Unit {

@@ -631,10 +631,6 @@ export type UnitUncheckedUpdateManyWithoutPartnerNestedInput = {
   deleteMany?: Prisma.UnitScalarWhereInput | Prisma.UnitScalarWhereInput[]
 }
 
-export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null
-}
-
 export type UnitCreateNestedOneWithoutUnitOperationalInfosInput = {
   create?: Prisma.XOR<Prisma.UnitCreateWithoutUnitOperationalInfosInput, Prisma.UnitUncheckedCreateWithoutUnitOperationalInfosInput>
   connectOrCreate?: Prisma.UnitCreateOrConnectWithoutUnitOperationalInfosInput

@@ -28,6 +28,11 @@ export type User = Prisma.UserModel
  */
 export type Partner = Prisma.PartnerModel
 /**
+ * Model PartnerOperationalContact
+ *
+ */
+export type PartnerOperationalContact = Prisma.PartnerOperationalContactModel
+/**
  * Model Unit
  *
  */

@@ -10,6 +10,14 @@ import { CreatePartnerDto } from "./dto/create-partner.dto";
 import { ListPartnersQueryDto } from "./dto/list-partners-query.dto";
 import { UpdatePartnerDto } from "./dto/update-partner.dto";
 
+type PartnerMatch = {
+  id: string;
+  code: string;
+  name: string;
+};
+
+type LegacyPartnerContactPayload = Record<string, unknown>;
+
 @Injectable()
 export class PartnersService {
   constructor(private readonly prisma: PrismaService) {}
@@ -27,6 +35,9 @@ export class PartnersService {
       where.OR = [
         { code: { contains: q, mode: "insensitive" } },
         { name: { contains: q, mode: "insensitive" } },
+        { operationalContacts: { some: { name: { contains: q, mode: "insensitive" } } } },
+        { operationalContacts: { some: { city: { contains: q, mode: "insensitive" } } } },
+        { operationalContacts: { some: { phone: { contains: q, mode: "insensitive" } } } },
       ];
     }
 
@@ -59,8 +70,23 @@ export class PartnersService {
           name: true,
           isActive: true,
           createdAt: true,
+          operationalContacts: {
+            orderBy: [{ isPrimary: "desc" }, { sourceLegacyId: "asc" }, { createdAt: "asc" }],
+            take: 1,
+            select: {
+              id: true,
+              city: true,
+              name: true,
+              role: true,
+              phone: true,
+              notes: true,
+              isPrimary: true,
+              source: true,
+              sourceLegacyId: true,
+            },
+          },
           _count: {
-            select: { units: true },
+            select: { units: true, operationalContacts: true },
           },
         },
         orderBy,
@@ -71,7 +97,11 @@ export class PartnersService {
     ]);
 
     return {
-      items,
+      items: items.map((item) => ({
+        ...item,
+        primaryContact: item.operationalContacts[0] || null,
+        legacyContactCount: item._count.operationalContacts,
+      })),
       meta: {
         page,
         pageSize,
@@ -93,6 +123,22 @@ export class PartnersService {
         isActive: true,
         createdAt: true,
         updatedAt: true,
+        operationalContacts: {
+          orderBy: [{ isPrimary: "desc" }, { sourceLegacyId: "asc" }, { createdAt: "asc" }],
+          select: {
+            id: true,
+            source: true,
+            sourceLegacyId: true,
+            city: true,
+            name: true,
+            role: true,
+            phone: true,
+            notes: true,
+            isPrimary: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
         units: {
           orderBy: { code: "asc" },
           select: {
@@ -141,6 +187,7 @@ export class PartnersService {
             units: true,
             occurrences: true,
             maintenances: true,
+            operationalContacts: true,
           },
         },
       },
@@ -166,15 +213,34 @@ export class PartnersService {
       throw new ConflictException("Código de parceiro já existe");
     }
 
-    return this.prisma.partner.create({
-      data: { code, name, isActive: true },
-      select: {
-        id: true,
-        code: true,
-        name: true,
-        isActive: true,
-        createdAt: true,
-      },
+    return this.prisma.$transaction(async (tx) => {
+      const partner = await tx.partner.create({
+        data: { code, name, isActive: true },
+        select: {
+          id: true,
+          code: true,
+          name: true,
+          isActive: true,
+          createdAt: true,
+        },
+      });
+
+      if (this.hasContactPayload(payload)) {
+        await tx.partnerOperationalContact.create({
+          data: {
+            partnerId: partner.id,
+            source: "manual",
+            city: this.nullable(payload.cityBase),
+            name: this.nullable(payload.contactName),
+            role: this.nullable(payload.contactRole),
+            phone: this.nullable(payload.contactPhone),
+            notes: this.nullable(payload.coverage),
+            isPrimary: true,
+          },
+        });
+      }
+
+      return partner;
     });
   }
 
@@ -188,7 +254,7 @@ export class PartnersService {
       throw new NotFoundException("Parceiro não encontrado");
     }
 
-    const data: Record<string, unknown> = {};
+    const data: Prisma.PartnerUpdateInput = {};
 
     if (payload.code !== undefined) {
       const code = payload.code.trim().toUpperCase();
@@ -206,16 +272,267 @@ export class PartnersService {
       data.isActive = payload.isActive;
     }
 
-    return this.prisma.partner.update({
+    return this.prisma.$transaction(async (tx) => {
+      const updated = await tx.partner.update({
+        where: { id },
+        data,
+        select: {
+          id: true,
+          code: true,
+          name: true,
+          isActive: true,
+          createdAt: true,
+        },
+      });
+
+      if (this.hasContactPayload(payload)) {
+        const primary = await tx.partnerOperationalContact.findFirst({
+          where: { partnerId: id, isPrimary: true },
+          select: { id: true },
+        });
+
+        const contactData = {
+          city: this.nullable(payload.cityBase),
+          name: this.nullable(payload.contactName),
+          role: this.nullable(payload.contactRole),
+          phone: this.nullable(payload.contactPhone),
+          notes: this.nullable(payload.coverage),
+        };
+
+        if (primary) {
+          await tx.partnerOperationalContact.update({
+            where: { id: primary.id },
+            data: contactData,
+          });
+        } else {
+          await tx.partnerOperationalContact.create({
+            data: {
+              partnerId: id,
+              source: "manual",
+              ...contactData,
+              isPrimary: true,
+            },
+          });
+        }
+      }
+
+      return updated;
+    });
+  }
+
+  async createPartnerContact(id: string, payload: Record<string, unknown>) {
+    const partner = await this.prisma.partner.findUnique({
       where: { id },
-      data,
+      select: { id: true },
+    });
+
+    if (!partner) {
+      throw new NotFoundException("Parceiro não encontrado");
+    }
+
+    const existingPrimary = await this.prisma.partnerOperationalContact.findFirst({
+      where: { partnerId: id, isPrimary: true },
+      select: { id: true },
+    });
+
+    return this.prisma.partnerOperationalContact.create({
+      data: {
+        partnerId: id,
+        source: this.clean(payload.source) || "manual",
+        sourceLegacyId: this.nullable(payload.sourceLegacyId),
+        city: this.nullable(payload.city),
+        name: this.nullable(payload.name),
+        role: this.nullable(payload.role),
+        phone: this.nullable(payload.phone),
+        notes: this.nullable(payload.notes),
+        isPrimary: this.booleanValue(payload.isPrimary) || !existingPrimary,
+      },
+    });
+  }
+
+  async updatePartnerContact(id: string, contactId: string, payload: Record<string, unknown>) {
+    const contact = await this.prisma.partnerOperationalContact.findFirst({
+      where: { id: contactId, partnerId: id },
+      select: { id: true },
+    });
+
+    if (!contact) {
+      throw new NotFoundException("Contato de parceiro não encontrado");
+    }
+
+    return this.prisma.partnerOperationalContact.update({
+      where: { id: contactId },
+      data: {
+        city: this.nullable(payload.city),
+        name: this.nullable(payload.name),
+        role: this.nullable(payload.role),
+        phone: this.nullable(payload.phone),
+        notes: this.nullable(payload.notes),
+        isPrimary: this.booleanValue(payload.isPrimary),
+      },
+    });
+  }
+
+  async importLegacyContacts(payload: unknown) {
+    const bundle = this.asRecord(payload);
+    const raw = this.asRecord(bundle.raw);
+    const rows = Array.isArray(raw.parceiros) ? (raw.parceiros as LegacyPartnerContactPayload[]) : [];
+
+    const partners = await this.prisma.partner.findMany({
       select: {
         id: true,
         code: true,
         name: true,
-        isActive: true,
-        createdAt: true,
       },
     });
+
+    const maps = this.buildPartnerMaps(partners);
+
+    let imported = 0;
+    let updated = 0;
+    let skipped = 0;
+
+    for (const row of rows) {
+      const legacyId = this.clean(row.id);
+      const partnerName = this.clean(row.parceiro);
+      const partner = this.matchPartner(partnerName, maps);
+
+      if (!legacyId || !partner) {
+        skipped += 1;
+        continue;
+      }
+
+      const existing = await this.prisma.partnerOperationalContact.findUnique({
+        where: {
+          source_sourceLegacyId: {
+            source: "legacy_sqlite",
+            sourceLegacyId: legacyId,
+          },
+        },
+        select: { id: true },
+      });
+
+      const existingPrimary = await this.prisma.partnerOperationalContact.findFirst({
+        where: { partnerId: partner.id, isPrimary: true },
+        select: { id: true },
+      });
+
+      await this.prisma.partnerOperationalContact.upsert({
+        where: {
+          source_sourceLegacyId: {
+            source: "legacy_sqlite",
+            sourceLegacyId: legacyId,
+          },
+        },
+        update: {
+          partnerId: partner.id,
+          city: this.nullable(row.cidade),
+          name: this.nullable(row.nome_contato),
+          role: this.nullable(row.cargo),
+          phone: this.nullable(row.numero),
+          notes: this.nullable(row.observacoes),
+        },
+        create: {
+          partnerId: partner.id,
+          source: "legacy_sqlite",
+          sourceLegacyId: legacyId,
+          city: this.nullable(row.cidade),
+          name: this.nullable(row.nome_contato),
+          role: this.nullable(row.cargo),
+          phone: this.nullable(row.numero),
+          notes: this.nullable(row.observacoes),
+          isPrimary: !existingPrimary,
+        },
+      });
+
+      if (existing) updated += 1;
+      else imported += 1;
+    }
+
+    return {
+      imported,
+      updated,
+      skipped,
+      total: rows.length,
+    };
+  }
+
+  private hasContactPayload(payload: Record<string, unknown>) {
+    return [
+      payload.cityBase,
+      payload.contactName,
+      payload.contactRole,
+      payload.contactPhone,
+      payload.coverage,
+    ].some((value) => Boolean(this.clean(value)));
+  }
+
+  private booleanValue(value: unknown) {
+    return value === true || value === "true" || value === "on" || value === "1";
+  }
+
+  private asRecord(value: unknown): Record<string, unknown> {
+    return value && typeof value === "object" && !Array.isArray(value)
+      ? (value as Record<string, unknown>)
+      : {};
+  }
+
+  private clean(value: unknown) {
+    return String(value ?? "").trim();
+  }
+
+  private nullable(value: unknown) {
+    const cleaned = this.clean(value);
+
+    return cleaned || null;
+  }
+
+  private normalize(value: unknown) {
+    return this.clean(value)
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "");
+  }
+
+  private legacyPartnerCode(value: unknown) {
+    const raw = this.clean(value) || "SEM-PARCEIRO";
+    const folded = raw
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toUpperCase()
+      .replace(/[^A-Z0-9]+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
+
+    return folded || "SEM-PARCEIRO";
+  }
+
+  private buildPartnerMaps(partners: PartnerMatch[]) {
+    const byCode = new Map<string, PartnerMatch>();
+    const byName = new Map<string, PartnerMatch>();
+
+    for (const partner of partners) {
+      byCode.set(this.normalize(partner.code), partner);
+      byName.set(this.normalize(partner.name), partner);
+    }
+
+    return { byCode, byName };
+  }
+
+  private matchPartner(
+    partnerName: string,
+    maps: {
+      byCode: Map<string, PartnerMatch>;
+      byName: Map<string, PartnerMatch>;
+    },
+  ) {
+    const code = this.legacyPartnerCode(partnerName);
+
+    return (
+      maps.byCode.get(this.normalize(code)) ||
+      maps.byName.get(this.normalize(partnerName)) ||
+      null
+    );
   }
 }

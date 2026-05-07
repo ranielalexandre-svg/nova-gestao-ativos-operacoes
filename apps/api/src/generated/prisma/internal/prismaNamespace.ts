@@ -386,6 +386,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   User: 'User',
   Partner: 'Partner',
+  PartnerOperationalContact: 'PartnerOperationalContact',
   Unit: 'Unit',
   UnitOperationalInfo: 'UnitOperationalInfo',
   UnitOperationalSecret: 'UnitOperationalSecret',
@@ -417,7 +418,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "partner" | "unit" | "unitOperationalInfo" | "unitOperationalSecret" | "equipment" | "starlinkOperationalInfo" | "integration" | "occurrence" | "maintenance" | "documentAttachment" | "exceptionCase" | "slaPolicy" | "exceptionComment" | "automationRule" | "monitoringReportTemplate" | "automationRun" | "activityEntry"
+    modelProps: "user" | "partner" | "partnerOperationalContact" | "unit" | "unitOperationalInfo" | "unitOperationalSecret" | "equipment" | "starlinkOperationalInfo" | "integration" | "occurrence" | "maintenance" | "documentAttachment" | "exceptionCase" | "slaPolicy" | "exceptionComment" | "automationRule" | "monitoringReportTemplate" | "automationRun" | "activityEntry"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -566,6 +567,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.PartnerCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.PartnerCountAggregateOutputType> | number
+        }
+      }
+    }
+    PartnerOperationalContact: {
+      payload: Prisma.$PartnerOperationalContactPayload<ExtArgs>
+      fields: Prisma.PartnerOperationalContactFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PartnerOperationalContactFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerOperationalContactPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PartnerOperationalContactFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerOperationalContactPayload>
+        }
+        findFirst: {
+          args: Prisma.PartnerOperationalContactFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerOperationalContactPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PartnerOperationalContactFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerOperationalContactPayload>
+        }
+        findMany: {
+          args: Prisma.PartnerOperationalContactFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerOperationalContactPayload>[]
+        }
+        create: {
+          args: Prisma.PartnerOperationalContactCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerOperationalContactPayload>
+        }
+        createMany: {
+          args: Prisma.PartnerOperationalContactCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PartnerOperationalContactCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerOperationalContactPayload>[]
+        }
+        delete: {
+          args: Prisma.PartnerOperationalContactDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerOperationalContactPayload>
+        }
+        update: {
+          args: Prisma.PartnerOperationalContactUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerOperationalContactPayload>
+        }
+        deleteMany: {
+          args: Prisma.PartnerOperationalContactDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PartnerOperationalContactUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PartnerOperationalContactUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerOperationalContactPayload>[]
+        }
+        upsert: {
+          args: Prisma.PartnerOperationalContactUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerOperationalContactPayload>
+        }
+        aggregate: {
+          args: Prisma.PartnerOperationalContactAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePartnerOperationalContact>
+        }
+        groupBy: {
+          args: Prisma.PartnerOperationalContactGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PartnerOperationalContactGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PartnerOperationalContactCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PartnerOperationalContactCountAggregateOutputType> | number
         }
       }
     }
@@ -1818,6 +1893,24 @@ export const PartnerScalarFieldEnum = {
 export type PartnerScalarFieldEnum = (typeof PartnerScalarFieldEnum)[keyof typeof PartnerScalarFieldEnum]
 
 
+export const PartnerOperationalContactScalarFieldEnum = {
+  id: 'id',
+  partnerId: 'partnerId',
+  source: 'source',
+  sourceLegacyId: 'sourceLegacyId',
+  city: 'city',
+  name: 'name',
+  role: 'role',
+  phone: 'phone',
+  notes: 'notes',
+  isPrimary: 'isPrimary',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PartnerOperationalContactScalarFieldEnum = (typeof PartnerOperationalContactScalarFieldEnum)[keyof typeof PartnerOperationalContactScalarFieldEnum]
+
+
 export const UnitScalarFieldEnum = {
   id: 'id',
   code: 'code',
@@ -2345,6 +2438,7 @@ export type PrismaClientOptions = ({
 export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
   partner?: Prisma.PartnerOmit
+  partnerOperationalContact?: Prisma.PartnerOperationalContactOmit
   unit?: Prisma.UnitOmit
   unitOperationalInfo?: Prisma.UnitOperationalInfoOmit
   unitOperationalSecret?: Prisma.UnitOperationalSecretOmit

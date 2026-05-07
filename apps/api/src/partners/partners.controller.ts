@@ -36,4 +36,29 @@ export class PartnersController {
   updatePartner(@Param("id") id: string, @Body() body: UpdatePartnerDto) {
     return this.partnersService.updatePartner(id, body);
   }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles("admin")
+  @Post("import-legacy-contacts")
+  importLegacyContacts(@Body() body: unknown) {
+    return this.partnersService.importLegacyContacts(body);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles("admin")
+  @Post(":id/contacts")
+  createPartnerContact(@Param("id") id: string, @Body() body: Record<string, unknown>) {
+    return this.partnersService.createPartnerContact(id, body);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles("admin")
+  @Patch(":id/contacts/:contactId")
+  updatePartnerContact(
+    @Param("id") id: string,
+    @Param("contactId") contactId: string,
+    @Body() body: Record<string, unknown>,
+  ) {
+    return this.partnersService.updatePartnerContact(id, contactId, body);
+  }
 }
