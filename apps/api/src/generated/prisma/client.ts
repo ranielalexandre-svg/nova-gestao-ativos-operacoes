@@ -70,6 +70,11 @@ export type UnitOperationalSecret = Prisma.UnitOperationalSecretModel
  */
 export type Equipment = Prisma.EquipmentModel
 /**
+ * Model StarlinkOperationalInfo
+ *
+ */
+export type StarlinkOperationalInfo = Prisma.StarlinkOperationalInfoModel
+/**
  * Model Integration
  *
  */

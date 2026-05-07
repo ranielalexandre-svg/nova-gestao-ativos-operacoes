@@ -137,6 +137,34 @@ model Equipment {
   updatedAt      DateTime        @updatedAt
 
   @@index([unitId])
+  starlinkOperationalInfos StarlinkOperationalInfo[]
+}
+
+model StarlinkOperationalInfo {
+  id            String   @id @default(cuid())
+  equipmentId   String
+  source        String   @default("legacy_sqlite")
+  legacyId      String   @unique
+  antennaId     String?
+  localName     String?
+  kitSerial     String?
+  antennaSerial String?
+  ipvpn         String?
+  plan          String?
+  installer     String?
+  installedAt   String?
+  notes         String?
+  emailEnc      String?
+  passwordEnc   String?
+  cardEnc       String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  equipment Equipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+
+  @@index([equipmentId])
+  @@index([antennaId])
+  @@index([kitSerial])
 }
 
 model Integration {
