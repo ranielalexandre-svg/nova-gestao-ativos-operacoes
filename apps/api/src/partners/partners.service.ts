@@ -18,6 +18,14 @@ type PartnerMatch = {
 
 type LegacyPartnerContactPayload = Record<string, unknown>;
 
+type PartnerContactPayloadFields = {
+  cityBase?: unknown;
+  contactName?: unknown;
+  contactRole?: unknown;
+  contactPhone?: unknown;
+  coverage?: unknown;
+};
+
 @Injectable()
 export class PartnersService {
   constructor(private readonly prisma: PrismaService) {}
@@ -457,7 +465,7 @@ export class PartnersService {
     };
   }
 
-  private hasContactPayload(payload: Record<string, unknown>) {
+  private hasContactPayload(payload: PartnerContactPayloadFields) {
     return [
       payload.cityBase,
       payload.contactName,
