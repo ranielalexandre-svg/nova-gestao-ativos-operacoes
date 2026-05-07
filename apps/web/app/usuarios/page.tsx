@@ -251,7 +251,7 @@ export default async function UsuariosPage({
           </div>
           <div className="nova-users-hero__actions">
             <Link href="/perfis" className="nova-users-button is-secondary">Perfis</Link>
-            <Link href="#novo-usuario" className="nova-users-button is-primary">Novo usuário</Link>
+            <Link href="/usuarios/nova" className="nova-users-button is-primary">Novo usuário</Link>
           </div>
         </section>
 
