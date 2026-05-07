@@ -77,19 +77,19 @@ export class StarlinksService {
       attachmentCounts.map((item) => [item.entityId, item._count._all]),
     );
 
-    const legacyCountsByEquipmentId = new Map<string, { rows: number; secrets: number }>();
+    const operationalCountsByEquipmentId = new Map<string, { rows: number; secrets: number }>();
 
     for (const info of legacyInfos) {
-      const current = legacyCountsByEquipmentId.get(info.equipmentId) || { rows: 0, secrets: 0 };
+      const current = operationalCountsByEquipmentId.get(info.equipmentId) || { rows: 0, secrets: 0 };
 
       current.rows += 1;
       current.secrets += [info.emailEnc, info.passwordEnc, info.cardEnc].filter(Boolean).length;
 
-      legacyCountsByEquipmentId.set(info.equipmentId, current);
+      operationalCountsByEquipmentId.set(info.equipmentId, current);
     }
 
     return items.map((item) => {
-      const legacyCounts = legacyCountsByEquipmentId.get(item.id) || { rows: 0, secrets: 0 };
+      const operationalCounts = operationalCountsByEquipmentId.get(item.id) || { rows: 0, secrets: 0 };
 
       return {
         id: item.id,
@@ -111,10 +111,10 @@ export class StarlinksService {
         unitName: item.unit.name,
         partnerName: item.unit.partner.name,
         documentsCount: attachmentsByEquipmentId.get(item.id) || 0,
-        operationalDataCount: legacyCounts.rows,
-        operationalSecretsCount: legacyCounts.secrets,
-        legacyDataCount: legacyCounts.rows,
-        legacySecretsCount: legacyCounts.secrets,
+        operationalDataCount: operationalCounts.rows,
+        operationalSecretsCount: operationalCounts.secrets,
+        legacyDataCount: operationalCounts.rows,
+        legacySecretsCount: operationalCounts.secrets,
       };
     });
   }
@@ -186,7 +186,7 @@ export class StarlinksService {
     });
 
     if (!existing) {
-      throw new NotFoundException("Dados legados do Starlink não encontrados");
+      throw new NotFoundException("Dados operacionais do Starlink não encontrados");
     }
 
     const data: Prisma.StarlinkOperationalInfoUpdateInput = {};
