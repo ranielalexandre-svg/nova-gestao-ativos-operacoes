@@ -34,6 +34,8 @@ type StarlinkRow = {
   unitName: string;
   partnerName: string;
   documentsCount: number;
+  legacyDataCount?: number;
+  legacySecretsCount?: number;
 };
 
 type StarlinksState = {
@@ -236,6 +238,8 @@ export default async function StarlinksPage({
   const retired = filtered.filter((item) => statusTone(item.status) === "slate").length;
   const withSerial = filtered.filter((item) => item.serial).length;
   const withDocs = filtered.filter((item) => item.documentsCount > 0).length;
+  const withLegacyData = filtered.filter((item) => (item.legacyDataCount || 0) > 0).length;
+  const withLegacySecrets = filtered.filter((item) => (item.legacySecretsCount || 0) > 0).length;
   const cities = new Set(filtered.map((item) => locationLabel(item)).filter((item) => item !== "Sem cidade/UF")).size;
   const partners = new Set(filtered.map((item) => item.partnerCode).filter(Boolean)).size;
   const currentParams = stateParams({ ...state, page: safePage });
@@ -245,6 +249,7 @@ export default async function StarlinksPage({
     { label: "Ativos", value: String(active), hint: "em operação", tone: active ? "green" as const : "slate" as const },
     { label: "Estoque", value: String(stock), hint: "reserva técnica", tone: stock ? "blue" as const : "slate" as const },
     { label: "Com serial", value: String(withSerial), hint: `${percent(withSerial, filtered.length)}% rastreado`, tone: withSerial ? "green" as const : "orange" as const },
+    { label: "Dados legados", value: String(withLegacyData), hint: `${withLegacySecrets} com credenciais`, tone: withLegacyData ? "green" as const : "slate" as const },
     { label: "Cidades", value: String(cities), hint: `${partners} parceiro(s)`, tone: cities ? "blue" as const : "slate" as const },
   ];
 
@@ -319,7 +324,7 @@ export default async function StarlinksPage({
               <span>Parceiro</span>
               <span>Serial</span>
               <span>Status</span>
-              <span>Docs</span>
+              <span>Dados</span>
               <span>Ações</span>
             </div>
 
@@ -352,7 +357,14 @@ export default async function StarlinksPage({
 
                 <div>
                   <Badge tone={item.documentsCount ? "green" : "slate"}>{`${item.documentsCount} docs`}</Badge>
-                  <small>{formatDate(item.createdAt)}</small>
+                  {(item.legacyDataCount || 0) ? (
+                    <Badge tone="orange">{`${item.legacyDataCount} legado`}</Badge>
+                  ) : null}
+                  {(item.legacySecretsCount || 0) ? (
+                    <small>{item.legacySecretsCount} segredo(s)</small>
+                  ) : (
+                    <small>{formatDate(item.createdAt)}</small>
+                  )}
                 </div>
 
                 <div>
@@ -375,6 +387,7 @@ export default async function StarlinksPage({
               <ProgressLine label="Em operação" value={percent(active, filtered.length)} tone="green" />
               <ProgressLine label="Serial preenchido" value={percent(withSerial, filtered.length)} tone="blue" />
               <ProgressLine label="Com documentos" value={percent(withDocs, filtered.length)} tone="green" />
+              <ProgressLine label="Credenciais legadas" value={percent(withLegacySecrets, filtered.length)} tone="orange" />
               <ProgressLine label="Em estoque" value={percent(stock, filtered.length)} tone="orange" />
             </div>
           </section>

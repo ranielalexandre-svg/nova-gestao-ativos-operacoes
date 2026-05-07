@@ -5,6 +5,7 @@ import { NovaLitShell } from "@/components/nova-lit/nova-lit-shell";
 import { AttachmentPanel } from "@/components/attachment-panel";
 import { EntityEditModal } from "@/components/entity-edit-modal";
 import { OperationalDeletePanel } from "@/components/operational-delete-panel";
+import { StarlinkSecretActions } from "@/components/starlinks/starlink-secret-actions";
 import {
   RegistryDetailHero,
   RegistryInfoGrid,
@@ -145,8 +146,44 @@ type LegacyEquipmentProfile = {
   starlinkHistory: LegacyStarlinkHistory[];
 };
 
+type StarlinkOperationalItem = {
+  id: string;
+  equipmentId: string;
+  source: string;
+  legacyId: string;
+  antennaId: string | null;
+  localName: string | null;
+  kitSerial: string | null;
+  antennaSerial: string | null;
+  ipvpn: string | null;
+  plan: string | null;
+  installer: string | null;
+  installedAt: string | null;
+  notes: string | null;
+  hasEmail: boolean;
+  hasPassword: boolean;
+  hasCard: boolean;
+  email: string | null;
+  password: string | null;
+  card: string | null;
+  revealed: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type StarlinkOperationalResponse = {
+  revealSecrets: boolean;
+  total: number;
+  items: StarlinkOperationalItem[];
+};
+
 function locationLabel(equipment: EquipmentDetail) {
   return [equipment.unit.city, equipment.unit.state].filter(Boolean).join("/") || "Sem cidade/UF";
+}
+
+function isStarlinkEquipment(equipment: EquipmentDetail) {
+  const text = [equipment.tag, equipment.name, equipment.type, equipment.serialNumber].join(" ").toLowerCase();
+  return text.includes("starlink");
 }
 
 function CreatedNotice({ from }: { from: string }) {
@@ -174,6 +211,164 @@ function CreatedNotice({ from }: { from: string }) {
 
 async function readMonitorSnapshots() {
   return readUnitHostTelemetry({ timeoutMs: 1_500, fast: true });
+}
+
+function StarlinkOperationalBlock({
+  equipment,
+  data,
+  isAdmin,
+  reveal,
+  action,
+}: {
+  equipment: EquipmentDetail;
+  data: StarlinkOperationalResponse | null;
+  isAdmin: boolean;
+  reveal: boolean;
+  action: (formData: FormData) => Promise<void>;
+}) {
+  if (!data || !data.items.length) return null;
+
+  const totalSecrets = data.items.reduce(
+    (sum, item) => sum + [item.hasEmail, item.hasPassword, item.hasCard].filter(Boolean).length,
+    0,
+  );
+
+  return (
+    <Surface>
+      <SectionIntro
+        eyebrow="Starlink"
+        title="Dados legados persistidos"
+        description="E-mail, senha, cartão, serial, IP VPN, plano e instalação importados do legado SQLite. Segredos ficam mascarados por padrão."
+        actions={
+          <div className="flex flex-wrap gap-2">
+            <TonePill tone="success">{data.total} registro(s)</TonePill>
+            <TonePill tone={totalSecrets ? "attention" : "subtle"}>{totalSecrets} segredo(s)</TonePill>
+            {isAdmin ? (
+              <Link
+                href={reveal ? `/ativos/${equipment.id}` : `/ativos/${equipment.id}?starlinkReveal=1`}
+                className="nds-button"
+                data-variant="secondary"
+              >
+                {reveal ? "Ocultar segredos" : "Revelar segredos"}
+              </Link>
+            ) : null}
+          </div>
+        }
+        compact
+      />
+
+      <div className="mt-2 grid gap-2">
+        {data.items.map((item) => (
+          <div key={item.id} className="nds-card">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <div className="text-[12px] font-black text-slate-50">
+                  {item.antennaId ? `Antena ${item.antennaId}` : item.kitSerial || "Starlink legado"}
+                </div>
+                <div className="mt-1 text-[10px] uppercase tracking-[0.18em] text-slate-500">
+                  legado {item.legacyId} · {item.source}
+                </div>
+              </div>
+              <TonePill tone={item.revealed ? "attention" : "info"}>
+                {item.revealed ? "revelado" : "mascarado"}
+              </TonePill>
+            </div>
+
+            <div className="mt-2 grid gap-2 text-[11px] leading-5 text-slate-400 md:grid-cols-2">
+              <div>Localidade: <span className="text-slate-200">{item.localName || "-"}</span></div>
+              <div>Plano: <span className="text-slate-200">{item.plan || "-"}</span></div>
+              <div>IP VPN: <span className="text-slate-200">{item.ipvpn || "-"}</span></div>
+              <div>Instalador: <span className="text-slate-200">{item.installer || "-"}</span></div>
+              <div>Instalado em: <span className="text-slate-200">{item.installedAt || "-"}</span></div>
+              <div>Cartão: <span className="text-slate-200">{item.revealed ? item.card || "-" : item.hasCard ? "••••••••" : "-"}</span></div>
+              <div className="md:col-span-2">Kit serial: <span className="break-all text-slate-200">{item.kitSerial || "-"}</span></div>
+              <div className="md:col-span-2">Antena serial: <span className="break-all text-slate-200">{item.antennaSerial || "-"}</span></div>
+              <div>E-mail: <span className="break-all text-slate-200">{item.revealed ? item.email || "-" : item.hasEmail ? "••••••••" : "-"}</span></div>
+              <div>Senha: <span className="break-all text-slate-200">{item.revealed ? item.password || "-" : item.hasPassword ? "••••••••" : "-"}</span></div>
+              {item.notes ? <div className="md:col-span-2">Notas: <span className="text-slate-200">{item.notes}</span></div> : null}
+            </div>
+
+            <StarlinkSecretActions
+              email={item.email}
+              password={item.password}
+              card={item.card}
+              revealed={item.revealed}
+            />
+
+            {isAdmin ? (
+              <details className="mt-3 rounded-2xl border border-white/10 bg-black/15 p-3">
+                <summary className="cursor-pointer text-[11px] font-black text-slate-100">
+                  Editar dados Starlink legados
+                </summary>
+                <form action={action} className="mt-3 grid gap-2">
+                  <input type="hidden" name="equipmentId" value={equipment.id} />
+                  <input type="hidden" name="infoId" value={item.id} />
+                  <input type="hidden" name="keepReveal" value={reveal ? "1" : "0"} />
+
+                  <div className="grid gap-2 md:grid-cols-2">
+                    <label className="grid gap-1">
+                      <span className="nds-label">Localidade</span>
+                      <input name="localName" defaultValue={item.localName || ""} />
+                    </label>
+                    <label className="grid gap-1">
+                      <span className="nds-label">Plano</span>
+                      <input name="plan" defaultValue={item.plan || ""} />
+                    </label>
+                    <label className="grid gap-1">
+                      <span className="nds-label">IP VPN</span>
+                      <input name="ipvpn" defaultValue={item.ipvpn || ""} />
+                    </label>
+                    <label className="grid gap-1">
+                      <span className="nds-label">Instalador</span>
+                      <input name="installer" defaultValue={item.installer || ""} />
+                    </label>
+                    <label className="grid gap-1">
+                      <span className="nds-label">Instalado em</span>
+                      <input name="installedAt" defaultValue={item.installedAt || ""} />
+                    </label>
+                    <label className="grid gap-1">
+                      <span className="nds-label">Antena ID</span>
+                      <input name="antennaId" defaultValue={item.antennaId || ""} />
+                    </label>
+                    <label className="grid gap-1">
+                      <span className="nds-label">Kit serial</span>
+                      <input name="kitSerial" defaultValue={item.kitSerial || ""} />
+                    </label>
+                    <label className="grid gap-1">
+                      <span className="nds-label">Antena serial</span>
+                      <input name="antennaSerial" defaultValue={item.antennaSerial || ""} />
+                    </label>
+                    <label className="grid gap-1">
+                      <span className="nds-label">E-mail</span>
+                      <input name="email" placeholder={item.hasEmail ? "preencha para substituir" : "novo e-mail"} />
+                    </label>
+                    <label className="grid gap-1">
+                      <span className="nds-label">Senha</span>
+                      <input name="password" placeholder={item.hasPassword ? "preencha para substituir" : "nova senha"} />
+                    </label>
+                    <label className="grid gap-1">
+                      <span className="nds-label">Cartão</span>
+                      <input name="card" placeholder={item.hasCard ? "preencha para substituir" : "novo cartão"} />
+                    </label>
+                    <label className="grid gap-1 md:col-span-2">
+                      <span className="nds-label">Notas</span>
+                      <textarea name="notes" defaultValue={item.notes || ""} rows={3} />
+                    </label>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button type="submit" className="nds-button" data-variant="primary">
+                      Salvar dados Starlink
+                    </button>
+                  </div>
+                </form>
+              </details>
+            ) : null}
+          </div>
+        ))}
+      </div>
+    </Surface>
+  );
 }
 
 function LegacyEquipmentBlock({ profile }: { profile: LegacyEquipmentProfile | null }) {
@@ -246,6 +441,7 @@ export default async function AtivoDetailPage({
   const role = normalizeRole(session.user?.role || "");
   const isAdmin = isAdminRole(role);
   const canEditAttachments = canEditAttachmentsForRole(role);
+  const starlinkReveal = isAdmin && readStringParam(query, "starlinkReveal", "") === "1";
   const [equipment, monitorResponse, unitsResponse] = await Promise.all([
     apiJson<EquipmentDetail>(`/equipments/${resolved.id}`),
     readMonitorSnapshots(),
@@ -254,6 +450,11 @@ export default async function AtivoDetailPage({
     ),
   ]);
   const legacyProfile = (await getLegacyEquipmentProfileForEquipment(equipment)) satisfies LegacyEquipmentProfile | null;
+  const starlinkOperationalData = isStarlinkEquipment(equipment)
+    ? await apiJson<StarlinkOperationalResponse>(
+        `/starlinks/${equipment.id}/legacy-data${starlinkReveal ? "/reveal" : ""}`,
+      ).catch(() => null)
+    : null;
   const monitor = monitorResponse.items.find((item) => item.unit.id === equipment.unit.id);
 
   async function updateEquipment(
@@ -290,6 +491,41 @@ export default async function AtivoDetailPage({
     } catch (error) {
       return { status: "error", message: getActionErrorMessage(error) };
     }
+  }
+
+  async function updateStarlinkLegacyData(formData: FormData): Promise<void> {
+    "use server";
+
+    const equipmentId = String(formData.get("equipmentId") || "");
+    const infoId = String(formData.get("infoId") || "");
+    const keepReveal = formData.get("keepReveal") === "1";
+
+    const actionSession = await getServerWebSession();
+    if (normalizeRole(actionSession.user?.role || "") !== "admin") {
+      redirect(`/ativos/${equipmentId}`);
+    }
+
+    await apiJson(`/starlinks/${equipmentId}/legacy-data/${infoId}`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        antennaId: String(formData.get("antennaId") || ""),
+        localName: String(formData.get("localName") || ""),
+        kitSerial: String(formData.get("kitSerial") || ""),
+        antennaSerial: String(formData.get("antennaSerial") || ""),
+        ipvpn: String(formData.get("ipvpn") || ""),
+        plan: String(formData.get("plan") || ""),
+        installer: String(formData.get("installer") || ""),
+        installedAt: String(formData.get("installedAt") || ""),
+        notes: String(formData.get("notes") || ""),
+        email: String(formData.get("email") || ""),
+        password: String(formData.get("password") || ""),
+        card: String(formData.get("card") || ""),
+      }),
+    });
+
+    revalidatePath("/ativos/starlinks");
+    revalidatePath(`/ativos/${equipmentId}`);
+    redirect(`/ativos/${equipmentId}${keepReveal ? "?starlinkReveal=1" : ""}`);
   }
 
   async function deleteEquipment(
@@ -569,7 +805,13 @@ export default async function AtivoDetailPage({
               description="Quando a unidade estiver vinculada a um host Zabbix, o resumo do ativo mostra a telemetria aqui."
             />
           )}
-        </Surface></section><LegacyEquipmentBlock profile={legacyProfile} /><AttachmentPanel
+        </Surface></section><LegacyEquipmentBlock profile={legacyProfile} /><StarlinkOperationalBlock
+        equipment={equipment}
+        data={starlinkOperationalData}
+        isAdmin={isAdmin}
+        reveal={starlinkReveal}
+        action={updateStarlinkLegacyData}
+      /><AttachmentPanel
         entityPath="equipments"
         entityId={equipment.id}
         entityLabel="ativo"
