@@ -4,6 +4,17 @@ import { withParams, type PaginationMeta, type RawSearchParams } from "@/lib/lis
 
 type Tone = "green" | "orange" | "blue" | "red" | "muted" | "slate";
 
+type UnitOperationalSummary = {
+  operationalRows: number;
+  secretRows: number;
+  backupRows: number;
+  phones: number;
+  primaryPhone: string | null;
+  primaryPartnerCode: string | null;
+  primaryServiceType: string | null;
+  primaryTechnology: string | null;
+};
+
 type UnitEquipment = {
   id: string;
   tag: string;
@@ -26,6 +37,7 @@ export type NovaUnitListItem = {
   reportNotes: string | null;
   isActive: boolean;
   createdAt: string;
+  operational?: UnitOperationalSummary;
   partner: {
     id: string;
     code: string;
@@ -34,6 +46,8 @@ export type NovaUnitListItem = {
   equipments: UnitEquipment[];
   _count: {
     equipments: number;
+    operationalInfos?: number;
+    operationalSecrets?: number;
   };
 };
 
@@ -80,12 +94,14 @@ function locationOf(unit: NovaUnitListItem) {
 }
 
 function contactOf(unit: NovaUnitListItem) {
-  const notes = unit.reportNotes?.trim();
-  const address = unit.reportAddressLine?.trim();
+  const phone = unit.operational?.primaryPhone?.trim();
+  const service = unit.operational?.primaryServiceType?.trim();
+  const technology = unit.operational?.primaryTechnology?.trim();
 
-  if (notes) return notes;
-  if (address) return address;
-  return "Sem telefone ligado";
+  if (phone) return phone;
+  if (unit.operational?.phones) return `${unit.operational.phones} telefone(s) operacional(is)`;
+  if (service || technology) return [service, technology].filter(Boolean).join(" · ");
+  return "Sem telefone operacional";
 }
 
 function equipmentBadge(unit: NovaUnitListItem) {
@@ -185,7 +201,7 @@ export default function NovaUnidadesView({
   const currentParams = searchParamsFromState(state);
   const activeRows = rows.filter((unit) => unit.isActive).length;
   const linkedRows = rows.filter((unit) => unit._count.equipments > 0).length;
-  const contactRows = rows.filter((unit) => contactOf(unit) !== "Sem telefone ligado").length;
+  const contactRows = rows.filter((unit) => contactOf(unit) !== "Sem telefone operacional").length;
   const activeRatio = rows.length ? Math.round((activeRows / rows.length) * 100) : 0;
   const linkedRatio = rows.length ? Math.round((linkedRows / rows.length) * 100) : 0;
   const contactRatio = rows.length ? Math.round((contactRows / rows.length) * 100) : 0;
@@ -196,7 +212,7 @@ export default function NovaUnidadesView({
   const kpis: Kpi[] = [
     { label: "Unidades", value: String(response.meta.total), hint: "resultado filtrado", tone: "blue" },
     { label: "Monitoradas", value: String(linkedRows), hint: `${linkedRatio}% nesta página`, tone: linkedRows ? "green" : "slate" },
-    { label: "Com contato", value: String(contactRows), hint: `${contactRatio}% nesta página`, tone: contactRows ? "green" : "slate" },
+    { label: "Com contato", value: String(contactRows), hint: "operacional persistido", tone: contactRows ? "green" : "slate" },
     { label: "Ativos", value: String(totalAssetsOnPage), hint: `${rows.length} linha(s)`, tone: totalAssetsOnPage ? "blue" : "slate" },
     { label: "Atenção", value: String(noLinkRows), hint: "sem ativo vinculado", tone: noLinkRows ? "orange" : "green" },
   ];
@@ -324,6 +340,12 @@ export default function NovaUnidadesView({
 
                   <div>
                     <b>{contactOf(unit)}</b>
+                    {unit.operational?.operationalRows ? (
+                      <small>
+                        {unit.operational.operationalRows} dado(s) · {unit.operational.backupRows} backup(s)
+                        {unit.operational.secretRows ? ` · ${unit.operational.secretRows} segredo(s)` : ""}
+                      </small>
+                    ) : null}
                     {badge ? <span className="nova-units-badge is-orange">{badge}</span> : null}
                   </div>
 

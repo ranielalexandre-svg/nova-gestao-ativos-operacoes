@@ -4,12 +4,24 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import type { Prisma } from "../generated/prisma/client";
+import { Prisma } from "../generated/prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { IntegrationsService } from "../integrations/integrations.service";
 import { CreateUnitDto } from "./dto/create-unit.dto";
 import { ListUnitsQueryDto } from "./dto/list-units-query.dto";
 import { UpdateUnitDto } from "./dto/update-unit.dto";
+
+type UnitOperationalListSummary = {
+  unitId: string;
+  operationalRows: number;
+  secretRows: number;
+  backupRows: number;
+  phones: number;
+  primaryPhone: string | null;
+  primaryPartnerCode: string | null;
+  primaryServiceType: string | null;
+  primaryTechnology: string | null;
+};
 
 @Injectable()
 export class UnitsService {
@@ -180,8 +192,87 @@ export class UnitsService {
       this.prisma.unit.count({ where }),
     ]);
 
+    const unitIds = items.map((item) => item.id);
+
+    const operationalSummaries = unitIds.length
+      ? await this.prisma.$queryRaw<UnitOperationalListSummary[]>(Prisma.sql`
+          SELECT
+            i."unitId" AS "unitId",
+            COUNT(DISTINCT i.id)::int AS "operationalRows",
+            COUNT(DISTINCT s.id)::int AS "secretRows",
+            COUNT(DISTINCT i.id) FILTER (WHERE i."linkRole" = 'backup')::int AS "backupRows",
+            COUNT(DISTINCT i.id) FILTER (WHERE i.phone IS NOT NULL AND TRIM(i.phone) <> '')::int AS "phones",
+            (
+              ARRAY_AGG(
+                i.phone
+                ORDER BY
+                  CASE WHEN i."linkRole" = 'primary' THEN 0 ELSE 1 END,
+                  i."sortOrder" ASC
+              ) FILTER (WHERE i.phone IS NOT NULL AND TRIM(i.phone) <> '')
+            )[1] AS "primaryPhone",
+            (
+              ARRAY_AGG(
+                i."partnerCode"
+                ORDER BY
+                  CASE WHEN i."linkRole" = 'primary' THEN 0 ELSE 1 END,
+                  i."sortOrder" ASC
+              ) FILTER (WHERE i."partnerCode" IS NOT NULL AND TRIM(i."partnerCode") <> '')
+            )[1] AS "primaryPartnerCode",
+            (
+              ARRAY_AGG(
+                i."serviceType"
+                ORDER BY
+                  CASE WHEN i."linkRole" = 'primary' THEN 0 ELSE 1 END,
+                  i."sortOrder" ASC
+              ) FILTER (WHERE i."serviceType" IS NOT NULL AND TRIM(i."serviceType") <> '')
+            )[1] AS "primaryServiceType",
+            (
+              ARRAY_AGG(
+                i.technology
+                ORDER BY
+                  CASE WHEN i."linkRole" = 'primary' THEN 0 ELSE 1 END,
+                  i."sortOrder" ASC
+              ) FILTER (WHERE i.technology IS NOT NULL AND TRIM(i.technology) <> '')
+            )[1] AS "primaryTechnology"
+          FROM "UnitOperationalInfo" i
+          LEFT JOIN "UnitOperationalSecret" s ON s."operationalInfoId" = i.id
+          WHERE i."unitId" IN (${Prisma.join(unitIds)})
+          GROUP BY i."unitId"
+        `)
+      : [];
+
+    const operationalByUnitId = new Map(
+      operationalSummaries.map((item) => [item.unitId, item]),
+    );
+
+    const emptyOperational = {
+      operationalRows: 0,
+      secretRows: 0,
+      backupRows: 0,
+      phones: 0,
+      primaryPhone: null,
+      primaryPartnerCode: null,
+      primaryServiceType: null,
+      primaryTechnology: null,
+    };
+
     return {
-      items,
+      items: items.map((item) => {
+        const operational = operationalByUnitId.get(item.id) || {
+          unitId: item.id,
+          ...emptyOperational,
+        };
+
+        return {
+          ...item,
+          operational,
+          _count: {
+            ...item._count,
+            operationalInfos: operational.operationalRows,
+            operationalSecrets: operational.secretRows,
+          },
+        };
+      }),
       meta: {
         page,
         pageSize,
