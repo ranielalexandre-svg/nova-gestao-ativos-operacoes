@@ -389,7 +389,7 @@ export default async function StarlinksPage({
               <ProgressLine label="Em operação" value={percent(active, filtered.length)} tone="green" />
               <ProgressLine label="Serial preenchido" value={percent(withSerial, filtered.length)} tone="blue" />
               <ProgressLine label="Com documentos" value={percent(withDocs, filtered.length)} tone="green" />
-              <ProgressLine label="Credenciais operacionais" value={percent(withLegacySecrets, filtered.length)} tone="orange" />
+              <ProgressLine label="Credenciais operacionais" value={percent(withOperationalSecrets, filtered.length)} tone="orange" />
               <ProgressLine label="Em estoque" value={percent(stock, filtered.length)} tone="orange" />
             </div>
           </section>
