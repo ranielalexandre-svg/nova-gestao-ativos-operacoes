@@ -1,16 +1,9 @@
 import Link from "next/link";
-import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
-import { ActionForm } from "@/components/action-form";
 import { ListPagination } from "@/components/list-pagination";
 import { NovaLitShell } from "@/components/nova-lit/nova-lit-shell";
-import { OperationalDeletePanel } from "@/components/operational-delete-panel";
 import { apiJson } from "@/lib/server-api";
-import {
-  getActionErrorMessage,
-  type ActionFeedbackState,
-} from "@/lib/action-state";
 import {
   buildApiQuery,
   readPositiveIntParam,
@@ -77,125 +70,6 @@ function MetricCard({
   );
 }
 
-async function createUser(
-  _prevState: ActionFeedbackState,
-  formData: FormData,
-): Promise<ActionFeedbackState> {
-  "use server";
-
-  try {
-    if (!isAdminRole((await getServerWebSession()).user?.role || "")) {
-      return { status: "error", message: "Acesso negado." };
-    }
-
-    await apiJson("/users", {
-      method: "POST",
-      body: JSON.stringify({
-        name: String(formData.get("name") || ""),
-        email: String(formData.get("email") || ""),
-        role: String(formData.get("role") || ""),
-        password: String(formData.get("password") || ""),
-      }),
-    });
-
-    revalidatePath("/usuarios");
-    return { status: "success", message: "Usuário criado com sucesso." };
-  } catch (error) {
-    return { status: "error", message: getActionErrorMessage(error) };
-  }
-}
-
-async function updateUser(
-  _prevState: ActionFeedbackState,
-  formData: FormData,
-): Promise<ActionFeedbackState> {
-  "use server";
-
-  try {
-    if (!isAdminRole((await getServerWebSession()).user?.role || "")) {
-      return { status: "error", message: "Acesso negado." };
-    }
-
-    const id = String(formData.get("id") || "");
-
-    await apiJson(`/users/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify({
-        name: String(formData.get("name") || ""),
-        role: String(formData.get("role") || ""),
-        isActive: formData.get("isActive") === "on",
-      }),
-    });
-
-    revalidatePath("/usuarios");
-    return { status: "success", message: "Usuário atualizado com sucesso." };
-  } catch (error) {
-    return { status: "error", message: getActionErrorMessage(error) };
-  }
-}
-
-async function resetPassword(
-  _prevState: ActionFeedbackState,
-  formData: FormData,
-): Promise<ActionFeedbackState> {
-  "use server";
-
-  try {
-    if (!isAdminRole((await getServerWebSession()).user?.role || "")) {
-      return { status: "error", message: "Acesso negado." };
-    }
-
-    const id = String(formData.get("id") || "");
-
-    await apiJson(`/users/${id}/password`, {
-      method: "PATCH",
-      body: JSON.stringify({
-        password: String(formData.get("password") || ""),
-      }),
-    });
-
-    revalidatePath("/usuarios");
-    return { status: "success", message: "Senha redefinida com sucesso." };
-  } catch (error) {
-    return { status: "error", message: getActionErrorMessage(error) };
-  }
-}
-
-async function deleteUser(
-  _prevState: ActionFeedbackState,
-  formData: FormData,
-): Promise<ActionFeedbackState> {
-  "use server";
-
-  const id = String(formData.get("id") || "");
-
-  try {
-    const actionSession = await getServerWebSession();
-    if (!isAdminRole(actionSession.user?.role || "")) {
-      return { status: "error", message: "Acesso negado." };
-    }
-
-    if (id === actionSession.user?.id) {
-      return { status: "error", message: "Você não pode excluir o próprio usuário logado." };
-    }
-
-    if (formData.get("confirmDelete") !== "yes") {
-      return { status: "error", message: "Confirme a exclusão para continuar." };
-    }
-
-    await apiJson(`/users/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify({ isActive: false }),
-    });
-
-    revalidatePath("/usuarios");
-  } catch (error) {
-    return { status: "error", message: getActionErrorMessage(error) };
-  }
-
-  redirect("/usuarios?active=true");
-}
-
 export default async function UsuariosPage({
   searchParams,
 }: {
@@ -232,7 +106,6 @@ export default async function UsuariosPage({
     })}`,
   );
 
-  const currentUserId = session.user?.id || "";
   const activeOnPage = response.items.filter((user) => user.isActive).length;
   const inactiveOnPage = response.items.filter((user) => !user.isActive).length;
   const adminOnPage = response.items.filter((user) => user.role === "admin").length;
@@ -376,7 +249,7 @@ export default async function UsuariosPage({
                       <th>Papel</th>
                       <th>Status</th>
                       <th>Criado em</th>
-                      <th>Ajuste</th>
+                      <th>Ação</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -417,149 +290,21 @@ export default async function UsuariosPage({
               </div>
             </section>
 
-            {response.items.length ? (
-              <section className="nova-users-card">
-                <div className="nova-users-section-head">
-                  <div>
-                    <span>Administração</span>
-                    <h2>Editar acesso e senha</h2>
-                    <p>Edição, reset e bloqueio lógico no mesmo contexto da revisão.</p>
-                  </div>
-                </div>
-
-                <div className="nova-users-admin-list">
-                  {response.items.map((user) => (
-                    <details key={user.id} id={`user-${user.id}`} className="nova-users-admin-card">
-                      <summary>
-                        <div>
-                          <strong>{user.name}</strong>
-                          <small>{user.email}</small>
-                        </div>
-                        <div className="nova-users-summary-badges">
-                          <Badge tone={roleToneLocal(user.role)}>{roleLabel(user.role)}</Badge>
-                          <Badge tone={statusTone(user.isActive)}>{user.isActive ? "ativo" : "inativo"}</Badge>
-                          <Badge tone="slate">editar</Badge>
-                        </div>
-                      </summary>
-
-                      <div className="nova-users-delete-line">
-                        <OperationalDeletePanel
-                          action={deleteUser}
-                          entityId={user.id}
-                          entityLabel="usuário"
-                          entityName={`${user.name} - ${user.email}`}
-                          blockedReason={
-                            user.id === currentUserId
-                              ? "Você não pode excluir o próprio usuário logado."
-                              : !user.isActive
-                                ? "Este usuário já está inativo."
-                                : undefined
-                          }
-                        />
-                      </div>
-
-                      <div className="nova-users-edit-grid">
-                        <ActionForm
-                          action={updateUser}
-                          className="nova-users-form-panel"
-                          submitLabel="Salvar usuário"
-                          pendingLabel="Salvando..."
-                          variant="secondary"
-                        >
-                          <h3>Dados de acesso</h3>
-                          <input type="hidden" name="id" value={user.id} />
-
-                          <label>
-                            <span>Nome</span>
-                            <input name="name" defaultValue={user.name} />
-                          </label>
-
-                          <label>
-                            <span>Papel</span>
-                            <select name="role" defaultValue={user.role}>
-                              {ROLE_OPTIONS.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                  {option.label}
-                                </option>
-                              ))}
-                            </select>
-                          </label>
-
-                          <label className="nova-users-check">
-                            <input type="checkbox" name="isActive" defaultChecked={user.isActive} />
-                            <span>Usuário ativo</span>
-                          </label>
-                        </ActionForm>
-
-                        <ActionForm
-                          action={resetPassword}
-                          className="nova-users-form-panel"
-                          submitLabel="Redefinir senha"
-                          pendingLabel="Salvando..."
-                          variant="secondary"
-                        >
-                          <h3>Senha</h3>
-                          <input type="hidden" name="id" value={user.id} />
-
-                          <label>
-                            <span>Nova senha</span>
-                            <input name="password" type="password" placeholder="Mínimo de 8 caracteres" />
-                          </label>
-
-                          <p>Criado em {formatDateTime(user.createdAt)}</p>
-                        </ActionForm>
-                      </div>
-                    </details>
-                  ))}
-                </div>
-              </section>
-            ) : null}
           </div>
 
           <aside className="nova-users-side">
-            <section className="nova-users-card" id="novo-usuario">
+            <section className="nova-users-card">
               <div className="nova-users-section-head">
                 <div>
                   <span>Novo acesso</span>
                   <h2>Criar usuário</h2>
-                  <p>Convide operadores, editores e leitores com senha inicial provisória.</p>
+                  <p>Criação de usuário agora acontece em página dedicada, separada da listagem.</p>
                 </div>
-                <Badge tone="green">admin</Badge>
               </div>
 
-              <ActionForm
-                action={createUser}
-                className="nova-users-create-form"
-                submitLabel="Criar usuário"
-                pendingLabel="Criando..."
-                variant="secondary"
-              >
-                <label>
-                  <span>Nome</span>
-                  <input name="name" placeholder="Nome completo" />
-                </label>
-
-                <label>
-                  <span>E-mail</span>
-                  <input name="email" type="email" placeholder="usuario@nova.local" />
-                </label>
-
-                <label>
-                  <span>Papel</span>
-                  <select name="role" defaultValue="viewer">
-                    {ROLE_OPTIONS.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-
-                <label>
-                  <span>Senha inicial</span>
-                  <input name="password" type="password" placeholder="Mínimo de 8 caracteres" />
-                </label>
-              </ActionForm>
+              <Link href="/usuarios/nova" className="nova-users-button is-primary">
+                Criar novo usuário
+              </Link>
             </section>
 
             <section className="nova-users-card">
