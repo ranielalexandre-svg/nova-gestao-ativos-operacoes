@@ -38,6 +38,20 @@ import { formatDate } from "@/lib/formatters";
 import { canEditAttachmentsForRole, isAdminRole } from "@/lib/role-policy";
 import { getServerWebSession, normalizeRole } from "@/lib/web-session";
 
+type PartnerOperationalContact = {
+  id: string;
+  source: string;
+  sourceLegacyId: string | null;
+  city: string | null;
+  name: string | null;
+  role: string | null;
+  phone: string | null;
+  notes: string | null;
+  isPrimary: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
 type PartnerDetail = {
   id: string;
   code: string;
@@ -45,6 +59,7 @@ type PartnerDetail = {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  operationalContacts: PartnerOperationalContact[];
   units: Array<{
     id: string;
     code: string;
@@ -79,6 +94,7 @@ type PartnerDetail = {
     units: number;
     occurrences: number;
     maintenances: number;
+    operationalContacts: number;
   };
 };
 
@@ -143,6 +159,174 @@ function CreatedNotice({ from }: { from: string }) {
           >
             Voltar para lista
           </Link></div></div></Surface>
+  );
+}
+
+function PersistedPartnerContactsBlock({
+  partner,
+  isAdmin,
+  createAction,
+  updateAction,
+}: {
+  partner: PartnerDetail;
+  isAdmin: boolean;
+  createAction: (formData: FormData) => Promise<void>;
+  updateAction: (formData: FormData) => Promise<void>;
+}) {
+  const contacts = partner.operationalContacts || [];
+  const primary = contacts.find((contact) => contact.isPrimary) || contacts[0] || null;
+
+  return (
+    <Surface>
+      <SectionIntro
+        eyebrow="Contatos"
+        title="Contatos operacionais persistidos"
+        description="Contatos importados do legado e contatos manuais agora ficam gravados no banco, editáveis no cadastro do parceiro."
+        actions={
+          <div className="flex flex-wrap gap-2">
+            <TonePill tone={contacts.length ? "success" : "attention"}>
+              {contacts.length} contato(s)
+            </TonePill>
+            {primary?.phone ? <TonePill tone="info">telefone principal</TonePill> : null}
+          </div>
+        }
+        compact
+      />
+
+      <div className="mt-2 grid gap-2 lg:grid-cols-[1fr_340px]">
+        <div className="grid gap-2">
+          {contacts.length ? (
+            contacts.map((contact) => (
+              <div key={contact.id} className="nds-card">
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div>
+                    <div className="text-[12px] font-black text-slate-50">
+                      {contact.name || "Contato operacional"}
+                    </div>
+                    <div className="mt-1 text-[10px] uppercase tracking-[0.18em] text-slate-500">
+                      {[contact.role, contact.city].filter(Boolean).join(" · ") || contact.source}
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {contact.isPrimary ? <TonePill tone="success">principal</TonePill> : null}
+                    <TonePill tone={contact.source === "legacy_sqlite" ? "info" : "neutral"}>
+                      {contact.source === "legacy_sqlite" ? "legado" : "manual"}
+                    </TonePill>
+                  </div>
+                </div>
+
+                <div className="mt-2 grid gap-1 text-[11px] leading-5 text-slate-400 md:grid-cols-2">
+                  <div>Telefone: <span className="text-slate-200">{contact.phone || "-"}</span></div>
+                  <div>Cidade: <span className="text-slate-200">{contact.city || "-"}</span></div>
+                  <div>Cargo: <span className="text-slate-200">{contact.role || "-"}</span></div>
+                  <div>Origem: <span className="text-slate-200">{contact.sourceLegacyId ? `legado ${contact.sourceLegacyId}` : contact.source}</span></div>
+                  {contact.notes ? (
+                    <div className="md:col-span-2">Observações: <span className="text-slate-200">{contact.notes}</span></div>
+                  ) : null}
+                </div>
+
+                {isAdmin ? (
+                  <details className="mt-3 rounded-2xl border border-white/10 bg-black/15 p-3">
+                    <summary className="cursor-pointer text-[11px] font-black text-slate-100">
+                      Editar contato
+                    </summary>
+                    <form action={updateAction} className="mt-3 grid gap-2">
+                      <input type="hidden" name="partnerId" value={partner.id} />
+                      <input type="hidden" name="contactId" value={contact.id} />
+
+                      <div className="grid gap-2 md:grid-cols-2">
+                        <label className="grid gap-1">
+                          <span className="nds-label">Nome</span>
+                          <input name="name" defaultValue={contact.name || ""} />
+                        </label>
+                        <label className="grid gap-1">
+                          <span className="nds-label">Cargo / função</span>
+                          <input name="role" defaultValue={contact.role || ""} />
+                        </label>
+                        <label className="grid gap-1">
+                          <span className="nds-label">Telefone / WhatsApp</span>
+                          <input name="phone" defaultValue={contact.phone || ""} />
+                        </label>
+                        <label className="grid gap-1">
+                          <span className="nds-label">Cidade base</span>
+                          <input name="city" defaultValue={contact.city || ""} />
+                        </label>
+                        <label className="grid gap-1 md:col-span-2">
+                          <span className="nds-label">Observações / cobertura</span>
+                          <textarea name="notes" defaultValue={contact.notes || ""} rows={3} />
+                        </label>
+                      </div>
+
+                      <label className="flex items-center gap-2 text-[11px] text-slate-300">
+                        <input type="checkbox" name="isPrimary" defaultChecked={contact.isPrimary} />
+                        Definir como contato principal
+                      </label>
+
+                      <div className="flex justify-end">
+                        <button type="submit" className="nds-button" data-variant="primary">
+                          Salvar contato
+                        </button>
+                      </div>
+                    </form>
+                  </details>
+                ) : null}
+              </div>
+            ))
+          ) : (
+            <EmptyState
+              title="Nenhum contato persistido"
+              description="Cadastre um contato operacional para este parceiro."
+            />
+          )}
+        </div>
+
+        <div className="nds-card">
+          <div className="text-[12px] font-black text-slate-50">Novo contato</div>
+          <div className="mt-1 text-[11px] leading-5 text-slate-400">
+            Adicione contato manual sem depender do pacote legado local.
+          </div>
+
+          {isAdmin ? (
+            <form action={createAction} className="mt-3 grid gap-2">
+              <input type="hidden" name="partnerId" value={partner.id} />
+
+              <label className="grid gap-1">
+                <span className="nds-label">Nome</span>
+                <input name="name" placeholder="Central, NOC, responsável" />
+              </label>
+              <label className="grid gap-1">
+                <span className="nds-label">Cargo / função</span>
+                <input name="role" placeholder="Suporte, NOC, financeiro" />
+              </label>
+              <label className="grid gap-1">
+                <span className="nds-label">Telefone / WhatsApp</span>
+                <input name="phone" placeholder="(63) 99999-0000" />
+              </label>
+              <label className="grid gap-1">
+                <span className="nds-label">Cidade base</span>
+                <input name="city" placeholder="Araguaína, Palmas..." />
+              </label>
+              <label className="grid gap-1">
+                <span className="nds-label">Observações / cobertura</span>
+                <textarea name="notes" rows={3} placeholder="Horário, cidades, canal preferencial..." />
+              </label>
+              <label className="flex items-center gap-2 text-[11px] text-slate-300">
+                <input type="checkbox" name="isPrimary" defaultChecked={!contacts.length} />
+                Contato principal
+              </label>
+
+              <button type="submit" className="nds-button" data-variant="primary">
+                Adicionar contato
+              </button>
+            </form>
+          ) : (
+            <div className="mt-3 text-[11px] leading-5 text-slate-500">
+              Apenas administradores podem criar contatos.
+            </div>
+          )}
+        </div>
+      </div>
+    </Surface>
   );
 }
 
@@ -245,6 +429,61 @@ export default async function ParceiroDetailPage({
   const legacyProfile = (await getLegacyPartnerProfileForPartner(partner)) satisfies LegacyPartnerProfile | null;
   const totalEquipments = partner.units.reduce((sum, unit) => sum + unit._count.equipments, 0);
   const activeUnits = partner.units.filter((unit) => unit.isActive).length;
+
+  async function createPartnerContact(formData: FormData): Promise<void> {
+    "use server";
+
+    const partnerId = String(formData.get("partnerId") || "");
+    const actionSession = await getServerWebSession();
+
+    if (normalizeRole(actionSession.user?.role || "") !== "admin") {
+      redirect(`/parceiros/${partnerId}`);
+    }
+
+    await apiJson(`/partners/${partnerId}/contacts`, {
+      method: "POST",
+      body: JSON.stringify({
+        city: String(formData.get("city") || ""),
+        name: String(formData.get("name") || ""),
+        role: String(formData.get("role") || ""),
+        phone: String(formData.get("phone") || ""),
+        notes: String(formData.get("notes") || ""),
+        isPrimary: formData.get("isPrimary") === "on",
+      }),
+    });
+
+    revalidatePath("/parceiros");
+    revalidatePath(`/parceiros/${partnerId}`);
+    redirect(`/parceiros/${partnerId}`);
+  }
+
+  async function updatePartnerContact(formData: FormData): Promise<void> {
+    "use server";
+
+    const partnerId = String(formData.get("partnerId") || "");
+    const contactId = String(formData.get("contactId") || "");
+    const actionSession = await getServerWebSession();
+
+    if (normalizeRole(actionSession.user?.role || "") !== "admin") {
+      redirect(`/parceiros/${partnerId}`);
+    }
+
+    await apiJson(`/partners/${partnerId}/contacts/${contactId}`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        city: String(formData.get("city") || ""),
+        name: String(formData.get("name") || ""),
+        role: String(formData.get("role") || ""),
+        phone: String(formData.get("phone") || ""),
+        notes: String(formData.get("notes") || ""),
+        isPrimary: formData.get("isPrimary") === "on",
+      }),
+    });
+
+    revalidatePath("/parceiros");
+    revalidatePath(`/parceiros/${partnerId}`);
+    redirect(`/parceiros/${partnerId}`);
+  }
 
   async function updatePartner(
     _prevState: ActionFeedbackState,
@@ -466,6 +705,11 @@ export default async function ParceiroDetailPage({
             tone: partner._count.maintenances ? "info" : "neutral",
           },
         ]}
+      /><PersistedPartnerContactsBlock
+        partner={partner}
+        isAdmin={isAdmin}
+        createAction={createPartnerContact}
+        updateAction={updatePartnerContact}
       /><section className="nova-detail-grid nova-detail-grid--partner"><Surface><SectionIntro
             eyebrow="Visão operacional"
             title="Unidades vinculadas"
