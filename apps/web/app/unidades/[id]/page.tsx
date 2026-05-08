@@ -2027,7 +2027,7 @@ export default async function UnidadeDetailPage({
               eyebrow="Cadastro concluído"
               title="Unidade criada com sucesso"
               description={
-                from === "legacy"
+                from === "legacy" || from === "imported"
                   ? "A unidade nasceu a partir de dados importados. Revise vínculos, ativos e host Zabbix antes de sincronizar."
                   : from === "wizard"
                   ? "Cadastro concluído."

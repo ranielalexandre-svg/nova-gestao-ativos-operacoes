@@ -93,7 +93,9 @@ export default async function NovaUnidadePage({
   const state = normalizeUpper(readStringParam(params, "state"));
   const partnerIdParam = readStringParam(params, "partnerId").trim();
   const partnerCode = normalizeUpper(readStringParam(params, "partnerCode"));
-  const origin = readStringParam(params, "from").trim();
+  const originParam = readStringParam(params, "from").trim();
+  const origin = originParam === "legacy" ? "imported" : originParam;
+  const isImportedOrigin = origin === "imported";
 
   const baseReady = code.length >= 2 && name.length >= 2;
 
@@ -101,10 +103,10 @@ export default async function NovaUnidadePage({
     "/partners?page=1&pageSize=100&sortBy=code&sortDir=asc",
   );
   const partnerOptions = partnersResponse.items.filter((item) => item.isActive);
-  const partnerFromLegacy = partnerCode
+  const partnerFromImported = partnerCode
     ? partnerOptions.find((partner) => normalizeUpper(partner.code) === partnerCode)
     : null;
-  const partnerId = partnerIdParam || partnerFromLegacy?.id || "";
+  const partnerId = partnerIdParam || partnerFromImported?.id || "";
   const linkReady = baseReady && Boolean(partnerId);
 
   let step = 1;
@@ -117,7 +119,7 @@ export default async function NovaUnidadePage({
   }
 
   const selectedPartner =
-    partnerOptions.find((partner) => partner.id === partnerId) || partnerFromLegacy || null;
+    partnerOptions.find((partner) => partner.id === partnerId) || partnerFromImported || null;
   const wizardValues = { code, name, city, state, partnerId, partnerCode, from: origin };
   async function createFromWizard(
     _prevState: ActionFeedbackState,
@@ -126,7 +128,8 @@ export default async function NovaUnidadePage({
     "use server";
 
     let createdId = "";
-    const createOrigin = String(formData.get("from") || "") === "legacy" ? "legacy" : "wizard";
+    const submittedOrigin = String(formData.get("from") || "");
+    const createOrigin = submittedOrigin === "legacy" || submittedOrigin === "imported" ? "imported" : "wizard";
 
     try {
       const actionSession = await getServerWebSession();
@@ -165,7 +168,7 @@ export default async function NovaUnidadePage({
             title="Nova unidade"
             description="Fluxo curto para identificar, vincular e revisar antes de criar."
             actions={
-              origin === "legacy" ? (
+              isImportedOrigin ? (
                 <TonePill tone="info">pré-preenchido por dados importados</TonePill>
               ) : undefined
             }
@@ -250,7 +253,7 @@ export default async function NovaUnidadePage({
                       <div className="text-[10px] leading-5 text-slate-500">
                         Parceiro sugerido pelos dados importados:{" "}
                         <span className="font-semibold text-slate-300">{partnerCode}</span>
-                        {partnerFromLegacy
+                        {partnerFromImported
                           ? " · selecionado automaticamente"
                           : " · selecione o equivalente antes de gravar"}
                       </div>
@@ -285,7 +288,7 @@ export default async function NovaUnidadePage({
               description="Prepare a unidade para o match técnico com host, dados importados e cobertura do parceiro."
             ><div className="nova-side-grid nova-side-grid--320 nova-side-grid--lg"><div className="grid gap-2"><div className="nds-card"><div className="text-[12px] font-black text-slate-50">Fluxo recomendado</div><div className="mt-1 text-[11px] leading-5 text-slate-400">
                       1. Crie a unidade com base e vínculo corretos. 2. Abra a ficha da unidade. 3. Resolva o match do host Zabbix, dados importados e cobertura do parceiro no detalhe operacional.
-                    </div></div><div className="grid gap-2 md:grid-cols-3"><SummaryItem label="Código" value={code} /><SummaryItem label="Nome" value={name} /><SummaryItem label="Parceiro" value={selectedPartner ? `${selectedPartner.code} - ${selectedPartner.name}` : "-"} /><SummaryItem label="Cidade" value={city || "-"} /><SummaryItem label="UF" value={state || "-"} /><SummaryItem label="Origem" value={origin === "legacy" ? "dados importados" : "cadastro manual"} /></div></div><div className="rounded-[6px] border border-[var(--nova-primary)]/20 bg-[var(--nova-primary-soft)] p-2"><div className="nds-label">
+</div></div><div className="grid gap-2 md:grid-cols-3"><SummaryItem label="Código" value={code} /><SummaryItem label="Nome" value={name} /><SummaryItem label="Parceiro" value={selectedPartner ? `${selectedPartner.code} - ${selectedPartner.name}` : "-"} /><SummaryItem label="Cidade" value={city || "-"} /><SummaryItem label="UF" value={state || "-"} /><SummaryItem label="Origem" value={isImportedOrigin ? "dados importados" : "cadastro manual"} /></div></div><div className="rounded-[6px] border border-[var(--nova-primary)]/20 bg-[var(--nova-primary-soft)] p-2"><div className="nds-label">
                     pós-criação
                   </div><div className="mt-2 text-[12px] font-black text-white">
                     O monitoramento nasce no detalhe
@@ -316,7 +319,7 @@ export default async function NovaUnidadePage({
                 submitLabel="Criar unidade"
                 pendingLabel="Criando unidade..."
                 hideSubmit
-              ><input type="hidden" name="code" value={code} /><input type="hidden" name="name" value={name} /><input type="hidden" name="city" value={city} /><input type="hidden" name="state" value={state} /><input type="hidden" name="partnerId" value={partnerId} /><input type="hidden" name="partnerCode" value={partnerCode} /><input type="hidden" name="from" value={origin} /><div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3"><SummaryItem label="Código" value={code} /><SummaryItem label="Nome da unidade" value={name} /><SummaryItem label="Parceiro" value={selectedPartner ? `${selectedPartner.code} - ${selectedPartner.name}` : "-"} /><SummaryItem label="Cidade" value={city || "-"} /><SummaryItem label="UF" value={state || "-"} /><SummaryItem label="Origem" value={origin === "legacy" ? "dados importados" : "cadastro manual"} /></div><div className="nds-card"><div className="nds-label">
+><input type="hidden" name="code" value={code} /><input type="hidden" name="name" value={name} /><input type="hidden" name="city" value={city} /><input type="hidden" name="state" value={state} /><input type="hidden" name="partnerId" value={partnerId} /><input type="hidden" name="partnerCode" value={partnerCode} /><input type="hidden" name="from" value={origin} /><div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3"><SummaryItem label="Código" value={code} /><SummaryItem label="Nome da unidade" value={name} /><SummaryItem label="Parceiro" value={selectedPartner ? `${selectedPartner.code} - ${selectedPartner.name}` : "-"} /><SummaryItem label="Cidade" value={city || "-"} /><SummaryItem label="UF" value={state || "-"} /><SummaryItem label="Origem" value={isImportedOrigin ? "dados importados" : "cadastro manual"} /></div><div className="nds-card"><div className="nds-label">
                   Dados para relatório
                 </div><div className="mt-1 text-[11px] leading-5 text-slate-400">
                   Preencha quando a unidade já tiver contrato, endereço de instalação ou banda oficial. Esses dados entram automaticamente no DOCX/PDF.

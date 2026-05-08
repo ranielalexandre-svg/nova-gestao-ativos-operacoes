@@ -11,6 +11,16 @@ type ActorRequest = { user?: { id?: string } };
 export class OperationalDataController {
   constructor(private readonly legacyService: LegacyService) {}
 
+  @Get("summary")
+  getOperationalSummary() {
+    return this.legacyService.getSummary();
+  }
+
+  @Get("reconciliation")
+  getOperationalReconciliation() {
+    return this.legacyService.getReconciliation();
+  }
+
   @Get("units/:id")
   getUnitOperationalData(@Param("id") id: string) {
     return this.legacyService.getUnitOperationalData(id, false);

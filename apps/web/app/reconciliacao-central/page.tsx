@@ -67,7 +67,7 @@ type SyncReadyResult = {
   }>;
 };
 
-type LegacySummary = {
+type OperationalDataSummary = {
   sourceAvailable: boolean;
   message?: string;
   expectedPath?: string | null;
@@ -80,7 +80,7 @@ type LegacySummary = {
   sources?: Record<string, string>;
 };
 
-type LegacySignal = {
+type OperationalSignal = {
   backupLinks: number;
   links: number;
   phones: number;
@@ -90,7 +90,7 @@ type LegacySignal = {
   hasMacOnu: boolean;
 };
 
-type LegacyReconciliation = {
+type OperationalReconciliation = {
   sourceAvailable: boolean;
   message?: string;
   expectedPath?: string | null;
@@ -119,7 +119,7 @@ type LegacyReconciliation = {
     partnerCode: string;
     bestScore: number;
     bestCurrentUnit: { id: string; code: string; name: string } | null;
-    signal: LegacySignal;
+    signal: OperationalSignal;
   }>;
   weakUnitMatches: Array<{
     code: string;
@@ -129,7 +129,7 @@ type LegacyReconciliation = {
     partnerCode: string;
     score: number;
     currentUnit: { id: string; code: string; name: string } | null;
-    signal: LegacySignal;
+    signal: OperationalSignal;
   }>;
   unmatchedCurrentUnits: Array<{
     id: string;
@@ -190,18 +190,18 @@ async function syncReadyZabbixAction(
   }
 }
 
-async function readLegacySummary() {
+async function readOperationalDataSummary() {
   try {
-    return (await apiJson<LegacySummary>("/legacy/summary")) satisfies LegacySummary;
+    return (await apiJson<OperationalDataSummary>("/operational-data/summary")) satisfies OperationalDataSummary;
   } catch (error) {
     return {
       sourceAvailable: false,
       message: error instanceof Error ? error.message : "Resumo de dados importados indisponível.",
-    } satisfies LegacySummary;
+    } satisfies OperationalDataSummary;
   }
 }
 
-function emptyLegacyReconciliation(message = "Reconciliação de dados importados indisponível.") {
+function emptyOperationalReconciliation(message = "Reconciliação de dados importados indisponível.") {
   return {
     sourceAvailable: false,
     message,
@@ -227,14 +227,14 @@ function emptyLegacyReconciliation(message = "Reconciliação de dados importado
     unmatchedCurrentUnits: [],
     unmatchedLegacyPartners: [],
     unmatchedLegacyEquipments: [],
-  } satisfies LegacyReconciliation;
+  } satisfies OperationalReconciliation;
 }
 
-async function readLegacyReconciliation() {
+async function readOperationalReconciliation() {
   try {
-    return (await apiJson<LegacyReconciliation>("/legacy/reconciliation")) satisfies LegacyReconciliation;
+    return (await apiJson<OperationalReconciliation>("/operational-data/reconciliation")) satisfies OperationalReconciliation;
   } catch (error) {
-    return emptyLegacyReconciliation(error instanceof Error ? error.message : undefined);
+    return emptyOperationalReconciliation(error instanceof Error ? error.message : undefined);
   }
 }
 
@@ -264,7 +264,7 @@ function sourceFailures(telemetry: UnitHostTelemetry) {
   return telemetry.sources.filter((source) => !source.ok).length;
 }
 
-function legacyCount(summary: LegacySummary, section: "raw" | "normalized", key: string) {
+function operationalDataCount(summary: OperationalDataSummary, section: "raw" | "normalized", key: string) {
   return summary.summary?.[section]?.[key] ?? 0;
 }
 
@@ -272,7 +272,7 @@ function sourceName(path: string) {
   return path.split(/[\\/]/).filter(Boolean).pop() || path;
 }
 
-function legacyUnitWizardHref(unit: {
+function importedUnitWizardHref(unit: {
   code: string;
   name: string;
   city: string | null;
@@ -281,7 +281,7 @@ function legacyUnitWizardHref(unit: {
 }) {
   const params = new URLSearchParams();
   params.set("step", "3");
-  params.set("from", "legacy");
+  params.set("from", "imported");
 
   const entries = {
     code: unit.code,
@@ -299,11 +299,11 @@ function legacyUnitWizardHref(unit: {
   return `/unidades/nova?${params.toString()}`;
 }
 
-function legacySignalWeight(signal: LegacySignal) {
+function operationalSignalWeight(signal: OperationalSignal) {
   return signal.backupLinks + signal.starlinks + signal.equipments + (signal.hasMacOnu ? 2 : 0);
 }
 
-function LegacySignalPills({ signal }: { signal: LegacySignal }) {
+function OperationalSignalPills({ signal }: { signal: OperationalSignal }) {
   const items = [
     signal.backupLinks ? { label: `${signal.backupLinks} backup`, tone: "attention" } : null,
     signal.starlinks ? { label: `${signal.starlinks} starlink`, tone: "info" } : null,
@@ -478,38 +478,38 @@ function SourcePanel({ telemetry }: { telemetry: UnitHostTelemetry }) {
   );
 }
 
-function LegacyImportPanel({
-  legacy,
+function ImportedDataPanel({
+  summary,
   telemetry,
 }: {
-  legacy: LegacySummary;
+  summary: OperationalDataSummary;
   telemetry: UnitHostTelemetry;
 }) {
-  if (!legacy.sourceAvailable) {
+  if (!summary.sourceAvailable) {
     return (
       <Surface><SectionIntro
           eyebrow="Dados importados"
           title="Bases SQLite ainda não carregadas nesta execução"
-          description={legacy.message || "Gere o pacote de dados importados para cruzar contatos, parceiros, Starlinks e ativos antigos com o cadastro atual."}
+          description={summary.message || "Gere o pacote de dados importados para cruzar contatos, parceiros, Starlinks e ativos antigos com o cadastro atual."}
           actions={<TonePill tone="attention">pendente</TonePill>}
           compact
         />
-        {legacy.expectedPath ? (
+        {summary.expectedPath ? (
           <div className="nds-card mt-2 text-[11px] text-slate-400">
-            Caminho esperado: <span className="font-medium text-slate-200">{legacy.expectedPath}</span></div>
+            Caminho esperado: <span className="font-medium text-slate-200">{summary.expectedPath}</span></div>
         ) : null}
       </Surface>
     );
   }
 
-  const legacyUnits = legacyCount(legacy, "normalized", "units");
-  const legacyPartners = legacyCount(legacy, "normalized", "partners");
-  const legacyEquipments = legacyCount(legacy, "normalized", "equipments");
-  const starlinksInstalled = legacyCount(legacy, "normalized", "starlinksInstalled");
-  const contactsWithBackup = legacyCount(legacy, "normalized", "contactsWithBackup");
-  const contactsWithMacOnu = legacyCount(legacy, "normalized", "contactsWithMacOnu");
-  const adoption = legacyUnits ? Math.round((telemetry.counts.units / legacyUnits) * 100) : 0;
-  const sources = Object.entries(legacy.sources || {});
+  const importedUnits = operationalDataCount(summary, "normalized", "units");
+  const importedPartners = operationalDataCount(summary, "normalized", "partners");
+  const importedEquipments = operationalDataCount(summary, "normalized", "equipments");
+  const starlinksInstalled = operationalDataCount(summary, "normalized", "starlinksInstalled");
+  const contactsWithBackup = operationalDataCount(summary, "normalized", "contactsWithBackup");
+  const contactsWithMacOnu = operationalDataCount(summary, "normalized", "contactsWithMacOnu");
+  const adoption = importedUnits ? Math.round((telemetry.counts.units / importedUnits) * 100) : 0;
+  const sources = Object.entries(summary.sources || {});
 
   return (
     <Surface><div className="nova-side-grid nova-side-grid--360"><div className="min-w-0"><SectionIntro
@@ -517,14 +517,14 @@ function LegacyImportPanel({
             title="SQLite virou fonte de reconciliação operacional"
             description="Contatos, parceiros, Starlinks e ativos antigos ficam disponíveis para consulta e saneamento sem aumentar o Prisma nesta etapa."
             actions={
-              <div className="flex flex-wrap gap-2"><TonePill tone={legacy.redactedSecrets ? "attention" : "success"}>
-                  {legacy.redactedSecrets ? "credenciais mascaradas" : "credenciais disponíveis"}
+              <div className="flex flex-wrap gap-2"><TonePill tone={summary.redactedSecrets ? "attention" : "success"}>
+                  {summary.redactedSecrets ? "credenciais mascaradas" : "credenciais disponíveis"}
                 </TonePill>
-                {legacy.generatedAt ? <TonePill tone="neutral">{formatDateTime(legacy.generatedAt)}</TonePill> : null}
+                {summary.generatedAt ? <TonePill tone="neutral">{formatDateTime(summary.generatedAt)}</TonePill> : null}
               </div>
             }
             compact
-          /><div className="mt-2 grid gap-2 md:grid-cols-2 xl:grid-cols-4"><KpiTile label="Unidades importadas" value={legacyUnits} meta={`${telemetry.counts.units} no cadastro atual`} tone="info" /><KpiTile label="Parceiros" value={legacyPartners} meta={`${legacyCount(legacy, "raw", "parceiros")} linha(s) na origem`} tone="info" /><KpiTile label="Ativos importados" value={legacyEquipments} meta={`${contactsWithMacOnu} com MAC/ONU`} tone="success" /><KpiTile label="Starlinks" value={starlinksInstalled} meta={`${legacyCount(legacy, "raw", "starlinks")} registro(s) brutos`} tone="attention" /></div><div className="mt-2 grid gap-2 md:grid-cols-3"><div className="nds-card"><div className="text-[12px] font-black text-slate-50">{adoption}% migrado para leitura atual</div><div className="mt-1 text-[10px] leading-5 text-[var(--nova-text-muted)]">Comparação simples entre unidades ativas lidas e unidades normalizadas da base importada.</div></div><div className="nds-card"><div className="text-[12px] font-black text-slate-50">{contactsWithBackup} com contingência</div><div className="mt-1 text-[10px] leading-5 text-[var(--nova-text-muted)]">Registros que já trazem parceiro/rota de backup para orientar operação.</div></div><div className="nds-card"><div className="text-[12px] font-black text-slate-50">{legacyCount(legacy, "raw", "starlinkHistory")} histórico(s)</div><div className="mt-1 text-[10px] leading-5 text-[var(--nova-text-muted)]">Movimentações de Starlink preservadas para consulta nos detalhes.</div></div></div></div><div className="nds-card"><div className="text-[12px] font-black text-slate-50">Arquivos coletados</div><div className="mt-2 grid gap-2">
+          /><div className="mt-2 grid gap-2 md:grid-cols-2 xl:grid-cols-4"><KpiTile label="Unidades importadas" value={importedUnits} meta={`${telemetry.counts.units} no cadastro atual`} tone="info" /><KpiTile label="Parceiros" value={importedPartners} meta={`${operationalDataCount(summary, "raw", "parceiros")} linha(s) na origem`} tone="info" /><KpiTile label="Ativos importados" value={importedEquipments} meta={`${contactsWithMacOnu} com MAC/ONU`} tone="success" /><KpiTile label="Starlinks" value={starlinksInstalled} meta={`${operationalDataCount(summary, "raw", "starlinks")} registro(s) brutos`} tone="attention" /></div><div className="mt-2 grid gap-2 md:grid-cols-3"><div className="nds-card"><div className="text-[12px] font-black text-slate-50">{adoption}% migrado para leitura atual</div><div className="mt-1 text-[10px] leading-5 text-[var(--nova-text-muted)]">Comparação simples entre unidades ativas lidas e unidades normalizadas da base importada.</div></div><div className="nds-card"><div className="text-[12px] font-black text-slate-50">{contactsWithBackup} com contingência</div><div className="mt-1 text-[10px] leading-5 text-[var(--nova-text-muted)]">Registros que já trazem parceiro/rota de backup para orientar operação.</div></div><div className="nds-card"><div className="text-[12px] font-black text-slate-50">{operationalDataCount(summary, "raw", "starlinkHistory")} histórico(s)</div><div className="mt-1 text-[10px] leading-5 text-[var(--nova-text-muted)]">Movimentações de Starlink preservadas para consulta nos detalhes.</div></div></div></div><div className="nds-card"><div className="text-[12px] font-black text-slate-50">Arquivos coletados</div><div className="mt-2 grid gap-2">
             {sources.length ? (
               sources.map(([key, path]) => (
                 <div key={key} className="nds-card"><div className="nds-label">{key}</div><div className="mt-1 truncate text-[11px] font-medium text-slate-100" title={path}>
@@ -540,10 +540,10 @@ function LegacyImportPanel({
   );
 }
 
-function LegacyReconciliationPanel({
+function OperationalReconciliationPanel({
   reconciliation,
 }: {
-  reconciliation: LegacyReconciliation;
+  reconciliation: OperationalReconciliation;
 }) {
   if (!reconciliation.sourceAvailable) {
     return (
@@ -564,7 +564,7 @@ function LegacyReconciliationPanel({
     : 0;
   const prioritizedUnits = reconciliation.unmatchedLegacyUnits
     .slice()
-    .sort((a, b) => legacySignalWeight(b.signal) - legacySignalWeight(a.signal) || a.code.localeCompare(b.code))
+    .sort((a, b) => operationalSignalWeight(b.signal) - operationalSignalWeight(a.signal) || a.code.localeCompare(b.code))
     .slice(0, 12);
   const weakMatches = reconciliation.weakUnitMatches.slice(0, 6);
   const unmatchedCurrent = reconciliation.unmatchedCurrentUnits.slice(0, 6);
@@ -599,7 +599,7 @@ function LegacyReconciliationPanel({
                     {prioritizedUnits.map((unit) => (
                       <tr key={`${unit.partnerCode}:${unit.code}:${unit.name}`} className="border-b border-white/6 last:border-b-0"><TableCell><div className="font-semibold text-slate-50">{unit.code || "sem código"}</div><div className="mt-1 max-w-[320px] text-[11px] text-slate-300">{unit.name}</div><div className="mt-1 text-[10px] text-slate-500">
                             {[unit.city, unit.state].filter(Boolean).join(" / ") || "Local não informado"}
-                          </div></TableCell><TableCell><TonePill tone={unit.partnerCode ? "info" : "neutral"}>{unit.partnerCode || "sem parceiro"}</TonePill></TableCell><TableCell><LegacySignalPills signal={unit.signal} /></TableCell><TableCell>
+                          </div></TableCell><TableCell><TonePill tone={unit.partnerCode ? "info" : "neutral"}>{unit.partnerCode || "sem parceiro"}</TonePill></TableCell><TableCell><OperationalSignalPills signal={unit.signal} /></TableCell><TableCell>
                           {unit.bestCurrentUnit ? (
                             <><Link
                                 href={`/unidades/${unit.bestCurrentUnit.id}`}
@@ -613,7 +613,7 @@ function LegacyReconciliationPanel({
                             <span className="text-[11px] text-slate-500">Sem candidato</span>
                           )}
                         </TableCell><TableActionCell className="min-w-[11rem]"><TableActionLink
-                            href={legacyUnitWizardHref(unit)}
+                            href={importedUnitWizardHref(unit)}
                             className="border-[var(--nova-primary)]/25 bg-[var(--nova-primary-soft)] text-slate-50 hover:border-[var(--nova-primary)]/45"
                           >
                             Abrir cadastro guiado
@@ -707,10 +707,10 @@ export default async function ReconciliacaoCentralPage() {
     redirect("/login?next=/reconciliacao");
   }
 
-  const [telemetry, legacySummary, legacyReconciliation] = await Promise.all([
+  const [telemetry, operationalDataSummary, operationalReconciliation] = await Promise.all([
     readUnitHostTelemetry({ timeoutMs: 2_500 }),
-    readLegacySummary(),
-    readLegacyReconciliation(),
+    readOperationalDataSummary(),
+    readOperationalReconciliation(),
   ]);
   const isAdmin = normalizeRole(session.user?.role || "") === "admin";
   const readyRows = telemetry.items
@@ -757,7 +757,7 @@ export default async function ReconciliacaoCentralPage() {
           value={formatPercent(telemetry.counts.avgLossPct)}
           meta={`${telemetry.counts.withProblems} unidade(s) com problema Zabbix`}
           tone={telemetry.counts.withProblems ? "attention" : "success"}
-        /></section><LegacyImportPanel legacy={legacySummary} telemetry={telemetry} /><LegacyReconciliationPanel reconciliation={legacyReconciliation} /><section className="nova-side-grid nova-side-grid--420"><ReadyTable rows={readyRows} /><ContractPanel /></section><BacklogTable rows={backlogRows} /><SourcePanel telemetry={telemetry} />      </div>
+        /></section><ImportedDataPanel summary={operationalDataSummary} telemetry={telemetry} /><OperationalReconciliationPanel reconciliation={operationalReconciliation} /><section className="nova-side-grid nova-side-grid--420"><ReadyTable rows={readyRows} /><ContractPanel /></section><BacklogTable rows={backlogRows} /><SourcePanel telemetry={telemetry} />      </div>
     </NovaLitShell>
   );
 }

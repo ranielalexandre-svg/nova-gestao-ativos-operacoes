@@ -57,7 +57,7 @@ export class LegacyService {
       available: false,
       path: candidates[0] || null,
       message:
-        "Arquivo legado não encontrado. Gere com apps/api/scripts/export-legacy-sqlite.py.",
+        "Pacote de dados importados não encontrado. Gere com apps/api/scripts/export-legacy-sqlite.py.",
     };
   }
 
@@ -931,7 +931,7 @@ export class LegacyService {
             data: {
               operationalInfoId: info.id,
               kind: "pppoe",
-              label: "Credencial PPPoE legada",
+              label: "Credencial PPPoE importada",
               usernameEnc: credential.username ? encryptSecret(credential.username) : null,
               secretEnc: credential.secret ? encryptSecret(credential.secret) : null,
               hasValue: Boolean(credential.username || credential.secret),
@@ -946,7 +946,7 @@ export class LegacyService {
 
     await this.writeOperationalActivity({
       actorUserId,
-      title: "Importação de dados operacionais legados",
+      title: "Importação de dados operacionais",
       description: `${importedLinks} link(s), ${importedSecrets} credencial(is), ${matchedUnits} unidade(s) casada(s), ${skippedUnits} unidade(s) ignorada(s).`,
     });
 
