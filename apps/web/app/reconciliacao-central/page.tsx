@@ -18,10 +18,6 @@ import {
   TonePill,
 } from "@/components/ops-ui";
 import { getActionErrorMessage, type ActionFeedbackState } from "@/lib/action-state";
-import {
-  getLegacyReconciliationForCurrent,
-  getLegacySummary,
-} from "@/lib/legacy-catalog";
 import { formatDateTime } from "@/lib/formatters";
 import {
   formatPercent,
@@ -31,7 +27,6 @@ import {
   type UnitHostTelemetryItem,
 } from "@/lib/noc-overview";
 import { apiJson } from "@/lib/server-api";
-import type { PaginatedResponse } from "@/lib/list-query";
 import { getServerWebSession, normalizeRole } from "@/lib/web-session";
 
 type SyncReadyResult = {
@@ -163,29 +158,6 @@ type LegacyReconciliation = {
   }>;
 };
 
-type CurrentUnitForLegacy = {
-  id: string;
-  code: string;
-  name: string;
-  city: string | null;
-  state: string | null;
-  partner: { code: string; name: string };
-};
-
-type CurrentPartnerForLegacy = {
-  id: string;
-  code: string;
-  name: string;
-};
-
-type CurrentEquipmentForLegacy = {
-  id: string;
-  tag: string;
-  name: string;
-  serialNumber: string | null;
-  unit: { id: string; code: string; name: string };
-};
-
 async function syncReadyZabbixAction(
   state: ActionFeedbackState,
 ): Promise<ActionFeedbackState> {
@@ -220,7 +192,7 @@ async function syncReadyZabbixAction(
 
 async function readLegacySummary() {
   try {
-    return (await getLegacySummary()) satisfies LegacySummary;
+    return (await apiJson<LegacySummary>("/legacy/summary")) satisfies LegacySummary;
   } catch (error) {
     return {
       sourceAvailable: false,
@@ -258,31 +230,9 @@ function emptyLegacyReconciliation(message = "Reconciliação legada indisponív
   } satisfies LegacyReconciliation;
 }
 
-async function readAllPaginated<T>(path: string) {
-  const first = await apiJson<PaginatedResponse<T>>(`${path}${path.includes("?") ? "&" : "?"}page=1&pageSize=100`);
-  const items = first.items.slice();
-
-  for (let page = 2; page <= first.meta.totalPages; page += 1) {
-    const response = await apiJson<PaginatedResponse<T>>(`${path}${path.includes("?") ? "&" : "?"}page=${page}&pageSize=100`);
-    items.push(...response.items);
-  }
-
-  return items;
-}
-
 async function readLegacyReconciliation() {
   try {
-    const [units, partners, equipments] = await Promise.all([
-      readAllPaginated<CurrentUnitForLegacy>("/units?sortBy=code&sortDir=asc"),
-      readAllPaginated<CurrentPartnerForLegacy>("/partners?sortBy=code&sortDir=asc"),
-      readAllPaginated<CurrentEquipmentForLegacy>("/equipments?sortBy=tag&sortDir=asc"),
-    ]);
-
-    return (await getLegacyReconciliationForCurrent({
-      units,
-      partners,
-      equipments,
-    })) satisfies LegacyReconciliation;
+    return (await apiJson<LegacyReconciliation>("/legacy/reconciliation")) satisfies LegacyReconciliation;
   } catch (error) {
     return emptyLegacyReconciliation(error instanceof Error ? error.message : undefined);
   }
@@ -568,7 +518,7 @@ function LegacyImportPanel({
             description="Contatos, parceiros, Starlinks e ativos antigos ficam disponíveis para consulta e saneamento sem aumentar o Prisma nesta etapa."
             actions={
               <div className="flex flex-wrap gap-2"><TonePill tone={legacy.redactedSecrets ? "attention" : "success"}>
-                  {legacy.redactedSecrets ? "segredos ocultos" : "com segredos"}
+                  {legacy.redactedSecrets ? "credenciais mascaradas" : "credenciais disponíveis"}
                 </TonePill>
                 {legacy.generatedAt ? <TonePill tone="neutral">{formatDateTime(legacy.generatedAt)}</TonePill> : null}
               </div>
