@@ -411,21 +411,15 @@ export default async function ExcecoesPage({
     .slice(0, 7);
 
   const kpis = [
-    { label: "Abertas", value: String(summary.counts.openCount), hint: "casos na fila", tone: summary.counts.openCount ? "orange" as const : "green" as const },
-    { label: "Validação", value: String(summary.counts.pendingTriageCount), hint: "pendentes de triagem", tone: summary.counts.pendingTriageCount ? "orange" as const : "green" as const },
-    { label: "Resolvidas", value: String(resolvedOnPage), hint: "no recorte atual", tone: resolvedOnPage ? "green" as const : "slate" as const },
-    { label: "Silenciadas", value: String(summary.counts.silencedCount), hint: "rejeitadas ou pausadas", tone: summary.counts.silencedCount ? "slate" as const : "green" as const },
-    { label: "SLA", value: String(summary.counts.breachedCount), hint: "estourado", tone: summary.counts.breachedCount ? "red" as const : "green" as const },
+    { label: "Abertas", value: String(summary.counts.openCount), hint: "fila operacional", tone: summary.counts.openCount ? "orange" as const : "green" as const },
+    { label: "Críticas", value: String(summary.counts.criticalCount), hint: "prioridade máxima", tone: summary.counts.criticalCount ? "red" as const : "slate" as const },
+    { label: "Triagem", value: String(summary.counts.pendingTriageCount), hint: "pendentes", tone: summary.counts.pendingTriageCount ? "orange" as const : "green" as const },
+    { label: "SLA", value: String(summary.counts.breachedCount), hint: "estourados", tone: summary.counts.breachedCount ? "red" as const : "green" as const },
+    { label: "Sem dono", value: String(summary.counts.unassignedCount), hint: "não atribuídas", tone: summary.counts.unassignedCount ? "orange" as const : "slate" as const },
   ];
 
   return (
     <NovaLitShell activeHref="/excecoes">
-      <nav className="nova-exceptions-breadcrumb" aria-label="Breadcrumb">
-        <Link href="/operacao">Operação</Link>
-        <span>/</span>
-        <strong>Exceções</strong>
-      </nav>
-
       <div className="nova-lit-page-heading nova-exceptions-heading">
         <div>
           <h1>Exceções</h1>
@@ -435,30 +429,9 @@ export default async function ExcecoesPage({
         <div className="nova-lit-page-actions">
           <Link href="/operacao/fila" className="nova-lit-button nova-lit-button-secondary">Fila</Link>
           <Link href="/operacao/sla" className="nova-lit-button nova-lit-button-secondary">SLA</Link>
-          <Link href={withParams("/excecoes", currentParams, { page: state.page })} className="nova-lit-button nova-lit-button-secondary">Atualizar dados</Link>
           <Link href="/excecoes/nova" className="nova-lit-button nova-lit-button-primary">Nova exceção</Link>
         </div>
       </div>
-
-      <section className="nova-exceptions-flow" aria-label="Fluxo de tratamento de exceções">
-        <article className="is-active">
-          <span>01</span>
-          <strong>Detecção</strong>
-          <small>Sinal capturado por alerta, chamado, SLA ou automação.</small>
-        </article>
-        <i>→</i>
-        <article>
-          <span>02</span>
-          <strong>Análise</strong>
-          <small>Triagem, responsável, prioridade e vínculo operacional.</small>
-        </article>
-        <i>→</i>
-        <article>
-          <span>03</span>
-          <strong>Resolução</strong>
-          <small>Reconhecimento, silenciamento ou fechamento do caso.</small>
-        </article>
-      </section>
 
       <section className="nova-exceptions-kpi-grid" aria-label="Indicadores de exceções">
         {kpis.map((kpi) => (
