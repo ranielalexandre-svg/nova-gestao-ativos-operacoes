@@ -565,7 +565,9 @@ export default async function ExcecoesPage({
               <div className={`nova-exceptions-row is-${rowTone(item)}`} key={item.id}>
                 <div>
                   <Link href={`/excecoes/${item.id}`} className="nova-exceptions-target-link">{item.code} · {item.title}</Link>
-                  <small>{linkSummary(item)} · prioridade {item.priorityScore} · {item._count.comments} comentário(s)</small>
+                  <small>
+                    <Link href={linkHref(item)}>{linkSummary(item)}</Link> · prioridade {item.priorityScore} · {item._count.comments} comentário(s)
+                  </small>
                 </div>
 
                 <div>
