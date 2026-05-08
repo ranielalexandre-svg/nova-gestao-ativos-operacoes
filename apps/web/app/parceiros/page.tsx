@@ -37,7 +37,8 @@ type PartnerRow = {
   isActive: boolean;
   createdAt: string;
   primaryContact: PartnerOperationalContact | null;
-  legacyContactCount: number;
+  operationalContactCount: number;
+  legacyContactCount?: number;
   _count: { units: number; operationalContacts?: number };
 };
 
@@ -64,7 +65,7 @@ function pageSizeOption(value: number) {
 }
 
 function firstPhones(item?: PartnerOperationalContact | null) {
-  if (!item?.phone) return "Sem telefone persistido";
+  if (!item?.phone) return "Sem telefone cadastrado";
   return item.phone;
 }
 
@@ -74,11 +75,15 @@ function contactCaption(item?: PartnerOperationalContact | null) {
 }
 
 function coverageLabel(item?: PartnerOperationalContact | null) {
-  return item?.notes || item?.city || (item ? "Contato persistido" : "Sem cobertura persistida");
+  return item?.notes || item?.city || (item ? "Contato cadastrado" : "Sem cobertura cadastrada");
 }
 
 function cityBase(item?: PartnerOperationalContact | null) {
   return item?.city || "Sem cidade base";
+}
+
+function contactCount(partner: PartnerRow) {
+  return partner.operationalContactCount ?? partner.legacyContactCount ?? partner._count.operationalContacts ?? 0;
 }
 
 function statusTone(isActive: boolean): Tone {
@@ -223,21 +228,17 @@ export default async function ParceirosPage({
 
   const rows = response.items;
   const activeOnPage = rows.filter((partner) => partner.isActive).length;
-  const withContactOnPage = rows.filter((partner) => (partner.legacyContactCount || 0) > 0 || Boolean(partner.primaryContact?.phone)).length;
+  const withContactOnPage = rows.filter((partner) => contactCount(partner) > 0 || Boolean(partner.primaryContact?.phone)).length;
   const withCoverageOnPage = rows.filter((partner) => Boolean(partner.primaryContact?.city || partner.primaryContact?.notes)).length;
-  const persistedContactsOnPage = rows.reduce(
-    (sum, partner) => sum + (partner.legacyContactCount || partner._count.operationalContacts || 0),
-    0,
-  );
-  const backupCoverageOnPage = persistedContactsOnPage;
+  const contactsOnPage = rows.reduce((sum, partner) => sum + contactCount(partner), 0);
   const totalUnitsOnPage = rows.reduce((sum, partner) => sum + partner._count.units, 0);
   const currentParams = stateParams(state);
 
   const kpis = [
     { label: "Parceiros", value: String(response.meta.total), hint: "resultado filtrado", tone: "blue" as const },
     { label: "Ativos", value: String(activeOnPage), hint: `${percent(activeOnPage, rows.length)}% nesta página`, tone: activeOnPage ? "green" as const : "slate" as const },
-    { label: "Com contato", value: String(withContactOnPage), hint: "telefone persistido", tone: withContactOnPage ? "green" as const : "orange" as const },
-    { label: "Cobertura", value: String(withCoverageOnPage), hint: `${backupCoverageOnPage} contato(s)`, tone: withCoverageOnPage ? "blue" as const : "slate" as const },
+    { label: "Com contato", value: String(withContactOnPage), hint: "telefone cadastrado", tone: withContactOnPage ? "green" as const : "orange" as const },
+    { label: "Cobertura", value: String(withCoverageOnPage), hint: `${contactsOnPage} contato(s)`, tone: withCoverageOnPage ? "blue" as const : "slate" as const },
     { label: "Unidades", value: String(totalUnitsOnPage), hint: "locais vinculados", tone: totalUnitsOnPage ? "blue" as const : "slate" as const },
   ];
 
@@ -246,7 +247,7 @@ export default async function ParceirosPage({
       <div className="nova-lit-page-heading nova-partners-heading">
         <div>
           <h1>Parceiros</h1>
-          <p className="nova-lit-page-subtitle">Cadastro, contatos legados, cobertura e unidades vinculadas.</p>
+          <p className="nova-lit-page-subtitle">Cadastro, contatos operacionais, cobertura e unidades vinculadas.</p>
         </div>
 
         <div className="nova-lit-page-actions">
@@ -333,6 +334,7 @@ export default async function ParceirosPage({
 
             {rows.length ? rows.map((partner) => {
               const primaryContact = partner.primaryContact;
+              const contacts = contactCount(partner);
 
               return (
                 <div className={`nova-partners-row is-${statusTone(partner.isActive)}`} key={partner.id}>
@@ -343,7 +345,7 @@ export default async function ParceirosPage({
 
                   <div>
                     <b>{cityBase(primaryContact)}</b>
-                    <small>{(partner.legacyContactCount || 0) ? "contato persistido" : "sem contato persistido"}</small>
+                    <small>{contacts ? "contato cadastrado" : "sem contato cadastrado"}</small>
                   </div>
 
                   <div>
@@ -354,7 +356,7 @@ export default async function ParceirosPage({
                   <div>
                     <b>{coverageLabel(primaryContact)}</b>
                     <small>
-                      {partner.legacyContactCount ? `${partner.legacyContactCount} contato(s) persistido(s)` : "sem contato operacional"}
+                      {contacts ? `${contacts} contato(s) cadastrado(s)` : "sem contato operacional"}
                     </small>
                   </div>
 
@@ -388,7 +390,7 @@ export default async function ParceirosPage({
               <ProgressLine label="Ativos" value={percent(activeOnPage, rows.length)} tone="green" />
               <ProgressLine label="Com contato" value={percent(withContactOnPage, rows.length)} tone="blue" />
               <ProgressLine label="Cobertura" value={percent(withCoverageOnPage, rows.length)} tone="green" />
-              <ProgressLine label="Contatos persistidos" value={backupCoverageOnPage ? 100 : 0} tone="orange" />
+              <ProgressLine label="Contatos cadastrados" value={contactsOnPage ? 100 : 0} tone="orange" />
             </div>
           </section>
 
@@ -402,7 +404,7 @@ export default async function ParceirosPage({
           <section className="nova-lit-card nova-partners-coverage">
             <div className="nova-lit-title-row">
               <h2>Recorte atual</h2>
-              <span className="nova-lit-pill nova-lit-pill-orange">{backupCoverageOnPage} contato(s)</span>
+              <span className="nova-lit-pill nova-lit-pill-orange">{contactsOnPage} contato(s)</span>
             </div>
             <div className="nova-partners-status-list">
               <article>

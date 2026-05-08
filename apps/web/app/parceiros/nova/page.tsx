@@ -197,7 +197,7 @@ export default async function NovoParceiroPage({
                       name="contactPhone"
                       defaultValue={contactPhone}
                       placeholder="(63) 99999-0000"
-                    /></div><div className="grid gap-1.5"><FieldLabel htmlFor="partner-coverage" label="Cobertura" hint="Notas para futura persistência" /><input
+                    /></div><div className="grid gap-1.5"><FieldLabel htmlFor="partner-coverage" label="Cobertura" hint="Notas operacionais" /><input
                       id="partner-coverage"
                       name="coverage"
                       defaultValue={coverage}
@@ -226,7 +226,7 @@ export default async function NovoParceiroPage({
                 pendingLabel="Criando parceiro..."
                 hideSubmit
               ><input type="hidden" name="code" value={code} /><input type="hidden" name="name" value={name} /><input type="hidden" name="cityBase" value={cityBase} /><input type="hidden" name="contactName" value={contactName} /><input type="hidden" name="contactPhone" value={contactPhone} /><input type="hidden" name="coverage" value={coverage} /><div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3"><SummaryItem label="Código" value={code} /><SummaryItem label="Nome" value={name} /><SummaryItem label="Cidade base" value={cityBase || "não informado"} /><SummaryItem label="Contato" value={contactName || "não informado"} /><SummaryItem label="Telefone" value={contactPhone || "não informado"} /><SummaryItem label="Cobertura" value={coverage || "não informado"} /></div><div className="nds-card text-[11px] leading-5 text-slate-400">
-                  O parceiro será criado com identificação principal e, quando informado, o contato operacional ficará persistido no banco.
+                  O parceiro será criado com identificação principal e, quando informado, o contato operacional ficará gravado no banco.
                 </div><div className="flex items-center justify-between gap-2 border-t border-white/[0.08] pt-2"><Link
                     href={buildWizardHref(2, wizardValues)}
                     className="nds-button"

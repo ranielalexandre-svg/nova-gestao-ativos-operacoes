@@ -46,6 +46,13 @@ export class PartnersController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles("admin")
+  @Post("import-operational-contacts")
+  importOperationalContacts(@Body() body: unknown) {
+    return this.partnersService.importLegacyContacts(body);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles("admin")
   @Post(":id/contacts")
   createPartnerContact(@Param("id") id: string, @Body() body: Record<string, unknown>) {
     return this.partnersService.createPartnerContact(id, body);

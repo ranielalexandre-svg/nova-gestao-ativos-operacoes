@@ -27,7 +27,6 @@ import {
   getActionErrorMessage,
   type ActionFeedbackState,
 } from "@/lib/action-state";
-import { getLegacyPartnerProfileForPartner } from "@/lib/legacy-catalog";
 import { apiJson } from "@/lib/server-api";
 import {
   readStringParam,
@@ -98,45 +97,17 @@ type PartnerDetail = {
   };
 };
 
-type LegacyPartnerContact = {
-  legacyId: string;
-  city: string;
-  name: string;
-  role: string;
-  phone: string;
-  notes: string;
-};
-
-type LegacyUnitSummary = {
-  key: string;
-  code: string;
-  name: string;
-  group: string;
-  city: string;
-  state: string;
-  partnerCode: string;
-  phones: string[];
-  contracts: string[];
-  notes: string[];
-};
-
-type LegacyPartnerProfile = {
-  sourceAvailable: boolean;
-  message?: string;
-  generatedAt?: string;
-  redactedSecrets?: boolean;
-  partner: {
-    code: string;
-    name: string;
-    primaryUnitCount: number;
-    backupUnitCount: number;
-  } | null;
-  contacts: LegacyPartnerContact[];
-  units: LegacyUnitSummary[];
-};
-
 function partnerStatusTone(isActive: boolean) {
   return isActive ? "success" : "subtle";
+}
+
+function contactSourceLabel(contact: PartnerOperationalContact) {
+  return contact.source === "legacy_sqlite" ? "importado" : "manual";
+}
+
+function contactOriginLabel(contact: PartnerOperationalContact) {
+  if (contact.sourceLegacyId) return `registro importado ${contact.sourceLegacyId}`;
+  return contactSourceLabel(contact);
 }
 
 function CreatedNotice({ from }: { from: string }) {
@@ -180,8 +151,8 @@ function PersistedPartnerContactsBlock({
     <Surface>
       <SectionIntro
         eyebrow="Contatos"
-        title="Contatos operacionais persistidos"
-        description="Contatos importados do legado e contatos manuais agora ficam gravados no banco, editáveis no cadastro do parceiro."
+        title="Contatos operacionais"
+        description="Contatos importados dos dados operacionais e contatos manuais ficam gravados no banco, editáveis no cadastro do parceiro."
         actions={
           <div className="flex flex-wrap gap-2">
             <TonePill tone={contacts.length ? "success" : "attention"}>
@@ -210,7 +181,7 @@ function PersistedPartnerContactsBlock({
                   <div className="flex flex-wrap gap-2">
                     {contact.isPrimary ? <TonePill tone="success">principal</TonePill> : null}
                     <TonePill tone={contact.source === "legacy_sqlite" ? "info" : "neutral"}>
-                      {contact.source === "legacy_sqlite" ? "legado" : "manual"}
+                      {contactSourceLabel(contact)}
                     </TonePill>
                   </div>
                 </div>
@@ -219,7 +190,7 @@ function PersistedPartnerContactsBlock({
                   <div>Telefone: <span className="text-slate-200">{contact.phone || "-"}</span></div>
                   <div>Cidade: <span className="text-slate-200">{contact.city || "-"}</span></div>
                   <div>Cargo: <span className="text-slate-200">{contact.role || "-"}</span></div>
-                  <div>Origem: <span className="text-slate-200">{contact.sourceLegacyId ? `legado ${contact.sourceLegacyId}` : contact.source}</span></div>
+                  <div>Origem: <span className="text-slate-200">{contactOriginLabel(contact)}</span></div>
                   {contact.notes ? (
                     <div className="md:col-span-2">Observações: <span className="text-slate-200">{contact.notes}</span></div>
                   ) : null}
@@ -274,7 +245,7 @@ function PersistedPartnerContactsBlock({
             ))
           ) : (
             <EmptyState
-              title="Nenhum contato persistido"
+              title="Nenhum contato operacional"
               description="Cadastre um contato operacional para este parceiro."
             />
           )}
@@ -283,7 +254,7 @@ function PersistedPartnerContactsBlock({
         <div className="nds-card">
           <div className="text-[12px] font-black text-slate-50">Novo contato</div>
           <div className="mt-1 text-[11px] leading-5 text-slate-400">
-            Adicione contato manual sem depender do pacote legado local.
+            Adicione contato manual para manter o acionamento atualizado no cadastro.
           </div>
 
           {isAdmin ? (
@@ -330,78 +301,50 @@ function PersistedPartnerContactsBlock({
   );
 }
 
-function LegacyPartnerBlock({ profile }: { profile: LegacyPartnerProfile | null }) {
-  if (!profile) return null;
-
-  if (!profile.sourceAvailable) {
-    return (
-      <Surface><SectionIntro
-          eyebrow="Legado"
-          title="Base legada pronta para conectar"
-          description={
-            profile.message ||
-            "Gere o arquivo legado para exibir contatos, cidades atendidas e cobertura histórica deste parceiro."
-          }
-          compact
-        /></Surface>
-    );
-  }
-
-  const hasLegacy = Boolean(profile.partner || profile.contacts.length || profile.units.length);
-  if (!hasLegacy) return null;
+function PartnerOperationalSummaryBlock({ partner }: { partner: PartnerDetail }) {
+  const contacts = partner.operationalContacts || [];
+  const importedContacts = contacts.filter((contact) => contact.source === "legacy_sqlite").length;
+  const manualContacts = contacts.length - importedContacts;
+  const activeUnits = partner.units.filter((unit) => unit.isActive).length;
+  const unitsWithAssets = partner.units.filter((unit) => unit._count.equipments > 0).length;
+  const cities = Array.from(
+    new Set(
+      partner.units
+        .map((unit) => [unit.city, unit.state].filter(Boolean).join("/"))
+        .filter(Boolean),
+    ),
+  );
+  const primary = contacts.find((contact) => contact.isPrimary) || contacts[0] || null;
 
   return (
     <Surface><SectionIntro
-        eyebrow="Legado operacional"
-        title="Contatos e cobertura importada"
-        description="Contexto lido dos bancos antigos para orientar acionamento sem gravar campos novos no Prisma."
-        actions={profile.redactedSecrets ? <TonePill tone="attention">segredos ocultos</TonePill> : null}
+        eyebrow="Dados operacionais"
+        title="Cobertura e acionamento"
+        description="Resumo calculado a partir dos contatos, unidades e ativos já gravados no banco."
+        actions={
+          <div className="flex flex-wrap gap-2">
+            <TonePill tone={importedContacts ? "success" : "neutral"}>{importedContacts} importado(s)</TonePill>
+            <TonePill tone={manualContacts ? "info" : "neutral"}>{manualContacts} manual(is)</TonePill>
+          </div>
+        }
         compact
-      /><div className="mt-2 nova-side-grid nova-side-grid--360"><div>
-          {profile.units.length ? (
-            <TableShell><DenseTable><TableHead><tr><th className="px-3 py-2">Unidade legada</th><th className="px-3 py-2">Cidade</th><th className="px-3 py-2">Contratos</th><th className="px-3 py-2">Contato</th></tr></TableHead><tbody>
-                  {profile.units.slice(0, 12).map((unit) => (
-                    <tr key={unit.key} className="border-b border-white/6 last:border-b-0"><TableCell><div className="font-medium text-slate-100">{unit.code || unit.name}</div><div className="mt-1 max-w-[260px] truncate text-[10px] text-slate-500">
-                          {unit.group || unit.name}
-                        </div></TableCell><TableCell className="text-slate-400">
-                        {[unit.city, unit.state].filter(Boolean).join("/") || "-"}
-                      </TableCell><TableCell className="text-slate-400">
-                        {unit.contracts.slice(0, 2).join(", ") || "-"}
-                      </TableCell><TableCell className="text-slate-400">
-                        {unit.phones.slice(0, 2).join(" · ") || "-"}
-                      </TableCell></tr>
-                  ))}
-                </tbody></DenseTable></TableShell>
-          ) : (
-            <EmptyState
-              title="Sem unidade legada vinculada"
-              description="Cobertura por código e nome."
-            />
-          )}
-        </div><div className="grid gap-2"><div className="nds-card"><div className="nds-label">
-              Cobertura legada
-            </div><div className="mt-2 grid grid-cols-2 gap-2"><div><div className="text-[22px] font-semibold leading-none text-slate-50">
-                  {profile.partner?.primaryUnitCount ?? profile.units.length}
-                </div><div className="mt-1 text-[10px] text-slate-500">principal</div></div><div><div className="text-[22px] font-semibold leading-none text-slate-50">
-                  {profile.partner?.backupUnitCount ?? 0}
-                </div><div className="mt-1 text-[10px] text-slate-500">backup</div></div></div></div><div className="nds-card"><div className="text-[12px] font-black text-slate-50">Contatos de acionamento</div><div className="mt-2 grid gap-2">
-              {profile.contacts.length ? (
-                profile.contacts.slice(0, 6).map((contact) => (
-                  <div
-                    key={contact.legacyId}
-                    className="nova-micro-card"
-                  ><div className="text-[12px] font-medium text-slate-100">
-                      {contact.name || "Contato"}
-                    </div><div className="mt-1 text-[10px] text-slate-500">
-                      {[contact.role, contact.city].filter(Boolean).join(" · ") || "Sem cargo/cidade"}
-                    </div><div className="mt-1 text-[11px] text-slate-300">{contact.phone || "-"}</div></div>
-                ))
-              ) : (
-                <div className="text-[11px] leading-5 text-slate-500">
-                  Nenhum contato legado encontrado para este parceiro.
-                </div>
-              )}
-            </div></div></div></div></Surface>
+      /><div className="mt-2 grid gap-2 md:grid-cols-2 xl:grid-cols-4"><div className="nds-card"><div className="nds-label">
+            Contatos
+          </div><div className="mt-2 text-[22px] font-semibold leading-none text-slate-50">{contacts.length}</div><div className="mt-1 truncate text-[10px] text-slate-500">
+            {primary ? `principal: ${primary.name || primary.role || "contato cadastrado"}` : "sem contato principal"}
+          </div></div><div className="nds-card"><div className="nds-label">
+            Unidades ativas
+          </div><div className="mt-2 text-[22px] font-semibold leading-none text-slate-50">{activeUnits}</div><div className="mt-1 text-[10px] text-slate-500">
+            {partner.units.length} unidade(s) vinculada(s)
+          </div></div><div className="nds-card"><div className="nds-label">
+            Com ativos
+          </div><div className="mt-2 text-[22px] font-semibold leading-none text-slate-50">{unitsWithAssets}</div><div className="mt-1 text-[10px] text-slate-500">
+            locais com inventário operacional
+          </div></div><div className="nds-card"><div className="nds-label">
+            Cidades
+          </div><div className="mt-2 text-[22px] font-semibold leading-none text-slate-50">{cities.length}</div><div className="mt-1 truncate text-[10px] text-slate-500">
+            {cities.slice(0, 4).join(", ") || "sem cidade informada"}
+          </div></div></div></Surface>
   );
 }
 
@@ -426,9 +369,9 @@ export default async function ParceiroDetailPage({
   const isAdmin = isAdminRole(role);
   const canEditAttachments = canEditAttachmentsForRole(role);
   const partner = await apiJson<PartnerDetail>(`/partners/${resolved.id}`);
-  const legacyProfile = (await getLegacyPartnerProfileForPartner(partner)) satisfies LegacyPartnerProfile | null;
   const totalEquipments = partner.units.reduce((sum, unit) => sum + unit._count.equipments, 0);
   const activeUnits = partner.units.filter((unit) => unit.isActive).length;
+  const importedContacts = partner.operationalContacts.filter((contact) => contact.source === "legacy_sqlite").length;
 
   async function createPartnerContact(formData: FormData): Promise<void> {
     "use server";
@@ -581,12 +524,10 @@ export default async function ParceiroDetailPage({
         <div className="grid gap-2"><div className="nds-card"><div className="grid gap-2 text-[11px] leading-5 text-slate-400 md:grid-cols-2"><div>
                 Unidades vinculadas: <span className="text-slate-200">{partner._count.units}</span></div><div>
                 Ativos associados: <span className="text-slate-200">{totalEquipments}</span></div><div>
-                Base legada:{" "}
-                <span className="text-slate-200">
-                  {legacyProfile?.partner ? "conectada" : "sem associação"}
-                </span></div><div>
-                Contatos legados:{" "}
-                <span className="text-slate-200">{legacyProfile?.contacts.length || 0}</span></div></div></div><div className="flex flex-wrap gap-2"><Link
+                Contatos operacionais:{" "}
+                <span className="text-slate-200">{partner._count.operationalContacts}</span></div><div>
+                Contatos importados:{" "}
+                <span className="text-slate-200">{importedContacts}</span></div></div></div><div className="flex flex-wrap gap-2"><Link
               href={`/unidades?partnerId=${partner.id}`}
               className="nds-button"
               data-variant="secondary"
@@ -628,14 +569,14 @@ export default async function ParceiroDetailPage({
         description={
           <>
             Parceiro vinculado a {partner._count.units} unidade(s), com {totalEquipments} ativo(s)
-            cadastrados e contexto legado para acionamento quando disponível.
+            cadastrados e dados operacionais de acionamento quando disponíveis.
           </>
         }
         badges={
           <><TonePill tone={partnerStatusTone(partner.isActive)}>
               {partner.isActive ? "ativo" : "inativo"}
             </TonePill><TonePill tone="info">{partner.code}</TonePill>
-            {legacyProfile?.partner ? <TonePill tone="success">legado</TonePill> : null}
+            {importedContacts ? <TonePill tone="success">dados importados</TonePill> : null}
           </>
         }
         actions={
@@ -780,11 +721,11 @@ export default async function ParceiroDetailPage({
                     value: `${activeUnits} unidade(s)`,
                   },
                   {
-                    label: "Leitura legada",
-                    value: legacyProfile?.partner ? "Conectada" : "Sem base associada",
+                    label: "Dados operacionais",
+                    value: `${partner._count.operationalContacts} contato(s)`,
                   },
                 ]}
-              /></div></Surface></div></section><LegacyPartnerBlock profile={legacyProfile} /><AttachmentPanel
+              /></div></Surface></div></section><PartnerOperationalSummaryBlock partner={partner} /><AttachmentPanel
         entityPath="partners"
         entityId={partner.id}
         entityLabel="parceiro"

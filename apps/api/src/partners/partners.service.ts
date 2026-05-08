@@ -108,6 +108,7 @@ export class PartnersService {
       items: items.map((item) => ({
         ...item,
         primaryContact: item.operationalContacts[0] || null,
+        operationalContactCount: item._count.operationalContacts,
         legacyContactCount: item._count.operationalContacts,
       })),
       meta: {
@@ -338,46 +339,67 @@ export class PartnersService {
       throw new NotFoundException("Parceiro não encontrado");
     }
 
-    const existingPrimary = await this.prisma.partnerOperationalContact.findFirst({
-      where: { partnerId: id, isPrimary: true },
-      select: { id: true },
-    });
+    return this.prisma.$transaction(async (tx) => {
+      const existingPrimary = await tx.partnerOperationalContact.findFirst({
+        where: { partnerId: id, isPrimary: true },
+        select: { id: true },
+      });
+      const isPrimary = this.booleanValue(payload.isPrimary) || !existingPrimary;
 
-    return this.prisma.partnerOperationalContact.create({
-      data: {
-        partnerId: id,
-        source: this.clean(payload.source) || "manual",
-        sourceLegacyId: this.nullable(payload.sourceLegacyId),
-        city: this.nullable(payload.city),
-        name: this.nullable(payload.name),
-        role: this.nullable(payload.role),
-        phone: this.nullable(payload.phone),
-        notes: this.nullable(payload.notes),
-        isPrimary: this.booleanValue(payload.isPrimary) || !existingPrimary,
-      },
+      if (isPrimary) {
+        await tx.partnerOperationalContact.updateMany({
+          where: { partnerId: id, isPrimary: true },
+          data: { isPrimary: false },
+        });
+      }
+
+      return tx.partnerOperationalContact.create({
+        data: {
+          partnerId: id,
+          source: this.clean(payload.source) || "manual",
+          sourceLegacyId: this.nullable(payload.sourceLegacyId),
+          city: this.nullable(payload.city),
+          name: this.nullable(payload.name),
+          role: this.nullable(payload.role),
+          phone: this.nullable(payload.phone),
+          notes: this.nullable(payload.notes),
+          isPrimary,
+        },
+      });
     });
   }
 
   async updatePartnerContact(id: string, contactId: string, payload: Record<string, unknown>) {
-    const contact = await this.prisma.partnerOperationalContact.findFirst({
-      where: { id: contactId, partnerId: id },
-      select: { id: true },
-    });
+    return this.prisma.$transaction(async (tx) => {
+      const contact = await tx.partnerOperationalContact.findFirst({
+        where: { id: contactId, partnerId: id },
+        select: { id: true },
+      });
 
-    if (!contact) {
-      throw new NotFoundException("Contato de parceiro não encontrado");
-    }
+      if (!contact) {
+        throw new NotFoundException("Contato de parceiro não encontrado");
+      }
 
-    return this.prisma.partnerOperationalContact.update({
-      where: { id: contactId },
-      data: {
-        city: this.nullable(payload.city),
-        name: this.nullable(payload.name),
-        role: this.nullable(payload.role),
-        phone: this.nullable(payload.phone),
-        notes: this.nullable(payload.notes),
-        isPrimary: this.booleanValue(payload.isPrimary),
-      },
+      const isPrimary = this.booleanValue(payload.isPrimary);
+
+      if (isPrimary) {
+        await tx.partnerOperationalContact.updateMany({
+          where: { partnerId: id, id: { not: contactId }, isPrimary: true },
+          data: { isPrimary: false },
+        });
+      }
+
+      return tx.partnerOperationalContact.update({
+        where: { id: contactId },
+        data: {
+          city: this.nullable(payload.city),
+          name: this.nullable(payload.name),
+          role: this.nullable(payload.role),
+          phone: this.nullable(payload.phone),
+          notes: this.nullable(payload.notes),
+          isPrimary,
+        },
+      });
     });
   }
 
