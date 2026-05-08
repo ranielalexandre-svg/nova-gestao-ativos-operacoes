@@ -487,7 +487,7 @@ export default async function ConfiguracoesPage() {
                 />
                 <ShortcutCard
                   title="Reconciliação"
-                  description="Vínculo entre cadastro, legado e Zabbix."
+                  description="Vínculo entre cadastro, dados operacionais e Zabbix."
                   href="/reconciliacao"
                   tone="blue"
                 />

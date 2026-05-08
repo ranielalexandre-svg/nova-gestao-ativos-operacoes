@@ -196,12 +196,12 @@ async function readLegacySummary() {
   } catch (error) {
     return {
       sourceAvailable: false,
-      message: error instanceof Error ? error.message : "Resumo legado indisponível.",
+      message: error instanceof Error ? error.message : "Resumo de dados importados indisponível.",
     } satisfies LegacySummary;
   }
 }
 
-function emptyLegacyReconciliation(message = "Reconciliação legada indisponível.") {
+function emptyLegacyReconciliation(message = "Reconciliação de dados importados indisponível.") {
   return {
     sourceAvailable: false,
     message,
@@ -488,9 +488,9 @@ function LegacyImportPanel({
   if (!legacy.sourceAvailable) {
     return (
       <Surface><SectionIntro
-          eyebrow="Legado"
+          eyebrow="Dados importados"
           title="Bases SQLite ainda não carregadas nesta execução"
-          description={legacy.message || "Gere o pacote legado para cruzar contatos, parceiros, Starlinks e ativos antigos com o cadastro atual."}
+          description={legacy.message || "Gere o pacote de dados importados para cruzar contatos, parceiros, Starlinks e ativos antigos com o cadastro atual."}
           actions={<TonePill tone="attention">pendente</TonePill>}
           compact
         />
@@ -513,7 +513,7 @@ function LegacyImportPanel({
 
   return (
     <Surface><div className="nova-side-grid nova-side-grid--360"><div className="min-w-0"><SectionIntro
-            eyebrow="Legado importado"
+            eyebrow="Dados importados"
             title="SQLite virou fonte de reconciliação operacional"
             description="Contatos, parceiros, Starlinks e ativos antigos ficam disponíveis para consulta e saneamento sem aumentar o Prisma nesta etapa."
             actions={
@@ -524,7 +524,7 @@ function LegacyImportPanel({
               </div>
             }
             compact
-          /><div className="mt-2 grid gap-2 md:grid-cols-2 xl:grid-cols-4"><KpiTile label="Unidades legadas" value={legacyUnits} meta={`${telemetry.counts.units} no cadastro atual`} tone="info" /><KpiTile label="Parceiros" value={legacyPartners} meta={`${legacyCount(legacy, "raw", "parceiros")} linha(s) na origem`} tone="info" /><KpiTile label="Ativos legados" value={legacyEquipments} meta={`${contactsWithMacOnu} com MAC/ONU`} tone="success" /><KpiTile label="Starlinks" value={starlinksInstalled} meta={`${legacyCount(legacy, "raw", "starlinks")} registro(s) brutos`} tone="attention" /></div><div className="mt-2 grid gap-2 md:grid-cols-3"><div className="nds-card"><div className="text-[12px] font-black text-slate-50">{adoption}% migrado para leitura atual</div><div className="mt-1 text-[10px] leading-5 text-[var(--nova-text-muted)]">Comparação simples entre unidades ativas lidas e unidades normalizadas do legado.</div></div><div className="nds-card"><div className="text-[12px] font-black text-slate-50">{contactsWithBackup} com contingência</div><div className="mt-1 text-[10px] leading-5 text-[var(--nova-text-muted)]">Registros que já trazem parceiro/rota de backup para orientar operação.</div></div><div className="nds-card"><div className="text-[12px] font-black text-slate-50">{legacyCount(legacy, "raw", "starlinkHistory")} histórico(s)</div><div className="mt-1 text-[10px] leading-5 text-[var(--nova-text-muted)]">Movimentações de Starlink preservadas para consulta nos detalhes.</div></div></div></div><div className="nds-card"><div className="text-[12px] font-black text-slate-50">Arquivos coletados</div><div className="mt-2 grid gap-2">
+          /><div className="mt-2 grid gap-2 md:grid-cols-2 xl:grid-cols-4"><KpiTile label="Unidades importadas" value={legacyUnits} meta={`${telemetry.counts.units} no cadastro atual`} tone="info" /><KpiTile label="Parceiros" value={legacyPartners} meta={`${legacyCount(legacy, "raw", "parceiros")} linha(s) na origem`} tone="info" /><KpiTile label="Ativos importados" value={legacyEquipments} meta={`${contactsWithMacOnu} com MAC/ONU`} tone="success" /><KpiTile label="Starlinks" value={starlinksInstalled} meta={`${legacyCount(legacy, "raw", "starlinks")} registro(s) brutos`} tone="attention" /></div><div className="mt-2 grid gap-2 md:grid-cols-3"><div className="nds-card"><div className="text-[12px] font-black text-slate-50">{adoption}% migrado para leitura atual</div><div className="mt-1 text-[10px] leading-5 text-[var(--nova-text-muted)]">Comparação simples entre unidades ativas lidas e unidades normalizadas da base importada.</div></div><div className="nds-card"><div className="text-[12px] font-black text-slate-50">{contactsWithBackup} com contingência</div><div className="mt-1 text-[10px] leading-5 text-[var(--nova-text-muted)]">Registros que já trazem parceiro/rota de backup para orientar operação.</div></div><div className="nds-card"><div className="text-[12px] font-black text-slate-50">{legacyCount(legacy, "raw", "starlinkHistory")} histórico(s)</div><div className="mt-1 text-[10px] leading-5 text-[var(--nova-text-muted)]">Movimentações de Starlink preservadas para consulta nos detalhes.</div></div></div></div><div className="nds-card"><div className="text-[12px] font-black text-slate-50">Arquivos coletados</div><div className="mt-2 grid gap-2">
             {sources.length ? (
               sources.map(([key, path]) => (
                 <div key={key} className="nds-card"><div className="nds-label">{key}</div><div className="mt-1 truncate text-[11px] font-medium text-slate-100" title={path}>
@@ -535,7 +535,7 @@ function LegacyImportPanel({
               <div className="text-[11px] text-slate-500">Sem lista de origem no pacote.</div>
             )}
           </div><div className="nds-card mt-2 border-[color-mix(in_srgb,var(--nova-primary)_28%,transparent)] bg-[var(--nova-primary-soft)] text-[11px] leading-5 text-slate-100">
-            A conversão atual é consultiva: blocos de unidade, parceiro e ativo exibem dados legados quando há correspondência segura.
+            A conversão atual é consultiva: blocos de unidade, parceiro e ativo exibem dados importados quando há correspondência segura.
           </div></div></div></Surface>
   );
 }
@@ -549,8 +549,8 @@ function LegacyReconciliationPanel({
     return (
       <Surface><SectionIntro
           eyebrow="Fila de migração"
-          title="Reconciliação legada indisponível"
-          description={reconciliation.message || "A fila será exibida quando o pacote legado puder ser lido pela API."}
+          title="Reconciliação de dados importados indisponível"
+          description={reconciliation.message || "A fila será exibida quando o pacote de dados importados puder ser lido pela API."}
           actions={<TonePill tone="attention">sem leitura</TonePill>}
           compact
         /></Surface>
@@ -578,7 +578,7 @@ function LegacyReconciliationPanel({
   return (
     <Surface><SectionIntro
         eyebrow="Fila de migração"
-        title="O legado agora mostra o que precisa entrar no cadastro atual"
+        title="Dados importados mostram o que precisa entrar no cadastro atual"
         description="A prioridade fica nas unidades com backup, Starlink, MAC/ONU ou ativo, porque esses sinais afetam acionamento e monitoramento dos hosts."
         actions={
           <div className="flex flex-wrap gap-2"><TonePill tone={counts.unmatchedLegacyUnits ? "attention" : "success"}>
@@ -588,14 +588,14 @@ function LegacyReconciliationPanel({
             </TonePill></div>
         }
         compact
-      /><div className="mt-2 grid gap-2 md:grid-cols-2 xl:grid-cols-4"><KpiTile label="Unidades cruzadas" value={`${unitCoverage}%`} meta={`${counts.matchedUnits} de ${counts.legacyUnits} legado(s)`} tone={counts.unmatchedLegacyUnits ? "attention" : "success"} /><KpiTile label="Ativos cruzados" value={`${equipmentCoverage}%`} meta={`${counts.matchedEquipments} de ${counts.legacyEquipments} ativo(s)`} tone={counts.legacyEquipments - counts.matchedEquipments ? "attention" : "success"} /><KpiTile label="Parceiros cruzados" value={counts.matchedPartners} meta={`${counts.legacyPartners - counts.matchedPartners} sem cadastro atual`} tone={counts.legacyPartners - counts.matchedPartners ? "attention" : "success"} /><KpiTile label="Starlinks legados" value={counts.starlinks} meta="consultivos nesta fase" tone="info" /></div><div className="nova-reconcile-action-panel mt-2"><div className="min-w-0"><div className="nds-label">Ações de reconciliação</div><div className="mt-1 text-[13px] font-black text-white">{totalDivergences} divergência(s) priorizadas</div><div className="mt-1 text-[11px] text-[var(--nova-text-muted)]">Resolver unidade sem match, revisar match fraco, criar parceiro ou vincular ativo legado.</div></div><div className="nova-reconcile-action-list"><TonePill tone={counts.unmatchedLegacyUnits ? "attention" : "success"}>{counts.unmatchedLegacyUnits} unidades</TonePill><TonePill tone={counts.weakUnitMatches ? "attention" : "neutral"}>{counts.weakUnitMatches} fracos</TonePill><TonePill tone={reconciliation.unmatchedLegacyEquipments.length ? "attention" : "success"}>{reconciliation.unmatchedLegacyEquipments.length} ativos</TonePill></div></div><div className="mt-2 nova-side-grid nova-side-grid--380"><div><SectionIntro
+      /><div className="mt-2 grid gap-2 md:grid-cols-2 xl:grid-cols-4"><KpiTile label="Unidades cruzadas" value={`${unitCoverage}%`} meta={`${counts.matchedUnits} de ${counts.legacyUnits} registro(s)`} tone={counts.unmatchedLegacyUnits ? "attention" : "success"} /><KpiTile label="Ativos cruzados" value={`${equipmentCoverage}%`} meta={`${counts.matchedEquipments} de ${counts.legacyEquipments} ativo(s)`} tone={counts.legacyEquipments - counts.matchedEquipments ? "attention" : "success"} /><KpiTile label="Parceiros cruzados" value={counts.matchedPartners} meta={`${counts.legacyPartners - counts.matchedPartners} sem cadastro atual`} tone={counts.legacyPartners - counts.matchedPartners ? "attention" : "success"} /><KpiTile label="Starlinks importados" value={counts.starlinks} meta="consultivos nesta fase" tone="info" /></div><div className="nova-reconcile-action-panel mt-2"><div className="min-w-0"><div className="nds-label">Ações de reconciliação</div><div className="mt-1 text-[13px] font-black text-white">{totalDivergences} divergência(s) priorizadas</div><div className="mt-1 text-[11px] text-[var(--nova-text-muted)]">Resolver unidade sem match, revisar match fraco, criar parceiro ou vincular ativo importado.</div></div><div className="nova-reconcile-action-list"><TonePill tone={counts.unmatchedLegacyUnits ? "attention" : "success"}>{counts.unmatchedLegacyUnits} unidades</TonePill><TonePill tone={counts.weakUnitMatches ? "attention" : "neutral"}>{counts.weakUnitMatches} fracos</TonePill><TonePill tone={reconciliation.unmatchedLegacyEquipments.length ? "attention" : "success"}>{reconciliation.unmatchedLegacyEquipments.length} ativos</TonePill></div></div><div className="mt-2 nova-side-grid nova-side-grid--380"><div><SectionIntro
             eyebrow="Saneamento prioritário"
-            title="Unidades legadas sem cadastro seguro"
+            title="Unidades importadas sem cadastro seguro"
             description="Lista limitada aos sinais mais úteis para decidir o próximo cadastro ou ajuste de vínculo."
             compact
           /><div className="mt-2">
             {prioritizedUnits.length ? (
-              <TableShell><DenseTable><TableHead><tr><th className="px-3 py-2">Unidade legada</th><th className="px-3 py-2">Parceiro</th><th className="px-3 py-2">Sinais</th><th className="px-3 py-2">Possível match</th><TableActionHeader className="min-w-[11rem]" /></tr></TableHead><tbody>
+              <TableShell><DenseTable><TableHead><tr><th className="px-3 py-2">Unidade importada</th><th className="px-3 py-2">Parceiro</th><th className="px-3 py-2">Sinais</th><th className="px-3 py-2">Possível match</th><TableActionHeader className="min-w-[11rem]" /></tr></TableHead><tbody>
                     {prioritizedUnits.map((unit) => (
                       <tr key={`${unit.partnerCode}:${unit.code}:${unit.name}`} className="border-b border-white/6 last:border-b-0"><TableCell><div className="font-semibold text-slate-50">{unit.code || "sem código"}</div><div className="mt-1 max-w-[320px] text-[11px] text-slate-300">{unit.name}</div><div className="mt-1 text-[10px] text-slate-500">
                             {[unit.city, unit.state].filter(Boolean).join(" / ") || "Local não informado"}
@@ -622,8 +622,8 @@ function LegacyReconciliationPanel({
                   </tbody></DenseTable></TableShell>
             ) : (
               <EmptyState
-                title="Sem unidades legadas pendentes"
-                description="As unidades do pacote legado encontraram correspondência segura no cadastro atual."
+                title="Sem unidades importadas pendentes"
+                description="As unidades do pacote de dados importados encontraram correspondência segura no cadastro atual."
               />
             )}
           </div></div><div className="grid gap-2"><div className="nds-card"><div className="flex items-start justify-between gap-2"><div><div className="nds-label">Matches fracos</div><div className="mt-1 text-[12px] font-black text-slate-50">Revisar antes de importar</div></div><TonePill tone={weakMatches.length ? "attention" : "success"}>{weakMatches.length}</TonePill></div><div className="mt-2 grid gap-2">
@@ -636,7 +636,7 @@ function LegacyReconciliationPanel({
               ) : (
                 <div className="text-[11px] leading-5 text-slate-500">Nenhum match fraco nesta leitura.</div>
               )}
-            </div></div><div className="nds-card"><div className="flex items-start justify-between gap-2"><div><div className="nds-label">Parceiros</div><div className="mt-1 text-[12px] font-black text-slate-50">Legado sem cadastro atual</div></div><TonePill tone={reconciliation.unmatchedLegacyPartners.length ? "attention" : "success"}>
+            </div></div><div className="nds-card"><div className="flex items-start justify-between gap-2"><div><div className="nds-label">Parceiros</div><div className="mt-1 text-[12px] font-black text-slate-50">Importado sem cadastro atual</div></div><TonePill tone={reconciliation.unmatchedLegacyPartners.length ? "attention" : "success"}>
                 {reconciliation.unmatchedLegacyPartners.length}
               </TonePill></div><div className="mt-2 grid gap-2">
               {reconciliation.unmatchedLegacyPartners.slice(0, 5).map((partner) => (
@@ -645,9 +645,9 @@ function LegacyReconciliationPanel({
                   </div></div>
               ))}
               {!reconciliation.unmatchedLegacyPartners.length ? (
-                <div className="text-[11px] leading-5 text-slate-500">Todos os parceiros legados encontraram match.</div>
+                <div className="text-[11px] leading-5 text-slate-500">Todos os parceiros importados encontraram match.</div>
               ) : null}
-            </div></div><div className="nds-card"><div className="flex items-start justify-between gap-2"><div><div className="nds-label">Ativos</div><div className="mt-1 text-[12px] font-black text-slate-50">Legado sem match por tag/serial</div></div><TonePill tone={reconciliation.unmatchedLegacyEquipments.length ? "attention" : "success"}>
+            </div></div><div className="nds-card"><div className="flex items-start justify-between gap-2"><div><div className="nds-label">Ativos</div><div className="mt-1 text-[12px] font-black text-slate-50">Importado sem match por tag/serial</div></div><TonePill tone={reconciliation.unmatchedLegacyEquipments.length ? "attention" : "success"}>
                 {reconciliation.unmatchedLegacyEquipments.length}
               </TonePill></div><div className="mt-2 grid gap-2">
               {reconciliation.unmatchedLegacyEquipments.slice(0, 5).map((equipment) => (
@@ -656,9 +656,9 @@ function LegacyReconciliationPanel({
                   </div></div>
               ))}
               {!reconciliation.unmatchedLegacyEquipments.length ? (
-                <div className="text-[11px] leading-5 text-slate-500">Todos os ativos legados bateram por tag ou serial.</div>
+                <div className="text-[11px] leading-5 text-slate-500">Todos os ativos importados bateram por tag ou serial.</div>
               ) : null}
-            </div></div><div className="nds-card"><div className="flex items-start justify-between gap-2"><div><div className="nds-label">Cadastro atual</div><div className="mt-1 text-[12px] font-black text-slate-50">Unidades sem rastro legado</div></div><TonePill tone={unmatchedCurrent.length ? "neutral" : "success"}>{unmatchedCurrent.length}</TonePill></div><div className="mt-2 grid gap-2">
+            </div></div><div className="nds-card"><div className="flex items-start justify-between gap-2"><div><div className="nds-label">Cadastro atual</div><div className="mt-1 text-[12px] font-black text-slate-50">Unidades sem rastro importado</div></div><TonePill tone={unmatchedCurrent.length ? "neutral" : "success"}>{unmatchedCurrent.length}</TonePill></div><div className="mt-2 grid gap-2">
               {unmatchedCurrent.length ? (
                 unmatchedCurrent.map((unit) => (
                   <Link
@@ -670,7 +670,7 @@ function LegacyReconciliationPanel({
                     </div></Link>
                 ))
               ) : (
-                <div className="text-[11px] leading-5 text-slate-500">Sem cadastro atual órfão do legado.</div>
+                <div className="text-[11px] leading-5 text-slate-500">Sem cadastro atual órfão dos dados importados.</div>
               )}
             </div></div></div></div></Surface>
   );

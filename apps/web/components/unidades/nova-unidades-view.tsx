@@ -132,7 +132,7 @@ function monitoringDetail(unit: NovaUnitListItem) {
 }
 
 function qualityOf(unit: NovaUnitListItem) {
-  if (!unit.isActive) return "legado";
+  if (!unit.isActive) return "inativa";
   if (!unit._count.equipments) return "sem-vinculo";
   return "parcial";
 }
@@ -212,7 +212,7 @@ export default function NovaUnidadesView({
   const kpis: Kpi[] = [
     { label: "Unidades", value: String(response.meta.total), hint: "resultado filtrado", tone: "blue" },
     { label: "Monitoradas", value: String(linkedRows), hint: `${linkedRatio}% nesta página`, tone: linkedRows ? "green" : "slate" },
-    { label: "Com contato", value: String(contactRows), hint: "operacional persistido", tone: contactRows ? "green" : "slate" },
+    { label: "Com contato", value: String(contactRows), hint: "operacional gravado", tone: contactRows ? "green" : "slate" },
     { label: "Ativos", value: String(totalAssetsOnPage), hint: `${rows.length} linha(s)`, tone: totalAssetsOnPage ? "blue" : "slate" },
     { label: "Atenção", value: String(noLinkRows), hint: "sem ativo vinculado", tone: noLinkRows ? "orange" : "green" },
   ];
@@ -321,7 +321,7 @@ export default function NovaUnidadesView({
                 <div className={`nova-units-row is-${qualityOf(unit)}`} key={unit.id}>
                   <div>
                     <strong>{unit.name}</strong>
-                    <small>{unit.code || "Sem código legado"}</small>
+                    <small>{unit.code || "Sem código"}</small>
                   </div>
 
                   <div>

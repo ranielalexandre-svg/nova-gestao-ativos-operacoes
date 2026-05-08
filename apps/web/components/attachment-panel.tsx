@@ -120,7 +120,7 @@ export async function AttachmentPanel({
     <Surface><SectionIntro
         eyebrow="Documentos"
         title={`Anexos de ${entityLabel}`}
-        description="Arquivos de apoio ficam ligados ao registro para a troca não depender de pastas soltas do legado."
+        description="Arquivos de apoio ficam ligados ao registro para a troca não depender de pastas soltas externas."
         actions={<TonePill tone={attachments.length ? "info" : "neutral"}>{attachments.length} arquivo(s)</TonePill>}
         compact
       />

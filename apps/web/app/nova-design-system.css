@@ -8657,7 +8657,7 @@ body:has(.nova-lit-app) {
   background: linear-gradient(90deg, rgba(255, 119, 8, 0.04), transparent 28%);
 }
 
-.nova-units-row.is-legado {
+.nova-units-row.is-inativa {
   background: linear-gradient(90deg, rgba(56, 189, 248, 0.04), transparent 30%);
 }
 
@@ -8886,7 +8886,7 @@ body:has(.nova-lit-app) {
   opacity: 0.42;
 }
 
-.nova-units-row.is-legado {
+.nova-units-row.is-inativa {
   opacity: 0.78;
 }
 
