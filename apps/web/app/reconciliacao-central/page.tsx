@@ -725,6 +725,32 @@ export default async function ReconciliacaoCentralPage() {
 
   return (
     <NovaLitShell activeHref="/reconciliacao">
+      <nav className="nova-admin-breadcrumb" aria-label="Breadcrumb">
+        <Link href="/operacao">Operação</Link>
+        <span>/</span>
+        <strong>Reconciliação</strong>
+      </nav>
+
+      <section className="nova-admin-flow nova-admin-flow--reconcile" aria-label="Fluxo de reconciliação">
+        <article className="is-active">
+          <span>01</span>
+          <strong>Fontes</strong>
+          <small>Cadastro atual, Zabbix e bases SQLite importadas.</small>
+        </article>
+        <i>→</i>
+        <article>
+          <span>02</span>
+          <strong>Cruzamento</strong>
+          <small>Unidades, parceiros, ativos, Starlinks, MAC/ONU e contatos.</small>
+        </article>
+        <i>→</i>
+        <article>
+          <span>03</span>
+          <strong>Saneamento</strong>
+          <small>Tags, vínculos, pendências e sincronização controlada.</small>
+        </article>
+      </section>
+
       <div className="nova-reconciliacao-page nova-reconciliacao-lit-page">
         <div className="nova-lit-page-hero nova-reconciliacao-page-hero">
           <div>

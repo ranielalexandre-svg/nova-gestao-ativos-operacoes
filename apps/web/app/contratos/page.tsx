@@ -300,6 +300,32 @@ export default async function ContratosPage({
 
   return (
     <NovaLitShell activeHref="/contratos">
+      <nav className="nova-admin-breadcrumb" aria-label="Breadcrumb">
+        <Link href="/operacao">Operação</Link>
+        <span>/</span>
+        <strong>Contratos</strong>
+      </nav>
+
+      <section className="nova-admin-flow nova-admin-flow--contracts" aria-label="Fluxo de governança contratual">
+        <article className="is-active">
+          <span>01</span>
+          <strong>Carteira</strong>
+          <small>Parceiros, unidades, contratos e metadados de relatório.</small>
+        </article>
+        <i>→</i>
+        <article>
+          <span>02</span>
+          <strong>Governança</strong>
+          <small>Banda, endereço, contrato e pendências por unidade.</small>
+        </article>
+        <i>→</i>
+        <article>
+          <span>03</span>
+          <strong>Relatório</strong>
+          <small>Base pronta para exportação, SLA e atendimento operacional.</small>
+        </article>
+      </section>
+
       <div className="nova-lit-page-heading nova-contracts-heading">
         <div>
           <h1>Contratos</h1>
@@ -308,6 +334,7 @@ export default async function ContratosPage({
 
         <div className="nova-lit-page-actions">
           <Link href="/parceiros" className="nova-lit-button nova-lit-button-secondary">Parceiros</Link>
+          <Link href={withParams("/contratos", currentParams, { page: safePage })} className="nova-lit-button nova-lit-button-secondary">Atualizar dados</Link>
           {isAdmin ? <Link href="/parceiros/nova" className="nova-lit-button nova-lit-button-primary">Novo parceiro</Link> : null}
         </div>
       </div>

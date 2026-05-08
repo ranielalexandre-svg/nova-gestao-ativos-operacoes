@@ -115,6 +115,32 @@ export default async function UsuariosPage({
 
   return (
     <NovaLitShell activeHref="/usuarios">
+      <nav className="nova-admin-breadcrumb" aria-label="Breadcrumb">
+        <Link href="/operacao">Operação</Link>
+        <span>/</span>
+        <strong>Usuários</strong>
+      </nav>
+
+      <section className="nova-admin-flow nova-admin-flow--users" aria-label="Fluxo de gestão de usuários">
+        <article className="is-active">
+          <span>01</span>
+          <strong>Acesso</strong>
+          <small>Usuário, e-mail, status e senha inicial.</small>
+        </article>
+        <i>→</i>
+        <article>
+          <span>02</span>
+          <strong>Papel</strong>
+          <small>Admin, editor, operador ou leitura por política.</small>
+        </article>
+        <i>→</i>
+        <article>
+          <span>03</span>
+          <strong>Governança</strong>
+          <small>Ativação, auditoria e controle operacional.</small>
+        </article>
+      </section>
+
       <main className="nova-users-page">
         <section className="nova-users-hero">
           <div>
@@ -124,6 +150,7 @@ export default async function UsuariosPage({
           </div>
           <div className="nova-users-hero__actions">
             <Link href="/perfis" className="nova-users-button is-secondary">Perfis</Link>
+            <Link href="/usuarios" className="nova-users-button is-secondary">Atualizar dados</Link>
             <Link href="/usuarios/nova" className="nova-users-button is-primary">Novo usuário</Link>
           </div>
         </section>

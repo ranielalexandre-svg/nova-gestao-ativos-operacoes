@@ -819,6 +819,32 @@ export default async function IntegracoesPage({
   if (!isAdmin) {
     return (
       <NovaLitShell activeHref="/integracoes">
+        <nav className="nova-admin-breadcrumb" aria-label="Breadcrumb">
+          <Link href="/operacao">Operação</Link>
+          <span>/</span>
+          <strong>Integrações</strong>
+        </nav>
+
+        <section className="nova-admin-flow nova-admin-flow--integrations" aria-label="Fluxo de integrações">
+          <article className="is-active">
+            <span>01</span>
+            <strong>Conector</strong>
+            <small>Zabbix, HTTP, autenticação e contrato de leitura.</small>
+          </article>
+          <i>→</i>
+          <article>
+            <span>02</span>
+            <strong>Saúde</strong>
+            <small>Teste, latência, hosts, problemas e fontes ativas.</small>
+          </article>
+          <i>→</i>
+          <article>
+            <span>03</span>
+            <strong>Sincronização</strong>
+            <small>Unidades prontas, tags explícitas e reconciliação segura.</small>
+          </article>
+        </section>
+
         <main className="nova-integracoes-page">
           <header className="nova-integracoes-hero">
             <div>
@@ -865,6 +891,32 @@ export default async function IntegracoesPage({
 
   return (
     <NovaLitShell activeHref="/integracoes">
+        <nav className="nova-admin-breadcrumb" aria-label="Breadcrumb">
+          <Link href="/operacao">Operação</Link>
+          <span>/</span>
+          <strong>Integrações</strong>
+        </nav>
+
+        <section className="nova-admin-flow nova-admin-flow--integrations" aria-label="Fluxo de integrações">
+          <article className="is-active">
+            <span>01</span>
+            <strong>Conector</strong>
+            <small>Zabbix, HTTP, autenticação e contrato de leitura.</small>
+          </article>
+          <i>→</i>
+          <article>
+            <span>02</span>
+            <strong>Saúde</strong>
+            <small>Teste, latência, hosts, problemas e fontes ativas.</small>
+          </article>
+          <i>→</i>
+          <article>
+            <span>03</span>
+            <strong>Sincronização</strong>
+            <small>Unidades prontas, tags explícitas e reconciliação segura.</small>
+          </article>
+        </section>
+
       <main className="nova-integracoes-page">
         <header className="nova-integracoes-hero">
           <div>
