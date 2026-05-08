@@ -166,10 +166,10 @@ export default async function NovoChamadoPage({
   const defaultStatus = readParam(params, "status", "planned");
 
   const [partners, units, equipments, occurrences] = await Promise.all([
-    apiJson<PaginatedResponse<PartnerOption>>("/partners?page=1&pageSize=200"),
-    apiJson<PaginatedResponse<UnitOption>>("/units?page=1&pageSize=300"),
-    apiJson<PaginatedResponse<EquipmentOption>>("/equipments?page=1&pageSize=300"),
-    apiJson<PaginatedResponse<OccurrenceOption>>("/occurrences?page=1&pageSize=200"),
+    apiJson<PaginatedResponse<PartnerOption>>("/partners?page=1&pageSize=100"),
+    apiJson<PaginatedResponse<UnitOption>>("/units?page=1&pageSize=100"),
+    apiJson<PaginatedResponse<EquipmentOption>>("/equipments?page=1&pageSize=100"),
+    apiJson<PaginatedResponse<OccurrenceOption>>("/occurrences?page=1&pageSize=100"),
   ]);
 
   const today = new Date();

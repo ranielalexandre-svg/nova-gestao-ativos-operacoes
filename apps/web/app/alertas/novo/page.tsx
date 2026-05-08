@@ -131,9 +131,9 @@ export default async function NovoAlertaPage() {
   }
 
   const [partners, units, equipments] = await Promise.all([
-    apiJson<PaginatedResponse<PartnerOption>>("/partners?page=1&pageSize=200"),
-    apiJson<PaginatedResponse<UnitOption>>("/units?page=1&pageSize=300"),
-    apiJson<PaginatedResponse<EquipmentOption>>("/equipments?page=1&pageSize=300"),
+    apiJson<PaginatedResponse<PartnerOption>>("/partners?page=1&pageSize=100"),
+    apiJson<PaginatedResponse<UnitOption>>("/units?page=1&pageSize=100"),
+    apiJson<PaginatedResponse<EquipmentOption>>("/equipments?page=1&pageSize=100"),
   ]);
 
   const today = new Date();
