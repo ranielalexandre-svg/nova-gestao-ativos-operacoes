@@ -35,6 +35,7 @@ import {
   occurrenceStatusLabel,
 } from "@/lib/status-ui";
 import { getServerWebSession } from "@/lib/web-session";
+import { isAdminRole } from "@/lib/role-policy";
 
 type MaintenanceDetail = {
   id: string;
@@ -103,6 +104,7 @@ export default async function ManutencaoDetailPage({
     ) ||
     telemetry.items.find((item) => item.partner.id === maintenance.partner?.id) ||
     null;
+  const isAdmin = isAdminRole(session.user?.role || "");
   const connectedRoutes = [
     {
       href: "/operacao/fila?view=dueSoon",
@@ -145,7 +147,15 @@ export default async function ManutencaoDetailPage({
               data-variant="secondary"
             >
               Voltar
-            </Link><Link
+            </Link>{isAdmin ? (
+              <Link
+                href={`/chamados/${maintenance.id}/editar`}
+                className="nds-button"
+                data-variant="secondary"
+              >
+                Editar
+              </Link>
+            ) : null}<Link
               href="/operacao/fila?view=dueSoon"
               className="nds-button"
               data-variant="primary"

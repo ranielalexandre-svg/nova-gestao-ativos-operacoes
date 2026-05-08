@@ -28,7 +28,7 @@ import {
   safeApiJson,
   type CommandCenter,
 } from "@/lib/noc-overview";
-import { canEditAttachmentsForRole } from "@/lib/role-policy";
+import { canEditAttachmentsForRole, isAdminRole } from "@/lib/role-policy";
 import { formatDateTime } from "@/lib/formatters";
 import {
   maintenanceStatusLabel,
@@ -120,6 +120,7 @@ export default async function OcorrenciaDetailPage({
     (item) => Boolean(item.scheduledAt),
   ).length;
   const canEditAttachments = canEditAttachmentsForRole(session.user?.role || "");
+  const isAdmin = isAdminRole(session.user?.role || "");
   const connectedRoutes = [
     {
       href: "/operacao/fila?view=pending",
@@ -166,7 +167,15 @@ export default async function OcorrenciaDetailPage({
               data-variant="secondary"
             >
               Voltar
-            </Link><Link
+            </Link>{isAdmin ? (
+              <Link
+                href={`/alertas/${occurrence.id}/editar`}
+                className="nds-button"
+                data-variant="secondary"
+              >
+                Editar
+              </Link>
+            ) : null}<Link
               href="/operacao/fila?view=pending"
               className="nds-button"
               data-variant="primary"
