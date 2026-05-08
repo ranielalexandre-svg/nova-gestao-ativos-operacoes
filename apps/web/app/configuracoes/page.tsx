@@ -23,6 +23,32 @@ type IntegrationSettings = {
   enableZabbixSync?: boolean;
   enableReports?: boolean;
   enableCsvImport?: boolean;
+  runtime?: {
+    uploadDir?: string;
+    importedDataPathConfigured?: boolean;
+    integrationAllowedHosts?: string[];
+    integrationRequestTimeoutMs?: number;
+    zabbixTelemetryCacheMs?: number;
+    zabbixReportCacheMs?: number;
+  };
+  secrets?: {
+    jwtSecret?: "configured" | "weak" | "missing" | string;
+    integrationSecretKey?: "configured" | "weak" | "missing" | string;
+  };
+  counts?: {
+    activeIntegrations?: number;
+    zabbixIntegrations?: number;
+    grafanaIntegrations?: number;
+    activeAutomationRules?: number;
+    enabledReportTemplates?: number;
+  };
+  flags?: Array<{
+    key: string;
+    label: string;
+    enabled: boolean;
+    source: string;
+    description: string;
+  }>;
   [key: string]: unknown;
 };
 
@@ -122,6 +148,24 @@ function boolText(value: unknown) {
 
 function boolTone(value: unknown): Tone {
   return value ? "green" : "slate";
+}
+
+function secretText(value: unknown) {
+  if (value === "configured") return "Configurada";
+  if (value === "weak") return "Curta";
+  return "Ausente";
+}
+
+function secretTone(value: unknown): Tone {
+  if (value === "configured") return "green";
+  if (value === "weak") return "orange";
+  return "red";
+}
+
+function durationText(value: unknown) {
+  if (typeof value !== "number" || !Number.isFinite(value)) return "-";
+  if (value >= 1000) return `${Math.round(value / 1000)}s`;
+  return `${value}ms`;
 }
 
 function percent(value: number, total: number) {
@@ -325,6 +369,9 @@ export default async function ConfiguracoesPage() {
 
   const settings = settingsResult.data;
   const settingsError = settingsResult.error;
+  const runtime = settings.runtime || {};
+  const secrets = settings.secrets || {};
+  const settingsCounts = settings.counts || {};
   const activeIntegrations = summary.counts.integrationsActive;
   const integrationHealth = percent(summary.counts.integrationsHealthy, activeIntegrations || summary.counts.integrationsTotal);
   const zabbixSnapshot = summary.zabbixSnapshots[0];
@@ -333,38 +380,45 @@ export default async function ConfiguracoesPage() {
     operationalSnapshot.criticalOpenOccurrences +
     operationalSnapshot.overdueMaintenances +
     summary.counts.integrationsFailing;
-  const securityItems = [
-    {
-      label: "Ações destrutivas",
-      value: boolText(settings.allowDestructiveActions),
-      tone: settings.allowDestructiveActions ? "orange" : "green",
-      detail: "devem exigir confirmação e auditoria",
-    },
-    {
-      label: "Automação",
-      value: boolText(settings.enableAutomation),
-      tone: boolTone(settings.enableAutomation),
-      detail: "rotinas e geração automática de casos",
-    },
-    {
-      label: "Sync Zabbix",
-      value: boolText(settings.enableZabbixSync),
-      tone: boolTone(settings.enableZabbixSync),
-      detail: "escrita controlada em hosts reconciliados",
-    },
-    {
-      label: "Relatórios",
-      value: boolText(settings.enableReports),
-      tone: boolTone(settings.enableReports),
-      detail: "exportação operacional e consumo",
-    },
-    {
-      label: "Importação CSV",
-      value: boolText(settings.enableCsvImport),
-      tone: boolTone(settings.enableCsvImport),
-      detail: "cargas controladas por preview",
-    },
-  ] as const;
+  const securityItems = settings.flags?.length
+    ? settings.flags.map((flag) => ({
+        label: flag.label,
+        value: boolText(flag.enabled),
+        tone: flag.key === "allowDestructiveActions" && flag.enabled ? "orange" : boolTone(flag.enabled),
+        detail: `${flag.description} · ${flag.source}`,
+      }))
+    : [
+        {
+          label: "Ações destrutivas",
+          value: boolText(settings.allowDestructiveActions),
+          tone: settings.allowDestructiveActions ? "orange" : "green",
+          detail: "devem exigir confirmação e auditoria",
+        },
+        {
+          label: "Automação",
+          value: boolText(settings.enableAutomation),
+          tone: boolTone(settings.enableAutomation),
+          detail: "rotinas e geração automática de casos",
+        },
+        {
+          label: "Sync Zabbix",
+          value: boolText(settings.enableZabbixSync),
+          tone: boolTone(settings.enableZabbixSync),
+          detail: "escrita controlada em hosts reconciliados",
+        },
+        {
+          label: "Relatórios",
+          value: boolText(settings.enableReports),
+          tone: boolTone(settings.enableReports),
+          detail: "exportação operacional e consumo",
+        },
+        {
+          label: "Importação CSV",
+          value: boolText(settings.enableCsvImport),
+          tone: boolTone(settings.enableCsvImport),
+          detail: "cargas controladas por preview",
+        },
+      ];
 
   return (
     <NovaLitShell activeHref="/configuracoes">
@@ -448,9 +502,9 @@ export default async function ConfiguracoesPage() {
                   <small>{summary.counts.unitsActive} ativa(s)</small>
                 </article>
                 <article>
-                  <span>Ativos técnicos</span>
-                  <strong>{summary.counts.equipmentsTotal}</strong>
-                  <small>{summary.counts.equipmentsActive} em operação</small>
+                  <span>Automações ativas</span>
+                  <strong>{settingsCounts.activeAutomationRules ?? 0}</strong>
+                  <small>{settingsCounts.enabledReportTemplates ?? 0} template(s) de relatório</small>
                 </article>
               </div>
             </Panel>
@@ -519,6 +573,49 @@ export default async function ConfiguracoesPage() {
             </Panel>
 
             <Panel
+              eyebrow="Ambiente"
+              title="Runtime e limites"
+              action={<Badge tone={runtime.importedDataPathConfigured ? "green" : "slate"}>{runtime.importedDataPathConfigured ? "dados importados" : "sem pacote"}</Badge>}
+            >
+              <div className="nova-config-settings-grid">
+                <SettingRow
+                  label="Diretório de anexos"
+                  value={runtime.uploadDir || "uploads"}
+                  tone="blue"
+                  detail="caminho usado pela API para armazenar arquivos"
+                />
+                <SettingRow
+                  label="Hosts permitidos"
+                  value={runtime.integrationAllowedHosts?.length || "aberto"}
+                  tone={runtime.integrationAllowedHosts?.length ? "green" : "orange"}
+                  detail={
+                    runtime.integrationAllowedHosts?.length
+                      ? runtime.integrationAllowedHosts.join(", ")
+                      : "INTEGRATION_ALLOWED_HOSTS não restringe destino"
+                  }
+                />
+                <SettingRow
+                  label="Timeout de integração"
+                  value={durationText(runtime.integrationRequestTimeoutMs)}
+                  tone="blue"
+                  detail="limite por chamada externa"
+                />
+                <SettingRow
+                  label="Cache de telemetria"
+                  value={durationText(runtime.zabbixTelemetryCacheMs)}
+                  tone="slate"
+                  detail="janela de reutilização da leitura Zabbix"
+                />
+                <SettingRow
+                  label="Cache de relatório"
+                  value={durationText(runtime.zabbixReportCacheMs)}
+                  tone="slate"
+                  detail="janela de reutilização do relatório PRTG"
+                />
+              </div>
+            </Panel>
+
+            <Panel
               eyebrow="Conectores"
               title="Saúde das integrações"
               action={<Badge tone="blue">{formatDateTime(summary.checkedAt)}</Badge>}
@@ -549,6 +646,18 @@ export default async function ConfiguracoesPage() {
 
           <aside className="nova-config-side">
             <Panel eyebrow="Segurança" title="Recorte atual">
+              <SettingRow
+                label="JWT secret"
+                value={secretText(secrets.jwtSecret)}
+                tone={secretTone(secrets.jwtSecret)}
+                detail="status da variável JWT_SECRET; valor nunca é exibido"
+              />
+              <SettingRow
+                label="Chave de integrações"
+                value={secretText(secrets.integrationSecretKey)}
+                tone={secretTone(secrets.integrationSecretKey)}
+                detail="status da variável INTEGRATION_SECRET_KEY"
+              />
               <ProgressLine
                 label="Integrações ativas"
                 value={summary.counts.integrationsActive}
