@@ -125,15 +125,25 @@ export default async function OcorrenciaDetailPage({
   newExceptionParams.set("kind", "occurrence");
   newExceptionParams.set("occurrenceId", occurrence.id);
   newExceptionParams.set(
+
     "title",
+
     `Fila operacional - ${occurrence.code}: ${occurrence.title}`,
+
   );
+
   newExceptionParams.set(
+
     "description",
+
     occurrence.description ||
+
       `Alerta ${occurrence.code} está ${statusLabel(occurrence.status).toLowerCase()}`,
+
   );
+
   newExceptionParams.set("severity", occurrence.severity || "medium");
+
   newExceptionParams.set("source", "occurrence");
   if (occurrence.partner?.id) newExceptionParams.set("partnerId", occurrence.partner.id);
   if (occurrence.unit?.id) newExceptionParams.set("unitId", occurrence.unit.id);
@@ -171,36 +181,7 @@ export default async function OcorrenciaDetailPage({
 
   return (
     <NovaLitShell activeHref="/alertas">
-      <div className="nova-occurrence-detail-lit-page">
-        <nav className="nova-tickets-breadcrumb" aria-label="Breadcrumb">
-          <Link href="/operacao">Operação</Link>
-          <span>/</span>
-          <Link href="/alertas">Alertas</Link>
-          <span>/</span>
-          <strong>{occurrence.code}</strong>
-        </nav>
-
-        <section className="nova-tickets-flow nova-tickets-flow--compact" aria-label="Fluxo do alerta para operação">
-          <article className="is-active">
-            <span>01</span>
-            <strong>Detecção</strong>
-            <small>Severidade, origem e entidade afetada.</small>
-          </article>
-          <i>→</i>
-          <article>
-            <span>02</span>
-            <strong>Chamado</strong>
-            <small>Ação técnica quando exige execução em campo.</small>
-          </article>
-          <i>→</i>
-          <article>
-            <span>03</span>
-            <strong>Fila</strong>
-            <small>Exceção operacional para triagem, SLA e despacho.</small>
-          </article>
-        </section>
-
-        <RegistryDetailHero
+      <div className="nova-occurrence-detail-lit-page"><RegistryDetailHero
         eyebrow="Alerta"
         title={occurrence.title}
         description={occurrence.description || "Sem descrição complementar registrada."}

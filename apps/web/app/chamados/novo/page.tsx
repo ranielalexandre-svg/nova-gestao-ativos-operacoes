@@ -177,34 +177,6 @@ export default async function NovoChamadoPage({
 
   return (
     <NovaLitShell activeHref="/chamados">
-      <nav className="nova-tickets-breadcrumb" aria-label="Breadcrumb">
-        <Link href="/operacao">Operação</Link>
-        <span>/</span>
-        <Link href="/chamados">Chamados</Link>
-        <span>/</span>
-        <strong>Novo chamado</strong>
-      </nav>
-
-      <section className="nova-tickets-flow nova-tickets-flow--compact" aria-label="Fluxo de cadastro de chamado">
-        <article className="is-active">
-          <span>01</span>
-          <strong>Origem</strong>
-          <small>Parceiro, unidade, ativo ou alerta originador.</small>
-        </article>
-        <i>→</i>
-        <article>
-          <span>02</span>
-          <strong>Agendamento</strong>
-          <small>Tipo, status, janela técnica e descrição.</small>
-        </article>
-        <i>→</i>
-        <article>
-          <span>03</span>
-          <strong>Execução</strong>
-          <small>Chamado entra na agenda e pode seguir para fila.</small>
-        </article>
-      </section>
-
       <div className="nova-lit-page-heading nova-tickets-heading">
         <div>
           <h1>Novo chamado</h1>
