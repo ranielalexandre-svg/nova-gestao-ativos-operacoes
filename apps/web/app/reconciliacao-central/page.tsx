@@ -97,21 +97,21 @@ type OperationalReconciliation = {
   generatedAt?: string | null;
   redactedSecrets?: boolean;
   counts: {
-    legacyUnits: number;
+    importedUnits: number;
     currentUnits: number;
     matchedUnits: number;
     weakUnitMatches: number;
-    unmatchedLegacyUnits: number;
+    unmatchedImportedUnits: number;
     unmatchedCurrentUnits: number;
-    legacyPartners: number;
+    importedPartners: number;
     currentPartners: number;
     matchedPartners: number;
-    legacyEquipments: number;
+    importedEquipments: number;
     currentEquipments: number;
     matchedEquipments: number;
     starlinks: number;
   };
-  unmatchedLegacyUnits: Array<{
+  unmatchedImportedUnits: Array<{
     code: string;
     name: string;
     city: string | null;
@@ -140,14 +140,14 @@ type OperationalReconciliation = {
     partnerCode: string;
     partnerName: string;
   }>;
-  unmatchedLegacyPartners: Array<{
+  unmatchedImportedPartners: Array<{
     code: string;
     name: string;
     contacts: number;
     primaryUnitCount: number;
     backupUnitCount: number;
   }>;
-  unmatchedLegacyEquipments: Array<{
+  unmatchedImportedEquipments: Array<{
     tag: string;
     name: string;
     type: string;
@@ -208,25 +208,25 @@ function emptyOperationalReconciliation(message = "Reconciliação de dados impo
     generatedAt: null,
     redactedSecrets: true,
     counts: {
-      legacyUnits: 0,
+      importedUnits: 0,
       currentUnits: 0,
       matchedUnits: 0,
       weakUnitMatches: 0,
-      unmatchedLegacyUnits: 0,
+      unmatchedImportedUnits: 0,
       unmatchedCurrentUnits: 0,
-      legacyPartners: 0,
+      importedPartners: 0,
       currentPartners: 0,
       matchedPartners: 0,
-      legacyEquipments: 0,
+      importedEquipments: 0,
       currentEquipments: 0,
       matchedEquipments: 0,
       starlinks: 0,
     },
-    unmatchedLegacyUnits: [],
+    unmatchedImportedUnits: [],
     weakUnitMatches: [],
     unmatchedCurrentUnits: [],
-    unmatchedLegacyPartners: [],
-    unmatchedLegacyEquipments: [],
+    unmatchedImportedPartners: [],
+    unmatchedImportedEquipments: [],
   } satisfies OperationalReconciliation;
 }
 
@@ -558,21 +558,21 @@ function OperationalReconciliationPanel({
   }
 
   const counts = reconciliation.counts;
-  const unitCoverage = counts.legacyUnits ? Math.round((counts.matchedUnits / counts.legacyUnits) * 100) : 0;
-  const equipmentCoverage = counts.legacyEquipments
-    ? Math.round((counts.matchedEquipments / counts.legacyEquipments) * 100)
+  const unitCoverage = counts.importedUnits ? Math.round((counts.matchedUnits / counts.importedUnits) * 100) : 0;
+  const equipmentCoverage = counts.importedEquipments
+    ? Math.round((counts.matchedEquipments / counts.importedEquipments) * 100)
     : 0;
-  const prioritizedUnits = reconciliation.unmatchedLegacyUnits
+  const prioritizedUnits = reconciliation.unmatchedImportedUnits
     .slice()
     .sort((a, b) => operationalSignalWeight(b.signal) - operationalSignalWeight(a.signal) || a.code.localeCompare(b.code))
     .slice(0, 12);
   const weakMatches = reconciliation.weakUnitMatches.slice(0, 6);
   const unmatchedCurrent = reconciliation.unmatchedCurrentUnits.slice(0, 6);
   const totalDivergences =
-    counts.unmatchedLegacyUnits +
+    counts.unmatchedImportedUnits +
     counts.weakUnitMatches +
-    reconciliation.unmatchedLegacyPartners.length +
-    reconciliation.unmatchedLegacyEquipments.length +
+    reconciliation.unmatchedImportedPartners.length +
+    reconciliation.unmatchedImportedEquipments.length +
     reconciliation.unmatchedCurrentUnits.length;
 
   return (
@@ -581,14 +581,14 @@ function OperationalReconciliationPanel({
         title="Dados importados mostram o que precisa entrar no cadastro atual"
         description="A prioridade fica nas unidades com backup, Starlink, MAC/ONU ou ativo, porque esses sinais afetam acionamento e monitoramento dos hosts."
         actions={
-          <div className="flex flex-wrap gap-2"><TonePill tone={counts.unmatchedLegacyUnits ? "attention" : "success"}>
-              {counts.unmatchedLegacyUnits} sem match
+          <div className="flex flex-wrap gap-2"><TonePill tone={counts.unmatchedImportedUnits ? "attention" : "success"}>
+              {counts.unmatchedImportedUnits} sem match
             </TonePill><TonePill tone={counts.weakUnitMatches ? "attention" : "neutral"}>
               {counts.weakUnitMatches} fraco(s)
             </TonePill></div>
         }
         compact
-      /><div className="mt-2 grid gap-2 md:grid-cols-2 xl:grid-cols-4"><KpiTile label="Unidades cruzadas" value={`${unitCoverage}%`} meta={`${counts.matchedUnits} de ${counts.legacyUnits} registro(s)`} tone={counts.unmatchedLegacyUnits ? "attention" : "success"} /><KpiTile label="Ativos cruzados" value={`${equipmentCoverage}%`} meta={`${counts.matchedEquipments} de ${counts.legacyEquipments} ativo(s)`} tone={counts.legacyEquipments - counts.matchedEquipments ? "attention" : "success"} /><KpiTile label="Parceiros cruzados" value={counts.matchedPartners} meta={`${counts.legacyPartners - counts.matchedPartners} sem cadastro atual`} tone={counts.legacyPartners - counts.matchedPartners ? "attention" : "success"} /><KpiTile label="Starlinks importados" value={counts.starlinks} meta="consultivos nesta fase" tone="info" /></div><div className="nova-reconcile-action-panel mt-2"><div className="min-w-0"><div className="nds-label">Ações de reconciliação</div><div className="mt-1 text-[13px] font-black text-white">{totalDivergences} divergência(s) priorizadas</div><div className="mt-1 text-[11px] text-[var(--nova-text-muted)]">Resolver unidade sem match, revisar match fraco, criar parceiro ou vincular ativo importado.</div></div><div className="nova-reconcile-action-list"><TonePill tone={counts.unmatchedLegacyUnits ? "attention" : "success"}>{counts.unmatchedLegacyUnits} unidades</TonePill><TonePill tone={counts.weakUnitMatches ? "attention" : "neutral"}>{counts.weakUnitMatches} fracos</TonePill><TonePill tone={reconciliation.unmatchedLegacyEquipments.length ? "attention" : "success"}>{reconciliation.unmatchedLegacyEquipments.length} ativos</TonePill></div></div><div className="mt-2 nova-side-grid nova-side-grid--380"><div><SectionIntro
+      /><div className="mt-2 grid gap-2 md:grid-cols-2 xl:grid-cols-4"><KpiTile label="Unidades cruzadas" value={`${unitCoverage}%`} meta={`${counts.matchedUnits} de ${counts.importedUnits} registro(s)`} tone={counts.unmatchedImportedUnits ? "attention" : "success"} /><KpiTile label="Ativos cruzados" value={`${equipmentCoverage}%`} meta={`${counts.matchedEquipments} de ${counts.importedEquipments} ativo(s)`} tone={counts.importedEquipments - counts.matchedEquipments ? "attention" : "success"} /><KpiTile label="Parceiros cruzados" value={counts.matchedPartners} meta={`${counts.importedPartners - counts.matchedPartners} sem cadastro atual`} tone={counts.importedPartners - counts.matchedPartners ? "attention" : "success"} /><KpiTile label="Starlinks importados" value={counts.starlinks} meta="consultivos nesta fase" tone="info" /></div><div className="nova-reconcile-action-panel mt-2"><div className="min-w-0"><div className="nds-label">Ações de reconciliação</div><div className="mt-1 text-[13px] font-black text-white">{totalDivergences} divergência(s) priorizadas</div><div className="mt-1 text-[11px] text-[var(--nova-text-muted)]">Resolver unidade sem match, revisar match fraco, criar parceiro ou vincular ativo importado.</div></div><div className="nova-reconcile-action-list"><TonePill tone={counts.unmatchedImportedUnits ? "attention" : "success"}>{counts.unmatchedImportedUnits} unidades</TonePill><TonePill tone={counts.weakUnitMatches ? "attention" : "neutral"}>{counts.weakUnitMatches} fracos</TonePill><TonePill tone={reconciliation.unmatchedImportedEquipments.length ? "attention" : "success"}>{reconciliation.unmatchedImportedEquipments.length} ativos</TonePill></div></div><div className="mt-2 nova-side-grid nova-side-grid--380"><div><SectionIntro
             eyebrow="Saneamento prioritário"
             title="Unidades importadas sem cadastro seguro"
             description="Lista limitada aos sinais mais úteis para decidir o próximo cadastro ou ajuste de vínculo."
@@ -636,26 +636,26 @@ function OperationalReconciliationPanel({
               ) : (
                 <div className="text-[11px] leading-5 text-slate-500">Nenhum match fraco nesta leitura.</div>
               )}
-            </div></div><div className="nds-card"><div className="flex items-start justify-between gap-2"><div><div className="nds-label">Parceiros</div><div className="mt-1 text-[12px] font-black text-slate-50">Importado sem cadastro atual</div></div><TonePill tone={reconciliation.unmatchedLegacyPartners.length ? "attention" : "success"}>
-                {reconciliation.unmatchedLegacyPartners.length}
+            </div></div><div className="nds-card"><div className="flex items-start justify-between gap-2"><div><div className="nds-label">Parceiros</div><div className="mt-1 text-[12px] font-black text-slate-50">Importado sem cadastro atual</div></div><TonePill tone={reconciliation.unmatchedImportedPartners.length ? "attention" : "success"}>
+                {reconciliation.unmatchedImportedPartners.length}
               </TonePill></div><div className="mt-2 grid gap-2">
-              {reconciliation.unmatchedLegacyPartners.slice(0, 5).map((partner) => (
+              {reconciliation.unmatchedImportedPartners.slice(0, 5).map((partner) => (
                 <div key={`${partner.code}:${partner.name}`} className="nds-card"><div className="text-[12px] font-black text-slate-50">{partner.code || partner.name}</div><div className="mt-1 text-[10px] leading-5 text-[var(--nova-text-muted)]">
                     {partner.name} · {partner.contacts} contato(s) · {partner.primaryUnitCount + partner.backupUnitCount} vínculo(s)
                   </div></div>
               ))}
-              {!reconciliation.unmatchedLegacyPartners.length ? (
+              {!reconciliation.unmatchedImportedPartners.length ? (
                 <div className="text-[11px] leading-5 text-slate-500">Todos os parceiros importados encontraram match.</div>
               ) : null}
-            </div></div><div className="nds-card"><div className="flex items-start justify-between gap-2"><div><div className="nds-label">Ativos</div><div className="mt-1 text-[12px] font-black text-slate-50">Importado sem match por tag/serial</div></div><TonePill tone={reconciliation.unmatchedLegacyEquipments.length ? "attention" : "success"}>
-                {reconciliation.unmatchedLegacyEquipments.length}
+            </div></div><div className="nds-card"><div className="flex items-start justify-between gap-2"><div><div className="nds-label">Ativos</div><div className="mt-1 text-[12px] font-black text-slate-50">Importado sem match por tag/serial</div></div><TonePill tone={reconciliation.unmatchedImportedEquipments.length ? "attention" : "success"}>
+                {reconciliation.unmatchedImportedEquipments.length}
               </TonePill></div><div className="mt-2 grid gap-2">
-              {reconciliation.unmatchedLegacyEquipments.slice(0, 5).map((equipment) => (
+              {reconciliation.unmatchedImportedEquipments.slice(0, 5).map((equipment) => (
                 <div key={`${equipment.source}:${equipment.tag}:${equipment.serialNumber || ""}`} className="nds-card"><div className="text-[12px] font-black text-slate-50">{equipment.tag || equipment.name}</div><div className="mt-1 text-[10px] leading-5 text-[var(--nova-text-muted)]">
                     {equipment.type || "tipo não informado"} · {equipment.serialNumber || "sem serial"} · {equipment.unitCode || "sem unidade"}
                   </div></div>
               ))}
-              {!reconciliation.unmatchedLegacyEquipments.length ? (
+              {!reconciliation.unmatchedImportedEquipments.length ? (
                 <div className="text-[11px] leading-5 text-slate-500">Todos os ativos importados bateram por tag ou serial.</div>
               ) : null}
             </div></div><div className="nds-card"><div className="flex items-start justify-between gap-2"><div><div className="nds-label">Cadastro atual</div><div className="mt-1 text-[12px] font-black text-slate-50">Unidades sem rastro importado</div></div><TonePill tone={unmatchedCurrent.length ? "neutral" : "success"}>{unmatchedCurrent.length}</TonePill></div><div className="mt-2 grid gap-2">

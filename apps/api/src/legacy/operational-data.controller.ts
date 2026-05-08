@@ -18,7 +18,7 @@ export class OperationalDataController {
 
   @Get("reconciliation")
   getOperationalReconciliation() {
-    return this.legacyService.getReconciliation();
+    return this.legacyService.getOperationalReconciliation();
   }
 
   @Get("units/:id")

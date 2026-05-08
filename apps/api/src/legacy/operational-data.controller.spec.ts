@@ -7,7 +7,7 @@ import { OperationalDataController } from "./operational-data.controller";
 function buildController() {
   const legacyService = {
     getSummary: jest.fn(),
-    getReconciliation: jest.fn(),
+    getOperationalReconciliation: jest.fn(),
     getUnitOperationalData: jest.fn(),
     updateUnitOperationalData: jest.fn(),
     importUnitOperationalData: jest.fn(),
@@ -33,7 +33,7 @@ describe("OperationalDataController", () => {
 
     controller.getOperationalReconciliation();
 
-    expect(legacyService.getReconciliation).toHaveBeenCalledTimes(1);
+    expect(legacyService.getOperationalReconciliation).toHaveBeenCalledTimes(1);
   });
 
   it("reads unit operational data through the operational route", () => {

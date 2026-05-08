@@ -420,6 +420,52 @@ export class LegacyService {
     };
   }
 
+  async getOperationalReconciliation() {
+    const reconciliation = await this.getReconciliation();
+    return this.toOperationalReconciliation(reconciliation as Record<string, unknown>);
+  }
+
+  private toOperationalReconciliation(reconciliation: Record<string, unknown>) {
+    const counts = this.objectRecord(reconciliation.counts);
+
+    return {
+      ...reconciliation,
+      counts: counts
+        ? {
+            ...counts,
+            importedUnits: this.valueOrAlias(counts, "importedUnits", "legacyUnits"),
+            importedPartners: this.valueOrAlias(counts, "importedPartners", "legacyPartners"),
+            importedEquipments: this.valueOrAlias(counts, "importedEquipments", "legacyEquipments"),
+            unmatchedImportedUnits: this.valueOrAlias(counts, "unmatchedImportedUnits", "unmatchedLegacyUnits"),
+          }
+        : counts,
+      unmatchedImportedUnits: this.valueOrAlias(
+        reconciliation,
+        "unmatchedImportedUnits",
+        "unmatchedLegacyUnits",
+      ),
+      unmatchedImportedPartners: this.valueOrAlias(
+        reconciliation,
+        "unmatchedImportedPartners",
+        "unmatchedLegacyPartners",
+      ),
+      unmatchedImportedEquipments: this.valueOrAlias(
+        reconciliation,
+        "unmatchedImportedEquipments",
+        "unmatchedLegacyEquipments",
+      ),
+    };
+  }
+
+  private objectRecord(value: unknown) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+    return value as Record<string, unknown>;
+  }
+
+  private valueOrAlias(source: Record<string, unknown>, preferred: string, fallback: string) {
+    return source[preferred] ?? source[fallback];
+  }
+
   async getUnitProfile(unitId: string) {
     const unit = await this.prisma.unit.findUnique({
       where: { id: unitId },
