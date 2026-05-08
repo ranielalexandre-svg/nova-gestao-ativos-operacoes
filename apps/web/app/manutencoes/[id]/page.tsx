@@ -108,9 +108,27 @@ export default async function ManutencaoDetailPage({
   const newExceptionParams = new URLSearchParams();
   newExceptionParams.set("kind", "maintenance");
   newExceptionParams.set("maintenanceId", maintenance.id);
-  newExceptionParams.set("title", `Exceção - ${maintenance.code}`);
+  newExceptionParams.set(
+
+    "title",
+
+    `Fila operacional - ${maintenance.code}: ${maintenance.title}`,
+
+  );
+
+  newExceptionParams.set(
+
+    "description",
+
+    maintenance.description ||
+
+      `Chamado ${maintenance.code} está ${statusLabel(maintenance.status).toLowerCase()}`,
+
+  );
+
   newExceptionParams.set("severity", "high");
-  newExceptionParams.set("source", "manual");
+
+  newExceptionParams.set("source", "maintenance");
   if (maintenance.partner?.id) newExceptionParams.set("partnerId", maintenance.partner.id);
   if (maintenance.unit?.id) newExceptionParams.set("unitId", maintenance.unit.id);
   if (maintenance.equipment?.id) newExceptionParams.set("equipmentId", maintenance.equipment.id);

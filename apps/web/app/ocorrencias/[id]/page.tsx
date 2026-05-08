@@ -124,9 +124,27 @@ export default async function OcorrenciaDetailPage({
   const newExceptionParams = new URLSearchParams();
   newExceptionParams.set("kind", "occurrence");
   newExceptionParams.set("occurrenceId", occurrence.id);
-  newExceptionParams.set("title", `Exceção - ${occurrence.code}`);
+  newExceptionParams.set(
+
+    "title",
+
+    `Fila operacional - ${occurrence.code}: ${occurrence.title}`,
+
+  );
+
+  newExceptionParams.set(
+
+    "description",
+
+    occurrence.description ||
+
+      `Alerta ${occurrence.code} está ${statusLabel(occurrence.status).toLowerCase()}`,
+
+  );
+
   newExceptionParams.set("severity", occurrence.severity || "medium");
-  newExceptionParams.set("source", "manual");
+
+  newExceptionParams.set("source", "occurrence");
   if (occurrence.partner?.id) newExceptionParams.set("partnerId", occurrence.partner.id);
   if (occurrence.unit?.id) newExceptionParams.set("unitId", occurrence.unit.id);
   if (occurrence.equipment?.id) newExceptionParams.set("equipmentId", occurrence.equipment.id);
