@@ -109,25 +109,15 @@ export default async function ManutencaoDetailPage({
   newExceptionParams.set("kind", "maintenance");
   newExceptionParams.set("maintenanceId", maintenance.id);
   newExceptionParams.set(
-
     "title",
-
     `Fila operacional - ${maintenance.code}: ${maintenance.title}`,
-
   );
-
   newExceptionParams.set(
-
     "description",
-
     maintenance.description ||
-
       `Chamado ${maintenance.code} está ${statusLabel(maintenance.status).toLowerCase()}`,
-
   );
-
   newExceptionParams.set("severity", "high");
-
   newExceptionParams.set("source", "maintenance");
   if (maintenance.partner?.id) newExceptionParams.set("partnerId", maintenance.partner.id);
   if (maintenance.unit?.id) newExceptionParams.set("unitId", maintenance.unit.id);
@@ -158,7 +148,36 @@ export default async function ManutencaoDetailPage({
 
   return (
     <NovaLitShell activeHref="/chamados">
-      <div className="nova-maintenance-detail-lit-page"><RegistryDetailHero
+      <div className="nova-maintenance-detail-lit-page">
+        <nav className="nova-tickets-breadcrumb" aria-label="Breadcrumb">
+          <Link href="/operacao">Operação</Link>
+          <span>/</span>
+          <Link href="/chamados">Chamados</Link>
+          <span>/</span>
+          <strong>{maintenance.code}</strong>
+        </nav>
+
+        <section className="nova-tickets-flow nova-tickets-flow--compact" aria-label="Fluxo do chamado">
+          <article className="is-active">
+            <span>01</span>
+            <strong>Triagem</strong>
+            <small>Origem, vínculo, SLA e impacto operacional.</small>
+          </article>
+          <i>→</i>
+          <article>
+            <span>02</span>
+            <strong>Execução</strong>
+            <small>Agenda, status, host e ação técnica.</small>
+          </article>
+          <i>→</i>
+          <article>
+            <span>03</span>
+            <strong>Fechamento</strong>
+            <small>Conclusão, fila ou retorno ao alerta.</small>
+          </article>
+        </section>
+
+        <RegistryDetailHero
         eyebrow="Chamado"
         title={maintenance.title}
         description={maintenance.description || "Sem descrição complementar registrada."}

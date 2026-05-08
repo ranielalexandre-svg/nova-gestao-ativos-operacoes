@@ -306,6 +306,12 @@ export default async function ChamadosPage({
 
   return (
     <NovaLitShell activeHref="/chamados">
+      <nav className="nova-tickets-breadcrumb" aria-label="Breadcrumb">
+        <Link href="/operacao">Operação</Link>
+        <span>/</span>
+        <strong>Chamados</strong>
+      </nav>
+
       <div className="nova-lit-page-heading nova-tickets-heading">
         <div>
           <h1>Chamados</h1>
@@ -315,9 +321,30 @@ export default async function ChamadosPage({
         <div className="nova-lit-page-actions">
           <Link href="/operacao/fila?view=dueSoon" className="nova-lit-button nova-lit-button-secondary">Abrir fila</Link>
           <Link href="/sensores?view=events" className="nova-lit-button nova-lit-button-secondary">Eventos NOC</Link>
+          <Link href={withParams("/chamados", currentParams, { page: state.page })} className="nova-lit-button nova-lit-button-secondary">Atualizar dados</Link>
           <Link href="/chamados/novo" className="nova-lit-button nova-lit-button-primary">Novo chamado</Link>
         </div>
       </div>
+
+      <section className="nova-tickets-flow" aria-label="Fluxo operacional de chamados">
+        <article className="is-active">
+          <span>01</span>
+          <strong>Entrada</strong>
+          <small>Chamado nasce de alerta, fila, unidade, ativo ou ação manual.</small>
+        </article>
+        <i>→</i>
+        <article>
+          <span>02</span>
+          <strong>Planejamento</strong>
+          <small>Tipo, agenda, vínculo, responsável e contexto do atendimento.</small>
+        </article>
+        <i>→</i>
+        <article>
+          <span>03</span>
+          <strong>Execução</strong>
+          <small>Status, SLA, conclusão e continuidade pela fila operacional.</small>
+        </article>
+      </section>
 
       <section className="nova-tickets-kpi-grid" aria-label="Indicadores de chamados">
         {kpis.map((kpi) => (
