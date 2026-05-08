@@ -2022,6 +2022,34 @@ export default async function UnidadeDetailPage({
   return (
     <NovaLitShell activeHref="/unidades">
       <div className="nova-unit-detail-lit-page">
+
+        <nav className="nova-units-breadcrumb" aria-label="Breadcrumb">
+          <Link href="/operacao">Operação</Link>
+          <span>/</span>
+          <Link href="/unidades">Unidades</Link>
+          <span>/</span>
+          <strong>{unit.code}</strong>
+        </nav>
+
+        <section className="nova-units-flow nova-units-flow--compact" aria-label="Fluxo da unidade">
+          <article className="is-active">
+            <span>01</span>
+            <strong>Identificar</strong>
+            <small>Unidade, parceiro, cidade, UF e contrato operacional.</small>
+          </article>
+          <i>→</i>
+          <article>
+            <span>02</span>
+            <strong>Monitorar</strong>
+            <small>Host, sensores, ativos, credenciais e dados técnicos.</small>
+          </article>
+          <i>→</i>
+          <article>
+            <span>03</span>
+            <strong>Acionar</strong>
+            <small>Contatos, alertas, chamados, anexos e relatório.</small>
+          </article>
+        </section>
       {created ? (
         <Surface className="nds-notice-success"><div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between"><SectionIntro
               eyebrow="Cadastro concluído"

@@ -561,6 +561,34 @@ export default async function ParceiroDetailPage({
   return (
     <NovaLitShell activeHref="/parceiros">
       <div className="nova-partner-detail-lit-page">
+        <nav className="nova-partners-breadcrumb" aria-label="Breadcrumb">
+          <Link href="/operacao">Operação</Link>
+          <span>/</span>
+          <Link href="/parceiros">Parceiros</Link>
+          <span>/</span>
+          <strong>{partner.code}</strong>
+        </nav>
+
+        <section className="nova-partners-flow nova-partners-flow--compact" aria-label="Fluxo do parceiro">
+          <article className="is-active">
+            <span>01</span>
+            <strong>Identificar</strong>
+            <small>Cadastro, contrato, contato e cobertura.</small>
+          </article>
+          <i>→</i>
+          <article>
+            <span>02</span>
+            <strong>Conectar</strong>
+            <small>Unidades, ativos, cidades e dados operacionais.</small>
+          </article>
+          <i>→</i>
+          <article>
+            <span>03</span>
+            <strong>Atender</strong>
+            <small>Alertas, chamados, anexos e histórico técnico.</small>
+          </article>
+        </section>
+
       {created ? <CreatedNotice from={from} /> : null}
 
       <RegistryDetailHero

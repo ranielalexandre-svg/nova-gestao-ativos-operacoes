@@ -219,6 +219,12 @@ export default function NovaUnidadesView({
 
   return (
     <NovaLitShell activeHref="/unidades">
+      <nav className="nova-units-breadcrumb" aria-label="Breadcrumb">
+        <Link href="/operacao">Operação</Link>
+        <span>/</span>
+        <strong>Unidades</strong>
+      </nav>
+
       <div className="nova-lit-page-heading nova-units-heading">
         <div>
           <h1>Unidades</h1>
@@ -227,9 +233,30 @@ export default function NovaUnidadesView({
 
         <div className="nova-lit-page-actions">
           <Link href="/importacao" className="nova-lit-button nova-lit-button-secondary">Importar CSV</Link>
+          <Link href={withParams("/unidades", currentParams, { page: state.page })} className="nova-lit-button nova-lit-button-secondary">Atualizar dados</Link>
           <Link href="/unidades/nova" className="nova-lit-button nova-lit-button-primary">Nova unidade</Link>
         </div>
       </div>
+
+      <section className="nova-units-flow" aria-label="Fluxo operacional de unidades">
+        <article className="is-active">
+          <span>01</span>
+          <strong>Local</strong>
+          <small>Código, nome, cidade, UF e parceiro formam a base da operação.</small>
+        </article>
+        <i>→</i>
+        <article>
+          <span>02</span>
+          <strong>Rede</strong>
+          <small>Ativos, Starlinks, ONUs, host e dados operacionais conectam o local.</small>
+        </article>
+        <i>→</i>
+        <article>
+          <span>03</span>
+          <strong>Atendimento</strong>
+          <small>Alertas, chamados, relatórios e anexos completam o histórico.</small>
+        </article>
+      </section>
 
       <section className="nova-units-kpi-grid" aria-label="Indicadores de unidades">
         {kpis.map((kpi) => (
