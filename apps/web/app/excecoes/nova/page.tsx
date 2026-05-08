@@ -172,34 +172,6 @@ export default async function NovaExcecaoPage({
 
   return (
     <NovaLitShell activeHref="/excecoes">
-      <nav className="nova-operations-breadcrumb" aria-label="Breadcrumb">
-        <Link href="/operacao">Operação</Link>
-        <span>/</span>
-        <Link href="/excecoes">Exceções</Link>
-        <span>/</span>
-        <strong>Nova exceção</strong>
-      </nav>
-
-      <section className="nova-operations-flow nova-operations-flow--compact" aria-label="Fluxo de cadastro de exceção">
-        <article className="is-active">
-          <span>01</span>
-          <strong>Origem</strong>
-          <small>Alerta, chamado, SLA, integração ou automação.</small>
-        </article>
-        <i>→</i>
-        <article>
-          <span>02</span>
-          <strong>Classificação</strong>
-          <small>Tipo, severidade, responsável e vínculo.</small>
-        </article>
-        <i>→</i>
-        <article>
-          <span>03</span>
-          <strong>Fila</strong>
-          <small>Criação com SLA, prioridade e triagem.</small>
-        </article>
-      </section>
-
       <div className="nova-lit-page-heading nova-tickets-heading">
         <div>
           <h1>Nova exceção</h1>

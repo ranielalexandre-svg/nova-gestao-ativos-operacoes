@@ -283,34 +283,6 @@ export default async function ExceptionDetailPage({
   return (
     <NovaLitShell activeHref="/excecoes">
       <div className="nova-exception-detail-lit-page">
-        <nav className="nova-operations-breadcrumb nova-exception-detail-breadcrumb" aria-label="Breadcrumb">
-          <Link href="/operacao">Operação</Link>
-          <span>/</span>
-          <Link href="/excecoes">Exceções</Link>
-          <span>/</span>
-          <strong>{item.code}</strong>
-        </nav>
-
-        <section className="nova-operations-flow nova-operations-flow--compact" aria-label="Fluxo de resolução da exceção">
-          <article className="is-active">
-            <span>01</span>
-            <strong>Reconhecer</strong>
-            <small>Operador assume ciência do caso.</small>
-          </article>
-          <i>→</i>
-          <article>
-            <span>02</span>
-            <strong>Executar</strong>
-            <small>Comentário, responsável e vínculo operacional.</small>
-          </article>
-          <i>→</i>
-          <article>
-            <span>03</span>
-            <strong>Resolver</strong>
-            <small>Fechar, silenciar ou reabrir com histórico.</small>
-          </article>
-        </section>
-
         <Surface>
           <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
             <div className="min-w-0">
