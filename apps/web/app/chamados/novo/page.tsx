@@ -19,6 +19,15 @@ type PaginatedResponse<T> = {
   };
 };
 
+type RawSearchParams = Record<string, string | string[] | undefined>;
+
+function readParam(params: RawSearchParams, key: string, fallback = "") {
+  const value = params[key];
+
+  if (Array.isArray(value)) return value[0] || fallback;
+  return value || fallback;
+}
+
 type PartnerOption = {
   id: string;
   code: string;
@@ -84,16 +93,18 @@ function SelectField({
   name,
   children,
   hint,
+  defaultValue,
 }: {
   label: string;
   name: string;
   children: React.ReactNode;
   hint?: string;
+  defaultValue?: string;
 }) {
   return (
     <label className="nova-tickets-field">
       <span>{label}</span>
-      <select name={name}>
+      <select name={name} defaultValue={defaultValue || ""}>
         {children}
       </select>
       {hint ? <small>{hint}</small> : null}
@@ -108,6 +119,7 @@ function TextField({
   placeholder,
   type = "text",
   hint,
+  defaultValue,
 }: {
   label: string;
   name: string;
@@ -115,17 +127,22 @@ function TextField({
   placeholder?: string;
   type?: string;
   hint?: string;
+  defaultValue?: string | null;
 }) {
   return (
     <label className="nova-tickets-field">
       <span>{label}</span>
-      <input name={name} required={required} placeholder={placeholder} type={type} />
+      <input name={name} required={required} placeholder={placeholder} type={type} defaultValue={defaultValue || ""} />
       {hint ? <small>{hint}</small> : null}
     </label>
   );
 }
 
-export default async function NovoChamadoPage() {
+export default async function NovoChamadoPage({
+  searchParams,
+}: {
+  searchParams?: Promise<RawSearchParams> | RawSearchParams;
+}) {
   const session = await getServerWebSession();
 
   if (!session.authenticated) {
@@ -137,6 +154,16 @@ export default async function NovoChamadoPage() {
   if (!isAdmin) {
     redirect("/chamados");
   }
+
+  const params = searchParams ? await searchParams : {};
+  const defaultPartnerId = readParam(params, "partnerId");
+  const defaultUnitId = readParam(params, "unitId");
+  const defaultEquipmentId = readParam(params, "equipmentId");
+  const defaultOccurrenceId = readParam(params, "occurrenceId");
+  const defaultTitle = readParam(params, "title");
+  const defaultDescription = readParam(params, "description");
+  const defaultType = readParam(params, "type", "corrective");
+  const defaultStatus = readParam(params, "status", "planned");
 
   const [partners, units, equipments, occurrences] = await Promise.all([
     apiJson<PaginatedResponse<PartnerOption>>("/partners?page=1&pageSize=200"),
@@ -187,6 +214,7 @@ export default async function NovoChamadoPage() {
                 name="title"
                 required
                 placeholder="Troca de ONU, vistoria, recuperação de link..."
+                defaultValue={defaultTitle}
               />
             </div>
 
@@ -196,17 +224,18 @@ export default async function NovoChamadoPage() {
                 name="description"
                 rows={5}
                 placeholder="Descreva o contexto, sintoma, evidência, SLA ou instrução de campo."
+                defaultValue={defaultDescription}
               />
             </label>
 
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-              <SelectField label="Tipo" name="type">
+              <SelectField label="Tipo" name="type" defaultValue={defaultType}>
                 <option value="corrective">Corretiva</option>
                 <option value="preventive">Preventiva</option>
                 <option value="inspection">Inspeção</option>
               </SelectField>
 
-              <SelectField label="Status" name="status">
+              <SelectField label="Status" name="status" defaultValue={defaultStatus}>
                 <option value="planned">Planejado</option>
                 <option value="in_progress">Em execução</option>
                 <option value="done">Concluído</option>
@@ -218,7 +247,7 @@ export default async function NovoChamadoPage() {
             </div>
 
             <div className="grid gap-3 md:grid-cols-2">
-              <SelectField label="Parceiro" name="partnerId" hint={`${partners.items.length} parceiro(s) carregado(s)`}>
+              <SelectField label="Parceiro" name="partnerId" defaultValue={defaultPartnerId} hint={`${partners.items.length} parceiro(s) carregado(s)`}>
                 <option value="">Sem parceiro direto</option>
                 {partners.items.map((partner) => (
                   <option key={partner.id} value={partner.id}>
@@ -227,7 +256,7 @@ export default async function NovoChamadoPage() {
                 ))}
               </SelectField>
 
-              <SelectField label="Unidade" name="unitId" hint={`${units.items.length} unidade(s) carregada(s)`}>
+              <SelectField label="Unidade" name="unitId" defaultValue={defaultUnitId} hint={`${units.items.length} unidade(s) carregada(s)`}>
                 <option value="">Sem unidade direta</option>
                 {units.items.map((unit) => (
                   <option key={unit.id} value={unit.id}>
@@ -236,7 +265,7 @@ export default async function NovoChamadoPage() {
                 ))}
               </SelectField>
 
-              <SelectField label="Ativo" name="equipmentId" hint={`${equipments.items.length} ativo(s) carregado(s)`}>
+              <SelectField label="Ativo" name="equipmentId" defaultValue={defaultEquipmentId} hint={`${equipments.items.length} ativo(s) carregado(s)`}>
                 <option value="">Sem ativo direto</option>
                 {equipments.items.map((equipment) => (
                   <option key={equipment.id} value={equipment.id}>
@@ -245,7 +274,7 @@ export default async function NovoChamadoPage() {
                 ))}
               </SelectField>
 
-              <SelectField label="Alerta originador" name="occurrenceId" hint={`${occurrences.items.length} alerta(s) carregado(s)`}>
+              <SelectField label="Alerta originador" name="occurrenceId" defaultValue={defaultOccurrenceId} hint={`${occurrences.items.length} alerta(s) carregado(s)`}>
                 <option value="">Sem alerta originador</option>
                 {occurrences.items.map((occurrence) => (
                   <option key={occurrence.id} value={occurrence.id}>

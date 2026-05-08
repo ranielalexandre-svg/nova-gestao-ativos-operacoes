@@ -121,6 +121,14 @@ export default async function OcorrenciaDetailPage({
   ).length;
   const canEditAttachments = canEditAttachmentsForRole(session.user?.role || "");
   const isAdmin = isAdminRole(session.user?.role || "");
+  const newTicketParams = new URLSearchParams();
+  newTicketParams.set("occurrenceId", occurrence.id);
+  newTicketParams.set("title", `Ação técnica - ${occurrence.code}`);
+  if (occurrence.partner?.id) newTicketParams.set("partnerId", occurrence.partner.id);
+  if (occurrence.unit?.id) newTicketParams.set("unitId", occurrence.unit.id);
+  if (occurrence.equipment?.id) newTicketParams.set("equipmentId", occurrence.equipment.id);
+  const newTicketHref = `/chamados/novo?${newTicketParams.toString()}`;
+
   const connectedRoutes = [
     {
       href: "/operacao/fila?view=pending",
@@ -168,6 +176,14 @@ export default async function OcorrenciaDetailPage({
             >
               Voltar
             </Link>{isAdmin ? (
+              <Link
+                href={newTicketHref}
+                className="nds-button"
+                data-variant="secondary"
+              >
+                Novo chamado
+              </Link>
+            ) : null}{isAdmin ? (
               <Link
                 href={`/alertas/${occurrence.id}/editar`}
                 className="nds-button"
