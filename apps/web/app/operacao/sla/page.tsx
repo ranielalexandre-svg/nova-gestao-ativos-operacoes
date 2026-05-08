@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { ActionForm } from "@/components/action-form";
@@ -131,11 +132,46 @@ export default async function OperacaoSlaPage() {
 
   return (
     <NovaLitShell activeHref="/operacao/sla">
-      <div className="nova-operation-sla-lit-page"><RegistryHero
+      <div className="nova-operation-sla-lit-page">
+        <nav className="nova-operations-breadcrumb nova-operation-sla-breadcrumb" aria-label="Breadcrumb">
+          <Link href="/operacao">Operação</Link>
+          <span>/</span>
+          <strong>SLA</strong>
+        </nav>
+
+        <div className="nova-operations-inline-actions" aria-label="Ações rápidas de SLA">
+          <Link href="/excecoes">Exceções</Link>
+          <Link href="/operacao/fila">Fila</Link>
+          <Link href="/operacao/atividade">Atividade</Link>
+        </div>
+
+        <RegistryHero
         eyebrow="Policy Desk"
         title="SLA como contrato visível, não como formulário escondido"
         description="Severidade, fila e impacto no backlog."
-      /><RegistrySummaryStrip
+      />
+
+      <section className="nova-operations-flow nova-operation-sla-flow" aria-label="Fluxo de contrato SLA">
+        <article className="is-active">
+          <span>01</span>
+          <strong>Política</strong>
+          <small>Tipo, severidade, fila e contrato ativo.</small>
+        </article>
+        <i>→</i>
+        <article>
+          <span>02</span>
+          <strong>Prazo</strong>
+          <small>Primeira resposta e resolução como metas visíveis.</small>
+        </article>
+        <i>→</i>
+        <article>
+          <span>03</span>
+          <strong>Backlog</strong>
+          <small>Casos vinculados pressionam a fila operacional.</small>
+        </article>
+      </section>
+
+      <RegistrySummaryStrip
         items={[
           { label: "Políticas", value: items.length, meta: `${activeCount} ativa(s)`, tone: activeCount ? "success" : "neutral" },
           { label: "Filas", value: queueCount, meta: "com regra SLA", tone: "info" },

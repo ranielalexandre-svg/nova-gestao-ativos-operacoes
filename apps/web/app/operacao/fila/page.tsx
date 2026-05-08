@@ -241,7 +241,14 @@ export default async function FilaOperacionalPage({
 
   return (
     <NovaLitShell activeHref="/operacao/fila">
-      <div className="nova-operation-queue-lit-page"><RegistryHero
+      <div className="nova-operation-queue-lit-page">
+        <nav className="nova-operations-breadcrumb nova-operation-queue-breadcrumb" aria-label="Breadcrumb">
+          <Link href="/operacao">Operação</Link>
+          <span>/</span>
+          <strong>Fila</strong>
+        </nav>
+
+        <RegistryHero
         eyebrow="Workbench"
         title="Fila de execução do turno"
         description="Reconhecimento, atribuição e tratativa."
@@ -260,7 +267,29 @@ export default async function FilaOperacionalPage({
               Abrir monitoramento
             </Link></div>
         }
-      /><RegistrySummaryStrip
+      />
+
+      <section className="nova-operations-flow nova-operation-queue-flow" aria-label="Fluxo operacional da fila">
+        <article className="is-active">
+          <span>01</span>
+          <strong>Priorizar</strong>
+          <small>Ordene por SLA, severidade, fila e responsável.</small>
+        </article>
+        <i>→</i>
+        <article>
+          <span>02</span>
+          <strong>Despachar</strong>
+          <small>Reconheça, atribua, silencie ou resolva em lote.</small>
+        </article>
+        <i>→</i>
+        <article>
+          <span>03</span>
+          <strong>Continuar</strong>
+          <small>Abra alerta, chamado, host ou histórico sem perder contexto.</small>
+        </article>
+      </section>
+
+      <RegistrySummaryStrip
         items={[
           {
             label: "Fila total",
