@@ -243,12 +243,6 @@ export default async function ParceirosPage({
 
   return (
     <NovaLitShell activeHref="/parceiros">
-      <nav className="nova-partners-breadcrumb" aria-label="Breadcrumb">
-        <Link href="/operacao">Operação</Link>
-        <span>/</span>
-        <strong>Parceiros</strong>
-      </nav>
-
       <div className="nova-lit-page-heading nova-partners-heading">
         <div>
           <h1>Parceiros</h1>
@@ -257,30 +251,9 @@ export default async function ParceirosPage({
 
         <div className="nova-lit-page-actions">
           <Link href="/contratos" className="nova-lit-button nova-lit-button-secondary">Contratos</Link>
-          <Link href={withParams("/parceiros", currentParams, { page: state.page })} className="nova-lit-button nova-lit-button-secondary">Atualizar dados</Link>
           {isAdmin ? <Link href="/parceiros/nova" className="nova-lit-button nova-lit-button-primary">Novo parceiro</Link> : null}
         </div>
       </div>
-
-      <section className="nova-partners-flow" aria-label="Fluxo operacional de parceiros">
-        <article className="is-active">
-          <span>01</span>
-          <strong>Cadastro</strong>
-          <small>Código, nome, status e contrato operacional organizam a base.</small>
-        </article>
-        <i>→</i>
-        <article>
-          <span>02</span>
-          <strong>Cobertura</strong>
-          <small>Unidades, cidades, contatos e acionamento sustentam o atendimento.</small>
-        </article>
-        <i>→</i>
-        <article>
-          <span>03</span>
-          <strong>Operação</strong>
-          <small>Ativos, alertas, chamados e histórico fecham o ciclo do parceiro.</small>
-        </article>
-      </section>
 
       <section className="nova-partners-kpi-grid" aria-label="Indicadores de parceiros">
         {kpis.map((kpi) => (
