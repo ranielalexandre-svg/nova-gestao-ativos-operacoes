@@ -346,3 +346,101 @@ summary {
     animation: none !important;
   }
 }
+
+/* Exceções - alinhamento com mockup operacional */
+.nova-exceptions-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0 0 0.85rem;
+  color: #6d86ad;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.nova-exceptions-breadcrumb a {
+  color: #9fbce0;
+  transition: color 160ms ease;
+}
+
+.nova-exceptions-breadcrumb a:hover {
+  color: #ffffff;
+}
+
+.nova-exceptions-breadcrumb strong {
+  color: #ffffff;
+}
+
+.nova-exceptions-flow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: stretch;
+  gap: 0.8rem;
+  margin: 0.95rem 0 1rem;
+}
+
+.nova-exceptions-flow article {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(84, 103, 132, 0.42);
+  border-radius: 1rem;
+  background:
+    radial-gradient(circle at 14% 0%, rgba(255, 119, 8, 0.12), transparent 42%),
+    linear-gradient(180deg, rgba(17, 25, 35, 0.96), rgba(10, 16, 24, 0.96));
+  padding: 0.85rem 0.9rem;
+}
+
+.nova-exceptions-flow article.is-active {
+  border-color: rgba(255, 119, 8, 0.46);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.22);
+}
+
+.nova-exceptions-flow article span {
+  display: inline-flex;
+  width: 1.65rem;
+  height: 1.65rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(255, 119, 8, 0.15);
+  color: #ff7708;
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.nova-exceptions-flow article strong {
+  display: block;
+  margin-top: 0.55rem;
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.nova-exceptions-flow article small {
+  display: block;
+  margin-top: 0.25rem;
+  color: #9fbce0;
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+.nova-exceptions-flow > i {
+  align-self: center;
+  color: #ff7708;
+  font-style: normal;
+  font-weight: 900;
+  opacity: 0.9;
+}
+
+@media (max-width: 900px) {
+  .nova-exceptions-flow {
+    grid-template-columns: 1fr;
+  }
+
+  .nova-exceptions-flow > i {
+    display: none;
+  }
+}
