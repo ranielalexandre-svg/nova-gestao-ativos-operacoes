@@ -58,7 +58,7 @@ export function StarlinkSecretActions({
   return (
     <div className="mt-2 flex flex-wrap gap-2">
       <CopyButton label="Copiar e-mail" value={email} />
-      <CopyButton label="Copiar senha" value={password} />
+      <CopyButton label="Copiar credencial" value={password} />
       <CopyButton label="Copiar cartão" value={card} />
     </div>
   );
