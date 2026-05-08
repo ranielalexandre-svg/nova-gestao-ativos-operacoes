@@ -239,6 +239,26 @@ export default async function ImportacaoPage({
           </div>
         </header>
 
+        <section className="nova-import-flow" aria-label="Fluxo de importação operacional">
+          <article className="is-active">
+            <span>01</span>
+            <strong>Template</strong>
+            <small>Escolha recurso, copie cabeçalho e prepare o CSV.</small>
+          </article>
+          <i>→</i>
+          <article>
+            <span>02</span>
+            <strong>Validação</strong>
+            <small>Preview estrutural sem gravar dados no banco.</small>
+          </article>
+          <i>→</i>
+          <article>
+            <span>03</span>
+            <strong>Upsert</strong>
+            <small>Importação controlada com revalidação das telas vinculadas.</small>
+          </article>
+        </section>
+
         <section className="nova-import-kpi-grid">
           <MetricCard
             label="Recursos"

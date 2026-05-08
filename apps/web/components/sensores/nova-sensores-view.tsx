@@ -232,6 +232,12 @@ export default function NovaSensoresView({
 
   return (
     <NovaLitShell activeHref="/sensores">
+      <nav className="nova-monitoring-breadcrumb" aria-label="Breadcrumb">
+        <Link href="/operacao">Operação</Link>
+        <span>/</span>
+        <strong>Sensores</strong>
+      </nav>
+
       <div className="nova-lit-page-heading nova-sensors-heading">
         <div>
           <h1>Sensores</h1>
@@ -240,9 +246,30 @@ export default function NovaSensoresView({
 
         <div className="nova-lit-page-actions">
           <Link href="/integracoes" className="nova-lit-button nova-lit-button-secondary">Integrações</Link>
+          <Link href={withParams("/sensores", currentParams, { page: safePage })} className="nova-lit-button nova-lit-button-secondary">Atualizar dados</Link>
           <Link href="/relatorios/monitoramento" className="nova-lit-button nova-lit-button-primary">Relatório</Link>
         </div>
       </div>
+
+      <section className="nova-monitoring-flow" aria-label="Fluxo de monitoramento">
+        <article className="is-active">
+          <span>01</span>
+          <strong>Coleta</strong>
+          <small>Integração Zabbix, hosts, ping, perda, latência e temperatura.</small>
+        </article>
+        <i>→</i>
+        <article>
+          <span>02</span>
+          <strong>Correlação</strong>
+          <small>Host vinculado à unidade, parceiro, ativos e problemas ativos.</small>
+        </article>
+        <i>→</i>
+        <article>
+          <span>03</span>
+          <strong>Ação</strong>
+          <small>Relatório, chamado, alerta ou revisão da integração operacional.</small>
+        </article>
+      </section>
 
       <section className="nova-sensors-kpi-grid" aria-label="Indicadores de sensores">
         {kpis.map((kpi) => (

@@ -512,6 +512,34 @@ export default async function MonitoringReportsPage({
   return (
     <NovaLitShell activeHref="/relatorios/monitoramento">
       <div className="nova-monitoring-report-page nova-monitoring-report-lit-page grid gap-2">
+        <nav className="nova-monitoring-breadcrumb" aria-label="Breadcrumb">
+          <Link href="/operacao">Operação</Link>
+          <span>/</span>
+          <Link href="/sensores">Sensores</Link>
+          <span>/</span>
+          <strong>Relatório de monitoramento</strong>
+        </nav>
+
+        <section className="nova-monitoring-flow nova-monitoring-flow--compact" aria-label="Fluxo de geração de relatório">
+          <article className="is-active">
+            <span>01</span>
+            <strong>Fonte</strong>
+            <small>Unidade, grupo Zabbix ou template salvo.</small>
+          </article>
+          <i>→</i>
+          <article>
+            <span>02</span>
+            <strong>Período</strong>
+            <small>Janela, metadados, unidades e gráficos.</small>
+          </article>
+          <i>→</i>
+          <article>
+            <span>03</span>
+            <strong>Exportação</strong>
+            <small>PDF ou DOCX com histórico e anexos do relatório.</small>
+          </article>
+        </section>
+
         <PageHeader
           eyebrow="Relatórios / Monitoramento"
           title="Gerar relatório de monitoramento"

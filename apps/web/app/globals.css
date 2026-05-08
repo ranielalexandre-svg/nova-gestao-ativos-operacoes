@@ -1010,3 +1010,172 @@ summary {
     position: static;
   }
 }
+
+/* Monitoramento, Sensores, Relatórios e Importação - alinhamento visual NOVA */
+.nova-monitoring-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0 0 0.85rem;
+  color: #6d86ad;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.nova-monitoring-breadcrumb a {
+  color: #9fbce0;
+  transition: color 160ms ease;
+}
+
+.nova-monitoring-breadcrumb a:hover,
+.nova-monitoring-breadcrumb strong {
+  color: #ffffff;
+}
+
+.nova-monitoring-flow,
+.nova-import-flow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: stretch;
+  gap: 0.8rem;
+  margin: 0.95rem 0 1rem;
+}
+
+.nova-monitoring-flow--compact {
+  margin-top: 0;
+}
+
+.nova-monitoring-flow article,
+.nova-import-flow article {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(84, 103, 132, 0.42);
+  border-radius: 1rem;
+  background:
+    radial-gradient(circle at 14% 0%, rgba(255, 119, 8, 0.12), transparent 42%),
+    linear-gradient(180deg, rgba(17, 25, 35, 0.96), rgba(10, 16, 24, 0.96));
+  padding: 0.85rem 0.9rem;
+}
+
+.nova-monitoring-flow article.is-active,
+.nova-import-flow article.is-active {
+  border-color: rgba(255, 119, 8, 0.50);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.22);
+}
+
+.nova-monitoring-flow article span,
+.nova-import-flow article span {
+  display: inline-flex;
+  width: 1.65rem;
+  height: 1.65rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(255, 119, 8, 0.15);
+  color: #ff7708;
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.nova-monitoring-flow article strong,
+.nova-import-flow article strong {
+  display: block;
+  margin-top: 0.55rem;
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.nova-monitoring-flow article small,
+.nova-import-flow article small {
+  display: block;
+  margin-top: 0.25rem;
+  color: #9fbce0;
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+.nova-monitoring-flow > i,
+.nova-import-flow > i {
+  align-self: center;
+  color: #ff7708;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.nova-sensors-table-card,
+.nova-sensors-right-col > section,
+.nova-monitoring-report-lit-page .nds-card,
+.nova-monitoring-report-lit-page .nds-surface,
+.nova-import-card,
+.nova-import-warning {
+  border: 1px solid rgba(84, 103, 132, 0.42);
+  background:
+    radial-gradient(circle at 12% 0%, rgba(255, 119, 8, 0.10), transparent 18rem),
+    linear-gradient(180deg, rgba(17, 25, 35, 0.96), rgba(10, 16, 24, 0.96));
+  box-shadow: 0 22px 70px rgba(0, 0, 0, 0.22);
+}
+
+.nova-sensors-filters input,
+.nova-sensors-filters select,
+.nova-monitoring-report-lit-page input,
+.nova-monitoring-report-lit-page select,
+.nova-monitoring-report-lit-page textarea,
+.nova-import-form input,
+.nova-import-form select,
+.nova-import-form textarea {
+  border: 1px solid rgba(84, 103, 132, 0.48);
+  background: rgba(7, 12, 18, 0.82);
+  color: #ffffff;
+}
+
+.nova-sensors-right-col,
+.nova-import-right {
+  align-self: start;
+  position: sticky;
+  top: 1rem;
+}
+
+.nova-sensors-ring {
+  display: grid;
+  min-height: 10rem;
+  place-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 119, 8, 0.34);
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255, 119, 8, 0.20), transparent 58%),
+    rgba(7, 12, 18, 0.72);
+}
+
+.nova-sensors-ring strong {
+  color: #ffffff;
+  font-size: 2rem;
+  font-weight: 900;
+}
+
+.nova-sensors-ring span {
+  margin-top: -3.2rem;
+  color: #9fbce0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+@media (max-width: 900px) {
+  .nova-monitoring-flow,
+  .nova-import-flow {
+    grid-template-columns: 1fr;
+  }
+
+  .nova-monitoring-flow > i,
+  .nova-import-flow > i {
+    display: none;
+  }
+
+  .nova-sensors-right-col,
+  .nova-import-right {
+    position: static;
+  }
+}
