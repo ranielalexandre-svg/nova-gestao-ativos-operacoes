@@ -94,26 +94,6 @@ function hostLabel(item: UnitHostTelemetryItem) {
   return item.match?.hostName || item.match?.host || "Sem host";
 }
 
-function locationLabel(item: UnitHostTelemetryItem) {
-  return cityKey(item.unit.city, item.unit.state);
-}
-
-function healthTone(value: string): Tone {
-  if (value === "online") return "green";
-  if (value === "degraded" || value === "ambiguous") return "orange";
-  if (value === "down") return "red";
-  return "slate";
-}
-
-function healthLabel(value: string) {
-  if (value === "online") return "Online";
-  if (value === "degraded") return "Atenção";
-  if (value === "down") return "Offline";
-  if (value === "ambiguous") return "Ambíguo";
-  if (value === "unmapped") return "Sem vínculo";
-  return "Sem item";
-}
-
 function cityTone(city: CityAggregate): Tone {
   if (city.down || city.criticalAlerts) return "red";
   if (city.attention || city.alerts) return "orange";
@@ -284,7 +264,6 @@ export default async function MapasPage({
 
   const cities = buildCityAggregates(filteredItems, commandCenter);
   const visibleCities = cities.slice(0, state.pageSize);
-  const maxCityTotal = Math.max(1, ...visibleCities.map((city) => city.total));
   const coverage = telemetry.counts.units ? Math.round((telemetry.counts.matched / telemetry.counts.units) * 100) : 0;
   const attention = telemetry.counts.degraded + telemetry.counts.ambiguous;
   const riskCities = cities.filter((city) => city.down || city.attention || city.alerts).slice(0, 6);

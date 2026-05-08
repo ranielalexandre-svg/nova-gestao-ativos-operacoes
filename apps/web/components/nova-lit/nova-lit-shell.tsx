@@ -2,6 +2,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import type { FormEvent, MouseEvent, ReactNode } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -232,10 +233,6 @@ function writeJson<T>(key: string, value: T) {
   } catch {
     // localStorage pode estar indisponível em navegação privada.
   }
-}
-
-function findNavItem(href: string) {
-  return FLAT_MENU.find((item) => item.href === href);
 }
 
 function navItemKey(item: Pick<FlatNavItem, "href" | "label" | "section" | "parent">, prefix: string, index?: number) {
@@ -509,7 +506,7 @@ export function NovaLitShell({
   const [openSections, setOpenSections] = useState<Record<string, boolean>>(sectionDefaults());
   const [openItems, setOpenItems] = useState<Record<string, boolean>>(itemDefaults());
   const [favorites, setFavorites] = useState<string[]>(DEFAULT_FAVORITES);
-  const [badgeCounts, setBadgeCounts] = useState<Record<string, number | undefined>>({});
+  const [badgeCounts] = useState<Record<string, number | undefined>>({});
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -563,12 +560,6 @@ export function NovaLitShell({
       return haystack.includes(normalized);
     }).slice(0, 7);
   }, [query]);
-
-  const favoriteItems = useMemo(() => {
-    return favorites
-      .map((href) => findNavItem(href))
-      .filter((item): item is FlatNavItem => Boolean(item));
-  }, [favorites]);
 
   function isItemActive(item: NavItem) {
     if (item.children?.some((child) => isItemActive(child))) return true;
@@ -694,14 +685,14 @@ export function NovaLitShell({
       <aside className="nova-lit-sidebar-v2" aria-label="Menu principal">
         <div className="nova-lit-sidebar-top">
           <Link href="/dashboard" className="nova-lit-logo" aria-label="NOVA Telecom">
-            <img
+            <Image
               className="nova-lit-logo-img"
               src="/brand/nova-telecom-logo.svg"
               alt="NOVA Telecom"
               width={164}
               height={52}
             />
-            <img
+            <Image
               className="nova-lit-logo-mark"
               src="/brand/nova-telecom-mark.svg"
               alt="NOVA"
