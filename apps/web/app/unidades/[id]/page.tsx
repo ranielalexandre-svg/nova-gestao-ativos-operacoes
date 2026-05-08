@@ -1688,7 +1688,7 @@ export default async function UnidadeDetailPage({
         return;
       }
 
-      await apiJson(`/legacy/units/${unitId}/operational-data/${infoId}`, {
+      await apiJson(`/operational-data/units/${unitId}/${infoId}`, {
         method: "PATCH",
         body: JSON.stringify({
           partnerCode: String(formData.get("partnerCode") || ""),
@@ -1739,7 +1739,7 @@ export default async function UnidadeDetailPage({
       "/partners?page=1&pageSize=100&sortBy=code&sortDir=asc",
     ),
     apiJson<UnitOperationalDataResponse>(
-      `/legacy/units/${resolvedParams.id}/operational-data${revealOperationalSecrets ? "/reveal" : ""}`,
+      `/operational-data/units/${resolvedParams.id}${revealOperationalSecrets ? "/reveal" : ""}`,
     ).catch(() => null),
   ]);
 
