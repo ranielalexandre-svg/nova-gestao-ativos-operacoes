@@ -317,12 +317,6 @@ export default async function AtivosPage({
 
   return (
     <NovaLitShell activeHref="/ativos">
-      <nav className="nova-assets-breadcrumb" aria-label="Breadcrumb">
-        <Link href="/operacao">Operação</Link>
-        <span>/</span>
-        <strong>Ativos</strong>
-      </nav>
-
       <div className="nova-lit-page-heading nova-assets-heading">
         <div>
           <h1>Ativos</h1>
@@ -332,30 +326,9 @@ export default async function AtivosPage({
         <div className="nova-lit-page-actions">
           <Link href="/ativos/onus" className="nova-lit-button nova-lit-button-secondary">ONUs</Link>
           <Link href="/ativos/starlinks" className="nova-lit-button nova-lit-button-secondary">Starlinks</Link>
-          <Link href={withParams("/ativos", currentParams, { page: state.page })} className="nova-lit-button nova-lit-button-secondary">Atualizar dados</Link>
           {isAdmin ? <Link href="/ativos/nova" className="nova-lit-button nova-lit-button-primary">Novo ativo</Link> : null}
         </div>
       </div>
-
-      <section className="nova-assets-flow" aria-label="Fluxo do ciclo de vida dos ativos">
-        <article className="is-active">
-          <span>01</span>
-          <strong>Inventário</strong>
-          <small>Tag, serial, tipo, unidade e parceiro consolidam a base técnica.</small>
-        </article>
-        <i>→</i>
-        <article>
-          <span>02</span>
-          <strong>Operação</strong>
-          <small>Status, monitoramento, documentos e dados operacionais dão contexto ao turno.</small>
-        </article>
-        <i>→</i>
-        <article>
-          <span>03</span>
-          <strong>Manutenção</strong>
-          <small>Alertas, chamados, fila e histórico fecham o ciclo de atendimento.</small>
-        </article>
-      </section>
 
       <section className="nova-assets-kpi-grid" aria-label="Indicadores de ativos">
         {kpis.map((kpi) => (

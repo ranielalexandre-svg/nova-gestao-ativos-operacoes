@@ -263,14 +263,6 @@ export default async function StarlinksPage({
 
   return (
     <NovaLitShell activeHref="/ativos/starlinks">
-      <nav className="nova-assets-breadcrumb" aria-label="Breadcrumb">
-        <Link href="/operacao">Operação</Link>
-        <span>/</span>
-        <Link href="/ativos">Ativos</Link>
-        <span>/</span>
-        <strong>Starlinks</strong>
-      </nav>
-
       <div className="nova-lit-page-heading nova-starlinks-heading">
         <div>
           <h1>Starlinks</h1>
@@ -279,30 +271,9 @@ export default async function StarlinksPage({
 
         <div className="nova-lit-page-actions">
           <Link href="/ativos" className="nova-lit-button nova-lit-button-secondary">Ver ativos</Link>
-          <Link href={withParams("/ativos/starlinks", currentParams, { page: safePage })} className="nova-lit-button nova-lit-button-secondary">Atualizar dados</Link>
           {isAdmin ? <Link href="/importacao?resource=starlinks" className="nova-lit-button nova-lit-button-primary">Importar Starlinks</Link> : null}
         </div>
       </div>
-
-      <section className="nova-assets-flow nova-assets-flow--satellite" aria-label="Fluxo operacional Starlink">
-        <article className="is-active">
-          <span>01</span>
-          <strong>Terminal</strong>
-          <small>Serial, kit, antena, status e localização garantem rastreabilidade.</small>
-        </article>
-        <i>→</i>
-        <article>
-          <span>02</span>
-          <strong>Credenciais</strong>
-          <small>Dados operacionais ficam mascarados e auditados por padrão.</small>
-        </article>
-        <i>→</i>
-        <article>
-          <span>03</span>
-          <strong>Atendimento</strong>
-          <small>Unidade, parceiro, chamados e documentos sustentam o suporte.</small>
-        </article>
-      </section>
 
       <section className="nova-starlinks-kpi-grid" aria-label="Indicadores de Starlinks">
         {kpis.map((kpi) => (
