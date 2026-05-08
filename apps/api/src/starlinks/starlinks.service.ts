@@ -113,8 +113,6 @@ export class StarlinksService {
         documentsCount: attachmentsByEquipmentId.get(item.id) || 0,
         operationalDataCount: operationalCounts.rows,
         operationalSecretsCount: operationalCounts.secrets,
-        legacyDataCount: operationalCounts.rows,
-        legacySecretsCount: operationalCounts.secrets,
       };
     });
   }
@@ -184,14 +182,6 @@ export class StarlinksService {
     infoId: string,
     payload: Record<string, unknown>,
   ) {
-    return this.updateLegacyStarlinkData(equipmentId, infoId, payload);
-  }
-
-  async updateLegacyStarlinkData(
-    equipmentId: string,
-    infoId: string,
-    payload: Record<string, unknown>,
-  ) {
     const existing = await this.prisma.starlinkOperationalInfo.findFirst({
       where: { id: infoId, equipmentId },
       select: { id: true },
@@ -229,7 +219,15 @@ export class StarlinksService {
     return this.formatOperationalInfo(updated, false);
   }
 
-  async importLegacyStarlinkData(payload: unknown) {
+  async updateLegacyStarlinkData(
+    equipmentId: string,
+    infoId: string,
+    payload: Record<string, unknown>,
+  ) {
+    return this.updateOperationalStarlinkData(equipmentId, infoId, payload);
+  }
+
+  async importOperationalStarlinkData(payload: unknown) {
     const bundle = this.asRecord(payload);
     const normalized = this.asRecord(bundle.normalized);
     const legacyStarlinks = Array.isArray(normalized.starlinks)
@@ -294,8 +292,8 @@ export class StarlinksService {
     };
   }
 
-  async importOperationalStarlinkData(payload: unknown) {
-    return this.importLegacyStarlinkData(payload);
+  async importLegacyStarlinkData(payload: unknown) {
+    return this.importOperationalStarlinkData(payload);
   }
 
   private formatOperationalInfo(

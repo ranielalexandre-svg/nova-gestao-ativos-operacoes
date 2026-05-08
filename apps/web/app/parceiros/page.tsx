@@ -38,7 +38,6 @@ type PartnerRow = {
   createdAt: string;
   primaryContact: PartnerOperationalContact | null;
   operationalContactCount: number;
-  legacyContactCount?: number;
   _count: { units: number; operationalContacts?: number };
 };
 
@@ -83,7 +82,7 @@ function cityBase(item?: PartnerOperationalContact | null) {
 }
 
 function contactCount(partner: PartnerRow) {
-  return partner.operationalContactCount ?? partner.legacyContactCount ?? partner._count.operationalContacts ?? 0;
+  return partner.operationalContactCount ?? partner._count.operationalContacts ?? 0;
 }
 
 function statusTone(isActive: boolean): Tone {

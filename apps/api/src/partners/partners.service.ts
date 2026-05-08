@@ -109,7 +109,6 @@ export class PartnersService {
         ...item,
         primaryContact: item.operationalContacts[0] || null,
         operationalContactCount: item._count.operationalContacts,
-        legacyContactCount: item._count.operationalContacts,
       })),
       meta: {
         page,
@@ -404,6 +403,10 @@ export class PartnersService {
   }
 
   async importLegacyContacts(payload: unknown) {
+    return this.importOperationalContacts(payload);
+  }
+
+  async importOperationalContacts(payload: unknown) {
     const bundle = this.asRecord(payload);
     const raw = this.asRecord(bundle.raw);
     const rows = Array.isArray(raw.parceiros) ? (raw.parceiros as LegacyPartnerContactPayload[]) : [];

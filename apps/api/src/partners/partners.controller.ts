@@ -48,7 +48,7 @@ export class PartnersController {
   @Roles("admin")
   @Post("import-operational-contacts")
   importOperationalContacts(@Body() body: unknown) {
-    return this.partnersService.importLegacyContacts(body);
+    return this.partnersService.importOperationalContacts(body);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
