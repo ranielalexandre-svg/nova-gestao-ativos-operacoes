@@ -56,7 +56,7 @@ export function OperationalSecretActions({
   return (
     <div className="mt-2 flex flex-wrap gap-2">
       <CopyButton label="Copiar login" value={username} />
-      <CopyButton label="Copiar senha" value={value} />
+      <CopyButton label="Copiar credencial" value={value} />
     </div>
   );
 }
