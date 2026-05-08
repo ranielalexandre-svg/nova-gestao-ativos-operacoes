@@ -36,8 +36,6 @@ type StarlinkRow = {
   documentsCount: number;
   operationalDataCount?: number;
   operationalSecretsCount?: number;
-  legacyDataCount?: number;
-  legacySecretsCount?: number;
 };
 
 type StarlinksState = {
@@ -92,6 +90,14 @@ function locationLabel(item: StarlinkRow) {
   if (item.city) return item.city;
   if (item.state) return item.state;
   return "Sem cidade/UF";
+}
+
+function operationalDataCount(item: StarlinkRow) {
+  return item.operationalDataCount ?? 0;
+}
+
+function operationalSecretsCount(item: StarlinkRow) {
+  return item.operationalSecretsCount ?? 0;
 }
 
 function formatDate(value: string) {
@@ -240,8 +246,8 @@ export default async function StarlinksPage({
   const retired = filtered.filter((item) => statusTone(item.status) === "slate").length;
   const withSerial = filtered.filter((item) => item.serial).length;
   const withDocs = filtered.filter((item) => item.documentsCount > 0).length;
-  const withOperationalData = filtered.filter((item) => (item.operationalDataCount ?? item.legacyDataCount ?? 0) > 0).length;
-  const withOperationalSecrets = filtered.filter((item) => (item.operationalSecretsCount ?? item.legacySecretsCount ?? 0) > 0).length;
+  const withOperationalData = filtered.filter((item) => operationalDataCount(item) > 0).length;
+  const withOperationalSecrets = filtered.filter((item) => operationalSecretsCount(item) > 0).length;
   const cities = new Set(filtered.map((item) => locationLabel(item)).filter((item) => item !== "Sem cidade/UF")).size;
   const partners = new Set(filtered.map((item) => item.partnerCode).filter(Boolean)).size;
   const currentParams = stateParams({ ...state, page: safePage });
@@ -359,11 +365,11 @@ export default async function StarlinksPage({
 
                 <div>
                   <Badge tone={item.documentsCount ? "green" : "slate"}>{`${item.documentsCount} docs`}</Badge>
-                  {((item.operationalDataCount ?? item.legacyDataCount ?? 0) > 0) ? (
-                    <Badge tone="orange">{`${item.operationalDataCount ?? item.legacyDataCount} operacional`}</Badge>
+                  {(operationalDataCount(item) > 0) ? (
+                    <Badge tone="orange">{`${operationalDataCount(item)} operacional`}</Badge>
                   ) : null}
-                  {((item.operationalSecretsCount ?? item.legacySecretsCount ?? 0) > 0) ? (
-                    <small>{item.operationalSecretsCount ?? item.legacySecretsCount} segredo(s)</small>
+                  {(operationalSecretsCount(item) > 0) ? (
+                    <small>{operationalSecretsCount(item)} segredo(s)</small>
                   ) : (
                     <small>{formatDate(item.createdAt)}</small>
                   )}

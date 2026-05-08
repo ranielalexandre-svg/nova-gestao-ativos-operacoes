@@ -1540,7 +1540,7 @@ function OperationalDataBlock({
     <Surface><SectionIntro
         eyebrow="Dados operacionais"
         title="Links, acionamento e credenciais reais"
-        description="Dados persistidos a partir do legado SQLite, editaveis no cadastro da unidade e mascarados por padrao."
+        description="Dados importados ou editados no cadastro da unidade, com credenciais mascaradas por padrao."
         actions={
           <div className="flex flex-wrap gap-2">
             <TonePill tone="success">{data.total} registro(s)</TonePill>
@@ -2028,7 +2028,7 @@ export default async function UnidadeDetailPage({
               title="Unidade criada com sucesso"
               description={
                 from === "legacy"
-                  ? "A unidade nasceu a partir de uma pista do legado. Revise vínculos, ativos e host Zabbix antes de sincronizar."
+                  ? "A unidade nasceu a partir de dados importados. Revise vínculos, ativos e host Zabbix antes de sincronizar."
                   : from === "wizard"
                   ? "Cadastro concluído."
                   : "A unidade criada pelo cadastro direto já está disponível para consulta e próximos vínculos."
@@ -2153,8 +2153,8 @@ export default async function UnidadeDetailPage({
             <Surface>
               <SectionIntro
                 eyebrow="Dados operacionais"
-                title="Sem dados persistidos nesta unidade"
-                description="Nenhum link operacional persistido foi encontrado para esta unidade. Use a importação operacional ou edite os dados no cadastro da unidade."
+                title="Sem dados operacionais nesta unidade"
+                description="Nenhum link operacional foi encontrado para esta unidade. Use a importação operacional ou edite os dados no cadastro da unidade."
                 compact
               />
             </Surface>
@@ -2163,9 +2163,9 @@ export default async function UnidadeDetailPage({
           <Surface className="nds-card">
             <div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
               <SectionIntro
-                eyebrow="Legado"
+                eyebrow="Dados operacionais"
                 title="Dados operacionais sob demanda"
-                description="Links, acionamento e credenciais persistidos ficam fora da abertura inicial para manter a página rápida."
+                description="Links, acionamento e credenciais ficam fora da abertura inicial para manter a página rápida."
                 compact
               />
               <Link
@@ -2173,7 +2173,7 @@ export default async function UnidadeDetailPage({
                 className="nds-button"
                 data-variant="secondary"
               >
-                Carregar legado
+                Carregar dados
               </Link>
             </div>
           </Surface>

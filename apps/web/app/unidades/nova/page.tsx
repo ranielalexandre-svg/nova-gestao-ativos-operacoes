@@ -166,7 +166,7 @@ export default async function NovaUnidadePage({
             description="Fluxo curto para identificar, vincular e revisar antes de criar."
             actions={
               origin === "legacy" ? (
-                <TonePill tone="info">pré-preenchido pelo legado</TonePill>
+                <TonePill tone="info">pré-preenchido por dados importados</TonePill>
               ) : undefined
             }
             compact
@@ -248,7 +248,7 @@ export default async function NovaUnidadePage({
                     </select>
                     {partnerCode ? (
                       <div className="text-[10px] leading-5 text-slate-500">
-                        Parceiro sugerido pelo legado:{" "}
+                        Parceiro sugerido pelos dados importados:{" "}
                         <span className="font-semibold text-slate-300">{partnerCode}</span>
                         {partnerFromLegacy
                           ? " · selecionado automaticamente"
@@ -282,10 +282,10 @@ export default async function NovaUnidadePage({
           {step === 3 ? (
             <WizardPanel
               title="Monitoramento"
-              description="Prepare a unidade para o match técnico com host, legado e cobertura do parceiro."
+              description="Prepare a unidade para o match técnico com host, dados importados e cobertura do parceiro."
             ><div className="nova-side-grid nova-side-grid--320 nova-side-grid--lg"><div className="grid gap-2"><div className="nds-card"><div className="text-[12px] font-black text-slate-50">Fluxo recomendado</div><div className="mt-1 text-[11px] leading-5 text-slate-400">
-                      1. Crie a unidade com base e vínculo corretos. 2. Abra a ficha da unidade. 3. Resolva o match do host Zabbix, legado e cobertura do parceiro no detalhe operacional.
-                    </div></div><div className="grid gap-2 md:grid-cols-3"><SummaryItem label="Código" value={code} /><SummaryItem label="Nome" value={name} /><SummaryItem label="Parceiro" value={selectedPartner ? `${selectedPartner.code} - ${selectedPartner.name}` : "-"} /><SummaryItem label="Cidade" value={city || "-"} /><SummaryItem label="UF" value={state || "-"} /><SummaryItem label="Origem" value={origin === "legacy" ? "legado importado" : "cadastro manual"} /></div></div><div className="rounded-[6px] border border-[var(--nova-primary)]/20 bg-[var(--nova-primary-soft)] p-2"><div className="nds-label">
+                      1. Crie a unidade com base e vínculo corretos. 2. Abra a ficha da unidade. 3. Resolva o match do host Zabbix, dados importados e cobertura do parceiro no detalhe operacional.
+                    </div></div><div className="grid gap-2 md:grid-cols-3"><SummaryItem label="Código" value={code} /><SummaryItem label="Nome" value={name} /><SummaryItem label="Parceiro" value={selectedPartner ? `${selectedPartner.code} - ${selectedPartner.name}` : "-"} /><SummaryItem label="Cidade" value={city || "-"} /><SummaryItem label="UF" value={state || "-"} /><SummaryItem label="Origem" value={origin === "legacy" ? "dados importados" : "cadastro manual"} /></div></div><div className="rounded-[6px] border border-[var(--nova-primary)]/20 bg-[var(--nova-primary-soft)] p-2"><div className="nds-label">
                     pós-criação
                   </div><div className="mt-2 text-[12px] font-black text-white">
                     O monitoramento nasce no detalhe
@@ -316,7 +316,7 @@ export default async function NovaUnidadePage({
                 submitLabel="Criar unidade"
                 pendingLabel="Criando unidade..."
                 hideSubmit
-              ><input type="hidden" name="code" value={code} /><input type="hidden" name="name" value={name} /><input type="hidden" name="city" value={city} /><input type="hidden" name="state" value={state} /><input type="hidden" name="partnerId" value={partnerId} /><input type="hidden" name="partnerCode" value={partnerCode} /><input type="hidden" name="from" value={origin} /><div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3"><SummaryItem label="Código" value={code} /><SummaryItem label="Nome da unidade" value={name} /><SummaryItem label="Parceiro" value={selectedPartner ? `${selectedPartner.code} - ${selectedPartner.name}` : "-"} /><SummaryItem label="Cidade" value={city || "-"} /><SummaryItem label="UF" value={state || "-"} /><SummaryItem label="Origem" value={origin === "legacy" ? "legado importado" : "cadastro manual"} /></div><div className="nds-card"><div className="nds-label">
+              ><input type="hidden" name="code" value={code} /><input type="hidden" name="name" value={name} /><input type="hidden" name="city" value={city} /><input type="hidden" name="state" value={state} /><input type="hidden" name="partnerId" value={partnerId} /><input type="hidden" name="partnerCode" value={partnerCode} /><input type="hidden" name="from" value={origin} /><div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3"><SummaryItem label="Código" value={code} /><SummaryItem label="Nome da unidade" value={name} /><SummaryItem label="Parceiro" value={selectedPartner ? `${selectedPartner.code} - ${selectedPartner.name}` : "-"} /><SummaryItem label="Cidade" value={city || "-"} /><SummaryItem label="UF" value={state || "-"} /><SummaryItem label="Origem" value={origin === "legacy" ? "dados importados" : "cadastro manual"} /></div><div className="nds-card"><div className="nds-label">
                   Dados para relatório
                 </div><div className="mt-1 text-[11px] leading-5 text-slate-400">
                   Preencha quando a unidade já tiver contrato, endereço de instalação ou banda oficial. Esses dados entram automaticamente no DOCX/PDF.
@@ -338,7 +338,7 @@ export default async function NovaUnidadePage({
                       rows={3}
                       placeholder="Observações internas para emissão do relatório"
                     /></div></div></div><div className="nds-card text-[11px] leading-5 text-slate-400">
-                  Depois de criar, abra a ficha da unidade para amarrar monitoramento, contexto legado, backup e ativos.
+                  Depois de criar, abra a ficha da unidade para amarrar monitoramento, dados operacionais, backup e ativos.
                 </div><div className="flex items-center justify-between gap-2 border-t border-white/[0.08] pt-2"><Link
                     href={buildWizardHref(3, wizardValues)}
                     className="nds-button"

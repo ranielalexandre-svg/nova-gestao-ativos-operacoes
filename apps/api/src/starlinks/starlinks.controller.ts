@@ -37,9 +37,15 @@ export class StarlinksController {
     return this.starlinksService.importLegacyStarlinkData(payload);
   }
 
+  @Post("import-operational-data")
+  importOperationalStarlinkData(@Req() req: AuthenticatedRequest, @Body() payload: unknown) {
+    this.assertAdmin(req);
+    return this.starlinksService.importOperationalStarlinkData(payload);
+  }
+
   @Get(":id/operational-data")
   getOperationalStarlinkData(@Param("id") id: string) {
-    return this.starlinksService.getLegacyStarlinkData(id, false);
+    return this.starlinksService.getOperationalStarlinkData(id, false);
   }
 
   @Get(":id/legacy-data")
@@ -50,7 +56,7 @@ export class StarlinksController {
   @Get(":id/operational-data/reveal")
   revealOperationalStarlinkData(@Param("id") id: string, @Req() req: AuthenticatedRequest) {
     this.assertAdmin(req);
-    return this.starlinksService.getLegacyStarlinkData(id, true);
+    return this.starlinksService.getOperationalStarlinkData(id, true);
   }
 
   @Get(":id/legacy-data/reveal")
@@ -67,7 +73,7 @@ export class StarlinksController {
     @Body() payload: Record<string, unknown>,
   ) {
     this.assertAdmin(req);
-    return this.starlinksService.updateLegacyStarlinkData(id, infoId, payload);
+    return this.starlinksService.updateOperationalStarlinkData(id, infoId, payload);
   }
 
   @Patch(":id/legacy-data/:infoId")

@@ -49,7 +49,7 @@ export class StarlinksService {
 
     const equipmentIds = items.map((item) => item.id);
 
-    const [attachmentCounts, legacyInfos] = await Promise.all([
+    const [attachmentCounts, operationalInfos] = await Promise.all([
       equipmentIds.length
         ? this.prisma.documentAttachment.groupBy({
             by: ["entityId"],
@@ -79,7 +79,7 @@ export class StarlinksService {
 
     const operationalCountsByEquipmentId = new Map<string, { rows: number; secrets: number }>();
 
-    for (const info of legacyInfos) {
+    for (const info of operationalInfos) {
       const current = operationalCountsByEquipmentId.get(info.equipmentId) || { rows: 0, secrets: 0 };
 
       current.rows += 1;
@@ -119,7 +119,7 @@ export class StarlinksService {
     });
   }
 
-  async getLegacyStarlinkData(equipmentId: string, revealSecrets: boolean) {
+  async getOperationalStarlinkData(equipmentId: string, revealSecrets: boolean) {
     const equipment = await this.prisma.equipment.findUnique({
       where: { id: equipmentId },
       select: {
@@ -159,7 +159,7 @@ export class StarlinksService {
             kind: "security",
             source: "starlinks",
             title: "Dados sensíveis Starlink revelados",
-            description: `${equipment.tag} teve credenciais legadas reveladas na interface.`,
+            description: `${equipment.tag} teve credenciais operacionais reveladas na interface.`,
             severity: "warning",
             equipmentId: equipment.id,
           },
@@ -173,6 +173,18 @@ export class StarlinksService {
       total: items.length,
       items: items.map((item) => this.formatOperationalInfo(item, revealSecrets)),
     };
+  }
+
+  async getLegacyStarlinkData(equipmentId: string, revealSecrets: boolean) {
+    return this.getOperationalStarlinkData(equipmentId, revealSecrets);
+  }
+
+  async updateOperationalStarlinkData(
+    equipmentId: string,
+    infoId: string,
+    payload: Record<string, unknown>,
+  ) {
+    return this.updateLegacyStarlinkData(equipmentId, infoId, payload);
   }
 
   async updateLegacyStarlinkData(
@@ -280,6 +292,10 @@ export class StarlinksService {
       skipped,
       total: legacyStarlinks.length,
     };
+  }
+
+  async importOperationalStarlinkData(payload: unknown) {
+    return this.importLegacyStarlinkData(payload);
   }
 
   private formatOperationalInfo(

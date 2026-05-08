@@ -102,7 +102,6 @@ type UnitOption = {
   partner: { id: string; code: string; name: string };
 };
 
-
 type StarlinkOperationalItem = {
   id: string;
   equipmentId: string;
@@ -141,6 +140,11 @@ function locationLabel(equipment: EquipmentDetail) {
 function isStarlinkEquipment(equipment: EquipmentDetail) {
   const text = [equipment.tag, equipment.name, equipment.type, equipment.serialNumber].join(" ").toLowerCase();
   return text.includes("starlink");
+}
+
+function starlinkSourceLabel(item: StarlinkOperationalItem) {
+  if (item.source === "legacy_sqlite") return `importado · registro ${item.legacyId}`;
+  return [item.source, item.legacyId ? `registro ${item.legacyId}` : ""].filter(Boolean).join(" · ") || "manual";
 }
 
 function CreatedNotice({ from }: { from: string }) {
@@ -194,8 +198,8 @@ function StarlinkOperationalBlock({
     <Surface>
       <SectionIntro
         eyebrow="Starlink"
-        title="Dados operacionais persistidos"
-        description="E-mail, senha, cartão, serial, IP VPN, plano e instalação persistidos no banco. Segredos ficam mascarados por padrão."
+        title="Dados operacionais Starlink"
+        description="E-mail, senha, cartão, serial, IP VPN, plano e instalação ficam gravados no banco. Segredos ficam mascarados por padrão."
         actions={
           <div className="flex flex-wrap gap-2">
             <TonePill tone="success">{data.total} registro(s)</TonePill>
@@ -223,7 +227,7 @@ function StarlinkOperationalBlock({
                   {item.antennaId ? `Antena ${item.antennaId}` : item.kitSerial || "Starlink operacional"}
                 </div>
                 <div className="mt-1 text-[10px] uppercase tracking-[0.18em] text-slate-500">
-                  {item.source} · {item.legacyId}
+                  {starlinkSourceLabel(item)}
                 </div>
               </div>
               <TonePill tone={item.revealed ? "attention" : "info"}>
@@ -255,7 +259,7 @@ function StarlinkOperationalBlock({
             {isAdmin ? (
               <details className="mt-3 rounded-2xl border border-white/10 bg-black/15 p-3">
                 <summary className="cursor-pointer text-[11px] font-black text-slate-100">
-                  Editar dados Starlink operacionals
+                  Editar dados operacionais Starlink
                 </summary>
                 <form action={action} className="mt-3 grid gap-2">
                   <input type="hidden" name="equipmentId" value={equipment.id} />
@@ -400,7 +404,7 @@ export default async function AtivoDetailPage({
     }
   }
 
-  async function updateStarlinkLegacyData(formData: FormData): Promise<void> {
+  async function updateStarlinkOperationalData(formData: FormData): Promise<void> {
     "use server";
 
     const equipmentId = String(formData.get("equipmentId") || "");
@@ -712,19 +716,21 @@ export default async function AtivoDetailPage({
               description="Quando a unidade estiver vinculada a um host Zabbix, o resumo do ativo mostra a telemetria aqui."
             />
           )}
-        </Surface></section><Surface>
-          <SectionIntro
-            eyebrow="Dados operacionais"
-            title="Sem dados persistidos para este ativo"
-            description="Nenhum dado operacional persistido foi encontrado para este ativo. Para Starlinks, use a importação operacional e o bloco Starlink persistido."
-            compact
-          />
-        </Surface><StarlinkOperationalBlock
+        </Surface></section>{!starlinkOperationalData?.items.length ? (
+          <Surface>
+            <SectionIntro
+              eyebrow="Dados operacionais"
+              title="Sem dados operacionais para este ativo"
+              description="Nenhum dado operacional foi encontrado para este ativo. Para Starlinks, use a importação operacional para preencher o bloco Starlink."
+              compact
+            />
+          </Surface>
+        ) : null}<StarlinkOperationalBlock
         equipment={equipment}
         data={starlinkOperationalData}
         isAdmin={isAdmin}
         reveal={starlinkReveal}
-        action={updateStarlinkLegacyData}
+        action={updateStarlinkOperationalData}
       /><AttachmentPanel
         entityPath="equipments"
         entityId={equipment.id}
