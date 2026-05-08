@@ -7,9 +7,10 @@ import { PrismaModule } from "../prisma/prisma.module";
 import { IntegrationsModule } from "../integrations/integrations.module";
 import { AuthModule } from "../auth/auth.module";
 import { AttachmentsModule } from "../attachments/attachments.module";
+import { SettingsModule } from "../settings/settings.module";
 
 @Module({
-  imports: [PrismaModule, IntegrationsModule, AuthModule, AttachmentsModule],
+  imports: [PrismaModule, IntegrationsModule, AuthModule, AttachmentsModule, SettingsModule],
   controllers: [MonitoringController],
   providers: [
     MonitoringService,

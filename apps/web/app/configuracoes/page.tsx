@@ -5,6 +5,11 @@ import { NovaLitShell } from "@/components/nova-lit/nova-lit-shell";
 import { apiJson } from "@/lib/server-api";
 import { formatDateTime } from "@/lib/formatters";
 import {
+  readStringParam,
+  resolveSearchParams,
+  type RawSearchParams,
+} from "@/lib/list-query";
+import {
   emptyCommandCenter,
   readUnitHostTelemetry,
   safeApiJson,
@@ -14,6 +19,14 @@ import {
 import { getServerWebSession, normalizeRole } from "@/lib/web-session";
 
 type Tone = "green" | "orange" | "blue" | "red" | "slate";
+type ConfigTab = "geral" | "backup" | "seguranca" | "integracoes";
+
+const CONFIG_TABS: Array<{ key: ConfigTab; label: string; href: string }> = [
+  { key: "geral", label: "Geral", href: "/configuracoes?tab=geral" },
+  { key: "backup", label: "Backup", href: "/configuracoes?tab=backup" },
+  { key: "seguranca", label: "Segurança", href: "/configuracoes?tab=seguranca" },
+  { key: "integracoes", label: "Integrações", href: "/configuracoes?tab=integracoes" },
+];
 
 type IntegrationSettings = {
   apiBaseUrl?: string;
@@ -300,6 +313,27 @@ function healthTone(ok: boolean): Tone {
   return ok ? "green" : "red";
 }
 
+function isConfigTab(value: string): value is ConfigTab {
+  return CONFIG_TABS.some((tab) => tab.key === value);
+}
+
+function SettingsTabs({ activeTab }: { activeTab: ConfigTab }) {
+  return (
+    <nav className="nova-settings-tabs" aria-label="Seções de configuração">
+      {CONFIG_TABS.map((tab) => (
+        <Link
+          key={tab.key}
+          href={tab.href}
+          className="nova-settings-tab"
+          data-active={tab.key === activeTab}
+        >
+          {tab.label}
+        </Link>
+      ))}
+    </nav>
+  );
+}
+
 function telemetryCoverage(telemetry: UnitHostTelemetry) {
   return percent(telemetry.counts.matched, telemetry.counts.units);
 }
@@ -349,7 +383,11 @@ function readOperationalSnapshot(commandCenter: CommandCenter): OperationalSnaps
   };
 }
 
-export default async function ConfiguracoesPage() {
+export default async function ConfiguracoesPage({
+  searchParams,
+}: {
+  searchParams?: Promise<RawSearchParams> | RawSearchParams;
+}) {
   const session = await getServerWebSession();
 
   if (!session.authenticated) {
@@ -359,6 +397,10 @@ export default async function ConfiguracoesPage() {
   if (normalizeRole(session.user?.role || "") !== "admin") {
     redirect("/dashboard");
   }
+
+  const params = await resolveSearchParams(searchParams);
+  const requestedTab = readStringParam(params, "tab", "geral");
+  const activeTab: ConfigTab = isConfigTab(requestedTab) ? requestedTab : "geral";
 
   const [settingsResult, summary, commandCenter, telemetry] = await Promise.all([
     readSettings(),
@@ -421,23 +463,22 @@ export default async function ConfiguracoesPage() {
       ];
 
   return (
-    <NovaLitShell activeHref="/configuracoes">
-      <main className="nova-config-page">
-        <header className="nova-config-hero">
-          <div>
-            <span>Configurações / Sistema</span>
-            <h1>Sistema</h1>
-            <p>Parâmetros do produto, integrações, segurança operacional e governança do ambiente.</p>
-          </div>
-          <div className="nova-config-actions">
-            <Link href="/integracoes" className="nova-lit-button nova-lit-button-secondary">
-              Integrações
-            </Link>
-            <Link href="/usuarios" className="nova-lit-button nova-lit-button-primary">
-              Usuários
-            </Link>
-          </div>
-        </header>
+    <NovaLitShell
+      activeHref="/configuracoes"
+      title="Sistema"
+      subtitle="Parâmetros do produto, integrações, segurança operacional e governança do ambiente."
+      actions={
+        <div className="nova-config-actions">
+          <Link href={`/configuracoes?tab=${activeTab}`} className="nova-lit-button nova-lit-button-secondary">
+            Atualizar dados
+          </Link>
+          <Link href="/integracoes" className="nova-lit-button nova-lit-button-primary">
+            Integrações
+          </Link>
+        </div>
+      }
+    >
+      <div className="nova-config-page">
 
         <section className="nova-config-stats" aria-label="Indicadores do sistema">
           <StatCard
@@ -472,192 +513,236 @@ export default async function ConfiguracoesPage() {
           />
         </section>
 
+        <SettingsTabs activeTab={activeTab} />
+
         <section className="nova-config-layout">
           <div className="nova-config-main">
-            <Panel
-              eyebrow="Sistema"
-              title="Central de governança"
-              action={<Badge tone={settingsError ? "orange" : "green"}>{settingsError ? "atenção" : "online"}</Badge>}
-            >
-              {settingsError ? (
-                <div className="nova-config-warning">
-                  {settingsError}
+            {activeTab === "geral" ? (
+              <>
+                <Panel
+                  eyebrow="Sistema"
+                  title="Central de governança"
+                  action={<Badge tone={settingsError ? "orange" : "green"}>{settingsError ? "atenção" : "online"}</Badge>}
+                >
+                  {settingsError ? (
+                    <div className="nova-config-warning">
+                      {settingsError}
+                    </div>
+                  ) : null}
+
+                  <div className="nova-config-command-grid">
+                    <article>
+                      <span>Ocorrências abertas</span>
+                      <strong>{operationalSnapshot.openOccurrences}</strong>
+                      <small>{operationalSnapshot.criticalOpenOccurrences} crítica(s)</small>
+                    </article>
+                    <article>
+                      <span>Manutenções vencidas</span>
+                      <strong>{operationalSnapshot.overdueMaintenances}</strong>
+                      <small>{operationalSnapshot.dueTodayMaintenances} para hoje</small>
+                    </article>
+                    <article>
+                      <span>Unidades monitoradas</span>
+                      <strong>{summary.counts.unitsTotal}</strong>
+                      <small>{summary.counts.unitsActive} ativa(s)</small>
+                    </article>
+                    <article>
+                      <span>Automações ativas</span>
+                      <strong>{settingsCounts.activeAutomationRules ?? 0}</strong>
+                      <small>{settingsCounts.enabledReportTemplates ?? 0} template(s) de relatório</small>
+                    </article>
+                  </div>
+                </Panel>
+
+                <Panel
+                  eyebrow="Políticas"
+                  title="Chaves operacionais"
+                  action={<Badge tone="slate">{securityItems.length} regra(s)</Badge>}
+                >
+                  <div className="nova-config-settings-grid">
+                    {securityItems.map((item) => (
+                      <SettingRow
+                        key={item.label}
+                        label={item.label}
+                        value={item.value}
+                        tone={item.tone as Tone}
+                        detail={item.detail}
+                      />
+                    ))}
+                  </div>
+                </Panel>
+              </>
+            ) : null}
+
+            {activeTab === "backup" ? (
+              <Panel
+                eyebrow="Ambiente"
+                title="Backup, arquivos e caches"
+                action={<Badge tone={runtime.importedDataPathConfigured ? "green" : "slate"}>{runtime.importedDataPathConfigured ? "dados importados" : "sem pacote"}</Badge>}
+              >
+                <div className="nova-config-settings-grid">
+                  <SettingRow
+                    label="Diretório de anexos"
+                    value={runtime.uploadDir || "uploads"}
+                    tone="blue"
+                    detail="caminho usado pela API para armazenar arquivos"
+                  />
+                  <SettingRow
+                    label="Pacote importado"
+                    value={runtime.importedDataPathConfigured ? "Configurado" : "Não configurado"}
+                    tone={runtime.importedDataPathConfigured ? "green" : "slate"}
+                    detail="NOVA_LEGACY_IMPORT_PATH alimenta reconciliação e dados operacionais"
+                  />
+                  <SettingRow
+                    label="Cache de telemetria"
+                    value={durationText(runtime.zabbixTelemetryCacheMs)}
+                    tone="slate"
+                    detail="janela de reutilização da leitura Zabbix"
+                  />
+                  <SettingRow
+                    label="Cache de relatório"
+                    value={durationText(runtime.zabbixReportCacheMs)}
+                    tone="slate"
+                    detail="janela de reutilização do relatório PRTG"
+                  />
                 </div>
-              ) : null}
+              </Panel>
+            ) : null}
 
-              <div className="nova-config-command-grid">
-                <article>
-                  <span>Ocorrências abertas</span>
-                  <strong>{operationalSnapshot.openOccurrences}</strong>
-                  <small>{operationalSnapshot.criticalOpenOccurrences} crítica(s)</small>
-                </article>
-                <article>
-                  <span>Manutenções vencidas</span>
-                  <strong>{operationalSnapshot.overdueMaintenances}</strong>
-                  <small>{operationalSnapshot.dueTodayMaintenances} para hoje</small>
-                </article>
-                <article>
-                  <span>Unidades monitoradas</span>
-                  <strong>{summary.counts.unitsTotal}</strong>
-                  <small>{summary.counts.unitsActive} ativa(s)</small>
-                </article>
-                <article>
-                  <span>Automações ativas</span>
-                  <strong>{settingsCounts.activeAutomationRules ?? 0}</strong>
-                  <small>{settingsCounts.enabledReportTemplates ?? 0} template(s) de relatório</small>
-                </article>
-              </div>
-            </Panel>
+            {activeTab === "seguranca" ? (
+              <Panel
+                eyebrow="Segurança"
+                title="Credenciais e limites administrativos"
+                action={<Badge tone={secretTone(secrets.jwtSecret)}>{secretText(secrets.jwtSecret)}</Badge>}
+              >
+                <div className="nova-config-settings-grid">
+                  <SettingRow
+                    label="JWT secret"
+                    value={secretText(secrets.jwtSecret)}
+                    tone={secretTone(secrets.jwtSecret)}
+                    detail="status da variável JWT_SECRET; valor nunca é exibido"
+                  />
+                  <SettingRow
+                    label="Chave de integrações"
+                    value={secretText(secrets.integrationSecretKey)}
+                    tone={secretTone(secrets.integrationSecretKey)}
+                    detail="status da variável INTEGRATION_SECRET_KEY"
+                  />
+                  <SettingRow
+                    label="Hosts permitidos"
+                    value={runtime.integrationAllowedHosts?.length || "aberto"}
+                    tone={runtime.integrationAllowedHosts?.length ? "green" : "orange"}
+                    detail={
+                      runtime.integrationAllowedHosts?.length
+                        ? runtime.integrationAllowedHosts.join(", ")
+                        : "INTEGRATION_ALLOWED_HOSTS não restringe destino"
+                    }
+                  />
+                  <SettingRow
+                    label="Timeout de integração"
+                    value={durationText(runtime.integrationRequestTimeoutMs)}
+                    tone="blue"
+                    detail="limite por chamada externa"
+                  />
+                </div>
+              </Panel>
+            ) : null}
 
+            {activeTab === "integracoes" ? (
+              <>
+                <Panel
+                  eyebrow="Conectores"
+                  title="Saúde das integrações"
+                  action={<Badge tone="blue">{formatDateTime(summary.checkedAt)}</Badge>}
+                >
+                  {summary.integrationChecks.length ? (
+                    <div className="nova-config-health-list">
+                      {summary.integrationChecks.map((check) => (
+                        <article key={check.id} className={`nova-config-health-row ${check.ok ? "is-ok" : "is-bad"}`}>
+                          <div>
+                            <strong>{check.code} - {check.name}</strong>
+                            <span>{check.targetUrl || check.message}</span>
+                          </div>
+                          <div>
+                            <Badge tone={healthTone(check.ok)}>{check.ok ? "conectado" : "falha"}</Badge>
+                            <small>{check.httpStatus ? `HTTP ${check.httpStatus}` : check.ok ? "OK" : "-"} · {check.latencyMs} ms</small>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="nova-config-empty">
+                      <b>Nenhuma integração retornada</b>
+                      <span>Cadastre ou ative um conector para alimentar monitoramento e relatórios.</span>
+                    </div>
+                  )}
+                </Panel>
+
+                <Panel eyebrow="Zabbix" title="Fonte principal">
+                  {zabbixSnapshot ? (
+                    <div className="nova-config-zabbix-card">
+                      <div>
+                        <strong>{zabbixSnapshot.code} - {zabbixSnapshot.name}</strong>
+                        <Badge tone={zabbixSnapshot.ok ? "green" : "orange"}>
+                          {zabbixSnapshot.ok ? "lendo" : "atenção"}
+                        </Badge>
+                      </div>
+                      <p>{zabbixSnapshot.targetUrl || zabbixSnapshot.message}</p>
+                      <div className="nova-config-mini-grid">
+                        <span>
+                          <b>{zabbixSnapshot.version || "-"}</b>
+                          versão
+                        </span>
+                        <span>
+                          <b>{zabbixSnapshot.monitoredHosts ?? 0}</b>
+                          hosts
+                        </span>
+                        <span>
+                          <b>{zabbixSnapshot.openProblems ?? 0}</b>
+                          problemas
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="nova-config-empty is-small">
+                      <b>Sem snapshot Zabbix</b>
+                      <span>Configure o conector em Integrações.</span>
+                    </div>
+                  )}
+                </Panel>
+              </>
+            ) : null}
+          </div>
+
+          <aside className="nova-config-side">
             <Panel
               eyebrow="Atalhos"
-              title="Áreas administrativas"
+              title="Ações administrativas"
               action={<Badge tone="blue">admin</Badge>}
             >
               <div className="nova-config-shortcut-grid">
                 <ShortcutCard
                   title="Usuários"
-                  description="Convites, papéis, status e reset de acesso."
+                  description="Acessos e papéis."
                   href="/usuarios"
                   tone="green"
                 />
                 <ShortcutCard
-                  title="Perfis"
-                  description="Matriz de permissões e distribuição de papéis."
-                  href="/perfis"
-                  tone="blue"
-                />
-                <ShortcutCard
                   title="Integrações"
-                  description="Conectores, endpoints, credenciais e testes."
+                  description="Conectores e credenciais."
                   href="/integracoes"
                   tone="orange"
                 />
                 <ShortcutCard
-                  title="Importação"
-                  description="Templates CSV, preview e upsert controlado."
-                  href="/importacao"
-                  tone="slate"
-                />
-                <ShortcutCard
-                  title="Reconciliação"
-                  description="Vínculo entre cadastro, dados operacionais e Zabbix."
-                  href="/reconciliacao"
-                  tone="blue"
-                />
-                <ShortcutCard
                   title="Automação"
-                  description="Regras, detectores, cadência e execuções."
+                  description="Regras e execuções."
                   href="/automacao"
-                  tone="orange"
-                />
-              </div>
-            </Panel>
-
-            <Panel
-              eyebrow="Políticas"
-              title="Chaves operacionais"
-              action={<Badge tone="slate">{Object.keys(settings).length} chave(s)</Badge>}
-            >
-              <div className="nova-config-settings-grid">
-                {securityItems.map((item) => (
-                  <SettingRow
-                    key={item.label}
-                    label={item.label}
-                    value={item.value}
-                    tone={item.tone as Tone}
-                    detail={item.detail}
-                  />
-                ))}
-              </div>
-            </Panel>
-
-            <Panel
-              eyebrow="Ambiente"
-              title="Runtime e limites"
-              action={<Badge tone={runtime.importedDataPathConfigured ? "green" : "slate"}>{runtime.importedDataPathConfigured ? "dados importados" : "sem pacote"}</Badge>}
-            >
-              <div className="nova-config-settings-grid">
-                <SettingRow
-                  label="Diretório de anexos"
-                  value={runtime.uploadDir || "uploads"}
                   tone="blue"
-                  detail="caminho usado pela API para armazenar arquivos"
-                />
-                <SettingRow
-                  label="Hosts permitidos"
-                  value={runtime.integrationAllowedHosts?.length || "aberto"}
-                  tone={runtime.integrationAllowedHosts?.length ? "green" : "orange"}
-                  detail={
-                    runtime.integrationAllowedHosts?.length
-                      ? runtime.integrationAllowedHosts.join(", ")
-                      : "INTEGRATION_ALLOWED_HOSTS não restringe destino"
-                  }
-                />
-                <SettingRow
-                  label="Timeout de integração"
-                  value={durationText(runtime.integrationRequestTimeoutMs)}
-                  tone="blue"
-                  detail="limite por chamada externa"
-                />
-                <SettingRow
-                  label="Cache de telemetria"
-                  value={durationText(runtime.zabbixTelemetryCacheMs)}
-                  tone="slate"
-                  detail="janela de reutilização da leitura Zabbix"
-                />
-                <SettingRow
-                  label="Cache de relatório"
-                  value={durationText(runtime.zabbixReportCacheMs)}
-                  tone="slate"
-                  detail="janela de reutilização do relatório PRTG"
                 />
               </div>
             </Panel>
 
-            <Panel
-              eyebrow="Conectores"
-              title="Saúde das integrações"
-              action={<Badge tone="blue">{formatDateTime(summary.checkedAt)}</Badge>}
-            >
-              {summary.integrationChecks.length ? (
-                <div className="nova-config-health-list">
-                  {summary.integrationChecks.map((check) => (
-                    <article key={check.id} className={`nova-config-health-row ${check.ok ? "is-ok" : "is-bad"}`}>
-                      <div>
-                        <strong>{check.code} - {check.name}</strong>
-                        <span>{check.targetUrl || check.message}</span>
-                      </div>
-                      <div>
-                        <Badge tone={healthTone(check.ok)}>{check.ok ? "conectado" : "falha"}</Badge>
-                        <small>{check.httpStatus ? `HTTP ${check.httpStatus}` : check.ok ? "OK" : "-"} · {check.latencyMs} ms</small>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              ) : (
-                <div className="nova-config-empty">
-                  <b>Nenhuma integração retornada</b>
-                  <span>Cadastre ou ative um conector para alimentar monitoramento e relatórios.</span>
-                </div>
-              )}
-            </Panel>
-          </div>
-
-          <aside className="nova-config-side">
-            <Panel eyebrow="Segurança" title="Recorte atual">
-              <SettingRow
-                label="JWT secret"
-                value={secretText(secrets.jwtSecret)}
-                tone={secretTone(secrets.jwtSecret)}
-                detail="status da variável JWT_SECRET; valor nunca é exibido"
-              />
-              <SettingRow
-                label="Chave de integrações"
-                value={secretText(secrets.integrationSecretKey)}
-                tone={secretTone(secrets.integrationSecretKey)}
-                detail="status da variável INTEGRATION_SECRET_KEY"
-              />
+            <Panel eyebrow="Recorte" title="Saúde operacional">
               <ProgressLine
                 label="Integrações ativas"
                 value={summary.counts.integrationsActive}
@@ -685,39 +770,6 @@ export default async function ConfiguracoesPage() {
               />
             </Panel>
 
-            <Panel eyebrow="Zabbix" title="Fonte principal">
-              {zabbixSnapshot ? (
-                <div className="nova-config-zabbix-card">
-                  <div>
-                    <strong>{zabbixSnapshot.code} - {zabbixSnapshot.name}</strong>
-                    <Badge tone={zabbixSnapshot.ok ? "green" : "orange"}>
-                      {zabbixSnapshot.ok ? "lendo" : "atenção"}
-                    </Badge>
-                  </div>
-                  <p>{zabbixSnapshot.targetUrl || zabbixSnapshot.message}</p>
-                  <div className="nova-config-mini-grid">
-                    <span>
-                      <b>{zabbixSnapshot.version || "-"}</b>
-                      versão
-                    </span>
-                    <span>
-                      <b>{zabbixSnapshot.monitoredHosts ?? 0}</b>
-                      hosts
-                    </span>
-                    <span>
-                      <b>{zabbixSnapshot.openProblems ?? 0}</b>
-                      problemas
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <div className="nova-config-empty is-small">
-                  <b>Sem snapshot Zabbix</b>
-                  <span>Configure o conector em Integrações.</span>
-                </div>
-              )}
-            </Panel>
-
             <Panel eyebrow="Rotina" title="Regras rápidas">
               <div className="nova-config-rules">
                 <div>
@@ -740,7 +792,7 @@ export default async function ConfiguracoesPage() {
             </Panel>
           </aside>
         </section>
-      </main>
+      </div>
     </NovaLitShell>
   );
 }

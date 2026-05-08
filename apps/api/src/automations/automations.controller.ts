@@ -1,7 +1,8 @@
-import { Body, Controller, Get, Patch, Post, Query, Param, UseGuards } from "@nestjs/common";
+import { Body, Controller, ForbiddenException, Get, Patch, Post, Query, Param, UseGuards } from "@nestjs/common";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { RolesGuard } from "../auth/roles.guard";
 import { Roles } from "../auth/roles.decorator";
+import { SettingsService } from "../settings/settings.service";
 import { AutomationsService } from "./automations.service";
 import { CreateAutomationRuleDto } from "./dto/create-automation-rule.dto";
 import { ListAutomationRulesQueryDto } from "./dto/list-automation-rules-query.dto";
@@ -10,7 +11,10 @@ import { UpdateAutomationRuleDto } from "./dto/update-automation-rule.dto";
 
 @Controller("automations")
 export class AutomationsController {
-  constructor(private readonly automationsService: AutomationsService) {}
+  constructor(
+    private readonly automationsService: AutomationsService,
+    private readonly settingsService: SettingsService,
+  ) {}
 
   @UseGuards(JwtAuthGuard)
   @Get()
@@ -34,6 +38,7 @@ export class AutomationsController {
   @Roles("admin")
   @Post()
   createAutomationRule(@Body() body: CreateAutomationRuleDto) {
+    this.assertAutomationEnabled();
     return this.automationsService.createAutomationRule(body);
   }
 
@@ -41,6 +46,13 @@ export class AutomationsController {
   @Roles("admin")
   @Patch(":id")
   updateAutomationRule(@Param("id") id: string, @Body() body: UpdateAutomationRuleDto) {
+    this.assertAutomationEnabled();
     return this.automationsService.updateAutomationRule(id, body);
+  }
+
+  private assertAutomationEnabled() {
+    if (!this.settingsService.isAutomationEnabled()) {
+      throw new ForbiddenException("Automação desativada nas configurações.");
+    }
   }
 }

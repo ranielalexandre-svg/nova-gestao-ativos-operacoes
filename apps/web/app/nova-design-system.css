@@ -1313,9 +1313,13 @@ button:disabled {
 }
 
 .nova-settings-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   min-height: 34px;
   border: 1px solid var(--nova-border-soft);
   border-radius: var(--nova-radius-control);
+  padding: 0 12px;
   background: rgba(255, 255, 255, 0.035);
   color: var(--nova-text-muted);
   font-size: 11px;
@@ -19431,7 +19435,7 @@ body:has(.nova-lit-app) {
 .nova-config-page {
   display: grid;
   gap: 12px;
-  padding: 18px;
+  padding: 0;
 }
 
 .nova-config-hero {
@@ -19760,6 +19764,17 @@ body:has(.nova-lit-app) {
   gap: 14px;
   border-radius: 12px;
   padding: 11px;
+}
+
+.nova-config-setting-row > span {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.nova-config-setting-row b,
+.nova-config-setting-row small {
+  display: block;
 }
 
 .nova-config-health-row.is-ok {

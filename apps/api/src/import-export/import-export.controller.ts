@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  ForbiddenException,
   Get,
   Header,
   Param,
@@ -12,13 +13,17 @@ import type { Response } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
+import { SettingsService } from '../settings/settings.service';
 import { CsvPayloadDto } from './dto/csv-payload.dto';
 import { ImportExportService } from './import-export.service';
 
 @Controller()
 @UseGuards(JwtAuthGuard)
 export class ImportExportController {
-  constructor(private readonly importExportService: ImportExportService) {}
+  constructor(
+    private readonly importExportService: ImportExportService,
+    private readonly settingsService: SettingsService,
+  ) {}
 
   @Get('import/templates/:resource')
   template(@Param('resource') resource: string) {
@@ -30,6 +35,7 @@ export class ImportExportController {
     @Param('resource') resource: string,
     @Body() body: CsvPayloadDto,
   ) {
+    this.assertCsvImportEnabled();
     return this.importExportService.preview(resource, body.csv);
   }
 
@@ -40,6 +46,7 @@ export class ImportExportController {
     @Param('resource') resource: string,
     @Body() body: CsvPayloadDto,
   ) {
+    this.assertCsvImportEnabled();
     return this.importExportService.execute(resource, body.csv);
   }
 
@@ -55,5 +62,11 @@ export class ImportExportController {
       `attachment; filename="nova-${resource}.csv"`,
     );
     return csv;
+  }
+
+  private assertCsvImportEnabled() {
+    if (!this.settingsService.isCsvImportEnabled()) {
+      throw new ForbiddenException('Importação CSV desativada nas configurações.');
+    }
   }
 }

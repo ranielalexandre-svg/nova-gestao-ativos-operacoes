@@ -6,6 +6,18 @@ import { PrismaService } from '../prisma/prisma.service';
 export class SettingsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  isAutomationEnabled() {
+    return this.readBooleanEnv('NOVA_ENABLE_AUTOMATION', true);
+  }
+
+  isCsvImportEnabled() {
+    return this.readBooleanEnv('NOVA_ENABLE_CSV_IMPORT', true);
+  }
+
+  areReportsEnabled() {
+    return this.readBooleanEnv('NOVA_ENABLE_REPORTS', true);
+  }
+
   async getIntegrationsSettings() {
     const [integrations, activeAutomationRules, enabledReportTemplates] =
       await Promise.all([
@@ -39,11 +51,11 @@ export class SettingsService {
       'NOVA_ALLOW_DESTRUCTIVE_ACTIONS',
       false,
     );
-    const enableAutomation = this.readBooleanEnv('NOVA_ENABLE_AUTOMATION', true);
+    const enableAutomation = this.isAutomationEnabled();
     const enableZabbixSync =
       this.readBooleanEnv('NOVA_ENABLE_ZABBIX_SYNC', true) && Boolean(zabbix);
-    const enableReports = this.readBooleanEnv('NOVA_ENABLE_REPORTS', true);
-    const enableCsvImport = this.readBooleanEnv('NOVA_ENABLE_CSV_IMPORT', true);
+    const enableReports = this.areReportsEnabled();
+    const enableCsvImport = this.isCsvImportEnabled();
 
     return {
       apiBaseUrl: process.env.API_BASE_URL || '',

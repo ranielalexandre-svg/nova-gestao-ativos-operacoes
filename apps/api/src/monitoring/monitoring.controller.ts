@@ -1,6 +1,7 @@
-import { Body, Controller, Get, Param, Post, Query, Res, UseGuards } from "@nestjs/common";
+import { Body, Controller, ForbiddenException, Get, Param, Post, Query, Res, UseGuards } from "@nestjs/common";
 import type { Response } from "express";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
+import { SettingsService } from "../settings/settings.service";
 import { MonitoringService } from "./monitoring.service";
 import { CreateReportTemplateDto } from "./dto/create-report-template.dto";
 import { ExportMonitoringReportDto } from "./dto/export-monitoring-report.dto";
@@ -12,7 +13,10 @@ import { ZabbixReportGroupsQueryDto } from "./dto/zabbix-report-groups-query.dto
 @Controller("monitoring")
 @UseGuards(JwtAuthGuard)
 export class MonitoringController {
-  constructor(private readonly monitoringService: MonitoringService) {}
+  constructor(
+    private readonly monitoringService: MonitoringService,
+    private readonly settingsService: SettingsService,
+  ) {}
 
   @Get("summary")
   getSummary() {
@@ -51,6 +55,7 @@ export class MonitoringController {
 
   @Post("report-templates")
   createReportTemplate(@Body() body: CreateReportTemplateDto) {
+    this.assertReportsEnabled();
     return this.monitoringService.createReportTemplate(body);
   }
 
@@ -66,6 +71,7 @@ export class MonitoringController {
 
   @Get("reports/prtg-style")
   getPrtgStyleReport(@Query() query: PrtgStyleReportQueryDto) {
+    this.assertReportsEnabled();
     return this.monitoringService.getPrtgStyleReport(query);
   }
 
@@ -74,6 +80,7 @@ export class MonitoringController {
     @Body() body: ExportMonitoringReportDto,
     @Res() response: Response,
   ) {
+    this.assertReportsEnabled();
     const artifact = await this.monitoringService.exportPrtgStyleReports(body);
 
     response.setHeader("Content-Type", artifact.mimeType);
@@ -84,11 +91,18 @@ export class MonitoringController {
 
   @Post("reports/export-jobs")
   enqueuePrtgStyleReportExport(@Body() body: ExportMonitoringReportDto) {
+    this.assertReportsEnabled();
     return this.monitoringService.enqueuePrtgStyleReportExport(body);
   }
 
   @Get("reports/export-jobs/:id")
   getPrtgStyleReportExportJob(@Param("id") id: string) {
     return this.monitoringService.getReportExportRun(id);
+  }
+
+  private assertReportsEnabled() {
+    if (!this.settingsService.areReportsEnabled()) {
+      throw new ForbiddenException("Relatórios desativados nas configurações.");
+    }
   }
 }

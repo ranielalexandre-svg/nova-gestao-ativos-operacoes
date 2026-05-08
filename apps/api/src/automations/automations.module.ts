@@ -6,11 +6,12 @@ import { ExceptionsModule } from "../exceptions/exceptions.module";
 import { IntegrationsModule } from "../integrations/integrations.module";
 import { MonitoringModule } from "../monitoring/monitoring.module";
 import { PrismaModule } from "../prisma/prisma.module";
+import { SettingsModule } from "../settings/settings.module";
 import { AutomationsController } from "./automations.controller";
 import { AutomationsService } from "./automations.service";
 
 @Module({
-  imports: [PrismaModule, AuthModule, IntegrationsModule, ActivitiesModule, ExceptionsModule, AttachmentsModule, MonitoringModule],
+  imports: [PrismaModule, AuthModule, IntegrationsModule, ActivitiesModule, ExceptionsModule, AttachmentsModule, MonitoringModule, SettingsModule],
   controllers: [AutomationsController],
   providers: [AutomationsService],
   exports: [AutomationsService],
