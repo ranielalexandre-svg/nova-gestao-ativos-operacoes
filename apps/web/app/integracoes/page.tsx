@@ -487,7 +487,7 @@ function ConnectorConfigForm({
         </label>
 
         <p className="nova-integracoes-form-note nova-integracoes-form-wide">
-          Segredos nao sao exibidos. Deixe token, usuario e senha em branco para preservar os valores atuais.
+          Credenciais nao sao exibidas. Deixe token, usuario e senha em branco para preservar os valores atuais.
         </p>
 
         {zabbixWithoutAuth ? (

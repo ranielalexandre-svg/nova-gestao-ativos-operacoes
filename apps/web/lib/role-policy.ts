@@ -56,7 +56,7 @@ export const ROLE_PERMISSION_ROWS = [
     },
   },
   {
-    module: "Sistema e segredos",
+    module: "Sistema e credenciais",
     permissions: {
       admin: "Administra",
       editor: "Sem acesso",

@@ -199,18 +199,18 @@ function StarlinkOperationalBlock({
       <SectionIntro
         eyebrow="Starlink"
         title="Dados operacionais Starlink"
-        description="E-mail, senha, cartão, serial, IP VPN, plano e instalação ficam gravados no banco. Segredos ficam mascarados por padrão."
+        description="E-mail, credencial, cartão, serial, IP VPN, plano e instalação ficam gravados no banco. Credenciais ficam mascaradas por padrão."
         actions={
           <div className="flex flex-wrap gap-2">
             <TonePill tone="success">{data.total} registro(s)</TonePill>
-            <TonePill tone={totalSecrets ? "attention" : "subtle"}>{totalSecrets} segredo(s)</TonePill>
+            <TonePill tone={totalSecrets ? "attention" : "subtle"}>{totalSecrets} credencial(is)</TonePill>
             {isAdmin ? (
               <Link
                 href={reveal ? `/ativos/${equipment.id}` : `/ativos/${equipment.id}?starlinkReveal=1`}
                 className="nds-button"
                 data-variant="secondary"
               >
-                {reveal ? "Ocultar segredos" : "Revelar segredos"}
+                {reveal ? "Ocultar credenciais" : "Revelar credenciais"}
               </Link>
             ) : null}
           </div>

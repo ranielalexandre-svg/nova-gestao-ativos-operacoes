@@ -343,7 +343,7 @@ export default function NovaUnidadesView({
                     {unit.operational?.operationalRows ? (
                       <small>
                         {unit.operational.operationalRows} dado(s) · {unit.operational.backupRows} backup(s)
-                        {unit.operational.secretRows ? ` · ${unit.operational.secretRows} segredo(s)` : ""}
+                        {unit.operational.secretRows ? ` · ${unit.operational.secretRows} credencial(is)` : ""}
                       </small>
                     ) : null}
                     {badge ? <span className="nova-units-badge is-orange">{badge}</span> : null}

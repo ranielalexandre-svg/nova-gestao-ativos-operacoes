@@ -612,8 +612,8 @@ export default async function ConfiguracoesPage() {
             <Panel eyebrow="Rotina" title="Regras rápidas">
               <div className="nova-config-rules">
                 <div>
-                  <b>Segredos</b>
-                  <span>Não são exibidos em tela; atualização preserva valor em branco.</span>
+                  <b>Credenciais</b>
+                  <span>Não são exibidas em tela; atualização preserva valor em branco.</span>
                 </div>
                 <div>
                   <b>Sync Zabbix</b>

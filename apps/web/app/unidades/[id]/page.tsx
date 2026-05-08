@@ -1498,7 +1498,7 @@ function OperationalDataCard({
   return (
     <div className="nds-card"><div className="flex flex-wrap items-center justify-between gap-2"><div><div className="text-[12px] font-black text-slate-50">{operationalRoleLabel(item.linkRole)}</div><div className="mt-1 text-[10px] uppercase tracking-[0.18em] text-slate-500">
             {[item.source, item.partnerCode].filter(Boolean).join(" · ") || "manual"}
-          </div></div><TonePill tone={item.secrets.length ? "attention" : "info"}>{item.secrets.length ? `${item.secrets.length} credencial` : "sem segredo"}</TonePill></div><div className="mt-2 grid gap-2 text-[11px] text-[var(--nova-text-muted)] md:grid-cols-2"><div>Servico: <span className="text-slate-200">{item.serviceType || "-"}</span></div><div>Conexao: <span className="text-slate-200">{item.connectionType || "-"}</span></div><div>Porta RB: <span className="text-slate-200">{item.routerPort || "-"}</span></div><div>Tecnologia: <span className="text-slate-200">{item.technology || "-"}</span></div><div>Latencia: <span className="text-slate-200">{item.latency || "-"}</span></div><div>Acionamento: <span className="text-slate-200">{item.phone || "-"}</span></div><div>Contrato IXC: <span className="text-slate-200">{item.contractIxc || "-"}</span></div><div>Origem: <span className="text-slate-200">{item.legacyCode || item.legacyName || item.sourceLegacyId || "-"}</span></div><div className="md:col-span-2">MAC/ONU: <span className="break-all text-slate-200">{item.macOnu || "-"}</span></div>{item.notes ? <div className="md:col-span-2">Observacao: <span className="text-slate-200">{item.notes}</span></div> : null}</div>
+          </div></div><TonePill tone={item.secrets.length ? "attention" : "info"}>{item.secrets.length ? `${item.secrets.length} credencial(is)` : "sem credencial"}</TonePill></div><div className="mt-2 grid gap-2 text-[11px] text-[var(--nova-text-muted)] md:grid-cols-2"><div>Servico: <span className="text-slate-200">{item.serviceType || "-"}</span></div><div>Conexao: <span className="text-slate-200">{item.connectionType || "-"}</span></div><div>Porta RB: <span className="text-slate-200">{item.routerPort || "-"}</span></div><div>Tecnologia: <span className="text-slate-200">{item.technology || "-"}</span></div><div>Latencia: <span className="text-slate-200">{item.latency || "-"}</span></div><div>Acionamento: <span className="text-slate-200">{item.phone || "-"}</span></div><div>Contrato IXC: <span className="text-slate-200">{item.contractIxc || "-"}</span></div><div>Origem: <span className="text-slate-200">{item.legacyCode || item.legacyName || item.sourceLegacyId || "-"}</span></div><div className="md:col-span-2">MAC/ONU: <span className="break-all text-slate-200">{item.macOnu || "-"}</span></div>{item.notes ? <div className="md:col-span-2">Observacao: <span className="text-slate-200">{item.notes}</span></div> : null}</div>
 
       {item.secrets.length ? (
         <div className="mt-2 grid gap-2">
@@ -1544,14 +1544,14 @@ function OperationalDataBlock({
         actions={
           <div className="flex flex-wrap gap-2">
             <TonePill tone="success">{data.total} registro(s)</TonePill>
-            {secretCount ? <TonePill tone="attention">{secretCount} segredo(s)</TonePill> : null}
+            {secretCount ? <TonePill tone="attention">{secretCount} credencial(is)</TonePill> : null}
             {isAdmin ? (
               <Link
                 href={revealSecrets ? hideHref : revealHref}
                 className="nds-button"
                 data-variant={revealSecrets ? "secondary" : "primary"}
               >
-                {revealSecrets ? "Ocultar segredos" : "Revelar segredos"}
+                {revealSecrets ? "Ocultar credenciais" : "Revelar credenciais"}
               </Link>
             ) : null}
           </div>

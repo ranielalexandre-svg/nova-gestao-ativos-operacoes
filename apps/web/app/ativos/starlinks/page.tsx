@@ -369,7 +369,7 @@ export default async function StarlinksPage({
                     <Badge tone="orange">{`${operationalDataCount(item)} operacional`}</Badge>
                   ) : null}
                   {(operationalSecretsCount(item) > 0) ? (
-                    <small>{operationalSecretsCount(item)} segredo(s)</small>
+                    <small>{operationalSecretsCount(item)} credencial(is)</small>
                   ) : (
                     <small>{formatDate(item.createdAt)}</small>
                   )}
