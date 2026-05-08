@@ -305,6 +305,34 @@ export default async function AutomacaoPage({
     revalidatePath("/operacao");
   }
 
+  async function updateAutomationEffects(formData: FormData) {
+    "use server";
+
+    const currentSession = await getServerWebSession();
+    if (normalizeRole(currentSession.user?.role || "") !== "admin") return;
+
+    const id = String(formData.get("id") || "").trim();
+    const detector = String(formData.get("detector") || "").trim();
+    if (!id) return;
+
+    const canCreateExceptions = detector !== "monitoring_report_export";
+    const createExceptions = canCreateExceptions && formData.get("createExceptions") === "on";
+
+    await apiJson(`/automations/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        createExceptions,
+        createActivities: formData.get("createActivities") === "on",
+        resolveOnRecovery: createExceptions && formData.get("resolveOnRecovery") === "on",
+      }),
+    });
+
+    revalidatePath("/automacao");
+    revalidatePath("/excecoes");
+    revalidatePath("/operacao");
+    revalidatePath("/operacao/fila");
+  }
+
   const params = await resolveSearchParams(searchParams);
   const state: AutomacaoState = {
     q: readStringParam(params, "q", ""),
@@ -490,6 +518,35 @@ export default async function AutomacaoPage({
                   {item.createActivities ? <Badge tone="blue">atividades</Badge> : null}
                   {item.resolveOnRecovery ? <Badge tone="green">recuperação</Badge> : null}
                   {!item.createExceptions && !item.createActivities && !item.resolveOnRecovery ? <Badge tone="slate">somente leitura</Badge> : null}
+                  {isAdmin ? (
+                    <form action={updateAutomationEffects} className="mt-2 grid gap-1 text-[10px] text-slate-300">
+                      <input type="hidden" name="id" value={item.id} />
+                      <input type="hidden" name="detector" value={item.detector} />
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          name="createExceptions"
+                          defaultChecked={item.createExceptions}
+                          disabled={item.detector === "monitoring_report_export"}
+                        />
+                        Exceções
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input type="checkbox" name="createActivities" defaultChecked={item.createActivities} />
+                        Atividades
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          name="resolveOnRecovery"
+                          defaultChecked={item.resolveOnRecovery}
+                          disabled={item.detector === "monitoring_report_export"}
+                        />
+                        Recuperação
+                      </label>
+                      <button type="submit">Salvar efeitos</button>
+                    </form>
+                  ) : null}
                 </div>
 
                 <div>
@@ -524,6 +581,7 @@ export default async function AutomacaoPage({
             <div className="nova-auto-progress-list">
               <ProgressLine label="Ativas" value={percent(enabledOnPage, rows.length)} tone="green" />
               <ProgressLine label="Pausadas" value={percent(pausedOnPage, rows.length)} tone="orange" />
+              <ProgressLine label="Prontas na página" value={percent(dueOnPage, rows.length)} tone="orange" />
               <ProgressLine label="Criam exceção" value={percent(creatingExceptions, rows.length)} tone="orange" />
               <ProgressLine label="Recuperação" value={percent(recoveryRules, rows.length)} tone="blue" />
             </div>
