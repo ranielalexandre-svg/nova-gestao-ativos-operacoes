@@ -121,6 +121,17 @@ export default async function OcorrenciaDetailPage({
   ).length;
   const canEditAttachments = canEditAttachmentsForRole(session.user?.role || "");
   const isAdmin = isAdminRole(session.user?.role || "");
+  const newExceptionParams = new URLSearchParams();
+  newExceptionParams.set("kind", "occurrence");
+  newExceptionParams.set("occurrenceId", occurrence.id);
+  newExceptionParams.set("title", `Exceção - ${occurrence.code}`);
+  newExceptionParams.set("severity", occurrence.severity || "medium");
+  newExceptionParams.set("source", "manual");
+  if (occurrence.partner?.id) newExceptionParams.set("partnerId", occurrence.partner.id);
+  if (occurrence.unit?.id) newExceptionParams.set("unitId", occurrence.unit.id);
+  if (occurrence.equipment?.id) newExceptionParams.set("equipmentId", occurrence.equipment.id);
+  const newExceptionHref = `/excecoes/nova?${newExceptionParams.toString()}`;
+
   const newTicketParams = new URLSearchParams();
   newTicketParams.set("occurrenceId", occurrence.id);
   newTicketParams.set("title", `Ação técnica - ${occurrence.code}`);
@@ -176,6 +187,14 @@ export default async function OcorrenciaDetailPage({
             >
               Voltar
             </Link>{isAdmin ? (
+              <Link
+                href={newExceptionHref}
+                className="nds-button"
+                data-variant="secondary"
+              >
+                Enviar para fila
+              </Link>
+            ) : null}{isAdmin ? (
               <Link
                 href={newTicketHref}
                 className="nds-button"

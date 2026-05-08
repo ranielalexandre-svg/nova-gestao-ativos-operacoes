@@ -105,6 +105,18 @@ export default async function ManutencaoDetailPage({
     telemetry.items.find((item) => item.partner.id === maintenance.partner?.id) ||
     null;
   const isAdmin = isAdminRole(session.user?.role || "");
+  const newExceptionParams = new URLSearchParams();
+  newExceptionParams.set("kind", "maintenance");
+  newExceptionParams.set("maintenanceId", maintenance.id);
+  newExceptionParams.set("title", `Exceção - ${maintenance.code}`);
+  newExceptionParams.set("severity", "high");
+  newExceptionParams.set("source", "manual");
+  if (maintenance.partner?.id) newExceptionParams.set("partnerId", maintenance.partner.id);
+  if (maintenance.unit?.id) newExceptionParams.set("unitId", maintenance.unit.id);
+  if (maintenance.equipment?.id) newExceptionParams.set("equipmentId", maintenance.equipment.id);
+  if (maintenance.occurrence?.id) newExceptionParams.set("occurrenceId", maintenance.occurrence.id);
+  const newExceptionHref = `/excecoes/nova?${newExceptionParams.toString()}`;
+
   const connectedRoutes = [
     {
       href: "/operacao/fila?view=dueSoon",
@@ -148,6 +160,14 @@ export default async function ManutencaoDetailPage({
             >
               Voltar
             </Link>{isAdmin ? (
+              <Link
+                href={newExceptionHref}
+                className="nds-button"
+                data-variant="secondary"
+              >
+                Enviar para fila
+              </Link>
+            ) : null}{isAdmin ? (
               <Link
                 href={`/chamados/${maintenance.id}/editar`}
                 className="nds-button"

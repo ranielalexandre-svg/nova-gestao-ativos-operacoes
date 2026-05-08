@@ -428,7 +428,8 @@ export default async function ExcecoesPage({
 
         <div className="nova-lit-page-actions">
           <Link href="/operacao/fila" className="nova-lit-button nova-lit-button-secondary">Fila</Link>
-          <Link href="/operacao/sla" className="nova-lit-button nova-lit-button-primary">SLA</Link>
+          <Link href="/operacao/sla" className="nova-lit-button nova-lit-button-secondary">SLA</Link>
+          <Link href="/excecoes/nova" className="nova-lit-button nova-lit-button-primary">Nova exceção</Link>
         </div>
       </div>
 
