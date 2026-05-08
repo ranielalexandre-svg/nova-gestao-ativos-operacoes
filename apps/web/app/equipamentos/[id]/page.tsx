@@ -583,6 +583,34 @@ export default async function AtivoDetailPage({
   return (
     <NovaLitShell activeHref="/ativos">
       <div className="nova-equipment-detail-lit-page">
+        <nav className="nova-assets-breadcrumb" aria-label="Breadcrumb">
+          <Link href="/operacao">Operação</Link>
+          <span>/</span>
+          <Link href="/ativos">Ativos</Link>
+          <span>/</span>
+          <strong>{equipment.tag}</strong>
+        </nav>
+
+        <section className="nova-assets-flow nova-assets-flow--compact" aria-label="Fluxo do ativo">
+          <article className="is-active">
+            <span>01</span>
+            <strong>Identificar</strong>
+            <small>Tag, serial, tipo, unidade e parceiro.</small>
+          </article>
+          <i>→</i>
+          <article>
+            <span>02</span>
+            <strong>Monitorar</strong>
+            <small>Host da unidade, eventos, documentos e dados operacionais.</small>
+          </article>
+          <i>→</i>
+          <article>
+            <span>03</span>
+            <strong>Atender</strong>
+            <small>Alertas, chamados, fila e histórico técnico.</small>
+          </article>
+        </section>
+
       {created ? <CreatedNotice from={from} /> : null}
 
       <RegistryDetailHero
