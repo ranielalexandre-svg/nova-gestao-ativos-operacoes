@@ -314,7 +314,8 @@ export default async function ChamadosPage({
 
         <div className="nova-lit-page-actions">
           <Link href="/operacao/fila?view=dueSoon" className="nova-lit-button nova-lit-button-secondary">Abrir fila</Link>
-          <Link href="/sensores?view=events" className="nova-lit-button nova-lit-button-primary">Eventos NOC</Link>
+          <Link href="/sensores?view=events" className="nova-lit-button nova-lit-button-secondary">Eventos NOC</Link>
+          <Link href="/chamados/novo" className="nova-lit-button nova-lit-button-primary">Novo chamado</Link>
         </div>
       </div>
 
