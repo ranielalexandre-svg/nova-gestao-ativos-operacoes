@@ -1,10 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import type { ReactNode } from "react";
 import { apiJson } from "@/lib/server-api";
 import { formatDateTime } from "@/lib/formatters";
 import type { PaginatedResponse } from "@/lib/list-query";
+import { ProfileEditorWorkspace } from "./profile-editor-workspace";
 import {
   isAdminRole,
   ROLE_DEFINITIONS,
@@ -236,29 +236,6 @@ function permissionLevel(value: string): PermissionLevel {
   return "none";
 }
 
-function levelLabel(level: PermissionLevel) {
-  if (level === "admin") return "Administrativo";
-  if (level === "write") return "Leitura e escrita";
-  if (level === "read") return "Somente leitura";
-  return "Sem acesso";
-}
-
-function toneForRole(role: string): Tone {
-  if (role === "admin") return "purple";
-  if (role === "editor") return "blue";
-  if (role === "operator") return "orange";
-  if (role === "viewer") return "slate";
-  return "slate";
-}
-
-function Badge({ tone, children }: { tone: Tone; children: ReactNode }) {
-  return <span className={`nova-profile-editor-badge is-${tone}`}>{children}</span>;
-}
-
-function Switch({ active }: { active: boolean }) {
-  return <span className={`nova-profile-editor-switch ${active ? "is-on" : ""}`} />;
-}
-
 function Nav() {
   return (
     <aside className="nova-profile-editor-sidebar">
@@ -363,13 +340,21 @@ export default async function PerfisPage() {
       level: permissionLevel(value),
     };
   });
-  const levelCounts = moduleRows.reduce<Record<PermissionLevel, number>>(
-    (acc, row) => {
-      acc[row.level] += 1;
-      return acc;
-    },
-    { none: 0, read: 0, write: 0, admin: 0 },
-  );
+  const linkedUsersPayload = linkedUsers.map((user) => ({
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role,
+    roleLabel: roleLabel(user.role),
+    isActive: user.isActive,
+  }));
+  const auditsPayload = audits.map((audit) => ({
+    id: audit.id,
+    atLabel: formatDateTime(audit.at),
+    actorName: audit.actorName,
+    action: audit.action,
+    details: audit.details || audit.targetLabel,
+  }));
 
   return (
     <div className="nova-profile-editor-shell">
@@ -377,172 +362,15 @@ export default async function PerfisPage() {
       <div className="nova-profile-editor-main">
         <Topbar userEmail={session.user?.email} userName={session.user?.name} />
         <main className="nova-profile-editor-page">
-          <header className="nova-profile-editor-heading">
-            <nav aria-label="Breadcrumb">
-              <Link href="/configuracoes">Configurações</Link>
-              <span>/</span>
-              <Link href="/perfis">Perfis</Link>
-              <span>/</span>
-              <strong>Editar perfil</strong>
-            </nav>
-            <div>
-              <h1>Perfil Operador NOC</h1>
-              <Badge tone="green">Ativo</Badge>
-            </div>
-            <p>Edite as permissões, escopos e vinculações deste perfil.</p>
-          </header>
-
-          <section className="nova-profile-editor-layout">
-            <div className="nova-profile-editor-left">
-              <section className="nova-profile-editor-card nova-profile-editor-summary">
-                <div className="nova-profile-editor-profile-icon"><Icon name="users" /></div>
-                <div>
-                  <h2>Perfil Operador NOC <Badge tone="green">Ativo</Badge></h2>
-                  <dl>
-                    <div>
-                      <dt>Código do perfil</dt>
-                      <dd>OP-NOC-001</dd>
-                    </div>
-                    <div>
-                      <dt>Criado em</dt>
-                      <dd>Perfil padrão</dd>
-                    </div>
-                  </dl>
-                </div>
-                <div>
-                  <span>Descrição do perfil</span>
-                  <p>{roleDefinition?.description || "Perfil operacional do sistema."}</p>
-                </div>
-                <div>
-                  <span>Nível de aprovação</span>
-                  <Badge tone="purple">Nível 2</Badge>
-                  <p>Aprova rotinas de risco operacional baixo e médio.</p>
-                </div>
-                <div>
-                  <span>Escopo de ambiente</span>
-                  <p className="nova-profile-editor-scope">
-                    <Badge tone="green">Produção</Badge>
-                    <Badge tone="blue">Homologação</Badge>
-                    <Badge tone="slate">Lab</Badge>
-                  </p>
-                </div>
-              </section>
-
-              <section className="nova-profile-editor-card nova-profile-editor-permissions">
-                <div className="nova-profile-editor-tabs">
-                  <Link href="/perfis" data-active="true"><Icon name="lock" />Permissões</Link>
-                  <Link href="/perfis"><Icon name="shield" />Escopos</Link>
-                  <Link href="/usuarios?role=operator"><Icon name="users" />Usuários vinculados</Link>
-                  <Link href="/perfis"><Icon name="activity" />Auditoria</Link>
-                </div>
-                <div className="nova-profile-editor-section-title">
-                  <h2>Matriz de permissões</h2>
-                  <p>Defina o nível de acesso deste perfil para cada área do sistema.</p>
-                </div>
-
-                <div className="nova-profile-editor-matrix">
-                  <div className="nova-profile-editor-matrix-head">
-                    <span />
-                    <span>Sem acesso</span>
-                    <span>Somente leitura</span>
-                    <span>Leitura e escrita</span>
-                    <span>Administrativo</span>
-                  </div>
-                  {moduleRows.map((row) => (
-                    <div key={row.label} className="nova-profile-editor-matrix-row">
-                      <div>
-                        <span className={`nova-profile-editor-module-icon is-${row.tone}`}>
-                          <Icon name={row.icon} />
-                        </span>
-                        <span>
-                          <strong>{row.label}</strong>
-                          <small>{row.description}</small>
-                        </span>
-                      </div>
-                      {(["none", "read", "write", "admin"] as PermissionLevel[]).map((level) => (
-                        <span key={`${row.label}-${level}`} title={levelLabel(level)}>
-                          <Switch active={row.level === level} />
-                        </span>
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              </section>
-
-              <section className="nova-profile-editor-card nova-profile-editor-audit">
-                <div className="nova-profile-editor-section-title">
-                  <h2>Log de auditoria do perfil</h2>
-                  <p>Histórico recente de alterações administrativas no sistema.</p>
-                </div>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Data/Hora</th>
-                      <th>Usuário</th>
-                      <th>Ação</th>
-                      <th>Detalhes</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {audits.length ? audits.map((audit) => (
-                      <tr key={audit.id}>
-                        <td>{formatDateTime(audit.at)}</td>
-                        <td>{audit.actorName}</td>
-                        <td>{audit.action}</td>
-                        <td>{audit.details || audit.targetLabel}</td>
-                      </tr>
-                    )) : (
-                      <tr>
-                        <td colSpan={4}>Sem registros de auditoria carregados.</td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </section>
-            </div>
-
-            <aside className="nova-profile-editor-right">
-              <section className="nova-profile-editor-card nova-profile-editor-side-card">
-                <h2>Resumo do perfil</h2>
-                <dl>
-                  <div><dt>Permissões total</dt><dd>{moduleRows.length}</dd></div>
-                  <div><dt>Acesso administrativo</dt><dd>{levelCounts.admin}</dd></div>
-                  <div><dt>Acesso leitura e escrita</dt><dd>{levelCounts.write}</dd></div>
-                  <div><dt>Somente leitura</dt><dd>{levelCounts.read}</dd></div>
-                  <div><dt>Sem acesso</dt><dd>{levelCounts.none}</dd></div>
-                  <div><dt>Usuários vinculados</dt><dd>{linkedUsers.length}</dd></div>
-                  <div><dt>Última alteração</dt><dd>{latestUserChange ? formatDateTime(latestUserChange) : "Sem alteração"}</dd></div>
-                  <div><dt>Status</dt><dd><Badge tone="green">Ativo</Badge></dd></div>
-                </dl>
-              </section>
-
-              <section className="nova-profile-editor-card nova-profile-editor-side-card">
-                <h2>Usuários vinculados <Link href="/usuarios?role=operator">Ver todos</Link></h2>
-                <div className="nova-profile-editor-linked-users">
-                  {linkedUsers.slice(0, 5).map((user) => (
-                    <Link key={user.id} href={`/usuarios?q=${encodeURIComponent(user.email)}`}>
-                      <b className={`is-${toneForRole(user.role)}`}>{initials(user.name)}</b>
-                      <span>{user.name}<small>{roleLabel(user.role)}</small></span>
-                    </Link>
-                  ))}
-                  {linkedUsers.length > 5 ? (
-                    <Link href="/usuarios?role=operator">
-                      <b className="is-slate">+{linkedUsers.length - 5}</b>
-                      <span>Mais usuários<small>{roleLabel(ACTIVE_ROLE)}</small></span>
-                    </Link>
-                  ) : null}
-                  {!linkedUsers.length ? <p>Nenhum usuário vinculado a este perfil.</p> : null}
-                </div>
-              </section>
-
-              <section className="nova-profile-editor-card nova-profile-editor-actions">
-                <h2>Ações do perfil</h2>
-                <Link href="/perfis" className="is-primary"><Icon name="save" />Salvar alterações</Link>
-                <Link href="/perfis"><Icon name="copy" />Duplicar perfil</Link>
-                <Link href="/perfis" className="is-danger"><Icon name="power" />Desativar perfil</Link>
-              </section>
-            </aside>
-          </section>
+          <ProfileEditorWorkspace
+            description={roleDefinition?.description || "Perfil operacional do sistema."}
+            initialModules={moduleRows}
+            linkedUsers={linkedUsersPayload}
+            audits={auditsPayload}
+            latestUserChangeLabel={
+              latestUserChange ? formatDateTime(latestUserChange) : "Sem alteração"
+            }
+          />
         </main>
       </div>
     </div>
