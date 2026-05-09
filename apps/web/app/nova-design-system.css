@@ -24083,3 +24083,781 @@ body:has(.nova-users-board-shell) {
   }
 }
 /* == NOVA USUARIOS MOCKUP STRICT END == */
+
+/* == NOVA PERFIS MOCKUP STRICT START == */
+body:has(.nova-profile-editor-shell) {
+  background: #04111d;
+}
+
+.nova-profile-editor-shell,
+.nova-profile-editor-shell * {
+  box-sizing: border-box;
+}
+
+.nova-profile-editor-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 168px minmax(0, 1fr);
+  color: #f7fbff;
+  background:
+    radial-gradient(circle at 74% 2%, rgba(18, 68, 94, .25), transparent 32%),
+    linear-gradient(180deg, #06131f 0%, #071421 48%, #05111d 100%);
+  font-family: Inter, "Segoe UI", Arial, Helvetica, sans-serif;
+}
+
+.nova-profile-editor-shell a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.nova-profile-editor-shell button {
+  font: inherit;
+}
+
+.nova-profile-editor-shell svg {
+  display: block;
+  width: 17px;
+  height: 17px;
+}
+
+.nova-profile-editor-sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  padding: 17px 11px 24px;
+  overflow: auto;
+  border-right: 1px solid rgba(148, 163, 184, .19);
+  background:
+    radial-gradient(circle at 20% 0%, rgba(0, 119, 164, .2), transparent 22%),
+    linear-gradient(180deg, #061522 0%, #06121e 62%, #071421 100%);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, .25) transparent;
+}
+
+.nova-profile-editor-logo {
+  width: 118px;
+  height: 52px;
+  display: flex;
+  align-items: flex-start;
+  margin: 0 0 24px 8px;
+}
+
+.nova-profile-editor-logo img {
+  display: block;
+  width: 118px;
+  height: auto;
+}
+
+.nova-profile-editor-nav-section {
+  margin-top: 22px;
+}
+
+.nova-profile-editor-nav-section h2 {
+  margin: 0 0 8px 8px;
+  color: #8f9daf;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.nova-profile-editor-nav-link {
+  position: relative;
+  height: 33px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 9px;
+  border-radius: 6px;
+  color: #c9d2df;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.nova-profile-editor-nav-link svg {
+  width: 15px;
+  height: 15px;
+  color: #c7d0dc;
+}
+
+.nova-profile-editor-nav-link:hover {
+  background: rgba(148, 163, 184, .08);
+  color: #ffffff;
+}
+
+.nova-profile-editor-nav-link[data-active="true"] {
+  color: #ff7a00;
+  background: rgba(148, 163, 184, .1);
+  box-shadow: inset 3px 0 0 #ff7a00;
+}
+
+.nova-profile-editor-nav-link[data-active="true"] svg {
+  color: #ff7a00;
+}
+
+.nova-profile-editor-main {
+  min-width: 0;
+}
+
+.nova-profile-editor-topbar {
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  border-bottom: 1px solid rgba(148, 163, 184, .19);
+  background: rgba(4, 13, 22, .72);
+  backdrop-filter: blur(16px);
+}
+
+.nova-profile-editor-topbar > div {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.nova-profile-editor-topbar button {
+  position: relative;
+  width: 31px;
+  height: 31px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  color: #d2dce8;
+  background: transparent;
+  cursor: pointer;
+}
+
+.nova-profile-editor-topbar button i {
+  position: absolute;
+  top: -3px;
+  right: 2px;
+  min-width: 16px;
+  height: 16px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: #ffffff;
+  background: #f97316;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 850;
+}
+
+.nova-profile-editor-user {
+  height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-left: 17px;
+  border-left: 1px solid rgba(148, 163, 184, .2);
+}
+
+.nova-profile-editor-user span {
+  display: grid;
+  gap: 2px;
+  text-align: right;
+}
+
+.nova-profile-editor-user strong {
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.nova-profile-editor-user small {
+  color: #9facbd;
+  font-size: 12px;
+}
+
+.nova-profile-editor-user b {
+  width: 33px;
+  height: 33px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: #ffffff;
+  background: #ff7a00;
+  font-size: 14px;
+}
+
+.nova-profile-editor-page {
+  min-width: 0;
+  padding: 0 26px 22px;
+}
+
+.nova-profile-editor-heading {
+  min-height: 74px;
+  display: grid;
+  align-content: end;
+  margin-bottom: 13px;
+}
+
+.nova-profile-editor-heading nav {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 12px;
+  color: #9daabc;
+  font-size: 12px;
+}
+
+.nova-profile-editor-heading nav strong {
+  color: #f7fbff;
+}
+
+.nova-profile-editor-heading > div {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nova-profile-editor-heading h1 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 30px;
+  font-weight: 850;
+  line-height: 1.08;
+}
+
+.nova-profile-editor-heading p {
+  margin: 8px 0 0;
+  color: #aeb9c8;
+  font-size: 14px;
+}
+
+.nova-profile-editor-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 282px;
+  gap: 14px;
+  align-items: start;
+}
+
+.nova-profile-editor-left,
+.nova-profile-editor-right {
+  min-width: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.nova-profile-editor-card {
+  min-width: 0;
+  border: 1px solid rgba(148, 163, 184, .22);
+  border-radius: 7px;
+  background:
+    radial-gradient(circle at 50% -24%, rgba(40, 96, 125, .18), transparent 46%),
+    rgba(7, 20, 33, .88);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, .16);
+}
+
+.nova-profile-editor-summary {
+  min-height: 130px;
+  display: grid;
+  grid-template-columns: 112px 230px minmax(250px, 1fr) 190px 164px;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+}
+
+.nova-profile-editor-profile-icon {
+  width: 96px;
+  height: 96px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 122, 0, .72);
+  border-radius: 999px;
+  color: #ff7a00;
+  background: rgba(255, 122, 0, .07);
+}
+
+.nova-profile-editor-profile-icon svg {
+  width: 42px;
+  height: 42px;
+}
+
+.nova-profile-editor-summary > div:not(:first-child) {
+  min-height: 78px;
+  display: grid;
+  align-content: center;
+  gap: 8px;
+}
+
+.nova-profile-editor-summary > div:nth-child(n+3) {
+  padding-left: 16px;
+  border-left: 1px solid rgba(148, 163, 184, .16);
+}
+
+.nova-profile-editor-summary h2 {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 850;
+}
+
+.nova-profile-editor-summary dl,
+.nova-profile-editor-side-card dl {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+}
+
+.nova-profile-editor-summary dl div,
+.nova-profile-editor-side-card dl div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.nova-profile-editor-summary dt,
+.nova-profile-editor-summary span,
+.nova-profile-editor-side-card dt {
+  color: #aab6c5;
+  font-size: 12px;
+}
+
+.nova-profile-editor-summary dd {
+  margin: 0;
+  justify-self: start;
+  padding: 3px 8px;
+  border-radius: 6px;
+  color: #d9e2ee;
+  background: rgba(148, 163, 184, .16);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.nova-profile-editor-summary p {
+  margin: 0;
+  color: #cbd5e1;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.nova-profile-editor-scope {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.nova-profile-editor-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-height: 21px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 850;
+  line-height: 1;
+}
+
+.nova-profile-editor-badge.is-green {
+  color: #7df3ad;
+  background: rgba(34, 197, 94, .16);
+  border-color: rgba(34, 197, 94, .28);
+}
+
+.nova-profile-editor-badge.is-orange {
+  color: #ffb36b;
+  background: rgba(249, 115, 22, .15);
+  border-color: rgba(249, 115, 22, .32);
+}
+
+.nova-profile-editor-badge.is-blue {
+  color: #9bd1ff;
+  background: rgba(59, 130, 246, .16);
+  border-color: rgba(59, 130, 246, .34);
+}
+
+.nova-profile-editor-badge.is-purple {
+  color: #ddc9ff;
+  background: rgba(139, 92, 246, .2);
+  border-color: rgba(139, 92, 246, .4);
+}
+
+.nova-profile-editor-badge.is-red {
+  color: #ff8585;
+  background: rgba(239, 68, 68, .14);
+  border-color: rgba(239, 68, 68, .3);
+}
+
+.nova-profile-editor-badge.is-slate {
+  color: #d4dde8;
+  background: rgba(100, 116, 139, .18);
+  border-color: rgba(148, 163, 184, .28);
+}
+
+.nova-profile-editor-badge.is-teal {
+  color: #72f4e1;
+  background: rgba(20, 184, 166, .16);
+  border-color: rgba(20, 184, 166, .34);
+}
+
+.nova-profile-editor-permissions {
+  overflow: hidden;
+}
+
+.nova-profile-editor-tabs {
+  height: 37px;
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid rgba(148, 163, 184, .18);
+}
+
+.nova-profile-editor-tabs a {
+  min-width: 128px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 14px;
+  border-bottom: 2px solid transparent;
+  color: #aeb9c8;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.nova-profile-editor-tabs a[data-active="true"] {
+  color: #ff7a00;
+  border-bottom-color: #ff7a00;
+  background: rgba(255, 122, 0, .07);
+}
+
+.nova-profile-editor-section-title {
+  padding: 10px 16px 6px;
+}
+
+.nova-profile-editor-section-title h2,
+.nova-profile-editor-side-card h2,
+.nova-profile-editor-actions h2 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 850;
+}
+
+.nova-profile-editor-section-title p {
+  margin: 4px 0 0;
+  color: #aeb9c8;
+  font-size: 12px;
+}
+
+.nova-profile-editor-matrix {
+  padding: 0 16px 6px;
+}
+
+.nova-profile-editor-matrix-head,
+.nova-profile-editor-matrix-row {
+  display: grid;
+  grid-template-columns: minmax(330px, 1fr) repeat(4, minmax(124px, .44fr));
+  align-items: center;
+}
+
+.nova-profile-editor-matrix-head {
+  min-height: 24px;
+  color: #b9c4d1;
+  font-size: 12px;
+  text-align: center;
+}
+
+.nova-profile-editor-matrix-row {
+  min-height: 35px;
+  margin-bottom: 3px;
+  border: 1px solid rgba(148, 163, 184, .16);
+  border-radius: 7px;
+  background: rgba(8, 22, 36, .7);
+}
+
+.nova-profile-editor-matrix-row > div {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 0 12px;
+}
+
+.nova-profile-editor-matrix-row > span {
+  display: grid;
+  place-items: center;
+}
+
+.nova-profile-editor-module-icon {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 8px;
+}
+
+.nova-profile-editor-module-icon svg {
+  width: 15px;
+  height: 15px;
+}
+
+.nova-profile-editor-module-icon.is-orange { color: #ff9c40; background: rgba(249, 115, 22, .13); }
+.nova-profile-editor-module-icon.is-teal { color: #45e7d5; background: rgba(20, 184, 166, .13); }
+.nova-profile-editor-module-icon.is-green { color: #5fe18d; background: rgba(34, 197, 94, .13); }
+.nova-profile-editor-module-icon.is-purple { color: #bd9cff; background: rgba(139, 92, 246, .15); }
+.nova-profile-editor-module-icon.is-blue { color: #6cb8ff; background: rgba(59, 130, 246, .14); }
+
+.nova-profile-editor-matrix-row strong {
+  display: block;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.nova-profile-editor-matrix-row small {
+  display: block;
+  margin-top: 2px;
+  color: #8f9daf;
+  font-size: 10px;
+}
+
+.nova-profile-editor-switch {
+  position: relative;
+  width: 30px;
+  height: 16px;
+  border-radius: 999px;
+  background: #334155;
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, .18);
+}
+
+.nova-profile-editor-switch::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #a8b3c1;
+  transition: transform .16s ease;
+}
+
+.nova-profile-editor-switch.is-on {
+  background: #ff7a00;
+  box-shadow: 0 0 0 3px rgba(255, 122, 0, .12);
+}
+
+.nova-profile-editor-switch.is-on::after {
+  transform: translateX(14px);
+  background: #ffffff;
+}
+
+.nova-profile-editor-audit {
+  overflow: hidden;
+}
+
+.nova-profile-editor-audit table {
+  width: calc(100% - 32px);
+  margin: 0 16px 15px;
+  border-collapse: collapse;
+}
+
+.nova-profile-editor-audit th,
+.nova-profile-editor-audit td {
+  height: 31px;
+  padding: 0 10px;
+  border-bottom: 1px solid rgba(148, 163, 184, .12);
+  color: #b7c3d1;
+  font-size: 12px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.nova-profile-editor-audit th {
+  color: #8fa0b5;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.nova-profile-editor-audit td:last-child {
+  max-width: 430px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nova-profile-editor-right {
+  gap: 13px;
+}
+
+.nova-profile-editor-side-card,
+.nova-profile-editor-actions {
+  padding: 16px;
+}
+
+.nova-profile-editor-side-card h2,
+.nova-profile-editor-actions h2 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.nova-profile-editor-side-card h2 a {
+  color: #ff7a00;
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.nova-profile-editor-side-card dt {
+  color: #b8c2cf;
+}
+
+.nova-profile-editor-side-card dd {
+  margin: 0;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 850;
+  text-align: right;
+}
+
+.nova-profile-editor-linked-users {
+  display: grid;
+  gap: 11px;
+}
+
+.nova-profile-editor-linked-users a {
+  display: grid;
+  grid-template-columns: 27px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+
+.nova-profile-editor-linked-users b {
+  width: 27px;
+  height: 27px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.nova-profile-editor-linked-users b.is-purple { background: #7c3aed; }
+.nova-profile-editor-linked-users b.is-blue { background: #2563eb; }
+.nova-profile-editor-linked-users b.is-orange { background: #f97316; }
+.nova-profile-editor-linked-users b.is-slate { background: #475569; }
+
+.nova-profile-editor-linked-users span {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+  color: #e9eff7;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.nova-profile-editor-linked-users small {
+  color: #9aa8b9;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.nova-profile-editor-linked-users p {
+  margin: 0;
+  color: #9faabc;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.nova-profile-editor-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.nova-profile-editor-actions h2 {
+  margin-bottom: 6px;
+}
+
+.nova-profile-editor-actions a {
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border: 1px solid rgba(148, 163, 184, .26);
+  border-radius: 6px;
+  color: #e7eef8;
+  background: rgba(8, 20, 33, .72);
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.nova-profile-editor-actions a.is-primary {
+  color: #ffffff;
+  border-color: rgba(255, 122, 0, .8);
+  background: linear-gradient(180deg, #ff8124, #ef5f00);
+  box-shadow: 0 16px 30px rgba(255, 122, 0, .16);
+}
+
+.nova-profile-editor-actions a.is-danger {
+  color: #ff6b6b;
+  border-color: rgba(239, 68, 68, .56);
+  background: rgba(239, 68, 68, .08);
+}
+
+@media (max-width: 1320px) {
+  .nova-profile-editor-shell {
+    grid-template-columns: 190px minmax(0, 1fr);
+  }
+
+  .nova-profile-editor-layout,
+  .nova-profile-editor-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .nova-profile-editor-summary > div:nth-child(n+3) {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .nova-profile-editor-right {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 980px) {
+  .nova-profile-editor-shell {
+    display: block;
+  }
+
+  .nova-profile-editor-sidebar {
+    position: static;
+    height: auto;
+    max-height: 360px;
+  }
+
+  .nova-profile-editor-layout,
+  .nova-profile-editor-right {
+    grid-template-columns: 1fr;
+  }
+
+  .nova-profile-editor-topbar {
+    height: auto;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px 18px;
+  }
+
+  .nova-profile-editor-matrix {
+    overflow-x: auto;
+  }
+
+  .nova-profile-editor-matrix-head,
+  .nova-profile-editor-matrix-row {
+    min-width: 880px;
+  }
+}
+/* == NOVA PERFIS MOCKUP STRICT END == */
