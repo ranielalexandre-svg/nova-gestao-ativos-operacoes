@@ -212,12 +212,14 @@ function StatCard({
 }
 
 function Panel({
+  id,
   eyebrow,
   title,
   action,
   children,
   className = "",
 }: {
+  id?: string;
   eyebrow?: string;
   title: string;
   action?: ReactNode;
@@ -225,7 +227,7 @@ function Panel({
   className?: string;
 }) {
   return (
-    <section className={`nova-integracoes-panel ${className}`}>
+    <section id={id} className={`nova-integracoes-panel ${className}`}>
       <div className="nova-integracoes-panel-head">
         <div>
           {eyebrow ? <span>{eyebrow}</span> : null}
@@ -234,6 +236,30 @@ function Panel({
         {action ? <div className="nova-integracoes-panel-action">{action}</div> : null}
       </div>
       <div className="nova-integracoes-panel-body">{children}</div>
+    </section>
+  );
+}
+
+function IntegrationsFlow() {
+  return (
+    <section className="nova-admin-flow nova-admin-flow--integrations" aria-label="Fluxo de integrações">
+      <article className="is-active">
+        <span>01</span>
+        <strong>Conector</strong>
+        <small>Zabbix, HTTP, autenticação e contrato de leitura.</small>
+      </article>
+      <i>→</i>
+      <article>
+        <span>02</span>
+        <strong>Saúde</strong>
+        <small>Teste, latência, hosts, problemas e fontes ativas.</small>
+      </article>
+      <i>→</i>
+      <article>
+        <span>03</span>
+        <strong>Sincronização</strong>
+        <small>Unidades prontas, tags explícitas e reconciliação segura.</small>
+      </article>
     </section>
   );
 }
@@ -522,6 +548,97 @@ function ConnectorConfigForm({
   );
 }
 
+function NewConnectorPanel({
+  action,
+  closeHref,
+}: {
+  action: (
+    state: ActionFeedbackState,
+    formData: FormData,
+  ) => Promise<ActionFeedbackState>;
+  closeHref?: string;
+}) {
+  return (
+    <Panel
+      id="novo-conector"
+      eyebrow="Administracao"
+      title="Novo conector"
+      className="nova-integracoes-new"
+      action={
+        <div className="nova-integracoes-actions">
+          <Badge tone="green">admin</Badge>
+          {closeHref ? (
+            <Link href={closeHref} className="nova-lit-button nova-lit-button-secondary">
+              Voltar
+            </Link>
+          ) : null}
+        </div>
+      }
+    >
+      <ActionForm
+        action={action}
+        className="nova-integracoes-create-form"
+        noticeClassName="nova-integracoes-form-wide-all"
+        submitClassName="nova-integracoes-form-wide-all"
+        submitLabel="Criar conector"
+        pendingLabel="Criando..."
+      >
+        <label>
+          <span>Codigo</span>
+          <input name="code" placeholder="ZBX" />
+        </label>
+
+        <label>
+          <span>Nome</span>
+          <input name="name" placeholder="Zabbix principal" />
+        </label>
+
+        <label>
+          <span>Tipo</span>
+          <select name="type" defaultValue="zabbix">
+            <option value="zabbix">zabbix</option>
+            <option value="generic_http">generic_http</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Autenticacao</span>
+          <select name="authMode" defaultValue="none">
+            <option value="none">none</option>
+            <option value="token">token</option>
+            <option value="userpass">userpass</option>
+          </select>
+        </label>
+
+        <label className="is-double">
+          <span>Base URL</span>
+          <input name="baseUrl" placeholder="https://sensores.exemplo/zabbix" />
+        </label>
+
+        <label className="is-double">
+          <span>Caminho opcional</span>
+          <input name="apiPath" placeholder="/api_jsonrpc.php" />
+        </label>
+
+        <label className="is-double">
+          <span>API token</span>
+          <input name="apiToken" placeholder="Opcional" />
+        </label>
+
+        <label>
+          <span>Usuario</span>
+          <input name="username" placeholder="Opcional" />
+        </label>
+
+        <label>
+          <span>Senha</span>
+          <input name="password" type="password" placeholder="Opcional" />
+        </label>
+      </ActionForm>
+    </Panel>
+  );
+}
+
 function ZabbixReadinessPanel({
   telemetry,
   isAdmin,
@@ -696,6 +813,7 @@ export default async function IntegracoesPage({
   const active = readStringParam(params, "active", "all");
   const sortBy = readStringParam(params, "sortBy", "code");
   const sortDir = readStringParam(params, "sortDir", "asc");
+  const focus = readStringParam(params, "focus");
   const page = readPositiveIntParam(params, "page", 1);
   const pageSize = readPositiveIntParam(params, "pageSize", 20);
 
@@ -819,43 +937,20 @@ export default async function IntegracoesPage({
   if (!isAdmin) {
     return (
       <NovaLitShell activeHref="/integracoes">
-        <nav className="nova-admin-breadcrumb" aria-label="Breadcrumb">
-          <Link href="/operacao">Operação</Link>
-          <span>/</span>
-          <strong>Integrações</strong>
-        </nav>
-
-        <section className="nova-admin-flow nova-admin-flow--integrations" aria-label="Fluxo de integrações">
-          <article className="is-active">
-            <span>01</span>
-            <strong>Conector</strong>
-            <small>Zabbix, HTTP, autenticação e contrato de leitura.</small>
-          </article>
-          <i>→</i>
-          <article>
-            <span>02</span>
-            <strong>Saúde</strong>
-            <small>Teste, latência, hosts, problemas e fontes ativas.</small>
-          </article>
-          <i>→</i>
-          <article>
-            <span>03</span>
-            <strong>Sincronização</strong>
-            <small>Unidades prontas, tags explícitas e reconciliação segura.</small>
-          </article>
-        </section>
-
         <main className="nova-integracoes-page">
           <header className="nova-integracoes-hero">
             <div>
-              <span>Configuracoes / Integracoes</span>
+              <span>Configurações / Integrações</span>
               <h1>Integrações</h1>
               <p>Leitura dos conectores e contrato de vinculo com o Zabbix.</p>
             </div>
             <div className="nova-integracoes-hero-actions">
+              <Link href={hrefWithParams("/integracoes", params, {})} className="nova-lit-button nova-lit-button-secondary">Atualizar dados</Link>
               <Link href="/sensores" className="nova-lit-button nova-lit-button-secondary">Ver sensores</Link>
             </div>
           </header>
+
+          <IntegrationsFlow />
 
           <section className="nova-integracoes-kpis">
             <StatCard label="Conectores" value={summary.counts.integrationsTotal} hint={`${summary.counts.integrationsActive} ativos`} tone={summary.counts.integrationsActive ? "blue" : "slate"} />
@@ -888,47 +983,28 @@ export default async function IntegracoesPage({
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const checkById = new Map(summary.integrationChecks.map((item) => [item.id, item]));
   const zabbixById = new Map(summary.zabbixSnapshots.map((item) => [item.id, item]));
+  const showNewConnector = focus === "new";
+  const clearFocusHref = hrefWithParams("/integracoes", params, { focus: undefined });
 
   return (
     <NovaLitShell activeHref="/integracoes">
-        <nav className="nova-admin-breadcrumb" aria-label="Breadcrumb">
-          <Link href="/operacao">Operação</Link>
-          <span>/</span>
-          <strong>Integrações</strong>
-        </nav>
-
-        <section className="nova-admin-flow nova-admin-flow--integrations" aria-label="Fluxo de integrações">
-          <article className="is-active">
-            <span>01</span>
-            <strong>Conector</strong>
-            <small>Zabbix, HTTP, autenticação e contrato de leitura.</small>
-          </article>
-          <i>→</i>
-          <article>
-            <span>02</span>
-            <strong>Saúde</strong>
-            <small>Teste, latência, hosts, problemas e fontes ativas.</small>
-          </article>
-          <i>→</i>
-          <article>
-            <span>03</span>
-            <strong>Sincronização</strong>
-            <small>Unidades prontas, tags explícitas e reconciliação segura.</small>
-          </article>
-        </section>
-
       <main className="nova-integracoes-page">
         <header className="nova-integracoes-hero">
           <div>
-            <span>Configuracoes / Integracoes</span>
+            <span>Configurações / Integrações</span>
             <h1>Integrações</h1>
             <p>Conectores, endpoints, credenciais e sincronizacao segura que alimentam o monitoramento.</p>
           </div>
           <div className="nova-integracoes-hero-actions">
+            <Link href={hrefWithParams("/integracoes", params, {})} className="nova-lit-button nova-lit-button-secondary">Atualizar dados</Link>
             <Link href="/sensores" className="nova-lit-button nova-lit-button-secondary">Ver sensores</Link>
-            <a href="#novo-conector" className="nova-lit-button nova-lit-button-primary">Novo conector</a>
+            <Link href={hrefWithParams("/integracoes", params, { focus: "new" })} className="nova-lit-button nova-lit-button-primary">Novo conector</Link>
           </div>
         </header>
+
+        <IntegrationsFlow />
+
+        {showNewConnector ? <NewConnectorPanel action={createIntegration} closeHref={clearFocusHref} /> : null}
 
         <section className="nova-integracoes-kpis">
           <StatCard label="Conectores" value={summary.counts.integrationsTotal} hint={`${summary.counts.integrationsActive} ativos`} tone={summary.counts.integrationsActive ? "blue" : "slate"} />
@@ -1103,68 +1179,7 @@ export default async function IntegracoesPage({
           </aside>
         </div>
 
-        <Panel eyebrow="Administracao" title="Novo conector" className="nova-integracoes-new" action={<Badge tone="green">admin</Badge>}>
-          <ActionForm
-            action={createIntegration}
-            className="nova-integracoes-create-form"
-            noticeClassName="nova-integracoes-form-wide-all"
-            submitClassName="nova-integracoes-form-wide-all"
-            submitLabel="Criar conector"
-            pendingLabel="Criando..."
-          >
-            <label>
-              <span>Codigo</span>
-              <input name="code" placeholder="ZBX" />
-            </label>
-
-            <label>
-              <span>Nome</span>
-              <input name="name" placeholder="Zabbix principal" />
-            </label>
-
-            <label>
-              <span>Tipo</span>
-              <select name="type" defaultValue="zabbix">
-                <option value="zabbix">zabbix</option>
-                <option value="generic_http">generic_http</option>
-              </select>
-            </label>
-
-            <label>
-              <span>Autenticacao</span>
-              <select name="authMode" defaultValue="none">
-                <option value="none">none</option>
-                <option value="token">token</option>
-                <option value="userpass">userpass</option>
-              </select>
-            </label>
-
-            <label className="is-double">
-              <span>Base URL</span>
-              <input name="baseUrl" placeholder="https://sensores.exemplo/zabbix" />
-            </label>
-
-            <label className="is-double">
-              <span>Caminho opcional</span>
-              <input name="apiPath" placeholder="/api_jsonrpc.php" />
-            </label>
-
-            <label className="is-double">
-              <span>API token</span>
-              <input name="apiToken" placeholder="Opcional" />
-            </label>
-
-            <label>
-              <span>Usuario</span>
-              <input name="username" placeholder="Opcional" />
-            </label>
-
-            <label>
-              <span>Senha</span>
-              <input name="password" type="password" placeholder="Opcional" />
-            </label>
-          </ActionForm>
-        </Panel>
+        {!showNewConnector ? <NewConnectorPanel action={createIntegration} /> : null}
       </main>
     </NovaLitShell>
   );
