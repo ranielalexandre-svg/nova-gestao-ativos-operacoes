@@ -5,6 +5,11 @@ import { NovaLitShell } from "@/components/nova-lit/nova-lit-shell";
 import { SectionIntro, Surface, TonePill } from "@/components/ops-ui";
 import { apiJson } from "@/lib/server-api";
 import { isAdminRole } from "@/lib/role-policy";
+import {
+  exceptionQueueLabel,
+  exceptionStatusLabel,
+  occurrenceSeverityLabel,
+} from "@/lib/status-ui";
 import { getServerWebSession } from "@/lib/web-session";
 
 type PaginatedResponse<T> = {
@@ -24,9 +29,30 @@ type RawSearchParams = Record<string, string | string[] | undefined>;
 type PartnerOption = { id: string; code: string; name: string };
 type UnitOption = { id: string; code: string; name: string };
 type EquipmentOption = { id: string; tag: string; name: string };
+type IntegrationOption = { id: string; code: string; name: string; type: string };
 type OccurrenceOption = { id: string; code: string; title: string };
 type MaintenanceOption = { id: string; code: string; title: string };
 type UserOption = { id: string; name: string; email: string; role: string };
+type ExceptionSummary = {
+  counts: {
+    openCount: number;
+    criticalCount: number;
+    breachedCount: number;
+    dueSoonCount: number;
+    unassignedCount: number;
+    pendingTriageCount: number;
+  };
+};
+type QueueSummary = {
+  views: {
+    all: number;
+    pendingTriage: number;
+    breached: number;
+    dueSoon: number;
+    unassigned: number;
+  };
+  queues: { queueKey: string; total: number }[];
+};
 
 function readParam(params: RawSearchParams, key: string, fallback = "") {
   const value = params[key];
@@ -43,11 +69,41 @@ function optionalString(formData: FormData, key: string) {
   return value || undefined;
 }
 
+function defaultQueueKey(kind: string) {
+  if (kind === "integration") return "ops-integracoes";
+  if (kind === "occurrence") return "ops-ocorrencias";
+  if (kind === "maintenance") return "ops-manutencao";
+  if (kind === "sla") return "ops-sla";
+  if (kind === "automation") return "ops-automacoes";
+  return "ops-general";
+}
+
+function impactLabel(severity: string) {
+  if (severity === "critical") return "Impacto critico";
+  if (severity === "high") return "Impacto alto";
+  if (severity === "medium") return "Impacto medio";
+  return "Impacto baixo";
+}
+
+function responseLabel(severity: string) {
+  if (severity === "critical") return "5 min resposta / 60 min resolucao";
+  if (severity === "high") return "15 min resposta / 120 min resolucao";
+  if (severity === "medium") return "30 min resposta / 240 min resolucao";
+  return "120 min resposta / 1440 min resolucao";
+}
+
+function codeSuggestion() {
+  const now = new Date();
+  const date = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
+  const time = `${String(now.getHours()).padStart(2, "0")}${String(now.getMinutes()).padStart(2, "0")}`;
+  return `EXC-${date}-${time}`;
+}
+
 async function createExceptionCase(formData: FormData) {
   "use server";
 
   const payload = {
-    code: asString(formData, "code"),
+    code: optionalString(formData, "code"),
     title: asString(formData, "title"),
     description: optionalString(formData, "description"),
     kind: asString(formData, "kind") || "generic",
@@ -59,6 +115,7 @@ async function createExceptionCase(formData: FormData) {
     partnerId: optionalString(formData, "partnerId"),
     unitId: optionalString(formData, "unitId"),
     equipmentId: optionalString(formData, "equipmentId"),
+    integrationId: optionalString(formData, "integrationId"),
     occurrenceId: optionalString(formData, "occurrenceId"),
     maintenanceId: optionalString(formData, "maintenanceId"),
   };
@@ -88,7 +145,7 @@ function SelectField({
   hint?: string;
 }) {
   return (
-    <label className="nova-tickets-field">
+    <label className="nova-exception-create-field">
       <span>{label}</span>
       <select name={name} defaultValue={defaultValue || ""}>
         {children}
@@ -116,7 +173,7 @@ function TextField({
   hint?: string;
 }) {
   return (
-    <label className="nova-tickets-field">
+    <label className="nova-exception-create-field">
       <span>{label}</span>
       <input
         name={name}
@@ -155,89 +212,158 @@ export default async function NovaExcecaoPage({
   const defaultPartnerId = readParam(params, "partnerId");
   const defaultUnitId = readParam(params, "unitId");
   const defaultEquipmentId = readParam(params, "equipmentId");
+  const defaultIntegrationId = readParam(params, "integrationId");
   const defaultOccurrenceId = readParam(params, "occurrenceId");
   const defaultMaintenanceId = readParam(params, "maintenanceId");
 
-  const [partners, units, equipments, occurrences, maintenances, users] = await Promise.all([
+  const [
+    partners,
+    units,
+    equipments,
+    integrations,
+    occurrences,
+    maintenances,
+    users,
+    summary,
+    queueSummary,
+  ] = await Promise.all([
     apiJson<PaginatedResponse<PartnerOption>>("/partners?page=1&pageSize=100"),
     apiJson<PaginatedResponse<UnitOption>>("/units?page=1&pageSize=100"),
     apiJson<PaginatedResponse<EquipmentOption>>("/equipments?page=1&pageSize=100"),
+    apiJson<PaginatedResponse<IntegrationOption>>("/integrations?page=1&pageSize=100"),
     apiJson<PaginatedResponse<OccurrenceOption>>("/occurrences?page=1&pageSize=100"),
     apiJson<PaginatedResponse<MaintenanceOption>>("/maintenances?page=1&pageSize=100"),
     apiJson<PaginatedResponse<UserOption>>("/users?page=1&pageSize=100"),
+    apiJson<ExceptionSummary>("/exceptions/summary"),
+    apiJson<QueueSummary>("/exceptions/queue/summary"),
   ]);
 
-  const today = new Date();
-  const codeSuggestion = `EXC-${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, "0")}${String(today.getDate()).padStart(2, "0")}`;
+  const predictedQueue = defaultQueueKey(defaultKind);
+  const activeQueues = queueSummary.queues.filter((item) => item.total > 0).slice(0, 4);
+  const loadedLinks =
+    Number(Boolean(defaultPartnerId)) +
+    Number(Boolean(defaultUnitId)) +
+    Number(Boolean(defaultEquipmentId)) +
+    Number(Boolean(defaultIntegrationId)) +
+    Number(Boolean(defaultOccurrenceId)) +
+    Number(Boolean(defaultMaintenanceId));
 
   return (
     <NovaLitShell activeHref="/excecoes">
-      <div className="nova-lit-page-heading nova-tickets-heading">
+      <div className="nova-lit-page-heading nova-exception-create-heading">
         <div>
-          <h1>Nova exceção</h1>
+          <div className="nova-exception-create-breadcrumb">Operacao / Excecoes / Nova entrada</div>
+          <h1>Nova excecao operacional</h1>
           <p className="nova-lit-page-subtitle">
-            Envie alerta, chamado, integração ou caso manual para a fila operacional com SLA, prioridade e triagem.
+            Registre desvio, vincule origem real e envie para fila com SLA e prioridade calculados.
           </p>
         </div>
 
         <div className="nova-lit-page-actions">
           <Link href="/excecoes" className="nova-lit-button nova-lit-button-secondary">Voltar</Link>
-          <Link href="/operacao/fila" className="nova-lit-button nova-lit-button-primary">Fila</Link>
+          <Link href="/operacao/fila" className="nova-lit-button nova-lit-button-primary">Abrir fila</Link>
         </div>
       </div>
 
-      <section className="nova-tickets-main-grid">
-        <Surface>
+      <section className="nova-exception-create-flow" aria-label="Fluxo de criacao da excecao">
+        <article>
+          <span>1</span>
+          <div>
+            <strong>Deteccao</strong>
+            <small>Origem manual, alerta, chamado, integracao ou automacao.</small>
+          </div>
+        </article>
+        <article>
+          <span>2</span>
+          <div>
+            <strong>Analise</strong>
+            <small>Classificacao, severidade, vinculos e responsavel inicial.</small>
+          </div>
+        </article>
+        <article>
+          <span>3</span>
+          <div>
+            <strong>Despacho</strong>
+            <small>Entrada na fila, SLA calculado e atividade registrada.</small>
+          </div>
+        </article>
+      </section>
+
+      <section className="nova-exception-create-kpis" aria-label="Indicadores de excecoes">
+        <article><span>Abertas</span><strong>{summary.counts.openCount}</strong><small>em tratamento</small></article>
+        <article><span>Criticas</span><strong>{summary.counts.criticalCount}</strong><small>prioridade maxima</small></article>
+        <article><span>SLA</span><strong>{summary.counts.breachedCount}</strong><small>estouradas</small></article>
+        <article><span>Sem dono</span><strong>{summary.counts.unassignedCount}</strong><small>pendentes de atribuicao</small></article>
+      </section>
+
+      <section className="nova-exception-create-grid">
+        <Surface className="nova-exception-create-form-card">
           <SectionIntro
-            eyebrow="Cadastro"
-            title="Dados da exceção"
-            description="A exceção é o item que entra na fila. Ela pode nascer de alerta, chamado, automação, integração ou decisão manual."
+            eyebrow="Cadastro operacional"
+            title="Triagem e vinculos"
+            description="O backend calcula fila, SLA, impacto, urgencia e prioridade usando tipo, severidade, responsavel e status."
             compact
           />
 
-          <form action={createExceptionCase} className="mt-4 grid gap-3">
-            <div className="grid gap-3 md:grid-cols-2">
+          <form action={createExceptionCase} className="nova-exception-create-form">
+            <div className="nova-exception-create-fieldset">
+              <div>
+                <span>Identificacao</span>
+                <strong>Codigo, titulo e evidencia</strong>
+              </div>
+              <small>Codigo vem sugerido, mas a API tambem gera automaticamente se vier vazio.</small>
+            </div>
+
+            <div className="nova-exception-create-two">
               <TextField
-                label="Código"
+                label="Codigo"
                 name="code"
-                required
-                placeholder={`${codeSuggestion}-001`}
-                hint="Deve ser único. Ex.: EXC-20260508-001"
+                defaultValue={codeSuggestion()}
+                placeholder={codeSuggestion()}
+                hint="Unico por excecao."
               />
               <TextField
-                label="Título"
+                label="Titulo"
                 name="title"
                 required
                 defaultValue={defaultTitle}
-                placeholder="SLA pressionando, alerta crítico, chamado sem dono..."
+                placeholder="SLA pressionando, alerta critico, chamado sem dono..."
               />
             </div>
 
-            <label className="nova-tickets-field">
-              <span>Descrição</span>
+            <label className="nova-exception-create-field">
+              <span>Descricao</span>
               <textarea
                 name="description"
-                rows={5}
+                rows={4}
                 defaultValue={defaultDescription}
-                placeholder="Registre o motivo da exceção, hipótese, impacto, evidência ou próximo passo."
+                placeholder="Registre motivo, hipotese, impacto, evidencia e proximo passo."
               />
             </label>
 
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <div className="nova-exception-create-fieldset">
+              <div>
+                <span>Decisao inicial</span>
+                <strong>Tipo, severidade e SLA</strong>
+              </div>
+              <small>{exceptionQueueLabel(predictedQueue)} · {responseLabel(defaultSeverity)}</small>
+            </div>
+
+            <div className="nova-exception-create-four">
               <SelectField label="Tipo" name="kind" defaultValue={defaultKind}>
                 <option value="generic">Geral</option>
                 <option value="sla">SLA</option>
-                <option value="integration">Integração</option>
+                <option value="integration">Integracao</option>
                 <option value="occurrence">Alerta</option>
                 <option value="maintenance">Chamado</option>
-                <option value="automation">Automação</option>
+                <option value="automation">Automacao</option>
               </SelectField>
 
               <SelectField label="Severidade" name="severity" defaultValue={defaultSeverity}>
                 <option value="low">Baixa</option>
-                <option value="medium">Média</option>
+                <option value="medium">Media</option>
                 <option value="high">Alta</option>
-                <option value="critical">Crítica</option>
+                <option value="critical">Critica</option>
               </SelectField>
 
               <SelectField label="Status" name="status" defaultValue={defaultStatus}>
@@ -255,9 +381,9 @@ export default async function NovaExcecaoPage({
               />
             </div>
 
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-              <SelectField label="Responsável" name="assigneeUserId" hint={`${users.items.length} usuário(s) carregado(s)`}>
-                <option value="">Sem responsável</option>
+            <div className="nova-exception-create-two">
+              <SelectField label="Responsavel" name="assigneeUserId" hint={`${users.items.length} usuario(s)`}>
+                <option value="">Sem responsavel</option>
                 {users.items.map((user) => (
                   <option key={user.id} value={user.id}>
                     {user.name} - {user.email}
@@ -265,8 +391,18 @@ export default async function NovaExcecaoPage({
                 ))}
               </SelectField>
 
-              <TextField label="Silenciar até" name="silencedUntil" type="datetime-local" />
+              <TextField label="Silenciar ate" name="silencedUntil" type="datetime-local" />
+            </div>
 
+            <div className="nova-exception-create-fieldset">
+              <div>
+                <span>Vinculos</span>
+                <strong>Origem e contexto do caso</strong>
+              </div>
+              <small>{loadedLinks ? `${loadedLinks} vinculo(s) pre-carregado(s)` : "sem vinculo pre-carregado"}</small>
+            </div>
+
+            <div className="nova-exception-create-three">
               <SelectField label="Parceiro" name="partnerId" defaultValue={defaultPartnerId} hint={`${partners.items.length} parceiro(s)`}>
                 <option value="">Sem parceiro direto</option>
                 {partners.items.map((partner) => (
@@ -288,6 +424,13 @@ export default async function NovaExcecaoPage({
                 ))}
               </SelectField>
 
+              <SelectField label="Integracao" name="integrationId" defaultValue={defaultIntegrationId} hint={`${integrations.items.length} integracao(oes)`}>
+                <option value="">Sem integracao</option>
+                {integrations.items.map((integration) => (
+                  <option key={integration.id} value={integration.id}>{integration.code} - {integration.name}</option>
+                ))}
+              </SelectField>
+
               <SelectField label="Alerta" name="occurrenceId" defaultValue={defaultOccurrenceId} hint={`${occurrences.items.length} alerta(s)`}>
                 <option value="">Sem alerta</option>
                 {occurrences.items.map((occurrence) => (
@@ -303,9 +446,9 @@ export default async function NovaExcecaoPage({
               </SelectField>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2 pt-2">
+            <div className="nova-exception-create-actions">
               <button type="submit" className="nova-lit-button nova-lit-button-primary">
-                Criar exceção
+                Criar excecao
               </button>
               <Link href="/excecoes" className="nova-lit-button nova-lit-button-secondary">
                 Cancelar
@@ -314,35 +457,57 @@ export default async function NovaExcecaoPage({
           </form>
         </Surface>
 
-        <aside className="nova-tickets-right-col">
-          <section className="nova-lit-card nova-tickets-shift">
+        <aside className="nova-exception-create-side">
+          <section className="nova-lit-card nova-exception-create-queue-card">
             <div className="nova-lit-title-row">
-              <h2>Como entra na fila</h2>
+              <h2>Entrada na fila</h2>
               <TonePill tone="attention">triagem</TonePill>
             </div>
-            <div className="nova-tickets-status-list">
-              <article><strong>Alerta</strong><b>incidente</b></article>
-              <article><strong>Chamado</strong><b>execução</b></article>
-              <article><strong>SLA</strong><b>prazo</b></article>
+            <div className="nova-exception-create-flow-list">
+              <article><span>Fila prevista</span><strong>{exceptionQueueLabel(predictedQueue)}</strong></article>
+              <article><span>Status inicial</span><strong>{exceptionStatusLabel(defaultStatus)}</strong></article>
+              <article><span>Severidade</span><strong>{occurrenceSeverityLabel(defaultSeverity)}</strong></article>
+              <article><span>Impacto</span><strong>{impactLabel(defaultSeverity)}</strong></article>
             </div>
           </section>
 
-          <section className="nova-lit-card nova-tickets-quick">
+          <section className="nova-lit-card nova-exception-create-quick">
             <span>Continuidade</span>
-            <Link href="/operacao/fila">Fila <b>despacho</b></Link>
+            <Link href="/operacao/fila">Fila <b>{queueSummary.views.all}</b></Link>
             <Link href="/alertas">Alertas <b>{occurrences.items.length}</b></Link>
             <Link href="/chamados">Chamados <b>{maintenances.items.length}</b></Link>
+            <Link href="/integracoes">Integracoes <b>{integrations.items.length}</b></Link>
           </section>
 
-          <section className="nova-lit-card nova-tickets-priority">
+          <section className="nova-lit-card nova-exception-create-queues">
             <div className="nova-lit-title-row">
-              <h2>Boas práticas</h2>
-              <span className="nova-lit-pill nova-lit-pill-orange">NOC</span>
+              <h2>Filas ativas</h2>
+              <span className="nova-lit-pill nova-lit-pill-orange">{queueSummary.queues.length}</span>
             </div>
-            <div className="nova-tickets-priority-list">
-              <div className="nova-tickets-list-empty">
-                Use exceção quando o caso precisa entrar na fila de triagem, ganhar SLA, responsável e prioridade visível para o turno.
-              </div>
+            <div className="nova-exception-create-queue-list">
+              {activeQueues.length ? activeQueues.map((queue) => (
+                <Link key={queue.queueKey} href={`/operacao/fila?queueKey=${encodeURIComponent(queue.queueKey)}`}>
+                  <strong>{exceptionQueueLabel(queue.queueKey)}</strong>
+                  <b>{queue.total}</b>
+                </Link>
+              )) : (
+                <div>Nenhuma fila ativa agora.</div>
+              )}
+            </div>
+          </section>
+
+          <section className="nova-lit-card nova-exception-create-practice">
+            <div className="nova-lit-title-row">
+              <h2>Criterio de abertura</h2>
+              <span className="nova-lit-pill nova-lit-pill-blue">NOC</span>
+            </div>
+            <p>
+              Use excecao quando o caso precisa entrar na fila de triagem,
+              ganhar SLA, responsavel e prioridade visivel para o turno.
+            </p>
+            <div>
+              <span>{summary.counts.pendingTriageCount}</span>
+              <small>aguardando triagem</small>
             </div>
           </section>
         </aside>

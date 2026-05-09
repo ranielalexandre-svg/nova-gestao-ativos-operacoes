@@ -13072,6 +13072,403 @@ body:has(.nova-lit-app) {
 }
 /* == NOVA CHAMADOS LITERAL END == */
 
+/* == NOVA EXCECAO CREATE LITERAL START == */
+.nova-exception-create-heading {
+  margin-bottom: 10px;
+}
+
+.nova-exception-create-breadcrumb {
+  margin-bottom: 8px;
+  color: #8faad0;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.nova-lit-page-heading.nova-exception-create-heading h1 {
+  font-size: clamp(24px, 1.8vw, 31px);
+  line-height: 1.08;
+}
+
+.nova-exception-create-flow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 8px;
+  border: 1px solid rgba(84, 103, 132, 0.28);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(18, 35, 52, 0.9), rgba(7, 15, 24, 0.86));
+  padding: 12px;
+}
+
+.nova-exception-create-flow article {
+  position: relative;
+  display: grid;
+  min-height: 70px;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 11px;
+  align-items: center;
+  border: 1px solid rgba(84, 103, 132, 0.24);
+  border-radius: 8px;
+  background: rgba(5, 13, 21, 0.44);
+  padding: 12px;
+}
+
+.nova-exception-create-flow article:not(:last-child)::after {
+  position: absolute;
+  top: 50%;
+  right: -9px;
+  width: 9px;
+  border-top: 1px dashed rgba(143, 170, 208, 0.46);
+  content: "";
+}
+
+.nova-exception-create-flow span {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ff8a1f, #f36b00);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.nova-exception-create-flow strong {
+  display: block;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.nova-exception-create-flow small {
+  display: block;
+  margin-top: 4px;
+  color: #9fbce0;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.nova-exception-create-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.nova-exception-create-kpis article {
+  min-height: 82px;
+  border: 1px solid rgba(84, 103, 132, 0.28);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 92% 22%, rgba(255, 119, 8, 0.18), transparent 30%),
+    rgba(9, 22, 34, 0.82);
+  padding: 13px 14px;
+}
+
+.nova-exception-create-kpis span {
+  color: #9fc4f4;
+  font-size: 10px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.nova-exception-create-kpis strong {
+  display: block;
+  margin-top: 8px;
+  color: #fff;
+  font-size: 26px;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.nova-exception-create-kpis small {
+  display: block;
+  margin-top: 5px;
+  color: #9fbce0;
+  font-size: 11px;
+}
+
+.nova-exception-create-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 318px;
+  gap: 8px;
+  align-items: start;
+}
+
+.nova-exception-create-form-card,
+.nova-exception-create-side > .nova-lit-card {
+  border-radius: 8px;
+}
+
+.nova-exception-create-form-card {
+  padding: 14px;
+}
+
+.nova-exception-create-form {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.nova-exception-create-fieldset {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid rgba(84, 103, 132, 0.18);
+  padding-bottom: 8px;
+}
+
+.nova-exception-create-fieldset span,
+.nova-exception-create-field span,
+.nova-exception-create-quick > span {
+  color: #8fb8ef;
+  font-size: 9px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.nova-exception-create-fieldset strong {
+  display: block;
+  margin-top: 3px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 950;
+}
+
+.nova-exception-create-fieldset small {
+  color: #9fbce0;
+  font-size: 11px;
+  font-weight: 800;
+  text-align: right;
+}
+
+.nova-exception-create-two,
+.nova-exception-create-three,
+.nova-exception-create-four {
+  display: grid;
+  gap: 8px;
+}
+
+.nova-exception-create-two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.nova-exception-create-three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.nova-exception-create-four {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.nova-exception-create-field {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+}
+
+.nova-exception-create-field input,
+.nova-exception-create-field select,
+.nova-exception-create-field textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid rgba(84, 103, 132, 0.38);
+  border-radius: 7px;
+  background: rgba(5, 13, 21, 0.64);
+  color: #dceaff;
+  outline: 0;
+  padding: 9px 10px;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.nova-exception-create-field input,
+.nova-exception-create-field select {
+  min-height: 36px;
+}
+
+.nova-exception-create-field textarea {
+  min-height: 104px;
+  resize: vertical;
+}
+
+.nova-exception-create-field select option {
+  background: #08121d;
+  color: #fff;
+}
+
+.nova-exception-create-field input::placeholder,
+.nova-exception-create-field textarea::placeholder {
+  color: #6d86ad;
+}
+
+.nova-exception-create-field small {
+  color: #8faad0;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.nova-exception-create-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 2px;
+}
+
+.nova-exception-create-side {
+  display: grid;
+  gap: 8px;
+}
+
+.nova-exception-create-side > .nova-lit-card {
+  padding: 12px;
+}
+
+.nova-exception-create-side h2 {
+  margin: 0;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 950;
+}
+
+.nova-exception-create-flow-list,
+.nova-exception-create-quick,
+.nova-exception-create-queue-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 11px;
+}
+
+.nova-exception-create-flow-list article,
+.nova-exception-create-quick a,
+.nova-exception-create-queue-list a,
+.nova-exception-create-queue-list > div {
+  display: grid;
+  min-height: 40px;
+  align-items: center;
+  border: 1px solid rgba(84, 103, 132, 0.26);
+  border-radius: 8px;
+  background: rgba(5, 13, 21, 0.46);
+  padding: 9px 10px;
+  text-decoration: none;
+}
+
+.nova-exception-create-flow-list article {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.nova-exception-create-flow-list span,
+.nova-exception-create-queue-list > div {
+  color: #8faad0;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.nova-exception-create-flow-list strong {
+  overflow: hidden;
+  margin-top: 3px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 950;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nova-exception-create-quick a,
+.nova-exception-create-queue-list a {
+  grid-template-columns: minmax(0, 1fr) auto;
+  color: #dceaff;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.nova-exception-create-quick b,
+.nova-exception-create-queue-list b {
+  color: #fff;
+}
+
+.nova-exception-create-queue-list strong {
+  overflow: hidden;
+  color: #dceaff;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nova-exception-create-practice p {
+  margin: 11px 0;
+  color: #9fbce0;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.nova-exception-create-practice > div:last-child {
+  display: grid;
+  min-height: 62px;
+  place-items: center;
+  border: 1px dashed rgba(255, 119, 8, 0.34);
+  border-radius: 8px;
+  background: rgba(255, 119, 8, 0.07);
+  text-align: center;
+}
+
+.nova-exception-create-practice span {
+  color: #fff;
+  font-size: 24px;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.nova-exception-create-practice small {
+  color: #ffbc78;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+@media (max-width: 1500px) {
+  .nova-exception-create-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .nova-exception-create-side {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1180px) {
+  .nova-exception-create-flow,
+  .nova-exception-create-kpis,
+  .nova-exception-create-three,
+  .nova-exception-create-four {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .nova-exception-create-flow article:not(:last-child)::after {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .nova-exception-create-flow,
+  .nova-exception-create-kpis,
+  .nova-exception-create-two,
+  .nova-exception-create-three,
+  .nova-exception-create-four,
+  .nova-exception-create-side {
+    grid-template-columns: 1fr;
+  }
+
+  .nova-exception-create-fieldset {
+    display: grid;
+  }
+
+  .nova-exception-create-fieldset small {
+    text-align: left;
+  }
+}
+/* == NOVA EXCECAO CREATE LITERAL END == */
+
 /* == NOVA EXCECOES LITERAL START == */
 .nova-exceptions-heading {
   margin-bottom: 8px;

@@ -792,7 +792,7 @@ export class ExceptionsService {
   }
 
   async createException(payload: CreateExceptionDto) {
-    const code = payload.code.trim().toUpperCase();
+    const code = String(payload.code || this.code()).trim().toUpperCase();
     const title = payload.title.trim();
     const description = payload.description?.trim() || null;
     const kind = this.normalizeKind(payload.kind);

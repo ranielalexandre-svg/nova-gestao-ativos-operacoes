@@ -1,9 +1,10 @@
 import { IsIn, IsOptional, IsString, MinLength } from "class-validator";
 
 export class CreateExceptionDto {
+  @IsOptional()
   @IsString()
   @MinLength(2)
-  code!: string;
+  code?: string;
 
   @IsString()
   @MinLength(2)
