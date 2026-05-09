@@ -235,6 +235,137 @@ function KpiCard({
   );
 }
 
+function WorkflowStep({
+  index,
+  title,
+  state,
+  detail,
+  metric,
+  tone,
+  active,
+}: {
+  index: number;
+  title: string;
+  state: string;
+  detail: string;
+  metric: string;
+  tone: Tone;
+  active?: boolean;
+}) {
+  return (
+    <article className={`nova-auto-flow-step is-${tone}${active ? " is-active" : ""}`}>
+      <div className="nova-auto-step-head">
+        <span>{index}</span>
+        <b>{state}</b>
+      </div>
+      <strong>{title}</strong>
+      <small>{detail}</small>
+      <p>{metric}</p>
+    </article>
+  );
+}
+
+function AutomationWorkflow({
+  rule,
+  latestRun,
+  runs,
+  admin,
+  runAction,
+}: {
+  rule: RuleRow | null;
+  latestRun: RunRow | null;
+  runs: RunRow[];
+  admin: boolean;
+  runAction: (formData: FormData) => Promise<void>;
+}) {
+  const latestStatus = latestRun?.status || "";
+  const isRunning = latestStatus === "running";
+  const hasError = latestStatus === "error";
+  const canRun = admin && Boolean(rule);
+  const processed = runs.reduce((sum, item) => sum + item.hitsCount, 0);
+  const created = runs.reduce((sum, item) => sum + item.createdCount, 0);
+  const updated = runs.reduce((sum, item) => sum + item.updatedCount, 0);
+
+  const steps = [
+    {
+      title: "Coletar dados",
+      state: latestRun ? "Concluído" : "Aguardando",
+      detail: rule ? detectorLabel(rule.detector) : "nenhuma regra no recorte",
+      metric: `${processed} evento(s) lidos`,
+      tone: latestRun ? "green" as const : "slate" as const,
+    },
+    {
+      title: "Validar dados",
+      state: hasError ? "Com erro" : latestRun ? "Concluído" : "Pendente",
+      detail: latestRun?.errorMessage || "consistência e vínculo operacional",
+      metric: latestRun ? `${latestRun.hitsCount} hit(s)` : "sem execução",
+      tone: hasError ? "red" as const : latestRun ? "green" as const : "slate" as const,
+    },
+    {
+      title: "Gerar exceções",
+      state: rule?.createExceptions ? "Habilitado" : "Desligado",
+      detail: "abre ou atualiza casos na fila",
+      metric: `${created} criada(s)`,
+      tone: rule?.createExceptions ? "orange" as const : "slate" as const,
+      active: rule?.createExceptions,
+    },
+    {
+      title: "Atualizar base",
+      state: isRunning ? "Em execução" : latestRun ? statusLabel(latestStatus) : "Pendente",
+      detail: latestRun?.summary || "persistência de run, SLA e atividades",
+      metric: `${updated} atualizada(s)`,
+      tone: isRunning ? "blue" as const : hasError ? "red" as const : latestRun ? "green" as const : "slate" as const,
+      active: isRunning,
+    },
+    {
+      title: "Notificar operação",
+      state: rule?.createActivities ? "Habilitado" : "Pendente",
+      detail: "registra atividade e contexto de turno",
+      metric: `${runs.length} run(s) recentes`,
+      tone: rule?.createActivities ? "blue" as const : "slate" as const,
+      active: rule?.createActivities,
+    },
+  ];
+
+  return (
+    <section className="nova-auto-workflow">
+      <div className="nova-auto-flow-board">
+        <div className="nova-auto-flow-title">
+          <span>Fluxo de execução</span>
+          <strong>{rule ? `${rule.code} · ${rule.name}` : "Sem regra selecionada"}</strong>
+        </div>
+
+        <div className="nova-auto-flow-steps">
+          {steps.map((step, index) => (
+            <WorkflowStep key={step.title} index={index + 1} {...step} />
+          ))}
+        </div>
+      </div>
+
+      <aside className="nova-auto-run-controls">
+        <div className="nova-auto-run-card is-primary">
+          <span>Status da rotina</span>
+          <strong>{isRunning ? "Em execução" : hasError ? "Atenção" : latestRun ? "Concluída" : "Aguardando"}</strong>
+          <p>{latestRun ? `${statusLabel(latestRun.status)} · ${runDuration(latestRun)}` : "Nenhuma execução no recorte atual."}</p>
+        </div>
+
+        <div className="nova-auto-action-stack">
+          {canRun && rule ? (
+            <form action={runAction}>
+              <input type="hidden" name="id" value={rule.id} />
+              <button type="submit">Executar agora</button>
+            </form>
+          ) : (
+            <button type="button" disabled>Executar agora</button>
+          )}
+          <a href="#automation-rules">Editar fluxo</a>
+          <a href="#automation-runs">Ver logs completos</a>
+        </div>
+      </aside>
+    </section>
+  );
+}
+
 function Badge({ tone, children }: { tone: Tone; children: string }) {
   return <span className={`nova-auto-badge is-${tone}`}>{children}</span>;
 }
@@ -333,6 +464,26 @@ export default async function AutomacaoPage({
     revalidatePath("/operacao/fila");
   }
 
+  async function runAutomationNow(formData: FormData) {
+    "use server";
+
+    const currentSession = await getServerWebSession();
+    if (normalizeRole(currentSession.user?.role || "") !== "admin") return;
+
+    const id = String(formData.get("id") || "").trim();
+    if (!id) return;
+
+    await apiJson(`/automations/${id}/run`, {
+      method: "POST",
+    });
+
+    revalidatePath("/automacao");
+    revalidatePath("/excecoes");
+    revalidatePath("/operacao");
+    revalidatePath("/operacao/fila");
+    revalidatePath("/operacao/atividade");
+  }
+
   const params = await resolveSearchParams(searchParams);
   const state: AutomacaoState = {
     q: readStringParam(params, "q", ""),
@@ -374,21 +525,29 @@ export default async function AutomacaoPage({
   const runningRuns = runs.filter((item) => item.status === "running").length;
   const detectors = Array.from(new Set(rows.map((item) => item.detector))).slice(0, 7);
   const currentParams = stateParams(state);
+  const primaryRule = rows.find(isDue) || rows.find((item) => item.enabled) || rows[0] || null;
+  const latestRun = runs[0] || null;
+  const processedRuns = runs.reduce((sum, item) => sum + item.hitsCount, 0);
+  const totalExceptionCases = rows.reduce((sum, item) => sum + item._count.exceptionCases, 0);
+  const operationalPressure = commandCenter.metrics.openOccurrences + commandCenter.metrics.overdueMaintenances;
+  const statusValue = runningRuns ? "Em execução" : failedRuns ? "Com falhas" : successRuns ? "Concluída" : "Aguardando";
+  const statusToneValue: Tone = runningRuns ? "blue" : failedRuns ? "red" : successRuns ? "green" : "slate";
 
   const kpis = [
-    { label: "Regras", value: String(rulesResponse.meta.total), hint: "resultado filtrado", tone: "blue" as const },
-    { label: "Ativas", value: String(summary.counts.enabledRules), hint: "habilitadas", tone: summary.counts.enabledRules ? "green" as const : "slate" as const },
-    { label: "Vencidas", value: String(summary.counts.dueRules), hint: "prontas para rodar", tone: summary.counts.dueRules ? "orange" as const : "green" as const },
-    { label: "Falhas 24h", value: String(summary.counts.failedRuns24h), hint: "execuções com erro", tone: summary.counts.failedRuns24h ? "red" as const : "green" as const },
-    { label: "Pressão", value: String(commandCenter.metrics.openOccurrences + commandCenter.metrics.overdueMaintenances), hint: "alertas + chamados", tone: commandCenter.metrics.criticalOpenOccurrences ? "red" as const : "blue" as const },
+    { label: "Status da execução", value: statusValue, hint: latestRun ? `última ${formatDateTime(latestRun.startedAt)}` : "sem execução", tone: statusToneValue },
+    { label: "Disparo", value: primaryRule ? cadenceLabel(primaryRule.cadence) : "-", hint: primaryRule?.enabled ? "agenda ativa" : "agenda pausada", tone: primaryRule?.enabled ? "blue" as const : "slate" as const },
+    { label: "Duração", value: latestRun ? runDuration(latestRun) : "-", hint: latestRun ? statusLabel(latestRun.status) : "aguardando run", tone: latestRun ? statusTone(latestRun.status) : "slate" as const },
+    { label: "Eventos processados", value: String(processedRuns), hint: `${runs.length} run(s) recentes`, tone: "blue" as const },
+    { label: "Exceções", value: String(totalExceptionCases), hint: `${operationalPressure} alerta(s)/chamado(s) em pressão`, tone: totalExceptionCases ? "orange" as const : "green" as const },
   ];
 
   return (
     <NovaLitShell activeHref="/automacao">
       <div className="nova-lit-page-heading nova-auto-heading">
         <div>
-          <h1>Automação</h1>
-          <p className="nova-lit-page-subtitle">Regras, detectores, cadência, execuções recentes e geração automática de exceções.</p>
+          <div className="nova-auto-breadcrumb">Gestão / Automação / Execução</div>
+          <h1>Fluxo de automação operacional - Execução</h1>
+          <p className="nova-lit-page-subtitle">Acompanhe status, etapas, runs e geração automática de exceções.</p>
         </div>
 
         <div className="nova-lit-page-actions">
@@ -403,7 +562,15 @@ export default async function AutomacaoPage({
         ))}
       </section>
 
-      <form action="/automacao" className="nova-lit-card nova-auto-filters">
+      <AutomationWorkflow
+        rule={primaryRule}
+        latestRun={latestRun}
+        runs={runs}
+        admin={isAdmin}
+        runAction={runAutomationNow}
+      />
+
+      <form id="automation-filters" action="/automacao" className="nova-lit-card nova-auto-filters">
         <label className="nova-auto-search">
           <span>Busca</span>
           <input name="q" defaultValue={state.q} placeholder="Código, nome, detector ou template" />
@@ -463,7 +630,7 @@ export default async function AutomacaoPage({
       </form>
 
       <section className="nova-auto-main-grid">
-        <div className="nova-lit-card nova-auto-table-card">
+        <div id="automation-rules" className="nova-lit-card nova-auto-table-card">
           <div className="nova-auto-section-title">
             <div>
               <span>Automation Desk</span>
@@ -641,7 +808,7 @@ export default async function AutomacaoPage({
             </div>
           </section>
 
-          <section className="nova-lit-card nova-auto-runs">
+          <section id="automation-runs" className="nova-lit-card nova-auto-runs">
             <div className="nova-lit-title-row">
               <h2>Últimas execuções</h2>
               <span className="nova-lit-pill nova-lit-pill-orange">{summary.counts.failedRuns24h} falhas</span>

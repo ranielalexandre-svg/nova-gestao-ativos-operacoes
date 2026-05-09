@@ -50,6 +50,14 @@ export class AutomationsController {
     return this.automationsService.updateAutomationRule(id, body);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles("admin")
+  @Post(":id/run")
+  runAutomationRuleNow(@Param("id") id: string) {
+    this.assertAutomationEnabled();
+    return this.automationsService.runAutomationRuleNow(id);
+  }
+
   private assertAutomationEnabled() {
     if (!this.settingsService.isAutomationEnabled()) {
       throw new ForbiddenException("Automação desativada nas configurações.");

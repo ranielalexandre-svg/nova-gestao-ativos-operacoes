@@ -13704,6 +13704,18 @@ body:has(.nova-lit-app) {
   margin-bottom: 8px;
 }
 
+.nova-auto-breadcrumb {
+  margin-bottom: 8px;
+  color: #8faad0;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.nova-lit-page-heading.nova-auto-heading h1 {
+  font-size: clamp(23px, 1.7vw, 29px);
+  line-height: 1.05;
+}
+
 .nova-auto-kpi-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -13720,9 +13732,8 @@ body:has(.nova-lit-app) {
   display: block;
   margin-top: 5px;
   color: #fff;
-  font-size: 23px;
+  font-size: 22px;
   font-weight: 950;
-  letter-spacing: -0.04em;
   line-height: 0.96;
 }
 
@@ -13730,6 +13741,217 @@ body:has(.nova-lit-app) {
   margin: 2px 0 0;
   color: #b6c7dd;
   font-size: 10px;
+}
+
+.nova-auto-workflow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 318px;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.nova-auto-flow-board,
+.nova-auto-run-controls {
+  border: 1px solid rgba(84, 103, 132, 0.28);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(18, 35, 52, 0.92), rgba(7, 15, 24, 0.9)),
+    rgba(7, 15, 24, 0.86);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.nova-auto-flow-board {
+  min-width: 0;
+  padding: 12px 14px;
+}
+
+.nova-auto-flow-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.nova-auto-flow-title span,
+.nova-auto-run-card span {
+  color: #8faad0;
+  font-size: 9px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.nova-auto-flow-title strong {
+  overflow: hidden;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 950;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nova-auto-flow-steps {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.nova-auto-flow-step {
+  position: relative;
+  min-height: 142px;
+  border: 1px solid rgba(84, 103, 132, 0.34);
+  border-radius: 8px;
+  background: rgba(9, 22, 34, 0.74);
+  padding: 13px 12px 11px;
+}
+
+.nova-auto-flow-step:not(:last-child)::after {
+  position: absolute;
+  top: 50%;
+  right: -11px;
+  width: 11px;
+  border-top: 1px dashed rgba(130, 156, 192, 0.48);
+  content: "";
+}
+
+.nova-auto-flow-step.is-active {
+  border-color: rgba(255, 119, 8, 0.76);
+  box-shadow: 0 0 0 1px rgba(255, 119, 8, 0.14), 0 16px 42px rgba(255, 119, 8, 0.08);
+}
+
+.nova-auto-step-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.nova-auto-step-head span {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(112, 130, 156, 0.28);
+  color: #d7e7ff;
+  font-size: 11px;
+  font-weight: 950;
+}
+
+.nova-auto-flow-step.is-green .nova-auto-step-head span {
+  background: #26c979;
+  color: #042214;
+}
+
+.nova-auto-flow-step.is-orange .nova-auto-step-head span {
+  background: #ff7a0a;
+  color: #fff;
+}
+
+.nova-auto-flow-step.is-blue .nova-auto-step-head span {
+  background: #3f94ff;
+  color: #fff;
+}
+
+.nova-auto-flow-step.is-red .nova-auto-step-head span {
+  background: #ff4d67;
+  color: #fff;
+}
+
+.nova-auto-step-head b {
+  color: #adc4e3;
+  font-size: 9px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.nova-auto-flow-step strong {
+  display: block;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 950;
+  line-height: 1.2;
+}
+
+.nova-auto-flow-step small,
+.nova-auto-flow-step p {
+  display: block;
+  margin: 8px 0 0;
+  color: #8faad0;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.nova-auto-flow-step p {
+  color: #dceaff;
+  font-weight: 900;
+}
+
+.nova-auto-run-controls {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+}
+
+.nova-auto-run-card {
+  border: 1px solid rgba(84, 103, 132, 0.28);
+  border-radius: 8px;
+  background: rgba(5, 13, 21, 0.54);
+  padding: 12px;
+}
+
+.nova-auto-run-card strong {
+  display: block;
+  margin-top: 6px;
+  color: #fff;
+  font-size: 20px;
+  font-weight: 950;
+  line-height: 1.05;
+}
+
+.nova-auto-run-card p {
+  margin: 6px 0 0;
+  color: #9fbce0;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.nova-auto-action-stack {
+  display: grid;
+  gap: 8px;
+}
+
+.nova-auto-action-stack form {
+  margin: 0;
+}
+
+.nova-auto-action-stack button,
+.nova-auto-action-stack a {
+  display: inline-flex;
+  width: 100%;
+  min-height: 34px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(84, 103, 132, 0.38);
+  border-radius: 7px;
+  background: rgba(5, 13, 21, 0.62);
+  color: #dceaff;
+  font-size: 11px;
+  font-weight: 950;
+  text-decoration: none;
+}
+
+.nova-auto-action-stack form button {
+  border-color: rgba(255, 119, 8, 0.74);
+  background: linear-gradient(180deg, #ff8a1f, #f36b00);
+  color: #fff;
+  cursor: pointer;
+}
+
+.nova-auto-action-stack button:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
 }
 
 .nova-auto-filters {
@@ -14247,6 +14469,7 @@ body:has(.nova-lit-app) {
 
 @media (max-width: 1500px) {
   .nova-auto-filters,
+  .nova-auto-workflow,
   .nova-auto-main-grid {
     grid-template-columns: 1fr;
   }
@@ -14260,10 +14483,19 @@ body:has(.nova-lit-app) {
   .nova-auto-kpi-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+
+  .nova-auto-flow-steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .nova-auto-flow-step:not(:last-child)::after {
+    display: none;
+  }
 }
 
 @media (max-width: 960px) {
   .nova-auto-kpi-grid,
+  .nova-auto-flow-steps,
   .nova-auto-right-col {
     grid-template-columns: 1fr;
   }

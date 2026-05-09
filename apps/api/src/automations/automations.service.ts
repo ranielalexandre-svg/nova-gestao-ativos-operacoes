@@ -413,6 +413,21 @@ export class AutomationsService {
     });
   }
 
+  async runAutomationRuleNow(id: string) {
+    const rule = await this.prisma.automationRule.findUnique({
+      where: { id },
+    });
+
+    if (!rule) throw new NotFoundException("Automação não encontrada");
+
+    await this.executeRule(rule);
+
+    return {
+      ok: true,
+      executedAt: new Date().toISOString(),
+    };
+  }
+
   private async detectorMaintenanceOverdue(rule: any): Promise<AutomationHit[]> {
     const now = new Date();
     const items = await this.prisma.maintenance.findMany({
