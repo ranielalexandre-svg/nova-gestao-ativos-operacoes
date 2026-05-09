@@ -2,17 +2,19 @@ import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { ActionForm } from "@/components/action-form";
-import { NovaLitShell } from "@/components/nova-lit/nova-lit-shell";
 import { getActionErrorMessage, type ActionFeedbackState } from "@/lib/action-state";
 import { apiJson } from "@/lib/server-api";
 import { isAdminRole, ROLE_OPTIONS } from "@/lib/role-policy";
 import { getServerWebSession } from "@/lib/web-session";
+import { UserAccessIcon, UserAccessShell } from "../user-access-shell";
 
 async function createUser(
   _prevState: ActionFeedbackState,
   formData: FormData,
 ): Promise<ActionFeedbackState> {
   "use server";
+
+  let createdId = "";
 
   try {
     if (!isAdminRole((await getServerWebSession()).user?.role || "")) {
@@ -29,11 +31,13 @@ async function createUser(
       }),
     });
 
+    createdId = created.id;
     revalidatePath("/usuarios");
-    redirect(`/usuarios/${created.id}`);
   } catch (error) {
     return { status: "error", message: getActionErrorMessage(error) };
   }
+
+  redirect(`/usuarios/${createdId}`);
 }
 
 export default async function NovoUsuarioPage() {
@@ -48,36 +52,48 @@ export default async function NovoUsuarioPage() {
   }
 
   return (
-    <NovaLitShell activeHref="/usuarios">
-      <main className="nova-users-page">
-        <section className="nova-users-hero">
+    <UserAccessShell userEmail={session.user?.email} userName={session.user?.name}>
+      <main className="nova-user-editor-page">
+        <header className="nova-user-editor-heading">
           <div>
-            <span>Configurações / Usuários / Novo</span>
+            <nav aria-label="Breadcrumb">
+              <Link href="/configuracoes">Configurações</Link>
+              <span>/</span>
+              <Link href="/usuarios">Usuários</Link>
+              <span>/</span>
+              <strong>Novo</strong>
+            </nav>
             <h1>Novo usuário</h1>
             <p>Crie o acesso em uma etapa dedicada, com papel, e-mail e senha inicial provisória.</p>
           </div>
-          <div className="nova-users-hero__actions">
-            <Link href="/usuarios" className="nova-users-button is-secondary">Voltar para usuários</Link>
+          <div>
+            <Link href="/usuarios" className="nova-user-editor-button">
+              <UserAccessIcon name="chevron" />
+              <span>Voltar</span>
+            </Link>
           </div>
-        </section>
+        </header>
 
-        <section className="nova-users-layout">
-          <div className="nova-users-main">
-            <section className="nova-users-card">
-              <div className="nova-users-section-head">
+        <section className="nova-user-editor-layout">
+          <div className="nova-user-editor-main">
+            <section className="nova-user-editor-card nova-user-editor-form-card">
+              <div className="nova-user-editor-card-head">
                 <div>
-                  <span>Cadastro</span>
+                  <span><UserAccessIcon name="plus-user" /> Cadastro</span>
                   <h2>Dados do acesso</h2>
                   <p>Use e-mail real, papel correto e senha inicial com no mínimo 8 caracteres.</p>
                 </div>
+                <strong>01</strong>
               </div>
 
               <ActionForm
                 action={createUser}
-                className="nova-users-create-form"
+                className="nova-user-editor-form"
+                noticeClassName="nova-user-editor-form-wide"
+                submitClassName="nova-user-editor-form-wide"
                 submitLabel="Criar usuário"
                 pendingLabel="Criando..."
-                variant="secondary"
+                variant="primary"
               >
                 <label>
                   <span>Nome</span>
@@ -109,20 +125,26 @@ export default async function NovoUsuarioPage() {
                     autoComplete="new-password"
                   />
                 </label>
+
+                <div className="nova-user-editor-security-note nova-user-editor-form-wide">
+                  <UserAccessIcon name="shield" />
+                  <span>O usuário será criado ativo e poderá trocar a senha após o primeiro acesso.</span>
+                </div>
               </ActionForm>
             </section>
           </div>
 
-          <aside className="nova-users-side">
-            <section className="nova-users-card">
-              <div className="nova-users-section-head">
+          <aside className="nova-user-editor-side">
+            <section className="nova-user-editor-card">
+              <div className="nova-user-editor-side-title">
+                <UserAccessIcon name="shield" />
                 <div>
-                  <span>Regras rápidas</span>
                   <h2>Controle de acesso</h2>
+                  <p>Resumo dos perfis aceitos pela API.</p>
                 </div>
               </div>
 
-              <div className="nova-users-rules">
+              <div className="nova-user-editor-rules">
                 <div>
                   <strong>Admin</strong>
                   <span>gerencia usuários, perfis e configurações</span>
@@ -141,9 +163,25 @@ export default async function NovoUsuarioPage() {
                 </div>
               </div>
             </section>
+
+            <section className="nova-user-editor-card">
+              <div className="nova-user-editor-side-title is-orange">
+                <UserAccessIcon name="lock" />
+                <div>
+                  <h2>Política inicial</h2>
+                  <p>Campos obrigatórios para liberar o acesso.</p>
+                </div>
+              </div>
+              <div className="nova-user-editor-checklist">
+                <span>Nome completo</span>
+                <span>E-mail válido</span>
+                <span>Perfil operacional</span>
+                <span>Senha com 8+ caracteres</span>
+              </div>
+            </section>
           </aside>
         </section>
       </main>
-    </NovaLitShell>
+    </UserAccessShell>
   );
 }

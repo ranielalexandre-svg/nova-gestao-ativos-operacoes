@@ -1,14 +1,15 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { ActionForm } from "@/components/action-form";
-import { NovaLitShell } from "@/components/nova-lit/nova-lit-shell";
 import { OperationalDeletePanel } from "@/components/operational-delete-panel";
 import { getActionErrorMessage, type ActionFeedbackState } from "@/lib/action-state";
 import { formatDateTime } from "@/lib/formatters";
 import { apiJson } from "@/lib/server-api";
 import { isAdminRole, ROLE_OPTIONS, roleLabel } from "@/lib/role-policy";
 import { getServerWebSession } from "@/lib/web-session";
+import { UserAccessIcon, UserAccessShell } from "../user-access-shell";
 
 type UserDetail = {
   id: string;
@@ -33,8 +34,8 @@ function statusTone(isActive: boolean): Tone {
   return isActive ? "green" : "red";
 }
 
-function Badge({ tone, children }: { tone: Tone; children: React.ReactNode }) {
-  return <span className={`nova-users-badge is-${tone}`}>{children}</span>;
+function Badge({ tone, children }: { tone: Tone; children: ReactNode }) {
+  return <span className={`nova-user-editor-badge is-${tone}`}>{children}</span>;
 }
 
 async function updateUser(
@@ -151,54 +152,71 @@ export default async function UsuarioDetalhePage({
   const currentUserId = session.user?.id || "";
 
   return (
-    <NovaLitShell activeHref="/usuarios">
-      <main className="nova-users-page">
-        <section className="nova-users-hero">
+    <UserAccessShell userEmail={session.user?.email} userName={session.user?.name}>
+      <main className="nova-user-editor-page">
+        <header className="nova-user-editor-heading">
           <div>
-            <span>Configurações / Usuários / Detalhe</span>
+            <nav aria-label="Breadcrumb">
+              <Link href="/configuracoes">Configurações</Link>
+              <span>/</span>
+              <Link href="/usuarios">Usuários</Link>
+              <span>/</span>
+              <strong>Detalhe</strong>
+            </nav>
             <h1>{user.name}</h1>
             <p>{user.email}</p>
           </div>
-          <div className="nova-users-hero__actions">
-            <Link href="/usuarios" className="nova-users-button is-secondary">Voltar para usuários</Link>
-            <Link href="/usuarios/nova" className="nova-users-button is-primary">Novo usuário</Link>
+          <div>
+            <Link href="/usuarios" className="nova-user-editor-button">
+              <UserAccessIcon name="chevron" />
+              <span>Voltar</span>
+            </Link>
+            <Link href="/usuarios/nova" className="nova-user-editor-button is-primary">
+              <UserAccessIcon name="plus-user" />
+              <span>Novo usuário</span>
+            </Link>
           </div>
-        </section>
+        </header>
 
-        <section className="nova-users-metrics">
-          <div className="nova-users-metric">
-            <div className="nova-users-metric__head">
-              <span>Papel</span>
+        <section className="nova-user-editor-kpis" aria-label="Resumo do usuário">
+          <article className="nova-user-editor-kpi is-blue">
+            <div>
+              <UserAccessIcon name="users" />
             </div>
+            <span>Papel</span>
             <strong>{roleLabel(user.role)}</strong>
             <small>nível de acesso atual</small>
-          </div>
-          <div className="nova-users-metric">
-            <div className="nova-users-metric__head">
-              <span>Status</span>
+          </article>
+          <article className={`nova-user-editor-kpi ${user.isActive ? "is-green" : "is-red"}`}>
+            <div>
+              <UserAccessIcon name="shield" />
             </div>
+            <span>Status</span>
             <strong>{user.isActive ? "Ativo" : "Inativo"}</strong>
             <small>controle lógico de acesso</small>
-          </div>
-          <div className="nova-users-metric">
-            <div className="nova-users-metric__head">
-              <span>Criado em</span>
+          </article>
+          <article className="nova-user-editor-kpi is-orange">
+            <div>
+              <UserAccessIcon name="lock" />
             </div>
+            <span>Criado em</span>
             <strong>{formatDateTime(user.createdAt)}</strong>
             <small>última atualização: {formatDateTime(user.updatedAt)}</small>
-          </div>
+          </article>
         </section>
 
-        <section className="nova-users-layout">
-          <div className="nova-users-main">
-            <section className="nova-users-card">
-              <div className="nova-users-section-head">
+        <section className="nova-user-editor-layout">
+          <div className="nova-user-editor-main">
+            <section className="nova-user-editor-card nova-user-editor-form-card">
+              <div className="nova-user-editor-card-head">
                 <div>
-                  <span>Cadastro</span>
+                  <span>
+                    <UserAccessIcon name="users" /> Cadastro
+                  </span>
                   <h2>Editar acesso</h2>
                   <p>Atualize nome, papel e status ativo do usuário.</p>
                 </div>
-                <div className="nova-users-summary-badges">
+                <div className="nova-user-editor-badges">
                   <Badge tone={roleTone(user.role)}>{roleLabel(user.role)}</Badge>
                   <Badge tone={statusTone(user.isActive)}>{user.isActive ? "ativo" : "inativo"}</Badge>
                 </div>
@@ -206,10 +224,12 @@ export default async function UsuarioDetalhePage({
 
               <ActionForm
                 action={updateUser}
-                className="nova-users-create-form"
+                className="nova-user-editor-form"
+                noticeClassName="nova-user-editor-form-wide"
+                submitClassName="nova-user-editor-form-wide"
                 submitLabel="Salvar usuário"
                 pendingLabel="Salvando..."
-                variant="secondary"
+                variant="primary"
               >
                 <input type="hidden" name="id" value={user.id} />
 
@@ -234,17 +254,19 @@ export default async function UsuarioDetalhePage({
                   </select>
                 </label>
 
-                <label className="nova-users-check">
+                <label className="nova-user-editor-check">
                   <input type="checkbox" name="isActive" defaultChecked={user.isActive} />
                   <span>Usuário ativo</span>
                 </label>
               </ActionForm>
             </section>
 
-            <section className="nova-users-card">
-              <div className="nova-users-section-head">
+            <section className="nova-user-editor-card nova-user-editor-form-card">
+              <div className="nova-user-editor-card-head">
                 <div>
-                  <span>Senha</span>
+                  <span>
+                    <UserAccessIcon name="lock" /> Senha
+                  </span>
                   <h2>Redefinir senha</h2>
                   <p>Gere uma senha provisória com no mínimo 8 caracteres.</p>
                 </div>
@@ -252,14 +274,16 @@ export default async function UsuarioDetalhePage({
 
               <ActionForm
                 action={resetPassword}
-                className="nova-users-create-form"
+                className="nova-user-editor-form is-compact"
+                noticeClassName="nova-user-editor-form-wide"
+                submitClassName="nova-user-editor-form-wide"
                 submitLabel="Redefinir senha"
                 pendingLabel="Salvando..."
                 variant="secondary"
               >
                 <input type="hidden" name="id" value={user.id} />
 
-                <label>
+                <label className="nova-user-editor-form-wide">
                   <span>Nova senha</span>
                   <input
                     name="password"
@@ -272,40 +296,48 @@ export default async function UsuarioDetalhePage({
             </section>
           </div>
 
-          <aside className="nova-users-side">
-            <section className="nova-users-card">
-              <div className="nova-users-section-head">
+          <aside className="nova-user-editor-side">
+            <section className="nova-user-editor-card">
+              <div className="nova-user-editor-side-title is-orange">
+                <UserAccessIcon name="trash" />
                 <div>
-                  <span>Bloqueio</span>
                   <h2>Remover acesso</h2>
                   <p>O usuário é inativado, preservando histórico e auditoria.</p>
                 </div>
               </div>
 
-              <OperationalDeletePanel
-                action={deleteUser}
-                entityId={user.id}
-                entityLabel="usuário"
-                entityName={`${user.name} - ${user.email}`}
-                blockedReason={
-                  user.id === currentUserId
-                    ? "Você não pode excluir o próprio usuário logado."
-                    : !user.isActive
-                      ? "Este usuário já está inativo."
-                      : undefined
-                }
-              />
+              <div className="nova-user-editor-delete">
+                <OperationalDeletePanel
+                  action={deleteUser}
+                  entityId={user.id}
+                  entityLabel="usuário"
+                  entityName={`${user.name} - ${user.email}`}
+                  blockedReason={
+                    user.id === currentUserId
+                      ? "Você não pode excluir o próprio usuário logado."
+                      : !user.isActive
+                        ? "Este usuário já está inativo."
+                        : undefined
+                  }
+                />
+                {user.id === currentUserId ? (
+                  <p>Você não pode inativar o próprio usuário logado.</p>
+                ) : !user.isActive ? (
+                  <p>Este usuário já está inativo.</p>
+                ) : null}
+              </div>
             </section>
 
-            <section className="nova-users-card">
-              <div className="nova-users-section-head">
+            <section className="nova-user-editor-card">
+              <div className="nova-user-editor-side-title">
+                <UserAccessIcon name="shield" />
                 <div>
-                  <span>Regras rápidas</span>
                   <h2>Controle de acesso</h2>
+                  <p>Resumo dos perfis aceitos pela API.</p>
                 </div>
               </div>
 
-              <div className="nova-users-rules">
+              <div className="nova-user-editor-rules">
                 <div>
                   <strong>Admin</strong>
                   <span>gerencia usuários, perfis e configurações</span>
@@ -327,6 +359,6 @@ export default async function UsuarioDetalhePage({
           </aside>
         </section>
       </main>
-    </NovaLitShell>
+    </UserAccessShell>
   );
 }
