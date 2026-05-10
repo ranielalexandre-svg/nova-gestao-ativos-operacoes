@@ -23200,6 +23200,429 @@ body:has(.nova-lit-app) {
 }
 /* == NOVA SLA POLICY DESK END == */
 
+/* == NOVA QUEUE DISPATCH DESK START == */
+.nova-operation-queue-lit-page :where(h1, h2, h3) {
+  letter-spacing: 0 !important;
+}
+
+.nova-queue-command-hero,
+.nova-queue-filter-panel,
+.nova-queue-board-panel,
+.nova-queue-side-panel {
+  border-radius: 8px !important;
+}
+
+.nova-queue-command-hero {
+  padding: 16px;
+  border-color: rgba(118, 169, 223, .28) !important;
+  background:
+    linear-gradient(135deg, rgba(6, 22, 38, .98), rgba(6, 16, 29, .96) 54%, rgba(16, 26, 36, .98)) !important;
+}
+
+.nova-queue-command-bar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.nova-queue-command-bar h1 {
+  margin-top: 6px;
+  color: #fff;
+  font-size: 30px;
+  font-weight: 950;
+  line-height: 1.05;
+}
+
+.nova-queue-command-bar p {
+  margin-top: 6px;
+  max-width: 720px;
+  color: #b8d7ff;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.nova-queue-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.nova-queue-focus-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.nova-queue-focus-strip > div {
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid rgba(118, 169, 223, .18);
+  border-radius: 8px;
+  background: rgba(2, 10, 18, .38);
+}
+
+.nova-queue-focus-strip span,
+.nova-queue-kpi-top > span,
+.nova-queue-signal-grid span {
+  color: #a9c9ee;
+  font-size: 10px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.nova-queue-focus-strip strong {
+  display: block;
+  overflow: hidden;
+  margin-top: 4px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 950;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nova-queue-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.nova-queue-kpi-card {
+  min-height: 96px;
+  padding: 12px;
+  border: 1px solid rgba(118, 169, 223, .24);
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(9, 29, 50, .84), rgba(4, 14, 26, .9));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .04);
+}
+
+.nova-queue-kpi-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.nova-queue-kpi-dot {
+  width: 10px;
+  height: 10px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #64748b;
+  box-shadow: 0 0 0 4px rgba(100, 116, 139, .12);
+}
+
+.nova-queue-kpi-dot[data-tone="success"] {
+  background: #22c55e;
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, .13);
+}
+
+.nova-queue-kpi-dot[data-tone="info"] {
+  background: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, .13);
+}
+
+.nova-queue-kpi-dot[data-tone="attention"] {
+  background: #f59e0b;
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, .13);
+}
+
+.nova-queue-kpi-dot[data-tone="critical"] {
+  background: #ef4444;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, .13);
+}
+
+.nova-queue-kpi-card > strong {
+  display: block;
+  margin-top: 12px;
+  color: #fff;
+  font-size: 30px;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.nova-queue-kpi-card > small {
+  display: block;
+  margin-top: 8px;
+  color: #b8d7ff;
+  font-size: 12px;
+}
+
+.nova-queue-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+  gap: 12px;
+  align-items: start;
+}
+
+.nova-queue-main-stack,
+.nova-queue-side-stack {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.nova-queue-filter-panel,
+.nova-queue-board-panel,
+.nova-queue-side-panel {
+  padding: 12px;
+}
+
+.nova-queue-filter-panel .nova-section-intro p {
+  display: none;
+}
+
+.nova-queue-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.nova-queue-filter-form {
+  display: grid;
+  grid-template-columns: minmax(260px, 1.6fr) repeat(4, minmax(0, 170px)) 118px;
+  gap: 10px;
+  align-items: end;
+  margin-top: 10px;
+}
+
+.nova-queue-filter-form :where(input, select, button),
+.nova-queue-bulk-toolbar :where(select) {
+  min-height: 36px !important;
+  font-size: 12px;
+}
+
+.nova-queue-bulk-form {
+  margin-top: 10px;
+  gap: 10px !important;
+}
+
+.nova-queue-bulk-toolbar {
+  display: grid;
+  grid-template-columns: 190px 230px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 8px;
+  border: 1px solid rgba(118, 169, 223, .16);
+  border-radius: 8px;
+  background: rgba(2, 10, 18, .38);
+}
+
+.nova-queue-bulk-toolbar > span {
+  color: #9db8d8;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.nova-queue-table-shell {
+  margin-top: 0;
+}
+
+.nova-queue-row-check {
+  width: 15px;
+  height: 15px;
+  accent-color: #ff7a00;
+}
+
+.nova-queue-case-link {
+  color: #fff;
+  font-size: 12px;
+  font-weight: 950;
+  text-decoration: none;
+}
+
+.nova-queue-case-link:hover,
+.nova-queue-row-action:hover,
+.nova-queue-route-list a:hover {
+  color: #ff9a3c;
+}
+
+.nova-queue-row-action {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(118, 169, 223, .2);
+  border-radius: 8px;
+  background: rgba(2, 10, 18, .48);
+  color: #fff;
+  padding: 0 12px;
+  font-size: 11px;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.nova-queue-rank-list,
+.nova-queue-quick-actions,
+.nova-queue-route-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.nova-queue-rank-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  overflow: hidden;
+  min-height: 48px;
+  padding: 10px 12px 13px;
+  border: 1px solid rgba(118, 169, 223, .16);
+  border-radius: 8px;
+  background: rgba(3, 12, 22, .56);
+  color: #dbeafe;
+  text-decoration: none;
+}
+
+.nova-queue-rank-row span {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 850;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nova-queue-rank-row strong {
+  color: #fff;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.nova-queue-rank-row i {
+  position: absolute;
+  left: 12px;
+  bottom: 7px;
+  height: 3px;
+  max-width: calc(100% - 24px);
+  border-radius: 999px;
+  background: linear-gradient(90deg, #ff7a00, #3b82f6, #22c55e);
+}
+
+.nova-queue-empty-mini {
+  display: grid;
+  min-height: 76px;
+  place-items: center;
+  border: 1px solid rgba(118, 169, 223, .16);
+  border-radius: 8px;
+  color: #9db8d8;
+  font-size: 12px;
+}
+
+.nova-queue-priority-card {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid rgba(118, 169, 223, .16);
+  border-radius: 8px;
+  background: rgba(2, 10, 18, .38);
+}
+
+.nova-queue-priority-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.nova-queue-priority-detail {
+  margin-top: 10px;
+  color: #b8d7ff;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.nova-queue-quick-actions .nds-button,
+.nova-queue-quick-form button {
+  width: 100%;
+}
+
+.nova-queue-quick-form .nova-form-actions {
+  margin-top: 0;
+}
+
+.nova-queue-signal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.nova-queue-signal-grid > div {
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(118, 169, 223, .16);
+  border-radius: 8px;
+  background: rgba(2, 10, 18, .38);
+}
+
+.nova-queue-signal-grid strong {
+  display: block;
+  margin-top: 4px;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 950;
+}
+
+.nova-queue-route-list a {
+  display: flex;
+  min-height: 34px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(118, 169, 223, .16);
+  border-radius: 8px;
+  background: rgba(2, 10, 18, .38);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 850;
+  text-decoration: none;
+}
+
+@media (max-width: 1280px) {
+  .nova-queue-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .nova-queue-filter-form,
+  .nova-queue-bulk-toolbar {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 920px) {
+  .nova-queue-command-hero {
+    padding: 14px;
+  }
+
+  .nova-queue-command-bar,
+  .nova-queue-hero-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .nova-queue-command-bar h1 {
+    font-size: 26px;
+  }
+
+  .nova-queue-focus-strip,
+  .nova-queue-kpi-grid,
+  .nova-queue-filter-form,
+  .nova-queue-bulk-toolbar,
+  .nova-queue-signal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .nova-queue-hero-actions .nds-button,
+  .nova-queue-filter-form button {
+    width: 100%;
+  }
+}
+/* == NOVA QUEUE DISPATCH DESK END == */
+
 /* == NOVA OPERATION FORMS POLISH START == */
 .nova-operation-lit-page form,
 .nova-operation-queue-lit-page form,
