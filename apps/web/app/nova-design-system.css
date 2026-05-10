@@ -18743,6 +18743,457 @@ body:has(.nova-lit-app) {
 }
 /* == NOVA RECONCILIACAO LIT END == */
 
+/* == NOVA RECONCILIACAO WORKSPACE START == */
+.nova-recon-workspace {
+  display: grid;
+  gap: 14px;
+  padding-bottom: 32px;
+}
+
+.nova-recon-hero {
+  align-items: end;
+  display: flex;
+  gap: 18px;
+  justify-content: space-between;
+  min-height: 116px;
+  padding: 18px 0 6px;
+}
+
+.nova-recon-breadcrumb,
+.nova-recon-section-title span,
+.nova-recon-kpi span {
+  color: #8fbfff;
+  display: block;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.nova-recon-hero h1 {
+  color: #f8fbff;
+  font-size: clamp(28px, 2.7vw, 42px);
+  font-weight: 950;
+  letter-spacing: 0;
+  line-height: 1.05;
+  margin: 10px 0 0;
+}
+
+.nova-recon-hero p {
+  color: #b6c8de;
+  font-size: 13px;
+  line-height: 1.55;
+  margin: 8px 0 0;
+}
+
+.nova-recon-actions,
+.nova-recon-filter-actions,
+.nova-recon-table-tools {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  justify-content: flex-end;
+}
+
+.nova-recon-actions button,
+.nova-recon-filter-actions button,
+.nova-recon-table-tools button,
+.nova-recon-side-card button,
+.nova-recon-table-card td a,
+.nova-recon-sync-form button {
+  align-items: center;
+  background: rgba(255,255,255,0.045);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 7px;
+  color: #f8fbff;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 900;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0 14px;
+  text-decoration: none;
+}
+
+.nova-recon-actions button.is-primary,
+.nova-recon-filter-actions button.is-primary {
+  background: #ff7a1a;
+  border-color: rgba(255,122,26,0.82);
+  box-shadow: 0 16px 34px rgba(255,122,26,0.22);
+}
+
+.nova-recon-kpi-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.nova-recon-kpi,
+.nova-recon-filters,
+.nova-recon-table-card,
+.nova-recon-side-card {
+  background:
+    radial-gradient(circle at 88% 0%, rgba(63,130,220,0.16), transparent 34%),
+    rgba(10,22,34,0.88);
+  border: 1px solid rgba(118,154,190,0.24);
+  border-radius: 7px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.035), 0 18px 50px rgba(0,0,0,0.18);
+}
+
+.nova-recon-kpi {
+  min-height: 110px;
+  padding: 18px;
+  position: relative;
+}
+
+.nova-recon-kpi-icon {
+  border-radius: 7px;
+  height: 26px;
+  position: absolute;
+  right: 18px;
+  top: 18px;
+  width: 26px;
+}
+
+.nova-recon-kpi.is-blue .nova-recon-kpi-icon { background: rgba(79,140,255,0.2); border: 1px solid rgba(79,140,255,0.36); }
+.nova-recon-kpi.is-green .nova-recon-kpi-icon { background: rgba(82,210,115,0.18); border: 1px solid rgba(82,210,115,0.34); }
+.nova-recon-kpi.is-orange .nova-recon-kpi-icon { background: rgba(255,159,28,0.18); border: 1px solid rgba(255,159,28,0.34); }
+.nova-recon-kpi.is-violet .nova-recon-kpi-icon { background: rgba(155,108,255,0.18); border: 1px solid rgba(155,108,255,0.34); }
+
+.nova-recon-kpi strong {
+  color: #f8fbff;
+  display: block;
+  font-size: 28px;
+  font-weight: 950;
+  line-height: 1;
+  margin-top: 24px;
+}
+
+.nova-recon-kpi small {
+  color: #9fb0c4;
+  display: block;
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+.nova-recon-filters {
+  align-items: end;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(180px, 1fr) repeat(4, minmax(150px, 0.8fr)) auto;
+  padding: 16px;
+}
+
+.nova-recon-section-title strong {
+  color: #f8fbff;
+  display: block;
+  font-size: 15px;
+  font-weight: 950;
+  margin-top: 6px;
+}
+
+.nova-recon-filters label {
+  color: #dbe8f8;
+  display: grid;
+  font-size: 12px;
+  font-weight: 800;
+  gap: 8px;
+}
+
+.nova-recon-filters select,
+.nova-recon-filters input,
+.nova-recon-table-tools input {
+  background: rgba(2,10,18,0.72);
+  border: 1px solid rgba(118,154,190,0.24);
+  border-radius: 7px;
+  color: #f8fbff;
+  font-size: 13px;
+  min-height: 40px;
+  outline: none;
+  padding: 0 12px;
+  width: 100%;
+}
+
+.nova-recon-filter-actions {
+  min-width: 260px;
+}
+
+.nova-recon-content-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) 396px;
+}
+
+.nova-recon-table-card,
+.nova-recon-side-card {
+  padding: 14px;
+}
+
+.nova-recon-table-head {
+  align-items: center;
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.nova-recon-table-head span {
+  color: #ffb64a;
+  display: block;
+  font-size: 14px;
+  font-weight: 950;
+}
+
+.nova-recon-table-head strong {
+  color: #9fb0c4;
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+.nova-recon-table-tools input {
+  min-width: 240px;
+}
+
+.nova-recon-table-wrap {
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 7px;
+  overflow: auto;
+}
+
+.nova-recon-table-wrap table {
+  border-collapse: collapse;
+  min-width: 920px;
+  width: 100%;
+}
+
+.nova-recon-table-wrap th,
+.nova-recon-table-wrap td {
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  color: #dbe8f8;
+  font-size: 12px;
+  padding: 10px 12px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.nova-recon-table-wrap th {
+  background: rgba(255,255,255,0.035);
+  color: #a7bad2;
+  font-size: 11px;
+  font-weight: 950;
+}
+
+.nova-recon-status {
+  color: #ff9f1c;
+  font-weight: 950;
+}
+
+.nova-recon-status.is_nao_encontrado,
+.nova-recon-status.is-nao_encontrado {
+  color: #ff704f;
+}
+
+.nova-recon-status.is-pendente {
+  color: #ffd166;
+}
+
+.nova-recon-status.is-conciliado {
+  color: #52d273;
+}
+
+.nova-recon-pagination {
+  align-items: center;
+  color: #9fb0c4;
+  display: flex;
+  font-size: 12px;
+  justify-content: space-between;
+  margin-top: 12px;
+}
+
+.nova-recon-pagination div {
+  display: flex;
+  gap: 8px;
+}
+
+.nova-recon-pagination button {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: #dbe8f8;
+  cursor: pointer;
+  height: 30px;
+  min-width: 30px;
+}
+
+.nova-recon-pagination button.is-active {
+  border-color: #ff7a1a;
+  color: #ffb46a;
+}
+
+.nova-recon-side {
+  align-content: start;
+  display: grid;
+  gap: 12px;
+}
+
+.nova-recon-side-card {
+  display: grid;
+  gap: 10px;
+}
+
+.nova-recon-side-card > button {
+  justify-content: flex-start;
+  width: 100%;
+}
+
+.nova-recon-donut-row {
+  align-items: center;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 112px minmax(0, 1fr);
+}
+
+.nova-recon-donut {
+  align-items: center;
+  border-radius: 999px;
+  display: grid;
+  height: 112px;
+  justify-items: center;
+  place-content: center;
+  position: relative;
+  width: 112px;
+}
+
+.nova-recon-donut::after {
+  background: #0b1826;
+  border-radius: inherit;
+  content: "";
+  height: 70px;
+  position: absolute;
+  width: 70px;
+}
+
+.nova-recon-donut span,
+.nova-recon-donut small {
+  position: relative;
+  z-index: 1;
+}
+
+.nova-recon-donut span {
+  color: #f8fbff;
+  font-size: 22px;
+  font-weight: 950;
+}
+
+.nova-recon-donut small {
+  color: #9fb0c4;
+  font-size: 11px;
+}
+
+.nova-recon-legend {
+  display: grid;
+  gap: 8px;
+}
+
+.nova-recon-legend div {
+  align-items: center;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 10px minmax(0, 1fr) auto;
+}
+
+.nova-recon-legend i {
+  border-radius: 999px;
+  height: 10px;
+  width: 10px;
+}
+
+.nova-recon-legend span {
+  color: #dbe8f8;
+  font-size: 12px;
+}
+
+.nova-recon-legend strong {
+  color: #f8fbff;
+  font-size: 12px;
+}
+
+.nova-recon-sync-form p {
+  color: #9fb0c4;
+  font-size: 12px;
+  line-height: 1.45;
+  margin: 0;
+}
+
+@media (max-width: 1280px) {
+  .nova-recon-kpi-grid,
+  .nova-recon-filters,
+  .nova-recon-content-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .nova-recon-filter-actions,
+  .nova-recon-table-tools input {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .nova-recon-workspace {
+    max-width: calc(100vw - 104px);
+    overflow-x: hidden;
+    width: calc(100vw - 104px);
+  }
+
+  .nova-recon-hero,
+  .nova-recon-table-head,
+  .nova-recon-pagination {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .nova-recon-hero > div,
+  .nova-recon-hero p,
+  .nova-recon-hero h1 {
+    max-width: calc(100vw - 104px);
+    min-width: 0;
+    overflow-wrap: anywhere;
+    white-space: normal;
+    width: calc(100vw - 104px);
+  }
+
+  .nova-recon-actions,
+  .nova-recon-filter-actions,
+  .nova-recon-table-tools {
+    display: grid;
+    justify-content: stretch;
+    max-width: calc(100vw - 104px);
+    width: calc(100vw - 104px);
+  }
+
+  .nova-recon-actions button,
+  .nova-recon-filter-actions button,
+  .nova-recon-table-tools button {
+    justify-content: center;
+    max-width: calc(100vw - 104px);
+    min-width: 0;
+    overflow: hidden;
+    text-align: center;
+    white-space: normal;
+    width: calc(100vw - 104px);
+  }
+
+  .nova-recon-donut-row {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+}
+/* == NOVA RECONCILIACAO WORKSPACE END == */
+
 /* == NOVA USUARIOS LIT START == */
 .nova-users-page {
   display: grid;
