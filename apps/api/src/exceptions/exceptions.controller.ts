@@ -55,6 +55,13 @@ export class ExceptionsController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles("admin")
+  @Post("sla-policies/recalculate")
+  recalculateSlaPolicies() {
+    return this.exceptionsService.recalculateSlaPolicies();
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles("admin")
   @Patch("bulk")
   bulkUpdate(@Body() body: BulkUpdateExceptionsDto) {
     return this.exceptionsService.bulkUpdateExceptions(body);

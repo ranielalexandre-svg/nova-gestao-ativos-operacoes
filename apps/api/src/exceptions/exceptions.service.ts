@@ -678,6 +678,121 @@ export class ExceptionsService {
     });
   }
 
+  async recalculateSlaPolicies() {
+    await this.ensureDefaultSlaPolicies();
+
+    const cases = await this.prisma.exceptionCase.findMany({
+      orderBy: { createdAt: "asc" },
+      select: {
+        id: true,
+        kind: true,
+        severity: true,
+        status: true,
+        createdAt: true,
+        acknowledgedAt: true,
+        resolvedAt: true,
+        assigneeUserId: true,
+        slaPolicyId: true,
+        queueKey: true,
+        triageStatus: true,
+        firstResponseDueAt: true,
+        resolveDueAt: true,
+      },
+    });
+
+    const dateTime = (value?: Date | null) => value?.getTime() ?? null;
+    let changedPolicy = 0;
+    let changedQueue = 0;
+    let changedTriage = 0;
+    let changedDeadlines = 0;
+    const recalculatedAt = new Date();
+
+    for (const item of cases) {
+      const operational = await this.buildOperationalState({
+        kind: item.kind,
+        severity: item.severity,
+        status: item.status,
+        createdAt: item.createdAt,
+        acknowledgedAt: item.acknowledgedAt,
+        resolvedAt: item.resolvedAt,
+        assigneeUserId: item.assigneeUserId,
+      });
+
+      if (operational.slaPolicyId !== item.slaPolicyId) changedPolicy += 1;
+      if (operational.queueKey !== item.queueKey) changedQueue += 1;
+      if (operational.triageStatus !== item.triageStatus) changedTriage += 1;
+      if (
+        dateTime(operational.firstResponseDueAt) !== dateTime(item.firstResponseDueAt) ||
+        dateTime(operational.resolveDueAt) !== dateTime(item.resolveDueAt)
+      ) {
+        changedDeadlines += 1;
+      }
+
+      await this.prisma.exceptionCase.update({
+        where: { id: item.id },
+        data: {
+          slaPolicy: operational.slaPolicyId ? { connect: { id: operational.slaPolicyId } } : { disconnect: true },
+          queueKey: operational.queueKey,
+          classification: operational.classification,
+          impact: operational.impact,
+          urgency: operational.urgency,
+          priorityScore: operational.priorityScore,
+          triageStatus: operational.triageStatus,
+          firstResponseDueAt: operational.firstResponseDueAt,
+          resolveDueAt: operational.resolveDueAt,
+          breachedAt: operational.breachedAt,
+          lastActivityAt: recalculatedAt,
+        },
+      });
+    }
+
+    const summaryAt = new Date();
+    const [openCount, breachedCount, dueSoonCount, unassignedCount, queues] = await this.prisma.$transaction([
+      this.prisma.exceptionCase.count({ where: { status: { in: [...OPEN_STATUSES] } } }),
+      this.prisma.exceptionCase.count({
+        where: { status: { in: [...OPEN_STATUSES] }, breachedAt: { not: null, lte: summaryAt } },
+      }),
+      this.prisma.exceptionCase.count({
+        where: {
+          status: { in: [...OPEN_STATUSES] },
+          resolveDueAt: { gte: summaryAt, lte: new Date(summaryAt.getTime() + DUE_SOON_WINDOW_MS) },
+        },
+      }),
+      this.prisma.exceptionCase.count({ where: { status: { in: [...OPEN_STATUSES] }, assigneeUserId: null } }),
+      this.prisma.exceptionCase.groupBy({
+        by: ["queueKey"],
+        where: { status: { in: [...OPEN_STATUSES] } },
+        _count: { _all: true },
+        orderBy: { queueKey: "asc" },
+      }),
+    ]);
+
+    return {
+      generatedAt: summaryAt.toISOString(),
+      recalculated: cases.length,
+      changedPolicy,
+      changedQueue,
+      changedTriage,
+      changedDeadlines,
+      counts: {
+        openCount,
+        breachedCount,
+        dueSoonCount,
+        unassignedCount,
+      },
+      queues: queues.map((item) => ({
+        queueKey: item.queueKey,
+        total:
+          item._count &&
+          typeof item._count === "object" &&
+          "_all" in item._count &&
+          typeof item._count._all === "number"
+            ? item._count._all
+            : 0,
+      })),
+    };
+  }
+
   async bulkUpdateExceptions(payload: BulkUpdateExceptionsDto) {
     const ids = [...new Set((payload.ids || []).map((value) => String(value || "").trim()).filter(Boolean))];
     if (!ids.length) throw new BadRequestException("Selecione ao menos uma exceção");
