@@ -23623,6 +23623,287 @@ body:has(.nova-lit-app) {
 }
 /* == NOVA QUEUE DISPATCH DESK END == */
 
+/* == NOVA ACTIVITY TIMELINE DESK START == */
+.nova-operation-activity-lit-page :where(h1, h2, h3) {
+  letter-spacing: 0 !important;
+}
+
+.nova-activity-command-hero,
+.nova-activity-filter-panel,
+.nova-activity-timeline-panel,
+.nova-activity-side-panel {
+  border-radius: 8px !important;
+}
+
+.nova-activity-command-hero {
+  padding: 16px;
+  border-color: rgba(118, 169, 223, .28) !important;
+  background:
+    linear-gradient(135deg, rgba(6, 22, 38, .98), rgba(6, 16, 29, .96) 54%, rgba(16, 26, 36, .98)) !important;
+}
+
+.nova-activity-command-bar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.nova-activity-command-bar h1 {
+  margin-top: 6px;
+  color: #fff;
+  font-size: 30px;
+  font-weight: 950;
+  line-height: 1.05;
+}
+
+.nova-activity-command-bar p {
+  margin-top: 6px;
+  max-width: 740px;
+  color: #b8d7ff;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.nova-activity-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.nova-activity-focus-strip {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, .9fr) minmax(0, .7fr);
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.nova-activity-focus-strip > div {
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid rgba(118, 169, 223, .18);
+  border-radius: 8px;
+  background: rgba(2, 10, 18, .38);
+}
+
+.nova-activity-focus-strip span,
+.nova-activity-kpi-top > span {
+  color: #a9c9ee;
+  font-size: 10px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.nova-activity-focus-strip strong {
+  display: block;
+  overflow: hidden;
+  margin-top: 4px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 950;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nova-activity-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.nova-activity-kpi-card {
+  min-height: 96px;
+  padding: 12px;
+  border: 1px solid rgba(118, 169, 223, .24);
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(9, 29, 50, .84), rgba(4, 14, 26, .9));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .04);
+}
+
+.nova-activity-kpi-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.nova-activity-kpi-dot {
+  width: 10px;
+  height: 10px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #64748b;
+  box-shadow: 0 0 0 4px rgba(100, 116, 139, .12);
+}
+
+.nova-activity-kpi-dot[data-tone="success"] {
+  background: #22c55e;
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, .13);
+}
+
+.nova-activity-kpi-dot[data-tone="info"] {
+  background: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, .13);
+}
+
+.nova-activity-kpi-dot[data-tone="attention"] {
+  background: #f59e0b;
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, .13);
+}
+
+.nova-activity-kpi-dot[data-tone="critical"] {
+  background: #ef4444;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, .13);
+}
+
+.nova-activity-kpi-card > strong {
+  display: block;
+  margin-top: 12px;
+  color: #fff;
+  font-size: 30px;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.nova-activity-kpi-card > small {
+  display: block;
+  margin-top: 8px;
+  color: #b8d7ff;
+  font-size: 12px;
+}
+
+.nova-activity-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+  gap: 12px;
+  align-items: start;
+}
+
+.nova-activity-main-stack,
+.nova-activity-side-stack {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.nova-activity-filter-panel,
+.nova-activity-timeline-panel,
+.nova-activity-side-panel {
+  padding: 12px;
+}
+
+.nova-activity-filter-panel .nova-section-intro p {
+  display: none;
+}
+
+.nova-activity-filter-form {
+  display: grid;
+  grid-template-columns: minmax(260px, 1.5fr) repeat(6, minmax(0, 128px)) 108px;
+  gap: 10px;
+  align-items: end;
+  margin-top: 10px;
+}
+
+.nova-activity-filter-form :where(input, select, button),
+.nova-activity-create-form :where(input, select, textarea) {
+  min-height: 36px !important;
+  font-size: 12px;
+}
+
+.nova-activity-table-shell {
+  margin-top: 12px;
+}
+
+.nova-activity-row-action {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(118, 169, 223, .2);
+  border-radius: 8px;
+  background: rgba(2, 10, 18, .48);
+  color: #fff;
+  padding: 0 12px;
+  font-size: 11px;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.nova-activity-row-action:hover {
+  color: #ff9a3c;
+}
+
+.nova-activity-quick-list,
+.nova-activity-create-form {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.nova-activity-quick-form {
+  gap: 8px !important;
+}
+
+.nova-activity-quick-form .nova-form-actions {
+  margin-top: 0;
+}
+
+.nova-activity-quick-form button,
+.nova-activity-quick-list .nds-button {
+  width: 100%;
+}
+
+.nova-activity-create-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.nova-activity-create-form textarea {
+  min-height: 88px !important;
+}
+
+@media (max-width: 1280px) {
+  .nova-activity-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .nova-activity-filter-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 920px) {
+  .nova-activity-command-hero {
+    padding: 14px;
+  }
+
+  .nova-activity-command-bar,
+  .nova-activity-hero-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .nova-activity-command-bar h1 {
+    font-size: 26px;
+  }
+
+  .nova-activity-focus-strip,
+  .nova-activity-kpi-grid,
+  .nova-activity-filter-form,
+  .nova-activity-create-row {
+    grid-template-columns: 1fr;
+  }
+
+  .nova-activity-hero-actions .nds-button,
+  .nova-activity-filter-form button {
+    width: 100%;
+  }
+}
+/* == NOVA ACTIVITY TIMELINE DESK END == */
+
 /* == NOVA OPERATION FORMS POLISH START == */
 .nova-operation-lit-page form,
 .nova-operation-queue-lit-page form,

@@ -15,8 +15,8 @@ export class ListActivitiesQueryDto extends PaginationQueryDto {
   severity?: "all" | "info" | "low" | "medium" | "high" | "critical";
 
   @IsOptional()
-  @IsIn(["createdAt"])
-  sortBy?: "createdAt";
+  @IsIn(["createdAt", "updatedAt", "severity", "kind", "source"])
+  sortBy?: "createdAt" | "updatedAt" | "severity" | "kind" | "source";
 
   @IsOptional()
   @IsIn(["asc", "desc"])

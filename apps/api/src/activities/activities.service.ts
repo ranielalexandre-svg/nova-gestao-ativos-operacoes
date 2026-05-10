@@ -93,6 +93,7 @@ export class ActivitiesService {
     const pageSize = query.pageSize || 10;
     const skip = (page - 1) * pageSize;
     const sortDir: Prisma.SortOrder = query.sortDir === "asc" ? "asc" : "desc";
+    const sortBy = query.sortBy || "createdAt";
 
     const where: Prisma.ActivityEntryWhereInput = {};
 
@@ -113,10 +114,16 @@ export class ActivitiesService {
     if (query.source && query.source !== "all") where.source = query.source;
     if (query.severity && query.severity !== "all") where.severity = query.severity;
 
+    let orderBy: Prisma.ActivityEntryOrderByWithRelationInput = { createdAt: sortDir };
+    if (sortBy === "updatedAt") orderBy = { updatedAt: sortDir };
+    if (sortBy === "severity") orderBy = { severity: sortDir };
+    if (sortBy === "kind") orderBy = { kind: sortDir };
+    if (sortBy === "source") orderBy = { source: sortDir };
+
     const [items, total] = await this.prisma.$transaction([
       this.prisma.activityEntry.findMany({
         where,
-        orderBy: { createdAt: sortDir },
+        orderBy,
         skip,
         take: pageSize,
         select: {
@@ -174,7 +181,7 @@ export class ActivitiesService {
     const occurrenceId = await this.ensureOccurrence(payload.occurrenceId);
     const maintenanceId = await this.ensureMaintenance(payload.maintenanceId);
 
-    return this.prisma.activityEntry.create({
+    const activity = await this.prisma.activityEntry.create({
       data: {
         title,
         description,
@@ -193,5 +200,14 @@ export class ActivitiesService {
         maintenanceId,
       },
     });
+
+    if (exceptionId) {
+      await this.prisma.exceptionCase.update({
+        where: { id: exceptionId },
+        data: { lastActivityAt: new Date() },
+      });
+    }
+
+    return activity;
   }
 }
