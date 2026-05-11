@@ -139,7 +139,7 @@ export default async function RelatorioDisponibilidadePage() {
             <p>SLA por unidade, vínculo Zabbix, perda, latência e indisponibilidade operacional.</p>
           </div>
           <div className="nova-lit-hero__actions">
-            <Link href="/sensores" className="nds-button" data-variant="secondary">Ver sensores</Link>
+            <Link href="/monitoramento/sensores" className="nds-button" data-variant="secondary">Ver sensores</Link>
             <Link href="/relatorios/monitoramento" className="nds-button" data-variant="primary">Gerar relatório</Link>
           </div>
         </section>
@@ -263,10 +263,10 @@ export default async function RelatorioDisponibilidadePage() {
                 <Badge tone={totalRisk ? "orange" : "green"}>{totalRisk}</Badge>
               </div>
               <div className="nova-availability-bars">
-                <Bar label="Offline" value={telemetry.counts.down} max={Math.max(1, telemetry.counts.units)} tone="red" href="/sensores?health=down" />
-                <Bar label="Degradado" value={telemetry.counts.degraded} max={Math.max(1, telemetry.counts.units)} tone="orange" href="/sensores?health=degraded" />
-                <Bar label="Ambíguo" value={telemetry.counts.ambiguous} max={Math.max(1, telemetry.counts.units)} tone="orange" href="/sensores?health=ambiguous" />
-                <Bar label="Sem vínculo" value={telemetry.counts.unmapped} max={Math.max(1, telemetry.counts.units)} tone="slate" href="/sensores?health=unmapped" />
+                <Bar label="Offline" value={telemetry.counts.down} max={Math.max(1, telemetry.counts.units)} tone="red" href="/monitoramento/sensores?health=down" />
+                <Bar label="Degradado" value={telemetry.counts.degraded} max={Math.max(1, telemetry.counts.units)} tone="orange" href="/monitoramento/sensores?health=degraded" />
+                <Bar label="Ambíguo" value={telemetry.counts.ambiguous} max={Math.max(1, telemetry.counts.units)} tone="orange" href="/monitoramento/sensores?health=ambiguous" />
+                <Bar label="Sem vínculo" value={telemetry.counts.unmapped} max={Math.max(1, telemetry.counts.units)} tone="slate" href="/monitoramento/sensores?health=unmapped" />
               </div>
             </section>
 

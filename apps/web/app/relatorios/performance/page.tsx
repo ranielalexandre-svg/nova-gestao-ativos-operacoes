@@ -168,7 +168,7 @@ export default async function RelatorioPerformancePage() {
             <p>Comparativo de latência, perda, sensores, temperatura e saúde técnica por unidade monitorada.</p>
           </div>
           <div className="nova-performance-hero__actions">
-            <Link href="/sensores" className="nds-button" data-variant="secondary">Ver sensores</Link>
+            <Link href="/monitoramento/sensores" className="nds-button" data-variant="secondary">Ver sensores</Link>
             <Link href="/relatorios/monitoramento" className="nds-button" data-variant="primary">Gerar relatório</Link>
           </div>
         </section>
@@ -372,7 +372,7 @@ export default async function RelatorioPerformancePage() {
                 <small>tráfego, latência, perda e banda por unidade</small>
               </div>
               <div className="nova-performance-actions">
-                <Link href="/importacao" className="nds-button" data-variant="secondary">Importar base</Link>
+                <Link href="/administracao/importacao" className="nds-button" data-variant="secondary">Importar base</Link>
                 <Link href="/relatorios/monitoramento" className="nds-button" data-variant="primary">Exportar relatório</Link>
               </div>
             </section>

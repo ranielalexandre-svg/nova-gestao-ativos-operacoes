@@ -271,7 +271,7 @@ export default async function StarlinksPage({
 
         <div className="nova-lit-page-actions">
           <Link href="/ativos" className="nova-lit-button nova-lit-button-secondary">Ver ativos</Link>
-          {isAdmin ? <Link href="/importacao?resource=starlinks" className="nova-lit-button nova-lit-button-primary">Importar Starlinks</Link> : null}
+          {isAdmin ? <Link href="/administracao/importacao?resource=starlinks" className="nova-lit-button nova-lit-button-primary">Importar Starlinks</Link> : null}
         </div>
       </div>
 

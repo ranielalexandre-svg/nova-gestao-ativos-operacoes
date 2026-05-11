@@ -518,7 +518,7 @@ export default async function OcorrenciaDetailPage({
                 <div>
                   <Link href={editHref}>Editar alerta</Link>
                   <Link href="/operacao/fila?view=pending">Abrir fila</Link>
-                  <Link href="/sensores">Ver sensores</Link>
+                  <Link href="/monitoramento/sensores">Ver sensores</Link>
                 </div>
               </details>
             </div>

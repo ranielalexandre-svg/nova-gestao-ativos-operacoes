@@ -28,6 +28,7 @@ model Partner {
   name             String
   isActive         Boolean               @default(true)
   units            Unit[]
+  contracts        Contract[]
   occurrences      Occurrence[]
   maintenances     Maintenance[]
   exceptionCases   ExceptionCase[]
@@ -36,6 +37,115 @@ model Partner {
   createdAt        DateTime              @default(now())
   updatedAt        DateTime              @updatedAt
   operationalContacts PartnerOperationalContact[]
+}
+
+model Contract {
+  id                    String            @id @default(cuid())
+  code                  String
+  title                 String?
+  status                String            @default("active")
+  type                  String            @default("corporate")
+  source                String            @default("manual")
+  sourceContractLabel   String?
+  startsAt              DateTime?
+  endsAt                DateTime?
+  signedAt              DateTime?
+  monthlyValueCents     Int?
+  paymentMethod         String?
+  billingCycle          String?
+  adjustmentIndex       String?
+  renewalMode           String?
+  loyaltyMonths         Int?
+  terminationPenalty    String?
+  slaPercent            Float?
+  notes                 String?
+  partnerId             String
+  partner               Partner           @relation(fields: [partnerId], references: [id], onDelete: Restrict)
+  units                 ContractUnit[]
+  services              ContractService[]
+  billings              ContractBilling[]
+  contacts              ContractContact[]
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  @@unique([partnerId, code])
+  @@index([partnerId])
+  @@index([status])
+  @@index([startsAt])
+  @@index([endsAt])
+  @@index([source])
+}
+
+model ContractUnit {
+  id             String    @id @default(cuid())
+  contractId     String
+  unitId         String
+  role           String    @default("covered")
+  status         String    @default("active")
+  addressLine    String?
+  bandwidthLabel String?
+  bandwidthMbps  Float?
+  notes          String?
+  contract       Contract  @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  unit           Unit      @relation(fields: [unitId], references: [id], onDelete: Restrict)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([contractId, unitId])
+  @@index([contractId])
+  @@index([unitId])
+  @@index([status])
+}
+
+model ContractService {
+  id          String   @id @default(cuid())
+  contractId  String
+  name        String
+  description String?
+  serviceType String?
+  status      String   @default("active")
+  sortOrder   Int      @default(0)
+  contract    Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([contractId])
+  @@index([status])
+}
+
+model ContractBilling {
+  id             String    @id @default(cuid())
+  contractId     String
+  referenceMonth String
+  status         String    @default("open")
+  dueDate        DateTime?
+  paidAt         DateTime?
+  amountCents    Int?
+  notes          String?
+  contract       Contract  @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([contractId, referenceMonth])
+  @@index([contractId])
+  @@index([status])
+  @@index([dueDate])
+}
+
+model ContractContact {
+  id         String   @id @default(cuid())
+  contractId String
+  name       String
+  role       String?
+  email      String?
+  phone      String?
+  isPrimary  Boolean  @default(false)
+  contract   Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([contractId])
+  @@index([isPrimary])
 }
 
 model PartnerOperationalContact {
@@ -73,6 +183,7 @@ model Unit {
   isActive                  Boolean               @default(true)
   partnerId                 String
   partner                   Partner               @relation(fields: [partnerId], references: [id], onDelete: Restrict)
+  contractUnits             ContractUnit[]
   equipments                Equipment[]
   occurrences               Occurrence[]
   maintenances              Maintenance[]

@@ -270,7 +270,7 @@ export default async function FilaOperacionalPage({
       revalidatePath("/excecoes");
       revalidatePath("/operacao");
       revalidatePath("/operacao/atividade");
-      revalidatePath("/operacao/sla");
+    revalidatePath("/administracao/sla");
       return { status: "success", message: `Ação ${action} aplicada em ${ids.length} item(ns).` };
     } catch (error) {
       return { status: "error", message: getActionErrorMessage(error) };
@@ -614,8 +614,8 @@ export default async function FilaOperacionalPage({
               <div className="nova-queue-route-list">
                 <Link href="/alertas">Alertas operacionais</Link>
                 <Link href="/chamados">Agenda técnica</Link>
-                <Link href="/sensores">Monitoramento NOC</Link>
-                <Link href="/operacao/sla">Contratos SLA</Link>
+                <Link href="/monitoramento/sensores">Monitoramento NOC</Link>
+                <Link href="/administracao/sla">Contratos SLA</Link>
               </div>
             </Surface>
           </aside>

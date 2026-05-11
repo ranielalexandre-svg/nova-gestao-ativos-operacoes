@@ -244,7 +244,7 @@ export default async function OperacaoSlaPage() {
   ];
 
   return (
-    <NovaLitShell activeHref="/operacao/sla">
+    <NovaLitShell activeHref="/administracao/sla">
       <div className="nova-operation-sla-lit-page">
         <Surface className="nova-sla-command-hero">
           <div className="nova-sla-command-bar">

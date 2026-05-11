@@ -1,1 +1,5 @@
-export { default } from "../operacao/importacao/page";
+import { redirect } from "next/navigation";
+
+export default function ImportacaoAliasPage() {
+  redirect("/administracao/importacao");
+}

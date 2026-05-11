@@ -282,7 +282,7 @@ export default async function MapasPage({
   ];
 
   return (
-    <NovaLitShell activeHref="/mapas">
+    <NovaLitShell activeHref="/monitoramento/mapas">
       <div className="nova-lit-page-heading nova-map-heading">
         <div>
           <h1>Mapas</h1>
@@ -292,7 +292,7 @@ export default async function MapasPage({
         </div>
 
         <div className="nova-lit-page-actions">
-          <Link href="/sensores" className="nova-lit-button nova-lit-button-secondary">Sensores</Link>
+          <Link href="/monitoramento/sensores" className="nova-lit-button nova-lit-button-secondary">Sensores</Link>
           <Link href="/alertas" className="nova-lit-button nova-lit-button-primary">Alertas</Link>
         </div>
       </div>
@@ -303,7 +303,7 @@ export default async function MapasPage({
         ))}
       </section>
 
-      <form action="/mapas" className="nova-lit-card nova-map-filters">
+      <form action="/monitoramento/mapas" className="nova-lit-card nova-map-filters">
         <label className="nova-map-search">
           <span>Busca</span>
           <input name="q" defaultValue={state.q} placeholder="Cidade, unidade, parceiro, host ou ativo" />
@@ -332,7 +332,7 @@ export default async function MapasPage({
         </label>
 
         <button type="submit">Filtrar</button>
-        <Link href="/mapas">Limpar</Link>
+        <Link href="/monitoramento/mapas">Limpar</Link>
       </form>
 
       <section className="nova-map-main-grid">
@@ -447,13 +447,13 @@ export default async function MapasPage({
 
           <section className="nova-lit-card nova-map-layers">
             <span>Camadas rápidas</span>
-            <Link href={withParams("/mapas", currentParams, { health: "down" })}>
+            <Link href={withParams("/monitoramento/mapas", currentParams, { health: "down" })}>
               Offline <b>{telemetry.counts.down}</b>
             </Link>
-            <Link href={withParams("/mapas", currentParams, { health: "degraded" })}>
+            <Link href={withParams("/monitoramento/mapas", currentParams, { health: "degraded" })}>
               Atenção <b>{telemetry.counts.degraded}</b>
             </Link>
-            <Link href={withParams("/mapas", currentParams, { health: "unmapped" })}>
+            <Link href={withParams("/monitoramento/mapas", currentParams, { health: "unmapped" })}>
               Sem vínculo <b>{telemetry.counts.unmapped}</b>
             </Link>
           </section>

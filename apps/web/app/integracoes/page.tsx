@@ -946,7 +946,7 @@ export default async function IntegracoesPage({
             </div>
             <div className="nova-integracoes-hero-actions">
               <Link href={hrefWithParams("/integracoes", params, {})} className="nova-lit-button nova-lit-button-secondary">Atualizar dados</Link>
-              <Link href="/sensores" className="nova-lit-button nova-lit-button-secondary">Ver sensores</Link>
+              <Link href="/monitoramento/sensores" className="nova-lit-button nova-lit-button-secondary">Ver sensores</Link>
             </div>
           </header>
 
@@ -997,7 +997,7 @@ export default async function IntegracoesPage({
           </div>
           <div className="nova-integracoes-hero-actions">
             <Link href={hrefWithParams("/integracoes", params, {})} className="nova-lit-button nova-lit-button-secondary">Atualizar dados</Link>
-            <Link href="/sensores" className="nova-lit-button nova-lit-button-secondary">Ver sensores</Link>
+            <Link href="/monitoramento/sensores" className="nova-lit-button nova-lit-button-secondary">Ver sensores</Link>
             <Link href={hrefWithParams("/integracoes", params, { focus: "new" })} className="nova-lit-button nova-lit-button-primary">Novo conector</Link>
           </div>
         </header>
@@ -1161,10 +1161,10 @@ export default async function IntegracoesPage({
 
             <Panel eyebrow="Acao rapida" title="Atalhos">
               <div className="nova-integracoes-shortcuts">
-                <Link href="/sensores"><span>Sensores</span><strong>abrir</strong></Link>
+                <Link href="/monitoramento/sensores"><span>Sensores</span><strong>abrir</strong></Link>
                 <Link href="/monitoramento"><span>Monitoramento</span><strong>abrir</strong></Link>
-                <Link href="/reconciliacao"><span>Reconciliação</span><strong>abrir</strong></Link>
-                <Link href="/automacao"><span>Automação</span><strong>abrir</strong></Link>
+                <Link href="/administracao/reconciliacao"><span>Reconciliação</span><strong>abrir</strong></Link>
+                <Link href="/administracao/automacoes"><span>Automação</span><strong>abrir</strong></Link>
               </div>
             </Panel>
 

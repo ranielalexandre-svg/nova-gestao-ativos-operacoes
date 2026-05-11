@@ -494,8 +494,8 @@ export default async function AtivosPage({
             <Link href="/ativos/onus">ONUs <b>{rows.filter((item) => item.type.toLowerCase().includes("onu")).length}</b></Link>
             <Link href="/ativos/switches">Switches <b>{rows.filter((item) => item.type.toLowerCase().includes("switch")).length}</b></Link>
             <Link href="/ativos/outros">Outros / SAD <b>{rows.filter((item) => !["starlink", "onu", "switch"].some((kind) => item.type.toLowerCase().includes(kind))).length}</b></Link>
-            <Link href="/sensores">Sensores <b>{monitoredOnPage}</b></Link>
-            <Link href="/importacao?resource=equipments">Importar <b>CSV</b></Link>
+            <Link href="/monitoramento/sensores">Sensores <b>{monitoredOnPage}</b></Link>
+            <Link href="/administracao/importacao?resource=equipments">Importar <b>CSV</b></Link>
           </section>
 
           <section className="nova-lit-card nova-assets-status">

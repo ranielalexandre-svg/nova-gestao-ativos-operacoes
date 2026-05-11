@@ -109,8 +109,9 @@ const MENU_SECTIONS: NavSection[] = [
     id: "operacao",
     label: "Operação",
     items: [
-      { label: "Operação", href: "/operacao", icon: "operation" },
-      { label: "Fila", href: "/operacao/fila", icon: "queue" },
+      { label: "Resumo do turno", href: "/operacao", icon: "operation" },
+      { label: "Fila priorizada", href: "/operacao/fila", icon: "queue" },
+      { label: "Alertas", href: "/alertas", icon: "bell", badge: { key: "alertas", tone: "orange", fallback: 24 } },
       { label: "Chamados", href: "/chamados", icon: "ticket", badge: { key: "chamados", tone: "blue", fallback: 12 } },
       { label: "Exceções", href: "/excecoes", icon: "alert", badge: { key: "excecoes", tone: "orange", fallback: 3 } },
       { label: "Atividade", href: "/operacao/atividade", icon: "activity" },
@@ -120,16 +121,18 @@ const MENU_SECTIONS: NavSection[] = [
     id: "monitoramento",
     label: "Monitoramento",
     items: [
-      { label: "Unidades", href: "/unidades", icon: "building" },
-      { label: "Sensores", href: "/sensores", icon: "sensor" },
-      { label: "Mapas", href: "/mapas", icon: "map" },
-      { label: "Alertas", href: "/alertas", icon: "bell", badge: { key: "alertas", tone: "orange", fallback: 24 } },
+      { label: "Saúde da rede", href: "/monitoramento", icon: "chart" },
+      { label: "Sensores e hosts", href: "/monitoramento/sensores", icon: "sensor" },
+      { label: "Mapa operacional", href: "/monitoramento/mapas", icon: "map" },
+      { label: "Fontes de dados", href: "/monitoramento/fontes", icon: "integrations" },
     ],
   },
   {
-    id: "inventario",
-    label: "Inventário",
+    id: "cadastros",
+    label: "Cadastros",
     items: [
+      { label: "Parceiros", href: "/parceiros", icon: "partners" },
+      { label: "Unidades", href: "/unidades", icon: "building" },
       {
         label: "Ativos",
         href: "/ativos",
@@ -142,22 +145,20 @@ const MENU_SECTIONS: NavSection[] = [
           { label: "Outros / SAD", href: "/ativos/outros", icon: "assets" },
         ],
       },
-      { label: "Parceiros", href: "/parceiros", icon: "partners" },
-      { label: "Contratos", href: "/contratos", icon: "contract" },
     ],
   },
   {
-    id: "regras",
-    label: "Regras & Automação",
+    id: "contratos",
+    label: "Contratos",
     items: [
-      { label: "Políticas SLA", href: "/operacao/sla", icon: "shield" },
-      { label: "Automações", href: "/automacao", icon: "automation" },
+      { label: "Contratos", href: "/contratos", icon: "contract" },
     ],
   },
   {
     id: "relatorios",
     label: "Relatórios",
     items: [
+      { label: "Central", href: "/relatorios", icon: "reports" },
       { label: "Monitoramento", href: "/relatorios/monitoramento", icon: "chart" },
       { label: "Consumo", href: "/relatorios/consumo", icon: "reports" },
       { label: "Disponibilidade", href: "/relatorios/disponibilidade", icon: "shield" },
@@ -168,17 +169,50 @@ const MENU_SECTIONS: NavSection[] = [
     id: "administracao",
     label: "Administração",
     items: [
-      { label: "Importação", href: "/importacao", icon: "import" },
-      { label: "Reconciliação", href: "/reconciliacao", icon: "sync" },
       { label: "Usuários", href: "/usuarios", icon: "user" },
       { label: "Perfis", href: "/perfis", icon: "shield" },
       { label: "Integrações", href: "/integracoes", icon: "integrations" },
+      { label: "Importação", href: "/administracao/importacao", icon: "import" },
+      { label: "Reconciliação", href: "/administracao/reconciliacao", icon: "sync" },
+      { label: "Automações", href: "/administracao/automacoes", icon: "automation" },
+      { label: "Políticas SLA", href: "/administracao/sla", icon: "shield" },
       { label: "Sistema", href: "/configuracoes", icon: "settings" },
     ],
   },
 ];
 
-const DEFAULT_FAVORITES = ["/dashboard", "/chamados", "/alertas"];
+const DEFAULT_FAVORITES = ["/dashboard", "/operacao/fila", "/alertas"];
+
+const ACTIVE_HREF_ALIASES: Record<string, string> = {
+  "/sensores": "/monitoramento/sensores",
+  "/mapas": "/monitoramento/mapas",
+  "/equipamentos": "/ativos",
+  "/ocorrencias": "/alertas",
+  "/manutencoes": "/chamados",
+  "/automacao": "/administracao/automacoes",
+  "/operacao/automacoes": "/administracao/automacoes",
+  "/importacao": "/administracao/importacao",
+  "/operacao/importacao": "/administracao/importacao",
+  "/reconciliacao": "/administracao/reconciliacao",
+  "/reconciliacao-central": "/administracao/reconciliacao",
+  "/operacao/sla": "/administracao/sla",
+};
+
+function canonicalHref(value: string) {
+  const exact = ACTIVE_HREF_ALIASES[value];
+  if (exact) return exact;
+
+  const match = Object.entries(ACTIVE_HREF_ALIASES)
+    .filter(([alias]) => value === alias || value.startsWith(`${alias}/`))
+    .sort((a, b) => b[0].length - a[0].length)[0];
+
+  if (match) {
+    const [alias, canonical] = match;
+    return `${canonical}${value.slice(alias.length)}`;
+  }
+
+  return value;
+}
 
 
 
@@ -498,7 +532,7 @@ export function NovaLitShell({
 
   const pathname = usePathname();
   const router = useRouter();
-  const currentHref = activeHref || pathname || "/dashboard";
+  const currentHref = canonicalHref(activeHref || pathname || "/dashboard");
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const [query, setQuery] = useState("");
@@ -563,7 +597,7 @@ export function NovaLitShell({
 
   function isItemActive(item: NavItem) {
     if (item.children?.some((child) => isItemActive(child))) return true;
-    return currentHref === item.href;
+    return currentHref === item.href || currentHref.startsWith(`${item.href}/`);
   }
 
   function toggleCollapsed() {

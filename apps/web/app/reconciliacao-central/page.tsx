@@ -227,7 +227,7 @@ export default async function ReconciliacaoCentralPage() {
   ]);
 
   return (
-    <NovaLitShell activeHref="/reconciliacao">
+    <NovaLitShell activeHref="/administracao/reconciliacao">
       <ReconciliationWorkspace
         isAdmin={normalizeRole(session.user?.role || "") === "admin"}
         telemetry={telemetry}

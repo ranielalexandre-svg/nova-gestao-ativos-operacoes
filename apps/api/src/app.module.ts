@@ -20,6 +20,7 @@ import { ImportExportModule } from './import-export/import-export.module';
 import { LegacyModule } from './legacy/legacy.module';
 import { SettingsModule } from './settings/settings.module';
 import { StarlinksModule } from './starlinks/starlinks.module';
+import { ContractsModule } from './contracts/contracts.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -45,6 +46,7 @@ import { HealthController } from './health.controller';
     LegacyModule,
     SettingsModule,
     StarlinksModule,
+    ContractsModule,
   ],
   controllers: [HealthController],
   providers: [],

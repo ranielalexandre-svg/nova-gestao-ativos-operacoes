@@ -32,7 +32,7 @@ export function LinkedHostPanel({
             description="Ainda não foi possível ligar esta ficha a um host monitorado da unidade. A conferência continua em Monitoramento e Integrações."
             action={
               <Link
-                href="/sensores"
+                href="/monitoramento/sensores"
                 className="nds-button"
                 data-variant="primary"
               >
@@ -93,7 +93,7 @@ export function LinkedHostPanel({
             </div><div className="mt-1 text-[10px] text-slate-500">
               {item.equipments.length} ativo(s) ligado(s) a esta unidade na leitura atual.
             </div></div><div className="mt-2 flex flex-wrap gap-2"><Link
-              href="/sensores"
+              href="/monitoramento/sensores"
               className="nds-button"
               data-variant="secondary"
             >

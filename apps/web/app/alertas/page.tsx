@@ -162,7 +162,7 @@ function targetHref(item: AlertOccurrence) {
   if (item.unit?.id) return `/unidades/${item.unit.id}`;
   if (item.equipment?.id) return `/ativos/${item.equipment.id}`;
   if (item.partner?.id) return `/parceiros/${item.partner.id}`;
-  return "/sensores";
+  return "/monitoramento/sensores";
 }
 
 function locationLabel(item: AlertOccurrence) {
@@ -340,7 +340,7 @@ export default async function AlertasPage({
         </div>
 
         <div className="nova-lit-page-actions">
-          <Link href="/sensores" className="nova-lit-button nova-lit-button-secondary">Ver sensores</Link>
+          <Link href="/monitoramento/sensores" className="nova-lit-button nova-lit-button-secondary">Ver sensores</Link>
           <Link href="/chamados" className="nova-lit-button nova-lit-button-secondary">Abrir chamado</Link>
           <Link href="/alertas/novo" className="nova-lit-button nova-lit-button-primary">Novo alerta</Link>
         </div>

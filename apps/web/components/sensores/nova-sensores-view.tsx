@@ -231,7 +231,7 @@ export default function NovaSensoresView({
   ];
 
   return (
-    <NovaLitShell activeHref="/sensores">
+    <NovaLitShell activeHref="/monitoramento/sensores">
       <div className="nova-lit-page-heading nova-sensors-heading">
         <div>
           <h1>Sensores</h1>
@@ -250,7 +250,7 @@ export default function NovaSensoresView({
         ))}
       </section>
 
-      <form action="/sensores" className="nova-lit-card nova-sensors-filters">
+      <form action="/monitoramento/sensores" className="nova-lit-card nova-sensors-filters">
         <label className="nova-sensors-search">
           <span>Busca</span>
           <input name="q" defaultValue={state.q} placeholder="Unidade, host, parceiro, cidade ou ativo" />
@@ -276,7 +276,7 @@ export default function NovaSensoresView({
 
         <input type="hidden" name="page" value="1" />
         <button type="submit">Filtrar</button>
-        <Link href="/sensores">Limpar</Link>
+        <Link href="/monitoramento/sensores">Limpar</Link>
       </form>
 
       <section className="nova-sensors-main-grid">
@@ -384,9 +384,9 @@ export default function NovaSensoresView({
 
           <section className="nova-lit-card nova-sensors-quick">
             <span>Ação rápida</span>
-            <Link href={withParams("/sensores", currentParams, { health: "down", page: 1 })}>Offline <b>{counts?.down || 0}</b></Link>
-            <Link href={withParams("/sensores", currentParams, { health: "degraded", page: 1 })}>Atenção <b>{counts?.degraded || 0}</b></Link>
-            <Link href={withParams("/sensores", currentParams, { health: "unmapped", page: 1 })}>Sem vínculo <b>{counts?.unmapped || 0}</b></Link>
+            <Link href={withParams("/monitoramento/sensores", currentParams, { health: "down", page: 1 })}>Offline <b>{counts?.down || 0}</b></Link>
+            <Link href={withParams("/monitoramento/sensores", currentParams, { health: "degraded", page: 1 })}>Atenção <b>{counts?.degraded || 0}</b></Link>
+            <Link href={withParams("/monitoramento/sensores", currentParams, { health: "unmapped", page: 1 })}>Sem vínculo <b>{counts?.unmapped || 0}</b></Link>
           </section>
         </aside>
       </section>
@@ -397,14 +397,14 @@ export default function NovaSensoresView({
         </span>
         <div>
           <Link
-            href={withParams("/sensores", currentParams, { page: Math.max(1, safePage - 1) })}
+            href={withParams("/monitoramento/sensores", currentParams, { page: Math.max(1, safePage - 1) })}
             className={safePage <= 1 ? "is-disabled" : ""}
             aria-disabled={safePage <= 1}
           >
             Anterior
           </Link>
           <Link
-            href={withParams("/sensores", currentParams, { page: Math.min(totalPages, safePage + 1) })}
+            href={withParams("/monitoramento/sensores", currentParams, { page: Math.min(totalPages, safePage + 1) })}
             className={safePage >= totalPages ? "is-disabled" : ""}
             aria-disabled={safePage >= totalPages}
           >

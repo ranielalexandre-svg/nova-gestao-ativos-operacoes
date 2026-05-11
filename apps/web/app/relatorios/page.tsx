@@ -248,7 +248,7 @@ export default async function RelatoriosPage() {
   const failedRuns = runs.filter((run) => statusTone(run.status) === "red").length;
 
   return (
-    <NovaLitShell activeHref="/relatorios/consumo">
+    <NovaLitShell activeHref="/relatorios">
       <main className="nova-reports-hub-page">
         <header className="nova-reports-hub-hero">
           <div>

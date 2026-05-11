@@ -994,7 +994,7 @@ export default async function AutomacaoPage({
               <nav aria-label="Breadcrumb">
                 <Link href="/operacao">Gestão</Link>
                 <span>/</span>
-                <Link href="/automacao">Automação</Link>
+                <Link href="/administracao/automacoes">Automação</Link>
                 <span>/</span>
                 <strong>Execução</strong>
               </nav>
@@ -1112,7 +1112,7 @@ export default async function AutomacaoPage({
 
               <input type="hidden" name="page" value="1" />
               <button type="submit">Filtrar</button>
-              <Link href="/automacao">Limpar</Link>
+              <Link href="/administracao/automacoes">Limpar</Link>
             </form>
 
             <div className="nova-auto-table-card">

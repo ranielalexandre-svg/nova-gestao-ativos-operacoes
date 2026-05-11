@@ -466,7 +466,7 @@ function EventRows({ items }: { items: UnitHostTelemetryItem[] }) {
           <div><b>{formatMs(item.metrics.latencyMs)}</b><small>latência</small></div>
           <div><b>{formatPercent(item.metrics.lossPct)}</b><small>perda</small></div>
           <div><Badge tone={matchTone(item.match.status)}>{matchLabel(item.match.status)}</Badge></div>
-          <div><Link href={`/sensores?q=${encodeURIComponent(item.unit.code)}`}>Abrir</Link></div>
+          <div><Link href={`/monitoramento/sensores?q=${encodeURIComponent(item.unit.code)}`}>Abrir</Link></div>
         </div>
       )) : (
         <EmptyState label="Nenhum evento no recorte" />
@@ -507,7 +507,7 @@ function SensorRows({ items }: { items: UnitHostTelemetryItem[] }) {
           <div><b>{formatPercent(item.metrics.lossPct)}</b><small>última leitura</small></div>
           <div><b>{formatMs(item.metrics.latencyMs)}</b><small>resposta</small></div>
           <div><b>{formatTemperature(item.metrics.temperatureC)}</b><small>ambiente</small></div>
-          <div><Link href={`/sensores?q=${encodeURIComponent(item.unit.code)}`}>Abrir</Link></div>
+          <div><Link href={`/monitoramento/sensores?q=${encodeURIComponent(item.unit.code)}`}>Abrir</Link></div>
         </div>
       )) : (
         <EmptyState label="Nenhum sensor no recorte" />
@@ -572,7 +572,7 @@ export default async function MonitoramentoPage({
         </div>
 
         <div className="nova-lit-page-actions">
-          <Link href="/sensores" className="nova-lit-button nova-lit-button-secondary">Sensores</Link>
+          <Link href="/monitoramento/sensores" className="nova-lit-button nova-lit-button-secondary">Sensores</Link>
           <Link href="/relatorios/monitoramento" className="nova-lit-button nova-lit-button-primary">Gerar relatório</Link>
         </div>
       </div>
@@ -658,7 +658,7 @@ export default async function MonitoramentoPage({
             </div>
             <div>
               <small>{formatDateTime(rawTelemetry.generatedAt)}</small>
-              <Link href="/sensores">Fonte</Link>
+              <Link href="/monitoramento/sensores">Fonte</Link>
             </div>
           </div>
 
@@ -765,7 +765,7 @@ export default async function MonitoramentoPage({
         </span>
         <div>
           <Link href="/relatorios/monitoramento">Relatório</Link>
-          <Link href="/sensores">Sensores</Link>
+          <Link href="/monitoramento/sensores">Sensores</Link>
         </div>
       </section>
     </NovaLitShell>

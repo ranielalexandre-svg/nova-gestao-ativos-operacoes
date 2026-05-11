@@ -304,7 +304,7 @@ export default async function ExceptionDetailPage({
               <Link href="/excecoes" className="nds-button" data-variant="secondary">
                 Exceções
               </Link>
-              <Link href="/operacao/sla" className="nds-button" data-variant="secondary">
+              <Link href="/administracao/sla" className="nds-button" data-variant="secondary">
                 SLA
               </Link>
             </div>

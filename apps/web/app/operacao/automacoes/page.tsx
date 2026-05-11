@@ -26,5 +26,5 @@ export default async function OperacaoAutomacoesLegacyPage({
   searchParams?: Promise<RawSearchParams> | RawSearchParams;
 }) {
   const params = searchParams ? await searchParams : {};
-  redirect(appendSearchParams("/automacao", params));
+  redirect(appendSearchParams("/administracao/automacoes", params));
 }

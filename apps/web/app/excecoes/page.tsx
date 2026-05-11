@@ -144,8 +144,8 @@ const NAV_SECTIONS: Array<{ label: string; items: NavItem[] }> = [
   {
     label: "Monitoramento",
     items: [
-      { label: "Sensores", href: "/sensores", icon: "activity" },
-      { label: "Mapas", href: "/mapas", icon: "map" },
+      { label: "Sensores", href: "/monitoramento/sensores", icon: "activity" },
+      { label: "Mapas", href: "/monitoramento/mapas", icon: "map" },
       { label: "Alertas", href: "/alertas", icon: "bell" },
     ],
   },
@@ -790,7 +790,7 @@ export default async function ExcecoesPage({
                 <Link href="/operacao/importacao"><Icon name="import" /><span>Importar exceções</span></Link>
                 <Link href={exportHref}><Icon name="download" /><span>Exportar relatório</span></Link>
                 <Link href={firstCaseHref}><Icon name="file" /><span>Base de conhecimento</span></Link>
-                <Link href="/operacao/sla"><Icon name="gear" /><span>Configurar regras</span></Link>
+                <Link href="/administracao/sla"><Icon name="gear" /><span>Configurar regras</span></Link>
                 <Link href="/operacao/atividade"><Icon name="clock" /><span>Histórico de exceções</span></Link>
               </section>
             </aside>
