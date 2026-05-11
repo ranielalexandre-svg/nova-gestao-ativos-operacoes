@@ -13072,6 +13072,7 @@ body:has(.nova-lit-app) {
 }
 /* == NOVA CHAMADOS LITERAL END == */
 
+
 /* == NOVA EXCECAO CREATE LITERAL START == */
 .nova-exception-create-heading {
   margin-bottom: 10px;
@@ -30514,3 +30515,835 @@ body:has(.nova-profile-editor-shell) {
   }
 }
 /* == NOVA PERFIS MOCKUP STRICT END == */
+
+/* == NOVA CHAMADOS MOCKUP DARK FINAL START == */
+body:has(.nova-tickets-board-shell) {
+  background: #061522;
+  color: #d7e4f4;
+}
+
+.nova-tickets-board-shell {
+  grid-template-columns: 198px minmax(0, 1fr);
+  background:
+    radial-gradient(circle at 78% -12%, rgba(18, 89, 125, 0.22), transparent 30%),
+    linear-gradient(180deg, #04101b 0%, #061522 54%, #050f19 100%);
+  color: #d7e4f4;
+}
+
+.nova-tickets-board-shell .nova-exceptions-board-main {
+  background: transparent;
+}
+
+.nova-tickets-board-sidebar {
+  padding: 16px 11px 18px;
+  border-right: 1px solid rgba(148, 163, 184, 0.2);
+  background:
+    radial-gradient(circle at 35% 0%, rgba(0, 119, 164, 0.18), transparent 25%),
+    linear-gradient(180deg, #06131f 0%, #05111c 58%, #071421 100%);
+  box-shadow: none;
+}
+
+.nova-tickets-board-sidebar .nova-exceptions-board-logo {
+  width: 118px;
+  min-height: 50px;
+  height: 50px;
+  margin: 0 0 15px 12px;
+  border-bottom: 0;
+}
+
+.nova-tickets-board-sidebar .nova-exceptions-board-logo img {
+  width: 118px;
+}
+
+.nova-tickets-board-sidebar .nova-exceptions-board-nav-section {
+  margin-top: 18px;
+}
+
+.nova-tickets-board-sidebar .nova-exceptions-board-nav-section h2 {
+  margin-left: 6px;
+  color: #8da0b5;
+  font-size: 10px;
+  font-weight: 850;
+}
+
+.nova-tickets-board-sidebar .nova-exceptions-board-nav-link {
+  min-height: 32px;
+  border: 1px solid transparent;
+  color: #bdcad8;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.nova-tickets-board-sidebar .nova-exceptions-board-nav-link[data-active="true"] {
+  border-color: #ff7a00;
+  background: rgba(255, 122, 0, 0.1);
+  color: #ff7a00;
+  box-shadow: none;
+}
+
+.nova-tickets-board-topbar {
+  height: 54px;
+  min-height: 54px;
+  padding: 0 18px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(4, 13, 22, 0.92);
+  color: #dbe8f8;
+  box-shadow: none;
+}
+
+.nova-tickets-board-topbar button {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  background: transparent;
+  color: #cbd6e2;
+}
+
+.nova-tickets-board-topbar button i {
+  top: -3px;
+  right: -1px;
+  width: 16px;
+  height: 16px;
+  background: #f97316;
+  color: #ffffff;
+}
+
+.nova-tickets-board-topbar .nova-exceptions-board-user {
+  min-width: 282px;
+  height: 54px;
+  grid-template-columns: minmax(0, 1fr) 34px;
+  border: 0;
+  border-left: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 0;
+  background: transparent;
+  padding: 0 16px;
+}
+
+.nova-tickets-board-topbar .nova-exceptions-board-user span {
+  order: 1;
+  color: #ffffff;
+  font-size: 13px;
+}
+
+.nova-tickets-board-topbar .nova-exceptions-board-user small {
+  color: #9fb1c7;
+  font-size: 12px;
+}
+
+.nova-tickets-board-topbar .nova-exceptions-board-user b {
+  order: 2;
+  width: 34px;
+  height: 34px;
+  background: linear-gradient(180deg, #ff8b25, #ff6b00);
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.nova-tickets-board-page {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 18px 34px 10px 28px;
+}
+
+.nova-tickets-board-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 9px;
+}
+
+.nova-tickets-board-heading nav {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 10px;
+  color: #a9b8cb;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.nova-tickets-board-heading nav a {
+  color: #a9b8cb;
+  text-decoration: none;
+}
+
+.nova-tickets-board-heading nav strong,
+.nova-tickets-board-heading h1 {
+  color: #ffffff;
+}
+
+.nova-tickets-board-heading h1 {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.05;
+  font-weight: 850;
+  letter-spacing: 0;
+}
+
+.nova-tickets-board-heading p {
+  margin: 5px 0 0;
+  color: #c3d2e5;
+  font-size: 13px;
+}
+
+.nova-tickets-board-heading > div:last-child {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 20px;
+}
+
+.nova-tickets-board-heading > div:last-child a,
+.nova-tickets-board-filters button,
+.nova-tickets-board-filters > a,
+.nova-tickets-board-see-all,
+.nova-tickets-board-queue-group > a:last-child,
+.nova-tickets-board-shift > a,
+.nova-tickets-board-history .nova-tickets-board-card-title a,
+.nova-tickets-board-pagination a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 36px;
+  border: 1px solid rgba(84, 103, 132, 0.5);
+  border-radius: 6px;
+  background: rgba(5, 17, 29, 0.68);
+  color: #eef6ff;
+  padding: 0 13px;
+  font-size: 13px;
+  font-weight: 850;
+  box-shadow: none;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.nova-tickets-board-heading > div:last-child a:last-child,
+.nova-tickets-board-filters button {
+  border-color: #ff7a00;
+  background: linear-gradient(180deg, #ff8a1f, #f36b00);
+  color: #ffffff;
+  box-shadow: none;
+}
+
+.nova-tickets-board-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.nova-tickets-board-kpi,
+.nova-tickets-board-card {
+  border: 1px solid rgba(84, 103, 132, 0.46);
+  border-radius: 8px;
+  background: rgba(6, 22, 36, 0.82);
+  box-shadow: none;
+}
+
+.nova-tickets-board-kpi {
+  height: 104px;
+  min-height: 104px;
+  overflow: hidden;
+  padding: 14px 15px 11px;
+}
+
+.nova-tickets-board-kpi > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #b7c7db;
+  font-size: 11px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.nova-tickets-board-kpi strong {
+  display: block;
+  margin-top: 9px;
+  color: #ffffff;
+  font-size: 29px;
+  line-height: 1;
+  font-weight: 850;
+}
+
+.nova-tickets-board-kpi p {
+  margin: 5px 0 0;
+  color: #c0cfe2;
+  font-size: 13px;
+}
+
+.nova-tickets-board-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 342px;
+  gap: 10px;
+  align-items: start;
+}
+
+.nova-tickets-board-table-card {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.nova-tickets-board-card-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 42px;
+  padding: 0 15px;
+  border-bottom: 1px solid rgba(84, 103, 132, 0.42);
+}
+
+.nova-tickets-board-card-title h2,
+.nova-tickets-board-shift h2 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 18px;
+  line-height: 1.2;
+  font-weight: 850;
+}
+
+.nova-tickets-board-filters {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) repeat(3, minmax(140px, 180px)) max-content max-content;
+  gap: 14px;
+  padding: 10px 15px 14px;
+  border-bottom: 1px solid rgba(84, 103, 132, 0.42);
+}
+
+.nova-tickets-board-filters label {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.nova-tickets-board-filters label:first-child svg {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  color: #9fb4cf;
+  transform: translateY(-50%);
+}
+
+.nova-tickets-board-filters span {
+  color: #9fb4cf;
+  font-size: 10px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.nova-tickets-board-filters input,
+.nova-tickets-board-filters select {
+  width: 100%;
+  min-width: 0;
+  min-height: 33px;
+  border: 1px solid rgba(84, 103, 132, 0.58);
+  border-radius: 5px;
+  background: rgba(5, 15, 26, 0.76);
+  color: #ecf5ff;
+  font-size: 13px;
+  font-weight: 700;
+  outline: none;
+}
+
+.nova-tickets-board-filters input {
+  padding-left: 38px;
+}
+
+.nova-tickets-board-filters input::placeholder {
+  color: #a2b2c7;
+}
+
+.nova-tickets-board-filters select option {
+  background: #071522;
+  color: #ffffff;
+}
+
+.nova-tickets-board-filters > a,
+.nova-tickets-board-filters button {
+  align-self: end;
+  min-height: 33px;
+}
+
+.nova-tickets-board-filters button {
+  cursor: pointer;
+}
+
+.nova-tickets-board-table-wrap {
+  overflow-x: auto;
+}
+
+.nova-tickets-board-table {
+  width: 100%;
+  min-width: 960px;
+  border-collapse: collapse;
+  color: #c8d7ea;
+}
+
+.nova-tickets-board-table th {
+  height: 35px;
+  border-bottom: 1px solid rgba(84, 103, 132, 0.42);
+  background: rgba(5, 17, 29, 0.55);
+  color: #9db1cc;
+  padding: 0 14px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.nova-tickets-board-table td {
+  min-height: 42px;
+  border-bottom: 1px solid rgba(84, 103, 132, 0.28);
+  color: #c7d6e8;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 650;
+  vertical-align: middle;
+}
+
+.nova-tickets-board-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.nova-tickets-board-table td:first-child a {
+  color: #cfe4ff;
+  font-weight: 750;
+}
+
+.nova-tickets-board-table td strong {
+  display: block;
+  color: #eaf4ff;
+  font-size: 12px;
+  line-height: 1.22;
+}
+
+.nova-tickets-board-table td small {
+  display: block;
+  max-width: 340px;
+  margin-top: 4px;
+  overflow: hidden;
+  color: #91a5bf;
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nova-tickets-board-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 22px;
+  background: transparent;
+  padding: 0;
+  color: #d8e7f8;
+  font-size: 12px;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.nova-tickets-board-dot {
+  width: 9px;
+  height: 9px;
+  flex: 0 0 9px;
+  border-radius: 999px;
+  background: #94a3b8;
+}
+
+.nova-tickets-board-dot.is-green {
+  background: #22c55e;
+}
+
+.nova-tickets-board-dot.is-orange {
+  background: #f59e0b;
+}
+
+.nova-tickets-board-dot.is-blue {
+  background: #0ea5e9;
+}
+
+.nova-tickets-board-dot.is-red {
+  background: #ef4444;
+}
+
+.nova-tickets-board-dot.is-purple {
+  background: #8b5cf6;
+}
+
+.nova-tickets-board-dot.is-slate {
+  background: #94a3b8;
+}
+
+.nova-tickets-board-badge.is-green,
+.nova-tickets-board-badge.is-orange,
+.nova-tickets-board-badge.is-blue,
+.nova-tickets-board-badge.is-red,
+.nova-tickets-board-badge.is-purple,
+.nova-tickets-board-badge.is-slate {
+  background: transparent;
+}
+
+.nova-tickets-board-badge.is-green {
+  color: #c9f7dd;
+}
+
+.nova-tickets-board-badge.is-orange {
+  color: #ffd8a8;
+}
+
+.nova-tickets-board-badge.is-blue {
+  color: #cce7ff;
+}
+
+.nova-tickets-board-badge.is-red {
+  color: #ffd2d5;
+}
+
+.nova-tickets-board-badge.is-purple {
+  color: #eccfff;
+}
+
+.nova-tickets-board-badge.is-slate {
+  color: #cbd5e1;
+}
+
+.nova-tickets-board-see-all {
+  width: calc(100% - 30px);
+  min-height: 44px;
+  margin: 0 15px 12px;
+  border: 0;
+  background: transparent;
+  color: #e3efff;
+}
+
+.nova-tickets-board-right {
+  display: grid;
+  gap: 10px;
+}
+
+.nova-tickets-board-shift {
+  padding: 14px 10px 12px;
+}
+
+.nova-tickets-board-shift h2 {
+  margin: 0 5px 10px;
+}
+
+.nova-tickets-board-queue-group {
+  display: grid;
+  gap: 7px;
+  padding: 10px 10px 12px;
+  border: 1px solid rgba(84, 103, 132, 0.4);
+  border-radius: 8px;
+}
+
+.nova-tickets-board-queue-group + .nova-tickets-board-queue-group {
+  margin-top: 8px;
+}
+
+.nova-tickets-board-queue-group > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.nova-tickets-board-queue-group h3 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.nova-tickets-board-queue-group b {
+  display: inline-grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.12);
+  color: #e2ebf7;
+  font-size: 12px;
+}
+
+.nova-tickets-board-queue-group b.is-red {
+  background: #ff4757;
+  color: #ffffff;
+}
+
+.nova-tickets-board-queue-group b.is-orange {
+  background: #ff7a00;
+  color: #ffffff;
+}
+
+.nova-tickets-board-queue-group b.is-blue {
+  background: #2f8df2;
+  color: #ffffff;
+}
+
+.nova-tickets-board-queue-group a:not(:last-child) {
+  display: grid;
+  gap: 4px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+  grid-template-columns: 104px minmax(0, 1fr);
+  align-items: center;
+}
+
+.nova-tickets-board-queue-group a:not(:last-child) span {
+  color: #cfe3f9;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.nova-tickets-board-queue-group a:not(:last-child) strong {
+  overflow: hidden;
+  color: #dceaff;
+  font-size: 12px;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nova-tickets-board-queue-group p {
+  margin: 0;
+  color: #90a4bd;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.nova-tickets-board-queue-group > a:last-child {
+  min-height: 24px;
+  justify-self: center;
+  border: 0;
+  background: transparent;
+  color: #ffffff;
+  padding: 0;
+  font-size: 12px;
+}
+
+.nova-tickets-board-shift > a {
+  width: 100%;
+  min-height: 35px;
+  margin-top: 10px;
+  border-color: rgba(84, 103, 132, 0.5);
+  background: rgba(5, 15, 26, 0.5);
+}
+
+.nova-tickets-board-history {
+  margin-top: 10px;
+}
+
+.nova-tickets-board-history-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 14px;
+  padding: 12px 8px 13px;
+}
+
+.nova-tickets-board-history-list > a {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 54px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 94px;
+  border: 1px solid rgba(84, 103, 132, 0.48);
+  border-radius: 6px;
+  background: rgba(5, 17, 29, 0.58);
+  color: #dceaff;
+  padding: 13px;
+  text-decoration: none;
+}
+
+.nova-tickets-board-history-list > a > div {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #245d93, #153a61);
+  color: #dceeff;
+}
+
+.nova-tickets-board-history-list svg {
+  width: 20px;
+  height: 20px;
+}
+
+.nova-tickets-board-history-list section {
+  min-width: 0;
+}
+
+.nova-tickets-board-history-list strong,
+.nova-tickets-board-history-list span,
+.nova-tickets-board-history-list small,
+.nova-tickets-board-history-list p {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nova-tickets-board-history-list > a > div.is-green {
+  background: linear-gradient(135deg, #2d8b5d, #15543a);
+  color: #d9ffe8;
+}
+
+.nova-tickets-board-history-list > a > div.is-orange {
+  background: linear-gradient(135deg, #c56a1a, #78380a);
+  color: #fff1df;
+}
+
+.nova-tickets-board-history-list > a > div.is-red {
+  background: linear-gradient(135deg, #b73543, #651b25);
+  color: #ffe1e4;
+}
+
+.nova-tickets-board-history-list strong {
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.nova-tickets-board-history-list span {
+  margin-top: 3px;
+  color: #dce9f8;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.nova-tickets-board-history-list small,
+.nova-tickets-board-history-list p {
+  color: #9cafc8;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.nova-tickets-board-history-list p {
+  margin: 8px 0 0;
+}
+
+.nova-tickets-board-history-list .nova-tickets-board-badge {
+  grid-column: auto;
+  align-self: start;
+  justify-self: end;
+}
+
+.nova-tickets-board-empty {
+  display: grid;
+  min-height: 174px;
+  place-items: center;
+  gap: 8px;
+  color: #91a5bf;
+  text-align: center;
+}
+
+.nova-tickets-board-empty strong {
+  color: #ffffff;
+}
+
+.nova-tickets-board-empty svg {
+  width: 32px;
+  height: 32px;
+  color: #ff7a00;
+}
+
+.nova-tickets-board-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 10px;
+  color: #91a5bf;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.nova-tickets-board-pagination > div {
+  display: flex;
+  gap: 9px;
+}
+
+.nova-tickets-board-pagination a[aria-disabled="true"] {
+  pointer-events: none;
+  opacity: 0.48;
+}
+
+@media (max-width: 1260px) {
+  .nova-tickets-board-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .nova-tickets-board-history-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 980px) {
+  .nova-tickets-board-shell {
+    display: block;
+  }
+
+  .nova-tickets-board-sidebar {
+    position: static;
+    height: auto;
+    max-height: 340px;
+  }
+
+  .nova-tickets-board-topbar {
+    height: auto;
+    min-height: 54px;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 14px;
+  }
+
+  .nova-tickets-board-topbar .nova-exceptions-board-user {
+    width: 100%;
+    min-width: 0;
+    height: 42px;
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    border-radius: 7px;
+  }
+
+  .nova-tickets-board-page {
+    padding: 16px 14px 24px;
+  }
+
+  .nova-tickets-board-heading > div:last-child {
+    padding-top: 0;
+  }
+
+  .nova-tickets-board-kpis,
+  .nova-tickets-board-history-list {
+    grid-template-columns: 1fr;
+  }
+
+  .nova-tickets-board-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .nova-tickets-board-history-list > a {
+    grid-template-columns: 48px minmax(0, 1fr);
+  }
+
+  .nova-tickets-board-history-list .nova-tickets-board-badge {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
+/* == NOVA CHAMADOS MOCKUP DARK FINAL END == */
