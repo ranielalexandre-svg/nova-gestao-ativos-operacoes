@@ -26124,6 +26124,88 @@ body:has(.nova-users-board-shell) {
   color: #ffffff;
 }
 
+.nova-users-board-top-filters {
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) 192px 192px auto auto;
+  gap: 12px;
+  align-items: center;
+  margin: -2px 0 14px;
+  padding: 13px 14px;
+  border: 1px solid rgba(148, 163, 184, .23);
+  border-radius: 7px;
+  background:
+    radial-gradient(circle at 70% -90%, rgba(45, 212, 191, .14), transparent 42%),
+    rgba(7, 20, 33, .88);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, .14);
+}
+
+.nova-users-board-top-filters label {
+  height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  padding: 0 11px;
+  border: 1px solid rgba(148, 163, 184, .28);
+  border-radius: 5px;
+  background: rgba(7, 18, 31, .76);
+}
+
+.nova-users-board-top-filters label span {
+  flex: 0 0 auto;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.nova-users-board-top-filters input,
+.nova-users-board-top-filters select {
+  min-width: 0;
+  width: 100%;
+  color: #dbe3ed;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  font-size: 12px;
+}
+
+.nova-users-board-top-filters input::placeholder {
+  color: #8b9aab;
+}
+
+.nova-users-board-top-filters select {
+  color: #f4f7fb;
+}
+
+.nova-users-board-top-filters option {
+  color: #0f172a;
+}
+
+.nova-users-board-top-filters button,
+.nova-users-board-top-filters > a {
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 112px;
+  padding: 0 14px;
+  border: 1px solid rgba(148, 163, 184, .28);
+  border-radius: 5px;
+  color: #e7edf5;
+  background: rgba(7, 18, 31, .78);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.nova-users-board-top-filters button {
+  border-color: rgba(255, 122, 0, .76);
+  background: linear-gradient(180deg, #ff8124, #ef5f00);
+  color: #ffffff;
+}
+
 .nova-users-board-kpis {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -26241,6 +26323,7 @@ body:has(.nova-users-board-shell) {
 
 .nova-users-board-card {
   min-width: 0;
+  overflow: hidden;
   border: 1px solid rgba(148, 163, 184, .23);
   border-radius: 7px;
   background:
@@ -26250,7 +26333,7 @@ body:has(.nova-users-board-shell) {
 }
 
 .nova-users-board-list-card {
-  min-height: 440px;
+  min-height: 386px;
   display: flex;
   flex-direction: column;
 }
@@ -26305,6 +26388,17 @@ body:has(.nova-users-board-shell) {
   background: transparent;
   border: 0;
   cursor: pointer;
+}
+
+.nova-users-board-card-head .nova-users-board-icon-button {
+  width: 28px;
+  height: 28px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  color: #d7dee8;
+  background: transparent;
+  border: 0;
 }
 
 .nova-users-board-filters {
@@ -26384,6 +26478,7 @@ body:has(.nova-users-board-shell) {
 
 .nova-users-board-table {
   width: 100%;
+  min-width: 820px;
   border-collapse: collapse;
   table-layout: fixed;
 }
@@ -26419,15 +26514,54 @@ body:has(.nova-users-board-shell) {
   color: #ffffff;
 }
 
+.nova-users-board-list-card .nova-users-board-table th:nth-child(1) {
+  width: 19%;
+}
+
+.nova-users-board-list-card .nova-users-board-table th:nth-child(2) {
+  width: 22%;
+}
+
+.nova-users-board-list-card .nova-users-board-table th:nth-child(3) {
+  width: 13%;
+}
+
+.nova-users-board-list-card .nova-users-board-table th:nth-child(4),
+.nova-users-board-list-card .nova-users-board-table th:nth-child(6) {
+  width: 11%;
+}
+
+.nova-users-board-list-card .nova-users-board-table th:nth-child(5) {
+  width: 16%;
+}
+
+.nova-users-board-list-card .nova-users-board-table th:nth-child(7) {
+  width: 8%;
+}
+
 .nova-users-board-table td strong {
   color: #ffffff;
   font-size: 12px;
   font-weight: 800;
 }
 
+.nova-users-board-user-cell {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.nova-users-board-user-cell strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .nova-users-board-avatar {
   width: 22px;
   height: 22px;
+  flex: 0 0 22px;
   display: inline-grid;
   place-items: center;
   margin-right: 8px;
@@ -26553,6 +26687,10 @@ body:has(.nova-users-board-shell) {
   font-size: 13px;
 }
 
+.nova-users-board-table td[colspan] .nova-users-board-empty {
+  width: min(100%, calc(100vw - 64px));
+}
+
 .nova-users-board-empty.is-small {
   min-height: 54px;
 }
@@ -26622,6 +26760,26 @@ body:has(.nova-users-board-shell) {
 .nova-users-board-more-link svg {
   width: 15px;
   height: 15px;
+}
+
+.nova-users-board-activity .nova-users-board-table th:nth-child(1) {
+  width: 22%;
+}
+
+.nova-users-board-activity .nova-users-board-table th:nth-child(2) {
+  width: 18%;
+}
+
+.nova-users-board-activity .nova-users-board-table th:nth-child(3) {
+  width: 28%;
+}
+
+.nova-users-board-activity .nova-users-board-table th:nth-child(4) {
+  width: 14%;
+}
+
+.nova-users-board-activity .nova-users-board-table th:nth-child(5) {
+  width: 18%;
 }
 
 .nova-users-board-side-title {
@@ -26726,6 +26884,56 @@ body:has(.nova-users-board-shell) {
 
 .nova-users-board-security-level b {
   color: #ffffff;
+}
+
+.nova-users-board-latest {
+  padding-bottom: 13px;
+}
+
+.nova-users-board-latest-list {
+  display: grid;
+  gap: 9px;
+  padding: 0 15px;
+}
+
+.nova-users-board-latest-item {
+  min-width: 0;
+  min-height: 50px;
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid rgba(148, 163, 184, .22);
+  border-radius: 5px;
+  background: rgba(6, 17, 30, .58);
+}
+
+.nova-users-board-latest-item .nova-users-board-avatar {
+  margin-right: 0;
+}
+
+.nova-users-board-latest-item > span:nth-child(2) {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.nova-users-board-latest-item strong {
+  overflow: hidden;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 850;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nova-users-board-latest-item small {
+  overflow: hidden;
+  color: #9facbd;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .nova-users-board-donut-wrap {
@@ -26900,6 +27108,10 @@ body:has(.nova-users-board-shell) {
   }
 
   .nova-users-board-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .nova-users-board-top-filters {
     grid-template-columns: 1fr;
   }
 

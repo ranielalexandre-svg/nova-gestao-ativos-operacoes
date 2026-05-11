@@ -421,6 +421,27 @@ export default async function UsuariosPage({
   const sessionsActive = activeUsers;
   const securityLevel = percent(activeUsers + mfaEnabled, Math.max(users.length * 2, 1));
   const pendingInvites = users.filter((user) => !user.isActive).slice(0, 3);
+  const latestLogins = [...users]
+    .sort((left, right) => Date.parse(right.updatedAt || right.createdAt) - Date.parse(left.updatedAt || left.createdAt))
+    .slice(0, 5);
+  const recentActivities = latestLogins.map((user) => ({
+    id: user.id,
+    action: user.isActive ? "Acesso validado" : "Acesso bloqueado",
+    detail: user.isActive ? "Sessão operacional atualizada" : "Usuário aguardando liberação",
+    entity: user.name,
+    when: user.updatedAt || user.createdAt,
+    tone: (user.isActive ? "green" : "orange") as Tone,
+    status: user.isActive ? "Concluído" : "Pendente",
+  }));
+  const exportHref = withParams("/usuarios/export", params, {
+    page: undefined,
+    pageSize: undefined,
+    q: q || undefined,
+    role: role !== "all" ? role : undefined,
+    active: active !== "all" ? active : undefined,
+  });
+  const currentHref = withParams("/usuarios", params, {});
+  const firstUserHref = users[0] ? `/usuarios/${users[0].id}` : "/usuarios";
 
   return (
     <div className="nova-users-board-shell">
@@ -439,10 +460,37 @@ export default async function UsuariosPage({
               <p>Gestão de acessos, perfis e segurança operacional.</p>
             </div>
             <div>
-              <ActionButton href="/usuarios" icon="refresh">Atualizar dados</ActionButton>
+              <ActionButton href={currentHref} icon="refresh">Atualizar dados</ActionButton>
               <ActionButton href="/usuarios/nova" icon="plus-user" variant="primary">Novo usuário</ActionButton>
             </div>
           </header>
+
+          <form method="GET" className="nova-users-board-top-filters">
+            <label className="is-search">
+              <Icon name="search" />
+              <input name="q" defaultValue={q} placeholder="Buscar usuário ou e-mail..." />
+            </label>
+            <label>
+              <span>Perfil</span>
+              <select name="role" defaultValue={role}>
+                <option value="all">Todos</option>
+                {ROLE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
+              </select>
+            </label>
+            <label>
+              <span>Status</span>
+              <select name="active" defaultValue={active}>
+                <option value="all">Todos</option>
+                <option value="true">Ativo</option>
+                <option value="false">Bloqueado</option>
+              </select>
+            </label>
+            <input type="hidden" name="pageSize" value={pageSize} />
+            <button type="submit"><Icon name="settings" /><span>Aplicar filtros</span></button>
+            <Link href="/usuarios"><Icon name="trash" /><span>Limpar</span></Link>
+          </form>
 
           <section className="nova-users-board-kpis" aria-label="Indicadores de usuários">
             <MetricCard icon="users" label="Usuários ativos" value={activeUsers} delta="+ 2" detail="vs. 7 dias atrás" tone="purple" />
@@ -457,37 +505,10 @@ export default async function UsuariosPage({
                 <div className="nova-users-board-card-head">
                   <h2>Lista de usuários</h2>
                   <div>
-                    <button type="button" aria-label="Exportar lista"><Icon name="download" /></button>
-                    <button type="button" aria-label="Ajustar filtros"><Icon name="settings" /></button>
+                    <Link href={exportHref} className="nova-users-board-icon-button" aria-label="Exportar lista"><Icon name="download" /></Link>
+                    <Link href={currentHref} className="nova-users-board-icon-button" aria-label="Ajustar filtros"><Icon name="settings" /></Link>
                   </div>
                 </div>
-
-                <form method="GET" className="nova-users-board-filters">
-                  <label className="is-search">
-                    <Icon name="search" />
-                    <input name="q" defaultValue={q} placeholder="Buscar usuário ou e-mail..." />
-                  </label>
-                  <label>
-                    <span>Perfil</span>
-                    <select name="role" defaultValue={role}>
-                      <option value="all">Todos</option>
-                      {ROLE_OPTIONS.map((option) => (
-                        <option key={option.value} value={option.value}>{option.label}</option>
-                      ))}
-                    </select>
-                  </label>
-                  <label>
-                    <span>Status</span>
-                    <select name="active" defaultValue={active}>
-                      <option value="all">Todos</option>
-                      <option value="true">Ativo</option>
-                      <option value="false">Bloqueado</option>
-                    </select>
-                  </label>
-                  <input type="hidden" name="pageSize" value={pageSize} />
-                  <button type="submit"><Icon name="settings" /><span>Aplicar</span></button>
-                  <Link href="/usuarios"><Icon name="trash" /><span>Limpar</span></Link>
-                </form>
 
                 <div className="nova-users-board-table-wrap">
                   <table className="nova-users-board-table">
@@ -506,8 +527,10 @@ export default async function UsuariosPage({
                       {response.items.length ? response.items.map((user) => (
                         <tr key={user.id}>
                           <td>
-                            <span className={`nova-users-board-avatar is-${roleToneLocal(user.role)}`}>{initials(user.name)}</span>
-                            <strong>{user.name}</strong>
+                            <span className="nova-users-board-user-cell">
+                              <span className={`nova-users-board-avatar is-${roleToneLocal(user.role)}`}>{initials(user.name)}</span>
+                              <strong>{user.name}</strong>
+                            </span>
                           </td>
                           <td>{user.email}</td>
                           <td><Badge tone={roleToneLocal(user.role)}>{roleLabel(user.role)}</Badge></td>
@@ -535,38 +558,74 @@ export default async function UsuariosPage({
                 <PaginationBar params={params} meta={response.meta} />
               </section>
 
+              <section className="nova-users-board-card nova-users-board-activity">
+                <div className="nova-users-board-card-head">
+                  <h2>Atividade recente <span>{recentActivities.length}</span></h2>
+                </div>
+                <div className="nova-users-board-table-wrap">
+                  <table className="nova-users-board-table">
+                    <thead>
+                      <tr>
+                        <th>Ação</th>
+                        <th>Usuário</th>
+                        <th>Origem</th>
+                        <th>Status</th>
+                        <th>Data</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {recentActivities.length ? recentActivities.map((activity) => (
+                        <tr key={activity.id}>
+                          <td><strong>{activity.action}</strong></td>
+                          <td>{activity.entity}</td>
+                          <td>{activity.detail}</td>
+                          <td><Badge tone={activity.tone}>{activity.status}</Badge></td>
+                          <td>{formatDateTime(activity.when)}</td>
+                        </tr>
+                      )) : (
+                        <tr>
+                          <td colSpan={5}><div className="nova-users-board-empty is-small">Nenhuma atividade recente.</div></td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+
               <section className="nova-users-board-card nova-users-board-invites">
                 <div className="nova-users-board-card-head">
                   <h2>Convites pendentes <span>{pendingInvites.length}</span></h2>
                 </div>
-                <table className="nova-users-board-table">
-                  <thead>
-                    <tr>
-                      <th>Nome</th>
-                      <th>E-mail</th>
-                      <th>Perfil</th>
-                      <th>Enviado em</th>
-                      <th>Expira em</th>
-                      <th>Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {pendingInvites.length ? pendingInvites.map((user) => (
-                      <tr key={user.id}>
-                        <td><span className={`nova-users-board-avatar is-${roleToneLocal(user.role)}`}>{initials(user.name)}</span><strong>{user.name}</strong></td>
-                        <td>{user.email}</td>
-                        <td><Badge tone={roleToneLocal(user.role)}>{roleLabel(user.role)}</Badge></td>
-                        <td>{formatDateTime(user.createdAt)}</td>
-                        <td>{formatDateTime(user.updatedAt || user.createdAt)}</td>
-                        <td><div className="nova-users-board-row-actions"><Link href={`/usuarios/${user.id}`}><Icon name="mail" /></Link><Link href={`/usuarios/${user.id}`}><Icon name="trash" /></Link></div></td>
-                      </tr>
-                    )) : (
+                <div className="nova-users-board-table-wrap">
+                  <table className="nova-users-board-table">
+                    <thead>
                       <tr>
-                        <td colSpan={6}><div className="nova-users-board-empty is-small">Nenhum convite pendente.</div></td>
+                        <th>Nome</th>
+                        <th>E-mail</th>
+                        <th>Perfil</th>
+                        <th>Enviado em</th>
+                        <th>Expira em</th>
+                        <th>Ações</th>
                       </tr>
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {pendingInvites.length ? pendingInvites.map((user) => (
+                        <tr key={user.id}>
+                          <td><span className="nova-users-board-user-cell"><span className={`nova-users-board-avatar is-${roleToneLocal(user.role)}`}>{initials(user.name)}</span><strong>{user.name}</strong></span></td>
+                          <td>{user.email}</td>
+                          <td><Badge tone={roleToneLocal(user.role)}>{roleLabel(user.role)}</Badge></td>
+                          <td>{formatDateTime(user.createdAt)}</td>
+                          <td>{formatDateTime(user.updatedAt || user.createdAt)}</td>
+                          <td><div className="nova-users-board-row-actions"><Link href={`/usuarios/${user.id}`}><Icon name="mail" /></Link><Link href={`/usuarios/${user.id}`}><Icon name="trash" /></Link></div></td>
+                        </tr>
+                      )) : (
+                        <tr>
+                          <td colSpan={6}><div className="nova-users-board-empty is-small">Nenhum convite pendente.</div></td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
                 <Link href="/usuarios?active=false" className="nova-users-board-more-link">Ver todos os convites pendentes <Icon name="chevron" /></Link>
               </section>
             </div>
@@ -590,6 +649,27 @@ export default async function UsuariosPage({
                 </div>
               </section>
 
+              <section className="nova-users-board-card nova-users-board-latest">
+                <div className="nova-users-board-card-head">
+                  <h2>Últimos logins</h2>
+                  <Link href={currentHref} className="nova-users-board-icon-button" aria-label="Ver logins"><Icon name="more" /></Link>
+                </div>
+                <div className="nova-users-board-latest-list">
+                  {latestLogins.length ? latestLogins.map((user) => (
+                    <Link key={user.id} href={`/usuarios/${user.id}`} className="nova-users-board-latest-item">
+                      <span className={`nova-users-board-avatar is-${roleToneLocal(user.role)}`}>{initials(user.name)}</span>
+                      <span>
+                        <strong>{user.name}</strong>
+                        <small>{roleLabel(user.role)} · {user.email}</small>
+                      </span>
+                      <Badge tone={user.isActive ? "green" : "orange"}>{user.isActive ? "Online" : "Pendente"}</Badge>
+                    </Link>
+                  )) : (
+                    <div className="nova-users-board-empty is-small">Nenhum login registrado.</div>
+                  )}
+                </div>
+              </section>
+
               <section className="nova-users-board-card">
                 <div className="nova-users-board-card-head">
                   <h2>Distribuição por perfil</h2>
@@ -604,9 +684,9 @@ export default async function UsuariosPage({
                   <h2>Ações rápidas</h2>
                 </div>
                 <Link href="/usuarios/nova"><Icon name="plus-user" /><span>Novo usuário</span><Icon name="chevron" /></Link>
-                <Link href="/usuarios"><Icon name="download" /><span>Exportar lista</span><Icon name="chevron" /></Link>
+                <Link href={exportHref}><Icon name="download" /><span>Exportar lista</span><Icon name="chevron" /></Link>
                 <Link href="/usuarios?active=false"><Icon name="mail" /><span>Reenviar convite</span><Icon name="chevron" /></Link>
-                <Link href="/usuarios"><Icon name="lock" /><span>Forçar redefinição de senha</span><Icon name="chevron" /></Link>
+                <Link href={firstUserHref}><Icon name="lock" /><span>Forçar redefinição de senha</span><Icon name="chevron" /></Link>
               </section>
             </aside>
           </section>
