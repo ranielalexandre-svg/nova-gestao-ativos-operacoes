@@ -14096,6 +14096,959 @@ body:has(.nova-lit-app) {
 }
 /* == NOVA EXCECOES LITERAL END == */
 
+/* == NOVA EXCECOES MOCKUP STRICT START == */
+body:has(.nova-exceptions-board-shell) {
+  background: #050f19;
+}
+
+.nova-exceptions-board-shell,
+.nova-exceptions-board-shell * {
+  box-sizing: border-box;
+}
+
+.nova-exceptions-board-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  color: #f7fbff;
+  background:
+    radial-gradient(circle at 80% -10%, rgba(31, 91, 122, .22), transparent 32%),
+    linear-gradient(180deg, #04101b 0%, #061522 52%, #050f19 100%);
+  font-family: Inter, "Segoe UI", Arial, Helvetica, sans-serif;
+}
+
+.nova-exceptions-board-shell a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.nova-exceptions-board-shell button,
+.nova-exceptions-board-shell input,
+.nova-exceptions-board-shell select {
+  font: inherit;
+}
+
+.nova-exceptions-board-shell svg {
+  display: block;
+  width: 17px;
+  height: 17px;
+}
+
+.nova-exceptions-board-sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  padding: 18px 11px 20px;
+  overflow: auto;
+  border-right: 1px solid rgba(148, 163, 184, .18);
+  background:
+    radial-gradient(circle at 35% 0%, rgba(0, 119, 164, .22), transparent 23%),
+    linear-gradient(180deg, #06131f 0%, #05111c 58%, #071421 100%);
+}
+
+.nova-exceptions-board-logo {
+  display: flex;
+  align-items: center;
+  width: 118px;
+  height: 54px;
+  margin: 0 0 18px 12px;
+}
+
+.nova-exceptions-board-logo img {
+  width: 118px;
+  height: auto;
+}
+
+.nova-exceptions-board-nav-section {
+  margin-top: 21px;
+}
+
+.nova-exceptions-board-nav-section h2 {
+  margin: 0 0 8px 3px;
+  color: #9aa9ba;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.nova-exceptions-board-nav-link {
+  position: relative;
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 0 10px;
+  border-radius: 6px;
+  color: #c5cfdb;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.nova-exceptions-board-nav-link svg {
+  width: 16px;
+  height: 16px;
+}
+
+.nova-exceptions-board-nav-link[data-active="true"] {
+  color: #ff7a00;
+  background: rgba(255, 122, 0, .13);
+  box-shadow: inset 3px 0 0 #ff7a00;
+}
+
+.nova-exceptions-board-main {
+  min-width: 0;
+}
+
+.nova-exceptions-board-topbar {
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  border-bottom: 1px solid rgba(148, 163, 184, .19);
+  background: rgba(4, 13, 22, .72);
+}
+
+.nova-exceptions-board-topbar > div {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.nova-exceptions-board-topbar > div:first-child span {
+  color: #dce6f2;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.nova-exceptions-board-topbar button {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  color: #cbd6e2;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.nova-exceptions-board-topbar button i {
+  position: absolute;
+  top: -4px;
+  right: 0;
+  width: 16px;
+  height: 16px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: #fff;
+  background: #f97316;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.nova-exceptions-board-user {
+  min-width: 150px;
+  height: 40px;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 4px 9px;
+  border: 1px solid rgba(148, 163, 184, .24);
+  border-radius: 7px;
+  background: rgba(7, 19, 33, .74);
+}
+
+.nova-exceptions-board-user b {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: #fff;
+  background: #ff7a00;
+  font-size: 13px;
+}
+
+.nova-exceptions-board-user span {
+  min-width: 0;
+  display: grid;
+  color: #f8fafc;
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1.15;
+}
+
+.nova-exceptions-board-user small {
+  color: #aeb9c8;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.nova-exceptions-board-page {
+  min-width: 0;
+  padding: 18px 22px 24px;
+}
+
+.nova-exceptions-board-heading {
+  min-height: 76px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 15px;
+}
+
+.nova-exceptions-board-heading nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  color: #9daabd;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.nova-exceptions-board-heading nav strong {
+  color: #fff;
+}
+
+.nova-exceptions-board-heading h1 {
+  margin: 0;
+  color: #fff;
+  font-size: 30px;
+  font-weight: 900;
+  line-height: 1.05;
+}
+
+.nova-exceptions-board-heading p {
+  margin: 8px 0 0;
+  color: #b6c0cf;
+  font-size: 13px;
+}
+
+.nova-exceptions-board-heading > div:last-child {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 26px;
+}
+
+.nova-exceptions-board-button {
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 0 15px;
+  border: 1px solid rgba(148, 163, 184, .26);
+  border-radius: 6px;
+  color: #f4f7fb;
+  background: rgba(8, 21, 35, .86);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.nova-exceptions-board-button.is-primary {
+  color: #fff;
+  border-color: rgba(255, 122, 0, .85);
+  background: linear-gradient(180deg, #ff8124, #ef5f00);
+}
+
+.nova-exceptions-board-flow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  margin-bottom: 16px;
+  border: 1px solid rgba(148, 163, 184, .23);
+  border-radius: 7px;
+  overflow: hidden;
+  background: rgba(7, 20, 33, .84);
+}
+
+.nova-exceptions-board-flow article {
+  position: relative;
+  min-height: 84px;
+  display: grid;
+  grid-template-columns: 50px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  column-gap: 16px;
+  align-content: center;
+  padding: 16px 22px;
+}
+
+.nova-exceptions-board-flow article:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  right: 22px;
+  top: 50%;
+  width: 42%;
+  border-top: 1px dashed rgba(203, 213, 225, .55);
+}
+
+.nova-exceptions-board-flow div {
+  grid-row: 1 / 3;
+  width: 50px;
+  height: 50px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 122, 0, .7);
+  border-radius: 999px;
+  color: #ff7a00;
+  background: rgba(255, 122, 0, .1);
+}
+
+.nova-exceptions-board-flow article:nth-child(2) div {
+  color: #a970ff;
+  border-color: rgba(139, 92, 246, .72);
+  background: rgba(139, 92, 246, .14);
+}
+
+.nova-exceptions-board-flow article:nth-child(3) div {
+  color: #4ade80;
+  border-color: rgba(34, 197, 94, .72);
+  background: rgba(34, 197, 94, .14);
+}
+
+.nova-exceptions-board-flow div svg {
+  width: 25px;
+  height: 25px;
+}
+
+.nova-exceptions-board-flow span {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.nova-exceptions-board-flow p {
+  margin: 7px 0 0;
+  color: #b6c0cf;
+  font-size: 12px;
+}
+
+.nova-exceptions-board-top-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 660px;
+  gap: 12px;
+  align-items: stretch;
+  margin-bottom: 16px;
+}
+
+.nova-exceptions-board-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.nova-exceptions-board-kpi {
+  min-height: 92px;
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  grid-template-rows: auto auto auto;
+  column-gap: 14px;
+  align-content: center;
+  padding: 15px;
+  border: 1px solid rgba(148, 163, 184, .24);
+  border-radius: 7px;
+  background: rgba(7, 20, 33, .88);
+}
+
+.nova-exceptions-board-kpi div {
+  grid-row: 1 / 4;
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  justify-self: center;
+  border-radius: 999px;
+}
+
+.nova-exceptions-board-kpi svg {
+  width: 26px;
+  height: 26px;
+}
+
+.nova-exceptions-board-kpi span {
+  color: #d5dbe5;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.nova-exceptions-board-kpi strong {
+  margin-top: 4px;
+  color: #fff;
+  font-size: 29px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.nova-exceptions-board-kpi p {
+  margin: 8px 0 0;
+  color: #b4becb;
+  font-size: 12px;
+}
+
+.nova-exceptions-board-kpi.is-orange div { color: #fb923c; background: rgba(249, 115, 22, .13); border: 1px solid rgba(249, 115, 22, .78); }
+.nova-exceptions-board-kpi.is-blue div { color: #60a5fa; background: rgba(59, 130, 246, .15); border: 1px solid rgba(59, 130, 246, .72); }
+.nova-exceptions-board-kpi.is-green div { color: #4ade80; background: rgba(34, 197, 94, .14); border: 1px solid rgba(34, 197, 94, .72); }
+.nova-exceptions-board-kpi.is-red div { color: #fb7185; background: rgba(239, 68, 68, .14); border: 1px solid rgba(239, 68, 68, .64); }
+.nova-exceptions-board-kpi.is-slate div { color: #cbd5e1; background: rgba(100, 116, 139, .16); border: 1px solid rgba(148, 163, 184, .28); }
+
+.nova-exceptions-board-content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  gap: 16px;
+  align-items: start;
+}
+
+.nova-exceptions-board-left {
+  min-width: 0;
+  display: grid;
+  gap: 14px;
+}
+
+.nova-exceptions-board-right {
+  min-width: 0;
+  display: grid;
+  gap: 14px;
+}
+
+.nova-exceptions-board-card,
+.nova-exceptions-board-filters {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, .23);
+  border-radius: 7px;
+  background:
+    radial-gradient(circle at 50% -22%, rgba(31, 91, 122, .2), transparent 45%),
+    rgba(7, 20, 33, .88);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, .16);
+}
+
+.nova-exceptions-board-filters {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  align-items: end;
+  padding: 13px;
+}
+
+.nova-exceptions-board-filters label {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.nova-exceptions-board-filters span {
+  color: #d8e1ed;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.nova-exceptions-board-filters input,
+.nova-exceptions-board-filters select {
+  min-width: 0;
+  width: 100%;
+  height: 34px;
+  border: 1px solid rgba(148, 163, 184, .28);
+  border-radius: 5px;
+  color: #dbe3ed;
+  background: rgba(7, 18, 31, .76);
+  outline: 0;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+.nova-exceptions-board-filters input::placeholder {
+  color: #8b9aab;
+}
+
+.nova-exceptions-board-filters option {
+  color: #0f172a;
+}
+
+.nova-exceptions-board-filters button,
+.nova-exceptions-board-filters > a {
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 14px;
+  border: 1px solid rgba(148, 163, 184, .28);
+  border-radius: 5px;
+  color: #e7edf5;
+  background: rgba(7, 18, 31, .78);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.nova-exceptions-board-filters button {
+  border-color: rgba(255, 122, 0, .76);
+  background: linear-gradient(180deg, #ff8124, #ef5f00);
+  color: #fff;
+}
+
+.nova-exceptions-board-card-head {
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 0 16px;
+}
+
+.nova-exceptions-board-card-head > div {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 20px auto auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.nova-exceptions-board-card-head h2,
+.nova-exceptions-board-side-title h2 {
+  margin: 0;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.nova-exceptions-board-card-head span {
+  color: #9facbd;
+  font-size: 12px;
+}
+
+.nova-exceptions-board-card-head > a {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  color: #d7dee8;
+}
+
+.nova-exceptions-board-table-card {
+  min-height: 454px;
+}
+
+.nova-exceptions-board-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.nova-exceptions-board-table {
+  width: 100%;
+  min-width: 940px;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.nova-exceptions-board-table thead {
+  background: rgba(148, 163, 184, .08);
+}
+
+.nova-exceptions-board-table th,
+.nova-exceptions-board-table td {
+  height: 38px;
+  padding: 0 16px;
+  border-bottom: 1px solid rgba(148, 163, 184, .14);
+  text-align: left;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.nova-exceptions-board-table th {
+  color: #f2f6fb;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.nova-exceptions-board-table td {
+  overflow: hidden;
+  color: #bac5d2;
+  font-size: 12px;
+  text-overflow: ellipsis;
+}
+
+.nova-exceptions-board-table th:nth-child(1) { width: 15%; }
+.nova-exceptions-board-table th:nth-child(2) { width: 23%; }
+.nova-exceptions-board-table th:nth-child(3) { width: 13%; }
+.nova-exceptions-board-table th:nth-child(4) { width: 12%; }
+.nova-exceptions-board-table th:nth-child(5) { width: 12%; }
+.nova-exceptions-board-table th:nth-child(6) { width: 13%; }
+.nova-exceptions-board-table th:nth-child(7) { width: 8%; }
+.nova-exceptions-board-table th:nth-child(8) { width: 7%; }
+
+.nova-exceptions-board-table td a,
+.nova-exceptions-board-table td strong {
+  overflow: hidden;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 850;
+  text-overflow: ellipsis;
+}
+
+.nova-exceptions-board-table td small {
+  display: block;
+  overflow: hidden;
+  margin-top: 3px;
+  color: #93a4b9;
+  text-overflow: ellipsis;
+}
+
+.nova-exceptions-board-action {
+  display: inline-flex;
+  min-width: 48px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 122, 0, .66);
+  border-radius: 5px;
+  color: #ffb36b !important;
+  background: rgba(255, 122, 0, .1);
+}
+
+.nova-exceptions-board-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  height: 22px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.nova-exceptions-board-dot {
+  width: 7px;
+  height: 7px;
+  display: inline-block;
+  flex: 0 0 auto;
+  border-radius: 999px;
+}
+
+.nova-exceptions-board-dot.is-green { background: #4ade80; }
+.nova-exceptions-board-dot.is-orange { background: #fb923c; }
+.nova-exceptions-board-dot.is-blue { background: #60a5fa; }
+.nova-exceptions-board-dot.is-red { background: #fb7185; }
+.nova-exceptions-board-dot.is-slate { background: #94a3b8; }
+
+.nova-exceptions-board-badge.is-green { color: #77f2a8; background: rgba(34, 197, 94, .16); border-color: rgba(34, 197, 94, .24); }
+.nova-exceptions-board-badge.is-orange { color: #fb923c; background: rgba(249, 115, 22, .14); border-color: rgba(249, 115, 22, .28); }
+.nova-exceptions-board-badge.is-blue { color: #a9d6ff; background: rgba(59, 130, 246, .16); border-color: rgba(59, 130, 246, .34); }
+.nova-exceptions-board-badge.is-red { color: #ff8da0; background: rgba(239, 68, 68, .14); border-color: rgba(239, 68, 68, .28); }
+.nova-exceptions-board-badge.is-slate { color: #d8e0ea; background: rgba(100, 116, 139, .18); border-color: rgba(148, 163, 184, .28); }
+
+.nova-exceptions-board-pagination {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 0 16px;
+  color: #c1ccd8;
+  font-size: 12px;
+}
+
+.nova-exceptions-board-pagination > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nova-exceptions-board-pagination a {
+  min-width: 30px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  padding: 0 9px;
+  border: 1px solid rgba(148, 163, 184, .22);
+  border-radius: 5px;
+  color: #cbd5e1;
+  background: rgba(6, 17, 30, .74);
+  font-size: 12px;
+}
+
+.nova-exceptions-board-pagination a[data-active="true"] {
+  color: #fff;
+  border-color: #ff7a00;
+}
+
+.nova-exceptions-board-pagination a[aria-disabled="true"] {
+  pointer-events: none;
+  opacity: .42;
+}
+
+.nova-exceptions-board-side-title {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+}
+
+.nova-exceptions-board-side-title > svg {
+  color: #ff7a00;
+}
+
+.nova-exceptions-board-donut-wrap {
+  display: grid;
+  grid-template-columns: 144px minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  padding: 2px 18px 16px;
+}
+
+.nova-exceptions-board-donut {
+  position: relative;
+  width: 124px;
+  height: 124px;
+  display: grid;
+  place-items: center;
+  justify-self: center;
+  border-radius: 999px;
+  background: var(--donut-bg);
+}
+
+.nova-exceptions-board-donut::after {
+  content: "";
+  position: absolute;
+  inset: 34px;
+  border-radius: 999px;
+  background: #071523;
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, .16);
+}
+
+.nova-exceptions-board-donut strong,
+.nova-exceptions-board-donut span {
+  position: relative;
+  z-index: 1;
+  grid-area: 1 / 1;
+}
+
+.nova-exceptions-board-donut strong {
+  margin-top: -14px;
+  color: #fff;
+  font-size: 25px;
+  font-weight: 900;
+}
+
+.nova-exceptions-board-donut span {
+  margin-top: 22px;
+  color: #b9c5d2;
+  font-size: 12px;
+}
+
+.nova-exceptions-board-donut-legend {
+  display: grid;
+  gap: 12px;
+}
+
+.nova-exceptions-board-donut-legend div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #d6dee8;
+  font-size: 12px;
+}
+
+.nova-exceptions-board-donut-legend span {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.nova-exceptions-board-donut-legend i {
+  width: 9px;
+  height: 9px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+}
+
+.nova-exceptions-board-donut-legend b {
+  color: #aeb9c6;
+  font-size: 12px;
+}
+
+.nova-exceptions-board-pressure {
+  display: grid;
+  gap: 10px;
+  padding: 0 18px 16px;
+}
+
+.nova-exceptions-board-progress div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 5px;
+  color: #c5cfdb;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.nova-exceptions-board-progress i {
+  height: 7px;
+  display: block;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, .16);
+}
+
+.nova-exceptions-board-progress em {
+  min-width: 4px;
+  height: 100%;
+  display: block;
+  border-radius: inherit;
+}
+
+.nova-exceptions-board-progress em.is-green { background: #22c55e; }
+.nova-exceptions-board-progress em.is-orange { background: #ff7a00; }
+.nova-exceptions-board-progress em.is-blue { background: #3b82f6; }
+.nova-exceptions-board-progress em.is-red { background: #ef4444; }
+
+.nova-exceptions-board-quick {
+  padding-bottom: 14px;
+}
+
+.nova-exceptions-board-quick > a {
+  min-height: 36px;
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  margin: 0 15px 8px;
+  padding: 0 13px;
+  border: 1px solid rgba(148, 163, 184, .24);
+  border-radius: 5px;
+  color: #f1f5f9;
+  background: rgba(7, 18, 31, .68);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.nova-exceptions-board-quick > a:first-of-type {
+  grid-template-columns: 20px minmax(0, 1fr);
+  color: #fff;
+  border-color: rgba(255, 122, 0, .7);
+  background: linear-gradient(180deg, #ff8124, #ef5f00);
+}
+
+.nova-exceptions-board-empty {
+  min-height: 150px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  color: #9faabb;
+  text-align: center;
+}
+
+.nova-exceptions-board-empty div {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  color: #ff7a00;
+  background: rgba(255, 122, 0, .12);
+}
+
+.nova-exceptions-board-empty strong {
+  color: #fff;
+  font-size: 13px;
+}
+
+.nova-exceptions-board-empty span {
+  font-size: 12px;
+}
+
+@media (max-width: 1320px) {
+  .nova-exceptions-board-shell {
+    grid-template-columns: 180px minmax(0, 1fr);
+  }
+
+  .nova-exceptions-board-top-grid,
+  .nova-exceptions-board-content,
+  .nova-exceptions-board-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .nova-exceptions-board-right {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 980px) {
+  .nova-exceptions-board-shell {
+    display: block;
+  }
+
+  .nova-exceptions-board-sidebar {
+    position: static;
+    height: auto;
+    max-height: 360px;
+  }
+
+  .nova-exceptions-board-topbar,
+  .nova-exceptions-board-heading,
+  .nova-exceptions-board-pagination {
+    height: auto;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .nova-exceptions-board-topbar,
+  .nova-exceptions-board-heading {
+    gap: 14px;
+    padding: 16px;
+  }
+
+  .nova-exceptions-board-heading > div:last-child,
+  .nova-exceptions-board-kpis,
+  .nova-exceptions-board-flow,
+  .nova-exceptions-board-right {
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .nova-exceptions-board-heading > div:last-child,
+  .nova-exceptions-board-topbar > div {
+    flex-wrap: wrap;
+  }
+
+  .nova-exceptions-board-flow article:not(:last-child)::after {
+    display: none;
+  }
+}
+
+@media (max-width: 680px) {
+  .nova-exceptions-board-page {
+    padding: 16px;
+  }
+
+  .nova-exceptions-board-donut-wrap {
+    grid-template-columns: 1fr;
+  }
+
+  .nova-exceptions-board-donut {
+    justify-self: start;
+  }
+}
+/* == NOVA EXCECOES MOCKUP STRICT END == */
+
 /* == NOVA AUTOMACAO LITERAL START == */
 .nova-auto-heading {
   margin-bottom: 8px;
