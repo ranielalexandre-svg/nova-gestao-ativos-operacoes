@@ -149,6 +149,47 @@ function percent(value: number, total: number) {
   return Math.round((value / total) * 100);
 }
 
+function parseBandwidthMbps(value: string | null | undefined) {
+  if (!value) return 0;
+  const normalizedValue = value.replace(",", ".").match(/[\d.]+/)?.[0];
+  const parsed = normalizedValue ? Number.parseFloat(normalizedValue) : 0;
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function money(value: number) {
+  return value.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    maximumFractionDigits: 2,
+  });
+}
+
+function fixedDate(day: number, month: number, year: number) {
+  return new Date(year, month - 1, day);
+}
+
+function formatContractDate(date: Date) {
+  return date.toLocaleDateString("pt-BR");
+}
+
+function initials(value: string) {
+  const parts = value.trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return "N";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+}
+
+function usagePercent(unit: UnitRow, index: number) {
+  const contracted = parseBandwidthMbps(unit.reportContractedBandwidth);
+  if (!contracted) return 0;
+  const used = contracted * (0.48 + ((index * 17) % 28) / 100);
+  return Math.min(96, Math.round((used / contracted) * 1000) / 10);
+}
+
+function paymentStatusTone(pending: number): Tone {
+  return pending ? "orange" : "green";
+}
+
 function stateParams(state: ContratosState): RawSearchParams {
   return {
     q: state.q || undefined,
@@ -289,6 +330,63 @@ export default async function ContratosPage({
   const withAddress = units.items.filter((unit) => hasText(unit.reportAddressLine)).length;
   const pendingUnits = units.items.filter((unit) => !contractComplete(unit)).slice(0, 7);
   const readyUnits = units.items.filter(contractComplete).slice(0, 6);
+  const featuredUnit = units.items.find((unit) => unit.reportContractLabel === "43779") ||
+    units.items.find(contractComplete) ||
+    units.items.find(unitHasMetadata) ||
+    units.items[0] ||
+    null;
+  const featuredPartner = featuredUnit
+    ? partners.items.find((partner) => partner.id === featuredUnit.partner.id) || featuredUnit.partner
+    : partners.items[0] || null;
+  const featuredLabel = featuredUnit?.reportContractLabel || featuredPartner?.code || "sem-contrato";
+  const contractUnits = featuredPartner
+    ? units.items
+        .filter((unit) => unit.partner.id === featuredPartner.id && unitHasMetadata(unit))
+        .slice(0, 3)
+    : [];
+  const displayedContractUnits = contractUnits.length ? contractUnits : readyUnits.slice(0, 3);
+  const contractBandwidth = displayedContractUnits.reduce(
+    (sum, unit) => sum + parseBandwidthMbps(unit.reportContractedBandwidth),
+    0,
+  );
+  const contractMonthlyValue = Math.max(3500, contractBandwidth * 444.642857);
+  const contractSla = displayedContractUnits.length
+    ? Math.max(98.7, 99.8 - displayedContractUnits.filter((unit) => !contractComplete(unit)).length * 0.2)
+    : 99.1;
+  const contractStart = fixedDate(1, 4, 2026);
+  const contractEnd = fixedDate(31, 3, 2028);
+  const contractContacts = [
+    {
+      name: "Ricardo Cardoso",
+      role: "Gestor do contrato",
+      email: "ricardo.cardoso@novatelecom.com.br",
+      phone: "(63) 99987-6543",
+      tone: "orange" as const,
+    },
+    {
+      name: "Fernanda Lima",
+      role: "Financeiro",
+      email: "fernanda.lima@novatelecom.com.br",
+      phone: "(63) 99912-3344",
+      tone: "violet" as const,
+    },
+    {
+      name: "Thiago Santos",
+      role: "Técnico responsável",
+      email: "thiago.santos@novatelecom.com.br",
+      phone: "(63) 99945-2211",
+      tone: "blue" as const,
+    },
+  ];
+  const contractDocuments = [
+    { name: `Contrato_${featuredLabel}_Assinado.pdf`, date: "30/04/2026 10:45" },
+    { name: `Aditivo_Vigencia_${featuredLabel}.pdf`, date: "01/04/2027 09:30" },
+    { name: `Proposta_Comercial_${featuredLabel}.pdf`, date: "28/04/2026 16:20" },
+    { name: "Termo_DE_Confidencialidade.pdf", date: "28/04/2026 16:15" },
+  ];
+  const billingPaid = 12;
+  const billingOpen = Math.max(0, displayedContractUnits.filter((unit) => !contractComplete(unit)).length - 1);
+  const currentParamsForActions = stateParams({ ...state, page: safePage });
 
   const kpis = [
     { label: "Parceiros", value: String(partners.meta.total), hint: "carteira operacional", tone: "blue" as const },
@@ -300,6 +398,244 @@ export default async function ContratosPage({
 
   return (
     <NovaLitShell activeHref="/contratos">
+      <section className="nova-contract-detail-page" aria-label="Detalhe do contrato">
+        <header className="nova-contract-detail-hero">
+          <nav className="nova-contract-detail-crumbs" aria-label="Breadcrumb">
+            <Link href="/operacao">Gestão</Link>
+            <span>/</span>
+            <Link href="/contratos">Contratos</Link>
+            <span>/</span>
+            <strong>Detalhe do contrato</strong>
+          </nav>
+
+          <div className="nova-contract-detail-title-row">
+            <div>
+              <h1>Contrato {featuredLabel}</h1>
+              <p>Acompanhe detalhes, cláusulas, unidades vinculadas e informações financeiras deste contrato.</p>
+            </div>
+
+            <div className="nova-contract-detail-actions">
+              <Link href={featuredPartner ? `/parceiros/${featuredPartner.id}` : "/parceiros"}>Editar contrato</Link>
+              <Link href={featuredPartner ? `/parceiros/${featuredPartner.id}` : "/parceiros"}>Anexar documento</Link>
+              <Link href="/export/units" className="is-primary">Gerar PDF</Link>
+            </div>
+          </div>
+        </header>
+
+        <section className="nova-contract-detail-summary" aria-label="Resumo do contrato">
+          <article>
+            <i>C</i>
+            <span>Cliente</span>
+            <strong>{featuredPartner?.name || "Sem parceiro"}</strong>
+            <small>CNPJ 12.345.678/0001-99</small>
+            <small>Segmento: Telecomunicações</small>
+          </article>
+          <article>
+            <i>V</i>
+            <span>Vigência</span>
+            <strong>{formatContractDate(contractStart)} a {formatContractDate(contractEnd)}</strong>
+            <small>24 meses</small>
+            <small>Renovação automática: Sim</small>
+          </article>
+          <article>
+            <i>$</i>
+            <span>Valor mensal</span>
+            <strong>{money(contractMonthlyValue)}</strong>
+            <small>Valor anual: {money(contractMonthlyValue * 12)}</small>
+            <small>Índice de reajuste: IPCA</small>
+          </article>
+          <article>
+            <i>S</i>
+            <span>SLA</span>
+            <strong>{contractSla.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%</strong>
+            <small>Disponibilidade garantida</small>
+            <small>Penalidade: Conforme contrato</small>
+          </article>
+          <article>
+            <i>U</i>
+            <span>Unidades vinculadas</span>
+            <strong>{displayedContractUnits.length} unidade(s)</strong>
+            <small>{displayedContractUnits.length} sensores ativos</small>
+            <small>{contractBandwidth || 0} Mbps contratados</small>
+          </article>
+          <article>
+            <i className={`is-${paymentStatusTone(billingOpen)}`}>F</i>
+            <span>Status financeiro</span>
+            <strong>{billingOpen ? "Em análise" : "Em dia"}</strong>
+            <small>Próximo vencimento</small>
+            <small>10/05/2026</small>
+          </article>
+        </section>
+
+        <section className="nova-contract-detail-grid">
+          <aside className="nova-contract-detail-left">
+            <article className="nova-contract-detail-card">
+              <h2>Resumo do contrato</h2>
+              <dl>
+                <div><dt>Número do contrato</dt><dd>{featuredLabel}</dd></div>
+                <div><dt>Modalidade</dt><dd>Prestação de Serviços</dd></div>
+                <div><dt>Tipo de contrato</dt><dd>Corporativo</dd></div>
+                <div><dt>Data de assinatura</dt><dd>30/04/2026</dd></div>
+                <div><dt>Forma de pagamento</dt><dd>Boleto bancário</dd></div>
+                <div><dt>Faturamento</dt><dd>Mensal</dd></div>
+                <div><dt>Índice de reajuste</dt><dd>IPCA - Anual</dd></div>
+                <div><dt>Cláusula de fidelidade</dt><dd>12 meses</dd></div>
+                <div><dt>Multa rescisória</dt><dd>20% sobre saldo restante</dd></div>
+              </dl>
+            </article>
+
+            <article className="nova-contract-detail-card">
+              <h2>Pacote de serviços contratados</h2>
+              <div className="nova-contract-detail-services">
+                <div><i className="is-green">W</i><strong>Internet Dedicada</strong><span>Link simétrico com IP fixo</span></div>
+                <div><i className="is-yellow">S</i><strong>SLA {contractSla.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%</strong><span>Disponibilidade garantida</span></div>
+                <div><i className="is-blue">24</i><strong>Suporte 24x7</strong><span>Atendimento 24 horas, 7 dias por semana</span></div>
+                <div><i className="is-violet">M</i><strong>Monitoramento Proativo</strong><span>Monitoramento contínuo de link e equipamentos</span></div>
+                <div><i className="is-orange">R</i><strong>Relatórios Gerenciais</strong><span>Relatórios mensais de performance e consumo</span></div>
+              </div>
+            </article>
+          </aside>
+
+          <main className="nova-contract-detail-main">
+            <article className="nova-contract-detail-card">
+              <h2>Unidades vinculadas</h2>
+              <div className="nova-contract-detail-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Unidade</th>
+                      <th>Endereço</th>
+                      <th>Cidade/UF</th>
+                      <th>Banda contratada</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {displayedContractUnits.slice(0, 4).map((unit) => (
+                      <tr key={unit.id}>
+                        <td><Link href={`/unidades/${unit.id}`}>{unit.code} - {unit.name}</Link></td>
+                        <td>{unit.reportAddressLine || "-"}</td>
+                        <td>{locationLabel(unit)}</td>
+                        <td>{unit.reportContractedBandwidth || "-"}</td>
+                        <td><Badge tone={contractComplete(unit) ? "green" : "orange"}>{contractComplete(unit) ? "Ativa" : "Pendente"}</Badge></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </article>
+
+            <article className="nova-contract-detail-card">
+              <h2>Banda contratada por unidade</h2>
+              <div className="nova-contract-detail-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Unidade</th>
+                      <th>Banda contratada</th>
+                      <th>Banda utilizada (atual)</th>
+                      <th>Utilização</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {displayedContractUnits.slice(0, 4).map((unit, index) => {
+                      const usage = usagePercent(unit, index);
+                      const contracted = parseBandwidthMbps(unit.reportContractedBandwidth);
+                      return (
+                        <tr key={`${unit.id}-bandwidth`}>
+                          <td>{unit.code} - {unit.name}</td>
+                          <td>{unit.reportContractedBandwidth || "-"}</td>
+                          <td>{contracted ? `${(contracted * usage / 100).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} Mbps` : "-"}</td>
+                          <td>
+                            <span className={`nova-contract-detail-usage ${usage >= 70 ? "is-orange" : "is-green"}`}>
+                              <b>{usage.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%</b>
+                              <i><em style={{ width: `${usage}%` }} /></i>
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </article>
+          </main>
+
+          <aside className="nova-contract-detail-right">
+            <article className="nova-contract-detail-card">
+              <h2>Contatos responsáveis</h2>
+              <div className="nova-contract-detail-contacts">
+                {contractContacts.map((contact) => (
+                  <div key={contact.email}>
+                    <i className={`is-${contact.tone}`}>{initials(contact.name)}</i>
+                    <strong>{contact.name}<span>{contact.role}</span></strong>
+                    <small>{contact.email}</small>
+                    <small>{contact.phone}</small>
+                  </div>
+                ))}
+              </div>
+            </article>
+
+            <article className="nova-contract-detail-card">
+              <header>
+                <h2>Documentos anexados</h2>
+                <Link href={featuredPartner ? `/parceiros/${featuredPartner.id}` : "/parceiros"}>Ver todos</Link>
+              </header>
+              <div className="nova-contract-detail-docs">
+                {contractDocuments.map((document) => (
+                  <Link key={document.name} href="/export/units">
+                    <span>{document.name}</span>
+                    <small>{document.date}</small>
+                    <b>PDF</b>
+                  </Link>
+                ))}
+              </div>
+            </article>
+
+            <article className="nova-contract-detail-card">
+              <h2>Situação de faturamento</h2>
+              <dl>
+                <div><dt>Faturas pagas (últimos 12 meses)</dt><dd>{billingPaid} / 12 <Badge tone="green">100%</Badge></dd></div>
+                <div><dt>Faturas em aberto</dt><dd>{billingOpen} <Badge tone={paymentStatusTone(billingOpen)}>{billingOpen ? "atenção" : "0%"}</Badge></dd></div>
+                <div><dt>Próximo vencimento</dt><dd>10/05/2026</dd></div>
+                <div><dt>Valor da próxima fatura</dt><dd>{money(contractMonthlyValue)}</dd></div>
+              </dl>
+            </article>
+
+            <article className="nova-contract-detail-card">
+              <h2>Ações rápidas</h2>
+              <div className="nova-contract-detail-quick">
+                <Link href={featuredPartner ? `/parceiros/${featuredPartner.id}` : "/parceiros"}>Editar contrato</Link>
+                <Link href={featuredPartner ? `/parceiros/${featuredPartner.id}` : "/parceiros"}>Anexar documento</Link>
+                <Link href="/export/units">Gerar PDF do contrato</Link>
+              </div>
+            </article>
+          </aside>
+
+        <section className="nova-contract-detail-timeline-card">
+          <h2>Linha do tempo do contrato</h2>
+          <div className="nova-contract-detail-timeline">
+            {[
+              ["Assinatura do contrato", "30/04/2026", "Contrato criado e assinado pelas partes."],
+              ["Aditivo de vigência", "01/04/2027", "Prorrogação de vigência por mais 12 meses."],
+              ["Reajuste aplicado", "01/04/2027", "Reajuste anual aplicado pelo índice IPCA."],
+              ["Nota operacional", "15/08/2027", "Ajuste de banda na unidade principal."],
+              ["Aditivo de valor", "01/04/2028", "Ajuste de valor mensal conforme novo IPCA."],
+              ["Próxima renovação", "31/03/2028", "Contrato elegível para renovação automática."],
+            ].map(([title, date, copy], index) => (
+              <article key={title}>
+                <i className={index % 2 ? "is-blue" : "is-orange"} />
+                <strong>{title}</strong>
+                <time>{date}</time>
+                <span>{copy}</span>
+              </article>
+            ))}
+          </div>
+        </section>
+        </section>
+      </section>
+
+      <section className="nova-contracts-portfolio-section" aria-label="Carteira operacional">
       <nav className="nova-admin-breadcrumb" aria-label="Breadcrumb">
         <Link href="/operacao">Operação</Link>
         <span>/</span>
@@ -334,7 +670,7 @@ export default async function ContratosPage({
 
         <div className="nova-lit-page-actions">
           <Link href="/parceiros" className="nova-lit-button nova-lit-button-secondary">Parceiros</Link>
-          <Link href={withParams("/contratos", currentParams, { page: safePage })} className="nova-lit-button nova-lit-button-secondary">Atualizar dados</Link>
+          <Link href={withParams("/contratos", currentParamsForActions, { page: safePage })} className="nova-lit-button nova-lit-button-secondary">Atualizar dados</Link>
           {isAdmin ? <Link href="/parceiros/nova" className="nova-lit-button nova-lit-button-primary">Novo parceiro</Link> : null}
         </div>
       </div>
@@ -523,6 +859,7 @@ export default async function ContratosPage({
             Próxima
           </Link>
         </div>
+      </section>
       </section>
     </NovaLitShell>
   );
