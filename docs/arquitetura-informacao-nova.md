@@ -2,6 +2,8 @@
 
 Este documento consolida um primeiro redesenho da hierarquia de paginas do sistema NOVA. Ele foi montado a partir do inventario das rotas atuais, do schema Prisma, dos controllers da API, dos mockups recebidos e de referencias externas de arquitetura de informação.
 
+Complemento funcional: `docs/arquitetura-funcional-nova.md`.
+
 ## Referencias usadas
 
 - [GOV.UK Service Manual - user needs](https://www.gov.uk/service-manual/user-research/start-by-learning-user-needs): partir das necessidades reais dos usuarios e tarefas, nao de opinioes internas.
