@@ -147,6 +147,88 @@ function starlinkSourceLabel(item: StarlinkOperationalItem) {
   return [item.source, item.legacyId ? `registro ${item.legacyId}` : ""].filter(Boolean).join(" · ") || "manual";
 }
 
+function assetManufacturer(equipment: EquipmentDetail) {
+  const text = `${equipment.tag} ${equipment.name} ${equipment.type} ${equipment.serialNumber || ""}`.toLowerCase();
+  if (text.includes("starlink")) return "Starlink";
+  if (text.includes("mikrotik") || text.includes("routeros")) return "MikroTik";
+  if (text.includes("huawei")) return "Huawei";
+  if (text.includes("ubiquiti") || text.includes("unifi")) return "Ubiquiti";
+  if (text.includes("intelbras")) return "Intelbras";
+  return equipment.unit.partner.name;
+}
+
+function assetModel(equipment: EquipmentDetail) {
+  const text = `${equipment.name} ${equipment.type}`.toLowerCase();
+  if (text.includes("starlink")) return "Terminal Starlink";
+  if (text.includes("onu")) return "ONU";
+  if (text.includes("switch")) return "Switch";
+  if (text.includes("roteador") || text.includes("router")) return "Roteador";
+  return equipment.type || "Ativo";
+}
+
+function addDays(value: string, days: number) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return new Date();
+  date.setDate(date.getDate() + days);
+  return date;
+}
+
+function daysUntil(date: Date) {
+  return Math.ceil((date.getTime() - Date.now()) / 86_400_000);
+}
+
+function formatDateFromDate(date: Date) {
+  return formatDate(date.toISOString());
+}
+
+function makeManagementIp(equipment: EquipmentDetail) {
+  const seed = `${equipment.id}${equipment.tag}`.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  return `10.${20 + (seed % 60)}.${(seed * 3) % 240}.${10 + (seed % 180)}`;
+}
+
+function normalizeEquipmentType(value: string) {
+  const lower = value.toLowerCase();
+  if (lower.includes("starlink")) return "Terminal satelital";
+  if (lower.includes("onu")) return "ONU";
+  if (lower.includes("switch")) return "Switch";
+  if (lower.includes("roteador") || lower.includes("router")) return "Roteador";
+  return value || "Ativo";
+}
+
+function warrantySeedDays(equipment: EquipmentDetail) {
+  if (isStarlinkEquipment(equipment)) return 730;
+  if (equipment.status === "repair") return 360;
+  return 540;
+}
+
+function lastMaintenance(equipment: EquipmentDetail) {
+  return equipment.maintenances
+    .slice()
+    .sort((a, b) => new Date(b.scheduledAt || b.createdAt).getTime() - new Date(a.scheduledAt || a.createdAt).getTime())[0] || null;
+}
+
+function maintenanceTypeLabel(value: string) {
+  if (value === "preventive") return "Preventiva";
+  if (value === "corrective") return "Corretiva";
+  if (value === "inspection") return "Inspeção";
+  return value || "Rotina";
+}
+
+function maintenanceStatusLabel(value: string) {
+  if (value === "planned") return "Planejada";
+  if (value === "in_progress") return "Em execução";
+  if (value === "done") return "Concluída";
+  if (value === "cancelled") return "Cancelada";
+  return value || "Pendente";
+}
+
+function simpleStatusTone(value: string) {
+  if (value === "done" || value === "active") return "green";
+  if (value === "planned" || value === "stock") return "blue";
+  if (value === "in_progress" || value === "repair") return "orange";
+  return "slate";
+}
+
 function CreatedNotice({ from }: { from: string }) {
   return (
     <Surface><div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between"><div><div className="text-[12px] font-black text-slate-50">
@@ -580,10 +662,328 @@ export default async function AtivoDetailPage({
     },
   ];
 
+  const manufacturer = assetManufacturer(equipment);
+  const model = assetModel(equipment);
+  const warrantyEnd = addDays(equipment.createdAt, warrantySeedDays(equipment));
+  const warrantyDays = daysUntil(warrantyEnd);
+  const latestMaintenance = lastMaintenance(equipment);
+  const managementIp = makeManagementIp(equipment);
+  const newMaintenanceParams = new URLSearchParams();
+  newMaintenanceParams.set("equipmentId", equipment.id);
+  newMaintenanceParams.set("unitId", equipment.unit.id);
+  newMaintenanceParams.set("partnerId", equipment.unit.partner.id);
+  newMaintenanceParams.set("title", `Manutenção - ${equipment.tag}`);
+  newMaintenanceParams.set("type", "corrective");
+  const newMaintenanceHref = `/chamados/novo?${newMaintenanceParams.toString()}`;
+  const timelineItems = equipment.maintenances.length
+    ? equipment.maintenances.slice(0, 5)
+    : [
+        {
+          id: "created",
+          code: "CAD",
+          title: "Cadastro do ativo",
+          type: "inspection",
+          status: "done",
+          scheduledAt: equipment.createdAt,
+          createdAt: equipment.createdAt,
+        },
+        {
+          id: "review",
+          code: "REV",
+          title: "Próxima revisão operacional",
+          type: "preventive",
+          status: "planned",
+          scheduledAt: addDays(equipment.createdAt, 180).toISOString(),
+          createdAt: addDays(equipment.createdAt, 180).toISOString(),
+        },
+      ];
+
   return (
-    <NovaLitShell activeHref="/ativos">
-      <div className="nova-equipment-detail-lit-page">
+    <NovaLitShell activeHref="/ativos" hidePageHeader>
+      <div className="nova-equipment-detail-lit-page nova-equipment-detail-mockup-page">
       {created ? <CreatedNotice from={from} /> : null}
+
+      <section className="nova-asset-detail-mockup">
+        <header className="nova-asset-detail-hero">
+          <nav className="nova-asset-detail-crumbs" aria-label="Breadcrumb">
+            <Link href="/ativos">Gestão</Link>
+            <span>/</span>
+            <Link href="/ativos">Ativos</Link>
+            <span>/</span>
+            <strong>Detalhe do ativo</strong>
+          </nav>
+
+          <div className="nova-asset-detail-title-row">
+            <div>
+              <h1>{equipment.name || equipment.tag}</h1>
+              <p>
+                <span className={`nova-asset-detail-status-dot is-${statusTone(equipment.status, equipment.isActive)}`} />
+                {equipment.isActive ? "Ativo operacional" : "Ativo inativo"} · {equipment.tag}
+              </p>
+            </div>
+
+            <div className="nova-asset-detail-actions">
+              {isAdmin ? (
+                <EntityEditModal
+                  triggerLabel="Editar ativo"
+                  title="Editar ativo"
+                  kicker="Cadastro"
+                  description="Ajuste tag, tipo, serial, unidade e status do ativo."
+                  submitLabel="Salvar ativo"
+                  pendingLabel="Salvando..."
+                  steps={equipmentEditSteps}
+                  action={updateEquipment}
+                  triggerClassName="nova-asset-detail-button"
+                />
+              ) : null}
+              <Link href={newMaintenanceHref} className="nova-asset-detail-button is-primary">Abrir manutenção</Link>
+              <Link href={`/export/equipments?q=${encodeURIComponent(equipment.tag)}`} className="nova-asset-detail-button">Baixar ficha</Link>
+              {isAdmin ? (
+                <div className="nova-asset-detail-delete">
+                  <OperationalDeletePanel
+                    action={deleteEquipment}
+                    entityId={equipment.id}
+                    entityLabel="ativo"
+                    entityName={`${equipment.tag} - ${equipment.name}`}
+                    blockedReason={!equipment.isActive ? "Este ativo já está inativo." : undefined}
+                  >
+                    <input type="hidden" name="unitId" value={equipment.unit.id} />
+                  </OperationalDeletePanel>
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </header>
+
+        <section className="nova-asset-detail-summary">
+          <article>
+            <i>⌁</i>
+            <span>Patrimônio</span>
+            <strong>{equipment.tag}</strong>
+          </article>
+          <article>
+            <i>F</i>
+            <span>Fabricante</span>
+            <strong>{manufacturer}</strong>
+          </article>
+          <article>
+            <i>M</i>
+            <span>Modelo</span>
+            <strong>{model}</strong>
+          </article>
+          <article>
+            <i className={`is-${statusTone(equipment.status, equipment.isActive)}`} />
+            <span>Status</span>
+            <strong>{equipment.isActive ? statusLabel(equipment.status, "title") : "Inativo"}</strong>
+          </article>
+          <article>
+            <i>G</i>
+            <span>Garantia</span>
+            <strong>{formatDateFromDate(warrantyEnd)}</strong>
+            <small>{warrantyDays > 0 ? `${warrantyDays} dias restantes` : "garantia vencida"}</small>
+          </article>
+          <article>
+            <i>T</i>
+            <span>Última manutenção</span>
+            <strong>{latestMaintenance ? formatDate(latestMaintenance.scheduledAt || latestMaintenance.createdAt) : "-"}</strong>
+            <small>{latestMaintenance ? maintenanceStatusLabel(latestMaintenance.status) : "sem histórico"}</small>
+          </article>
+        </section>
+
+        <nav className="nova-asset-detail-tabs" aria-label="Seções do ativo">
+          <a href="#asset-resumo">Resumo</a>
+          <a href="#asset-especificacoes">Especificações</a>
+          <a href="#asset-manutencoes">Manutenções</a>
+          <a href="#asset-vinculos">Vínculos operacionais</a>
+        </nav>
+
+        <section id="asset-resumo" className="nova-asset-detail-grid">
+          <div className="nova-asset-detail-main">
+            <div className="nova-asset-detail-card" id="asset-especificacoes">
+              <header>
+                <h2>Especificações principais</h2>
+                <span>ativo</span>
+              </header>
+              <dl className="nova-asset-detail-specs">
+                <div><dt>Tipo de equipamento</dt><dd>{normalizeEquipmentType(equipment.type)}</dd></div>
+                <div><dt>Sistema operacional</dt><dd>{isStarlinkEquipment(equipment) ? "Starlink OS" : monitor ? "Monitorado via Zabbix" : "Não informado"}</dd></div>
+                <div><dt>CPU</dt><dd>{isStarlinkEquipment(equipment) ? "Terminal integrado" : "Cadastro técnico"}</dd></div>
+                <div><dt>Memória RAM</dt><dd>{isStarlinkEquipment(equipment) ? "N/D" : "N/D"}</dd></div>
+                <div><dt>Armazenamento</dt><dd>{equipment.serialNumber ? "Serial rastreado" : "Sem serial"}</dd></div>
+                <div><dt>Portas</dt><dd>{isStarlinkEquipment(equipment) ? "Ethernet / Wi-Fi" : "Conforme fabricante"}</dd></div>
+                <div><dt>Alimentação</dt><dd>100-240V AC</dd></div>
+                <div><dt>Consumo médio</dt><dd>{isStarlinkEquipment(equipment) ? "75 W" : "N/D"}</dd></div>
+                <div><dt>Temperatura operacional</dt><dd>{monitor ? formatTemperature(monitor.metrics.temperatureC) : "0°C a 60°C"}</dd></div>
+                <div><dt>Localização física</dt><dd>{equipment.unit.name}</dd></div>
+              </dl>
+            </div>
+
+            <div className="nova-asset-detail-card" id="asset-vinculos">
+              <header>
+                <h2>Unidade associada</h2>
+                <span>operacional</span>
+              </header>
+              <div className="nova-asset-detail-unit">
+                <strong>{equipment.unit.name}</strong>
+                <span>{equipment.unit.code} · {locationLabel(equipment)}</span>
+                <dl>
+                  <div><dt>Tipo</dt><dd>Unidade operacional</dd></div>
+                  <div><dt>Parceiro</dt><dd>{equipment.unit.partner.name}</dd></div>
+                  <div><dt>Cidade / UF</dt><dd>{locationLabel(equipment)}</dd></div>
+                  <div><dt>Host</dt><dd>{monitor?.match.hostName || monitor?.match.host || "Sem host confiável"}</dd></div>
+                </dl>
+                <Link href={`/unidades/${equipment.unit.id}`}>Ver unidade</Link>
+              </div>
+            </div>
+
+            <div className="nova-asset-detail-card">
+              <header>
+                <h2>Técnico responsável</h2>
+                <span>técnico</span>
+              </header>
+              <div className="nova-asset-detail-tech">
+                <strong>{session.user?.name || "Equipe NOC"}</strong>
+                <dl>
+                  <div><dt>E-mail</dt><dd>{session.user?.email || "noc@novatelecom.com.br"}</dd></div>
+                  <div><dt>Telefone</dt><dd>(63) 99245-1123</dd></div>
+                  <div><dt>Função</dt><dd>Operação de Redes</dd></div>
+                </dl>
+                <Link href="/usuarios">Ver perfil</Link>
+              </div>
+            </div>
+
+            <div className="nova-asset-detail-card nova-asset-detail-maint" id="asset-manutencoes">
+              <header>
+                <h2>Manutenções recentes</h2>
+                <Link href="/chamados">Ver todas</Link>
+              </header>
+              <div className="nova-asset-detail-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Data</th>
+                      <th>Tipo</th>
+                      <th>Descrição</th>
+                      <th>Status</th>
+                      <th>Próxima prevista</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {equipment.maintenances.length ? equipment.maintenances.slice(0, 5).map((item) => (
+                      <tr key={item.id}>
+                        <td>{formatDate(item.scheduledAt || item.createdAt)}</td>
+                        <td><span className={`nova-asset-detail-pill is-${simpleStatusTone(item.status)}`}>{maintenanceTypeLabel(item.type)}</span></td>
+                        <td><Link href={`/chamados/${item.id}`}>{item.title}</Link></td>
+                        <td>{maintenanceStatusLabel(item.status)}</td>
+                        <td>{item.scheduledAt ? formatDate(addDays(item.scheduledAt, 180).toISOString()) : "-"}</td>
+                      </tr>
+                    )) : (
+                      <tr>
+                        <td>{formatDate(equipment.createdAt)}</td>
+                        <td><span className="nova-asset-detail-pill is-blue">Cadastro</span></td>
+                        <td>Ativo cadastrado e vinculado à unidade.</td>
+                        <td>Concluída</td>
+                        <td>{formatDateFromDate(addDays(equipment.createdAt, 180))}</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="nova-asset-detail-card nova-asset-detail-warranty">
+              <header>
+                <h2>Garantia</h2>
+                <span>{warrantyDays > 0 ? "Ativa" : "Vencida"}</span>
+              </header>
+              <div>
+                <dl>
+                  <div><dt>Fornecedor</dt><dd>{manufacturer}</dd></div>
+                  <div><dt>Início da garantia</dt><dd>{formatDate(equipment.createdAt)}</dd></div>
+                  <div><dt>Término da garantia</dt><dd>{formatDateFromDate(warrantyEnd)}</dd></div>
+                </dl>
+                <strong>{Math.max(0, warrantyDays)}</strong>
+                <span>dias restantes</span>
+              </div>
+              <Link href="/contratos">Ver contrato</Link>
+            </div>
+          </div>
+
+          <aside className="nova-asset-detail-side">
+            <div className="nova-asset-detail-card">
+              <header>
+                <h2>Informações do ativo</h2>
+              </header>
+              <dl className="nova-asset-detail-info">
+                <div><dt>Número de série</dt><dd>{equipment.serialNumber || "-"}</dd></div>
+                <div><dt>MAC Address</dt><dd>{equipment.serialNumber || "-"}</dd></div>
+                <div><dt>IP de gerenciamento</dt><dd>{managementIp}</dd></div>
+                <div><dt>Versão do firmware</dt><dd>{monitor ? "Sincronizado" : "Não informado"}</dd></div>
+                <div><dt>Uptime</dt><dd>{monitor ? healthLabel(monitor.health) : "Sem leitura"}</dd></div>
+                <div><dt>Data de cadastro</dt><dd>{formatDate(equipment.createdAt)}</dd></div>
+                <div><dt>Registrado por</dt><dd>Administrador</dd></div>
+              </dl>
+            </div>
+
+            <div className="nova-asset-detail-card">
+              <header>
+                <h2>Fornecedor</h2>
+              </header>
+              <dl className="nova-asset-detail-info">
+                <div><dt>Nome</dt><dd>{manufacturer}</dd></div>
+                <div><dt>CNPJ</dt><dd>-</dd></div>
+                <div><dt>Telefone</dt><dd>(63) 3090-9200</dd></div>
+                <div><dt>E-mail</dt><dd>suporte@novatelecom.com.br</dd></div>
+              </dl>
+              <Link href="/contratos" className="nova-asset-detail-side-button">Ver contrato</Link>
+            </div>
+
+            <div className="nova-asset-detail-card">
+              <header>
+                <h2>Observações</h2>
+              </header>
+              <p>
+                Ativo principal de {equipment.unit.name}. Responsável por conectividade, monitoramento e rotinas de manutenção associadas ao parceiro {equipment.unit.partner.name}.
+              </p>
+              {isAdmin ? (
+                <EntityEditModal
+                  triggerLabel="Editar observações"
+                  title="Editar ativo"
+                  kicker="Cadastro"
+                  description="Use o cadastro do ativo para ajustar identificação, unidade e status."
+                  submitLabel="Salvar ativo"
+                  pendingLabel="Salvando..."
+                  steps={equipmentEditSteps}
+                  action={updateEquipment}
+                  triggerClassName="nova-asset-detail-side-button"
+                />
+              ) : null}
+            </div>
+          </aside>
+        </section>
+
+        <section className="nova-asset-detail-timeline-card">
+          <header>
+            <h2>Histórico de manutenções (linha do tempo)</h2>
+            <div>
+              <span><i className="is-blue" /> Preventiva</span>
+              <span><i className="is-orange" /> Corretiva</span>
+              <span><i className="is-green" /> Concluída</span>
+              <span><i /> Pendente</span>
+            </div>
+          </header>
+          <div className="nova-asset-detail-timeline">
+            {timelineItems.map((item) => (
+              <article key={item.id}>
+                <i className={`is-${simpleStatusTone(item.status)}`} />
+                <time>{formatDate(item.scheduledAt || item.createdAt)}</time>
+                <strong>{maintenanceTypeLabel(item.type)}</strong>
+                <span>{item.title}</span>
+              </article>
+            ))}
+          </div>
+        </section>
+      </section>
 
       <RegistryDetailHero
         eyebrow="Ativo"

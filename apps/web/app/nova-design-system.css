@@ -32284,3 +32284,709 @@ body:has(.nova-tickets-board-shell) {
   }
 }
 /* == NOVA ALERTA DETALHE MOCKUP END == */
+
+/* == NOVA ATIVO DETALHE MOCKUP START == */
+.nova-equipment-detail-mockup-page {
+  gap: 10px;
+}
+
+.nova-lit-shell-v2:has(.nova-asset-detail-mockup) .nova-lit-content-v2 {
+  padding-top: 12px;
+}
+
+.nova-equipment-detail-mockup-page > .nova-detail-hero,
+.nova-equipment-detail-mockup-page > .nova-detail-hero + section,
+.nova-equipment-detail-mockup-page > .nova-side-grid {
+  display: none;
+}
+
+.nova-asset-detail-mockup {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) !important;
+  grid-auto-flow: row !important;
+  gap: 10px;
+  color: #e7eef8;
+}
+
+.nova-asset-detail-mockup > * {
+  grid-column: 1 / -1;
+}
+
+.nova-asset-detail-mockup :where(a) {
+  color: inherit;
+  text-decoration: none;
+}
+
+.nova-asset-detail-hero {
+  display: grid;
+  gap: 10px;
+}
+
+.nova-asset-detail-crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  color: #95a6bb;
+  font-size: 13px;
+  font-weight: 760;
+}
+
+.nova-asset-detail-crumbs a:hover,
+.nova-asset-detail-crumbs strong {
+  color: #ffffff;
+}
+
+.nova-asset-detail-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.nova-asset-detail-title-row h1 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.nova-asset-detail-title-row p {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0 0;
+  color: #a9b8c9;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.nova-asset-detail-status-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #8a99ad;
+}
+
+.nova-asset-detail-status-dot.is-green {
+  background: #2ecc71;
+}
+
+.nova-asset-detail-status-dot.is-success {
+  background: #2ecc71;
+}
+
+.nova-asset-detail-status-dot.is-orange {
+  background: #ff7a00;
+}
+
+.nova-asset-detail-status-dot.is-attention {
+  background: #ff7a00;
+}
+
+.nova-asset-detail-status-dot.is-red {
+  background: #ff4b57;
+}
+
+.nova-asset-detail-status-dot.is-critical {
+  background: #ff4b57;
+}
+
+.nova-asset-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.nova-asset-detail-button,
+.nova-asset-detail-delete .nds-button,
+.nova-asset-detail-side-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  border: 1px solid rgba(93, 112, 140, 0.5);
+  border-radius: 5px;
+  background: rgba(9, 23, 37, 0.74);
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 850;
+  padding: 0 16px;
+  white-space: nowrap;
+}
+
+.nova-asset-detail-button:hover,
+.nova-asset-detail-delete .nds-button:hover,
+.nova-asset-detail-side-button:hover {
+  border-color: rgba(255, 122, 0, 0.72);
+}
+
+.nova-asset-detail-button.is-primary {
+  border-color: #ff7a00;
+  background: linear-gradient(180deg, #ff8b18, #f06d00);
+}
+
+.nova-asset-detail-delete .nds-button {
+  border-color: rgba(255, 75, 87, 0.5);
+  color: #ffbdc2;
+}
+
+.nova-asset-detail-summary {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+}
+
+.nova-asset-detail-summary article {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 44px minmax(0, 1fr);
+  align-items: center;
+  column-gap: 12px;
+  min-height: 60px;
+  border: 1px solid rgba(82, 101, 128, 0.48);
+  border-radius: 5px;
+  background:
+    linear-gradient(180deg, rgba(15, 31, 47, 0.84), rgba(7, 18, 30, 0.9)),
+    #091421;
+  padding: 8px 11px;
+}
+
+.nova-asset-detail-summary i {
+  display: grid;
+  grid-row: span 3;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid rgba(255, 122, 0, 0.45);
+  border-radius: 9px;
+  background: rgba(255, 122, 0, 0.12);
+  color: #ff7a00;
+  font-size: 15px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.nova-asset-detail-summary i.is-green {
+  border-radius: 50%;
+  background: #2ecc71;
+}
+
+.nova-asset-detail-summary i.is-success {
+  border-radius: 50%;
+  background: #2ecc71;
+}
+
+.nova-asset-detail-summary i.is-orange {
+  border-radius: 50%;
+  background: #ff7a00;
+}
+
+.nova-asset-detail-summary i.is-attention {
+  border-radius: 50%;
+  background: #ff7a00;
+}
+
+.nova-asset-detail-summary i.is-red {
+  border-radius: 50%;
+  background: #ff4b57;
+}
+
+.nova-asset-detail-summary i.is-critical {
+  border-radius: 50%;
+  background: #ff4b57;
+}
+
+.nova-asset-detail-summary span,
+.nova-asset-detail-summary strong,
+.nova-asset-detail-summary small {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nova-asset-detail-summary span {
+  color: #9eafc3;
+  font-size: 11px;
+  font-weight: 780;
+}
+
+.nova-asset-detail-summary strong {
+  margin-top: 5px;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.nova-asset-detail-summary small {
+  margin-top: 3px;
+  color: #8fa0b7;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.nova-asset-detail-tabs {
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+  border: 1px solid rgba(82, 101, 128, 0.46);
+  border-radius: 5px 5px 0 0;
+  background: rgba(9, 20, 32, 0.78);
+}
+
+.nova-asset-detail-tabs a {
+  min-height: 34px;
+  border-right: 1px solid rgba(82, 101, 128, 0.38);
+  color: #a8b5c7;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 9px 24px 0;
+  white-space: nowrap;
+}
+
+.nova-asset-detail-tabs a:first-child {
+  border-bottom: 2px solid #ff7a00;
+  color: #ff9b32;
+}
+
+.nova-asset-detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 382px;
+  gap: 10px;
+  margin-top: -12px;
+  border: 1px solid rgba(82, 101, 128, 0.46);
+  border-top: 0;
+  border-radius: 0 0 5px 5px;
+  background: rgba(5, 15, 26, 0.18);
+  padding: 10px;
+}
+
+.nova-asset-detail-main {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.7fr) minmax(280px, 0.9fr) minmax(240px, 0.75fr);
+  gap: 10px;
+  align-content: start;
+}
+
+.nova-asset-detail-side {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+
+.nova-asset-detail-card {
+  min-width: 0;
+  border: 1px solid rgba(82, 101, 128, 0.48);
+  border-radius: 5px;
+  background:
+    linear-gradient(180deg, rgba(15, 31, 47, 0.82), rgba(7, 18, 30, 0.9)),
+    #091421;
+  padding: 10px;
+}
+
+.nova-asset-detail-card header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 24px;
+  margin-bottom: 8px;
+}
+
+.nova-asset-detail-card h2 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.nova-equipment-detail-mockup-page .nova-asset-detail-card :where(dt, th) {
+  color: #a5b5c9;
+  font-size: 11px;
+  font-weight: 760;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.nova-asset-detail-card header span,
+.nova-asset-detail-card header a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  border: 1px solid rgba(96, 165, 250, 0.36);
+  border-radius: 4px;
+  background: rgba(96, 165, 250, 0.12);
+  color: #9bc8ff;
+  font-size: 10px;
+  font-weight: 900;
+  padding: 0 7px;
+  text-transform: uppercase;
+}
+
+.nova-asset-detail-card p {
+  margin: 0;
+  color: #b2bfd0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.nova-asset-detail-specs,
+.nova-asset-detail-info,
+.nova-asset-detail-unit dl,
+.nova-asset-detail-tech dl,
+.nova-asset-detail-warranty dl {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+}
+
+.nova-asset-detail-specs div,
+.nova-asset-detail-info div,
+.nova-asset-detail-unit dl div,
+.nova-asset-detail-tech dl div,
+.nova-asset-detail-warranty dl div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+  color: #a4b4c8;
+  font-size: 11.5px;
+}
+
+.nova-asset-detail-specs div {
+  grid-template-columns: 128px minmax(0, 1fr);
+}
+
+.nova-asset-detail-info div {
+  grid-template-columns: 122px minmax(0, 1fr);
+}
+
+.nova-asset-detail-unit dl div,
+.nova-asset-detail-tech dl div,
+.nova-asset-detail-warranty dl div {
+  grid-template-columns: 88px minmax(0, 1fr);
+}
+
+.nova-asset-detail-card dt,
+.nova-asset-detail-card dd {
+  min-width: 0;
+  margin: 0;
+}
+
+.nova-asset-detail-card dd {
+  overflow: hidden;
+  color: #ffffff;
+  font-weight: 780;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nova-asset-detail-unit strong,
+.nova-asset-detail-tech strong {
+  display: block;
+  overflow: hidden;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nova-asset-detail-unit > span {
+  display: block;
+  margin: 5px 0 12px;
+  color: #a8b7c8;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.nova-asset-detail-unit > a,
+.nova-asset-detail-tech > a,
+.nova-asset-detail-warranty > a,
+.nova-asset-detail-side-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 31px;
+  border: 1px solid rgba(82, 101, 128, 0.48);
+  border-radius: 5px;
+  background: rgba(5, 15, 26, 0.46);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 850;
+  padding: 0 12px;
+  width: 100%;
+  margin-top: 9px;
+}
+
+.nova-asset-detail-maint,
+.nova-asset-detail-timeline-card {
+  grid-column: span 2;
+}
+
+.nova-asset-detail-warranty > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 124px;
+  gap: 12px;
+  align-items: center;
+}
+
+.nova-asset-detail-warranty > div > strong {
+  display: grid;
+  width: 106px;
+  height: 106px;
+  place-items: center;
+  border: 7px solid #2ecc71;
+  border-radius: 50%;
+  color: #ffffff;
+  font-size: 28px;
+  font-weight: 900;
+}
+
+.nova-asset-detail-warranty > div > span {
+  grid-column: 2;
+  margin-top: -36px;
+  color: #c3cfdd;
+  font-size: 11px;
+  font-weight: 760;
+  text-align: center;
+}
+
+.nova-asset-detail-table {
+  overflow-x: auto;
+}
+
+.nova-asset-detail-table table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+  color: #c7d4e4;
+  font-size: 11px;
+}
+
+.nova-asset-detail-table th,
+.nova-asset-detail-table td {
+  border-top: 1px solid rgba(82, 101, 128, 0.24);
+  padding: 8px 9px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.nova-asset-detail-table th {
+  color: #8798ad;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.nova-asset-detail-table td a {
+  color: #ffffff;
+  font-weight: 850;
+}
+
+.nova-asset-detail-pill {
+  display: inline-flex;
+  min-height: 20px;
+  align-items: center;
+  border: 1px solid rgba(96, 165, 250, 0.38);
+  border-radius: 4px;
+  background: rgba(96, 165, 250, 0.12);
+  color: #9bc8ff;
+  font-size: 10px;
+  font-weight: 900;
+  padding: 0 7px;
+}
+
+.nova-asset-detail-pill.is-green {
+  border-color: rgba(46, 204, 113, 0.4);
+  background: rgba(46, 204, 113, 0.12);
+  color: #63db9b;
+}
+
+.nova-asset-detail-pill.is-orange {
+  border-color: rgba(255, 122, 0, 0.44);
+  background: rgba(255, 122, 0, 0.12);
+  color: #ffad5a;
+}
+
+.nova-asset-detail-timeline-card {
+  border: 1px solid rgba(82, 101, 128, 0.48);
+  border-radius: 5px;
+  background:
+    linear-gradient(180deg, rgba(15, 31, 47, 0.82), rgba(7, 18, 30, 0.9)),
+    #091421;
+  padding: 10px 12px;
+}
+
+.nova-asset-detail-timeline-card header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.nova-asset-detail-timeline-card h2 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.nova-asset-detail-timeline-card header > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  color: #aab8c9;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.nova-asset-detail-timeline-card header i,
+.nova-asset-detail-timeline > article > i {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #6d7e93;
+}
+
+.nova-asset-detail-timeline-card header i.is-blue,
+.nova-asset-detail-timeline > article > i.is-blue {
+  background: #4f8cff;
+}
+
+.nova-asset-detail-timeline-card header i.is-orange,
+.nova-asset-detail-timeline > article > i.is-orange {
+  background: #ff7a00;
+}
+
+.nova-asset-detail-timeline-card header i.is-green,
+.nova-asset-detail-timeline > article > i.is-green {
+  background: #2ecc71;
+}
+
+.nova-asset-detail-timeline {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(120px, 1fr));
+  gap: 12px;
+  overflow-x: auto;
+}
+
+.nova-asset-detail-timeline article {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  min-width: 120px;
+  text-align: center;
+}
+
+.nova-asset-detail-timeline article::before {
+  position: absolute;
+  top: 10px;
+  right: 50%;
+  left: -50%;
+  height: 1px;
+  background: rgba(130, 145, 166, 0.42);
+  content: "";
+}
+
+.nova-asset-detail-timeline article:first-child::before {
+  display: none;
+}
+
+.nova-asset-detail-timeline > article > i {
+  position: relative;
+  z-index: 1;
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(96, 165, 250, 0.48);
+  box-shadow: 0 0 18px rgba(96, 165, 250, 0.22);
+}
+
+.nova-asset-detail-timeline time,
+.nova-asset-detail-timeline strong,
+.nova-asset-detail-timeline span {
+  display: block;
+  max-width: 160px;
+}
+
+.nova-asset-detail-timeline time {
+  color: #dfe8f4;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.nova-asset-detail-timeline strong {
+  color: #8dbdff;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.nova-asset-detail-timeline span {
+  color: #9caec2;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+@media (max-width: 1480px) {
+  .nova-asset-detail-summary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .nova-asset-detail-grid,
+  .nova-asset-detail-main {
+    grid-template-columns: 1fr;
+  }
+
+  .nova-asset-detail-maint,
+  .nova-asset-detail-timeline-card {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 860px) {
+  .nova-asset-detail-title-row,
+  .nova-asset-detail-actions {
+    display: grid;
+  }
+
+  .nova-asset-detail-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .nova-asset-detail-tabs a {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .nova-asset-detail-grid {
+    padding: 10px;
+  }
+
+  .nova-asset-detail-specs div,
+  .nova-asset-detail-info div,
+  .nova-asset-detail-unit dl div,
+  .nova-asset-detail-tech dl div,
+  .nova-asset-detail-warranty dl div,
+  .nova-asset-detail-warranty > div {
+    grid-template-columns: 1fr;
+  }
+
+  .nova-asset-detail-card dd {
+    text-align: left;
+  }
+
+  .nova-asset-detail-warranty > div > span {
+    grid-column: auto;
+    margin-top: -26px;
+  }
+}
+/* == NOVA ATIVO DETALHE MOCKUP END == */
