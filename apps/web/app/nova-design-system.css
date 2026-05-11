@@ -15868,6 +15868,859 @@ body:has(.nova-exceptions-board-shell) {
 }
 /* == NOVA AUTOMACAO LITERAL END == */
 
+/* == NOVA AUTOMACAO MOCKUP STRICT START == */
+body:has(.nova-automation-workflow-shell) {
+  background: #06111c;
+}
+
+.nova-automation-workflow-shell {
+  grid-template-columns: 176px minmax(0, 1fr);
+  background:
+    radial-gradient(circle at 72% 0%, rgba(255, 122, 0, .08), transparent 25%),
+    radial-gradient(circle at 18% 16%, rgba(28, 112, 164, .2), transparent 31%),
+    linear-gradient(180deg, #061421 0%, #071523 52%, #06111c 100%);
+}
+
+.nova-automation-workflow-sidebar {
+  padding-top: 16px;
+}
+
+.nova-automation-workflow-sidebar .nova-exceptions-board-logo {
+  width: 125px;
+  margin-left: 10px;
+}
+
+.nova-automation-workflow-topbar {
+  height: 50px;
+  padding-right: 14px;
+}
+
+.nova-automation-workflow-topbar .nova-exceptions-board-user {
+  min-width: 214px;
+  grid-template-columns: minmax(0, 1fr) 30px;
+}
+
+.nova-automation-workflow-topbar .nova-exceptions-board-user b {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.nova-automation-workflow-topbar .nova-exceptions-board-user span {
+  grid-column: 1;
+  grid-row: 1;
+  text-align: right;
+}
+
+.nova-automation-workflow-page {
+  min-width: 0;
+  padding: 14px 24px 26px;
+}
+
+.nova-automation-workflow-heading {
+  display: flex;
+  min-height: 74px;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 10px;
+}
+
+.nova-automation-workflow-heading nav {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 7px;
+  color: #9ca9b8;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.nova-automation-workflow-heading nav strong {
+  color: #fff;
+}
+
+.nova-automation-workflow-heading h1 {
+  margin: 0;
+  color: #fff;
+  font-size: 24px;
+  font-weight: 900;
+  line-height: 1.04;
+}
+
+.nova-automation-workflow-heading p {
+  margin: 7px 0 0;
+  color: #b6c0cf;
+  font-size: 12px;
+}
+
+.nova-automation-workflow-button {
+  height: 34px;
+  border-radius: 5px;
+  font-size: 12px;
+}
+
+.nova-automation-workflow-kpis {
+  display: grid;
+  grid-template-columns: 1.1fr 1.35fr 1fr 1.45fr 1.35fr 1.55fr;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.nova-automation-workflow-kpi,
+.nova-automation-workflow-card,
+.nova-automation-workflow-flow-card {
+  min-width: 0;
+  border: 1px solid rgba(148, 163, 184, .22);
+  border-radius: 6px;
+  background:
+    radial-gradient(circle at 50% -42%, rgba(38, 104, 143, .21), transparent 51%),
+    rgba(8, 22, 36, .88);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .035), 0 16px 34px rgba(0, 0, 0, .14);
+}
+
+.nova-automation-workflow-kpi {
+  min-height: 64px;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  grid-template-rows: auto auto auto;
+  column-gap: 10px;
+  align-content: center;
+  padding: 10px 13px;
+}
+
+.nova-automation-workflow-kpi > div {
+  grid-row: 1 / 4;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  align-self: center;
+  border-radius: 999px;
+  color: #9fb6ca;
+  background: rgba(148, 163, 184, .09);
+}
+
+.nova-automation-workflow-kpi svg {
+  width: 21px;
+  height: 21px;
+}
+
+.nova-automation-workflow-kpi span,
+.nova-automation-workflow-card-title span,
+.nova-automation-workflow-side-title span {
+  color: #a9b5c4;
+  font-size: 10px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.nova-automation-workflow-kpi strong {
+  overflow: hidden;
+  color: #fff;
+  font-size: 20px;
+  font-weight: 900;
+  line-height: 1.02;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nova-automation-workflow-kpi p {
+  margin: 2px 0 0;
+  overflow: hidden;
+  color: #aeb9c7;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nova-automation-workflow-kpi.is-green > div { color: #4ade80; border: 1px solid rgba(34, 197, 94, .58); background: rgba(34, 197, 94, .12); }
+.nova-automation-workflow-kpi.is-blue > div { color: #93c5fd; border: 1px solid rgba(59, 130, 246, .52); background: rgba(59, 130, 246, .13); }
+.nova-automation-workflow-kpi.is-orange > div { color: #ff7a00; border: 1px solid rgba(255, 122, 0, .64); background: rgba(255, 122, 0, .13); }
+.nova-automation-workflow-kpi.is-red > div { color: #ff5e70; border: 1px solid rgba(239, 68, 68, .62); background: rgba(239, 68, 68, .13); }
+.nova-automation-workflow-kpi.is-slate > div { color: #cbd5e1; border: 1px solid rgba(148, 163, 184, .28); background: rgba(148, 163, 184, .09); }
+
+.nova-automation-workflow-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 318px;
+  gap: 10px;
+  align-items: start;
+}
+
+.nova-automation-workflow-left,
+.nova-automation-workflow-right {
+  min-width: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.nova-automation-workflow-flow-card {
+  min-height: 216px;
+  padding: 11px 14px;
+}
+
+.nova-automation-workflow-card-title {
+  min-height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+
+.nova-automation-workflow-card-title strong,
+.nova-automation-workflow-card-title a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #f8fafc;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.nova-automation-workflow-card-title a {
+  min-height: 24px;
+  border: 1px solid rgba(148, 163, 184, .22);
+  border-radius: 5px;
+  padding: 0 9px;
+  color: #cbd5e1;
+  background: rgba(6, 17, 30, .54);
+}
+
+.nova-automation-workflow-steps {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 74px;
+  padding: 8px 2px 0;
+}
+
+.nova-automation-workflow-step {
+  position: relative;
+  min-height: 150px;
+  display: grid;
+  align-content: start;
+  border: 1px solid rgba(148, 163, 184, .25);
+  border-radius: 5px;
+  background: rgba(8, 23, 38, .88);
+  padding: 14px 13px 12px;
+}
+
+.nova-automation-workflow-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 35px;
+  left: calc(100% + 1px);
+  width: 74px;
+  border-top: 1px dashed rgba(125, 148, 172, .58);
+}
+
+.nova-automation-workflow-step.is-active {
+  border-color: rgba(255, 122, 0, .86);
+  box-shadow: 0 0 0 1px rgba(255, 122, 0, .16), 0 16px 44px rgba(255, 122, 0, .07);
+}
+
+.nova-automation-workflow-step-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.nova-automation-workflow-step-top span {
+  width: 23px;
+  height: 23px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: #fff;
+  background: #64748b;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.nova-automation-workflow-step.is-green .nova-automation-workflow-step-top span { background: #40c98b; }
+.nova-automation-workflow-step.is-orange .nova-automation-workflow-step-top span { background: #ff7a00; }
+.nova-automation-workflow-step.is-blue .nova-automation-workflow-step-top span { background: #3b82f6; }
+.nova-automation-workflow-step.is-red .nova-automation-workflow-step-top span { background: #ff4b63; }
+
+.nova-automation-workflow-step-top svg {
+  width: 27px;
+  height: 27px;
+  color: #d9e4ef;
+}
+
+.nova-automation-workflow-step strong {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.nova-automation-workflow-step small {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 9px;
+  color: #aeb9c7;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.nova-automation-workflow-step p {
+  margin: 8px 0 0;
+  min-height: 30px;
+  color: #aeb9c7;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.nova-automation-workflow-step-metric {
+  margin-top: 8px;
+  color: #dce6f2;
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.nova-automation-workflow-step-progress {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.nova-automation-workflow-step-progress i {
+  display: block;
+  overflow: hidden;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, .16);
+}
+
+.nova-automation-workflow-step-progress em {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #ff7a00;
+}
+
+.nova-automation-workflow-step-progress b {
+  color: #cbd5e1;
+  font-size: 11px;
+}
+
+.nova-automation-workflow-observability {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(390px, .92fr);
+  gap: 10px;
+}
+
+.nova-automation-workflow-card {
+  padding: 12px;
+}
+
+.nova-automation-workflow-log,
+.nova-automation-workflow-errors {
+  min-height: 248px;
+}
+
+.nova-automation-workflow-log-list {
+  display: grid;
+  max-height: 192px;
+  overflow: auto;
+}
+
+.nova-automation-workflow-log-list article {
+  display: grid;
+  grid-template-columns: 58px 44px minmax(0, 1fr);
+  gap: 9px;
+  align-items: center;
+  min-height: 25px;
+  border-bottom: 1px solid rgba(148, 163, 184, .12);
+  color: #b9c4d2;
+  font-size: 11px;
+}
+
+.nova-automation-workflow-log-list time {
+  color: #c8d2df;
+}
+
+.nova-automation-workflow-log-list b {
+  display: inline-flex;
+  justify-content: center;
+  border-radius: 3px;
+  padding: 2px 5px;
+  color: #082015;
+  background: #49d18c;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.nova-automation-workflow-log-list article.is-warn b {
+  color: #241400;
+  background: #ffb020;
+}
+
+.nova-automation-workflow-log-list article.is-error b {
+  color: #fff;
+  background: #ff4b63;
+}
+
+.nova-automation-workflow-log-list span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nova-automation-workflow-empty-line {
+  display: grid;
+  min-height: 140px;
+  place-items: center;
+  color: #8fa0b4;
+  font-size: 12px;
+}
+
+.nova-automation-workflow-error-grid {
+  display: grid;
+  grid-template-columns: 148px minmax(0, 1fr);
+  gap: 18px;
+  align-items: center;
+}
+
+.nova-automation-workflow-donut {
+  position: relative;
+  width: 122px;
+  height: 122px;
+  display: grid;
+  place-items: center;
+  justify-self: center;
+  border-radius: 999px;
+  background: var(--automation-donut-bg);
+}
+
+.nova-automation-workflow-donut::after {
+  content: "";
+  position: absolute;
+  inset: 34px;
+  border-radius: inherit;
+  background: #071523;
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, .17);
+}
+
+.nova-automation-workflow-donut strong,
+.nova-automation-workflow-donut span {
+  position: relative;
+  z-index: 1;
+  grid-area: 1 / 1;
+}
+
+.nova-automation-workflow-donut strong {
+  margin-top: -14px;
+  color: #fff;
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.nova-automation-workflow-donut span {
+  margin-top: 22px;
+  color: #b8c4d1;
+  font-size: 12px;
+}
+
+.nova-automation-workflow-error-legend,
+.nova-automation-workflow-error-table {
+  display: grid;
+  gap: 10px;
+}
+
+.nova-automation-workflow-error-legend div,
+.nova-automation-workflow-error-table div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #d5dde8;
+  font-size: 11px;
+}
+
+.nova-automation-workflow-error-legend span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nova-automation-workflow-error-legend i {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+}
+
+.nova-automation-workflow-error-table {
+  margin-top: 13px;
+  gap: 0;
+}
+
+.nova-automation-workflow-error-table div {
+  min-height: 24px;
+  border-bottom: 1px solid rgba(148, 163, 184, .12);
+}
+
+.nova-automation-workflow-history {
+  min-height: 190px;
+}
+
+.nova-automation-workflow-history-wrap {
+  overflow-x: auto;
+}
+
+.nova-automation-workflow-history table {
+  width: 100%;
+  min-width: 860px;
+  border-collapse: collapse;
+}
+
+.nova-automation-workflow-history th,
+.nova-automation-workflow-history td {
+  height: 27px;
+  padding: 0 10px;
+  border-bottom: 1px solid rgba(148, 163, 184, .13);
+  color: #b7c2cf;
+  font-size: 11px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.nova-automation-workflow-history th {
+  color: #dce6f2;
+  font-size: 10px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.nova-automation-workflow-history td:last-child {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nova-automation-workflow-history td:last-child a {
+  color: #cbd5e1;
+}
+
+.nova-automation-workflow-history svg {
+  width: 15px;
+  height: 15px;
+}
+
+.nova-automation-workflow-actions {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+}
+
+.nova-automation-workflow-actions form {
+  margin: 0;
+}
+
+.nova-automation-workflow-actions button,
+.nova-automation-workflow-actions a,
+.nova-automation-workflow-success > a {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border: 1px solid rgba(148, 163, 184, .24);
+  border-radius: 5px;
+  color: #eef4fb;
+  background: rgba(7, 18, 31, .74);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.nova-automation-workflow-actions button {
+  width: 100%;
+  border-color: rgba(255, 122, 0, .9);
+  background: linear-gradient(180deg, #ff8124, #ef5f00);
+  color: #fff;
+  cursor: pointer;
+}
+
+.nova-automation-workflow-actions button:disabled {
+  cursor: not-allowed;
+  opacity: .48;
+}
+
+.nova-automation-workflow-settings,
+.nova-automation-workflow-success,
+.nova-automation-workflow-integrations {
+  padding: 13px;
+}
+
+.nova-automation-workflow-side-title {
+  margin-bottom: 11px;
+}
+
+.nova-automation-workflow-settings dl,
+.nova-automation-workflow-success dl {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.nova-automation-workflow-settings dl div,
+.nova-automation-workflow-success dl div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.nova-automation-workflow-settings dt,
+.nova-automation-workflow-success dt {
+  color: #aeb9c7;
+  font-size: 11px;
+}
+
+.nova-automation-workflow-settings dd,
+.nova-automation-workflow-success dd {
+  margin: 0;
+  color: #dbe6f2;
+  font-size: 11px;
+  font-weight: 750;
+  text-align: right;
+}
+
+.nova-automation-workflow-success > strong {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  color: #4ade80;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.nova-automation-workflow-success > p {
+  margin: 0;
+  color: #aeb9c7;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.nova-automation-workflow-success > a {
+  width: 100%;
+  margin-top: 13px;
+}
+
+.nova-automation-workflow-integrations > div:last-child {
+  display: grid;
+  gap: 7px;
+}
+
+.nova-automation-workflow-integrations a {
+  display: grid;
+  min-height: 29px;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  color: #d7e0eb;
+  font-size: 11px;
+}
+
+.nova-automation-workflow-integrations svg {
+  width: 18px;
+  height: 18px;
+  color: #e2e8f0;
+}
+
+.nova-automation-workflow-integrations span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nova-automation-workflow-integrations b {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #b8c4d1;
+  font-size: 10px;
+}
+
+.nova-automation-workflow-dot {
+  width: 7px;
+  height: 7px;
+  display: inline-block;
+  flex: 0 0 auto;
+  border-radius: 999px;
+}
+
+.nova-automation-workflow-dot.is-green { background: #4ade80; }
+.nova-automation-workflow-dot.is-orange { background: #ff7a00; }
+.nova-automation-workflow-dot.is-blue { background: #60a5fa; }
+.nova-automation-workflow-dot.is-red { background: #ff5e70; }
+.nova-automation-workflow-dot.is-slate { background: #94a3b8; }
+
+.nova-automation-workflow-rules-panel {
+  margin-top: 12px;
+}
+
+.nova-automation-workflow-rule-progress {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.nova-automation-workflow-rules-panel .nova-auto-filters {
+  margin: 0 0 10px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+}
+
+.nova-automation-workflow-rules-panel .nova-auto-table-card {
+  padding: 0;
+}
+
+.nova-automation-workflow-rules-panel .nova-auto-table {
+  border-radius: 6px;
+}
+
+.nova-automation-workflow-rules-panel .nova-auto-effects form {
+  width: 100%;
+  margin-top: 7px;
+  color: #b7c2cf;
+}
+
+.nova-automation-workflow-rules-panel .nova-auto-effects button {
+  min-height: 24px;
+  border: 1px solid rgba(255, 122, 0, .58);
+  border-radius: 5px;
+  background: rgba(255, 122, 0, .1);
+  color: #ffb36b;
+  font-size: 10px;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.nova-automation-workflow-pagination {
+  margin-top: 10px;
+  border: 1px solid rgba(148, 163, 184, .22);
+  border-radius: 6px;
+  background: rgba(8, 22, 36, .88);
+}
+
+@media (max-width: 1500px) {
+  .nova-automation-workflow-kpis {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .nova-automation-workflow-grid,
+  .nova-automation-workflow-observability {
+    grid-template-columns: 1fr;
+  }
+
+  .nova-automation-workflow-right {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .nova-automation-workflow-steps {
+    gap: 14px;
+  }
+
+  .nova-automation-workflow-step:not(:last-child)::after {
+    display: none;
+  }
+}
+
+@media (max-width: 1100px) {
+  .nova-automation-workflow-shell {
+    display: block;
+  }
+
+  .nova-automation-workflow-sidebar {
+    position: static;
+    height: auto;
+    max-height: 360px;
+  }
+
+  .nova-automation-workflow-heading,
+  .nova-automation-workflow-topbar {
+    height: auto;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .nova-automation-workflow-topbar > div,
+  .nova-automation-workflow-kpis,
+  .nova-automation-workflow-steps,
+  .nova-automation-workflow-right,
+  .nova-automation-workflow-rule-progress {
+    grid-template-columns: 1fr;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .nova-automation-workflow-flow-card {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 720px) {
+  .nova-automation-workflow-sidebar {
+    display: none;
+  }
+
+  .nova-automation-workflow-topbar {
+    height: 50px;
+    flex-direction: row;
+    align-items: center;
+    padding: 0 12px;
+  }
+
+  .nova-automation-workflow-topbar > div {
+    width: auto;
+    gap: 10px;
+  }
+
+  .nova-automation-workflow-topbar > div:first-child {
+    flex: 0 0 auto;
+  }
+
+  .nova-automation-workflow-topbar > div:last-child {
+    min-width: 0;
+    margin-left: auto;
+  }
+
+  .nova-automation-workflow-topbar .nova-exceptions-board-user {
+    min-width: 40px;
+    width: 40px;
+    grid-template-columns: 30px;
+    padding: 4px;
+  }
+
+  .nova-automation-workflow-topbar .nova-exceptions-board-user span {
+    display: none;
+  }
+
+  .nova-automation-workflow-topbar .nova-exceptions-board-user b {
+    grid-column: 1;
+  }
+
+  .nova-automation-workflow-page {
+    padding: 14px;
+  }
+
+  .nova-automation-workflow-heading h1 {
+    font-size: 22px;
+  }
+
+  .nova-automation-workflow-error-grid {
+    grid-template-columns: 1fr;
+  }
+}
+/* == NOVA AUTOMACAO MOCKUP STRICT END == */
+
 /* == NOVA MONITORAMENTO LITERAL START == */
 .nova-monitor-heading {
   margin-bottom: 8px;

@@ -1,7 +1,8 @@
+import Image from "next/image";
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { NovaLitShell } from "@/components/nova-lit/nova-lit-shell";
+import type { CSSProperties } from "react";
 import { apiJson } from "@/lib/server-api";
 import {
   buildApiQuery,
@@ -20,6 +21,36 @@ import {
 import { getServerWebSession, normalizeRole } from "@/lib/web-session";
 
 type Tone = "green" | "orange" | "blue" | "red" | "slate";
+type IconName =
+  | "activity"
+  | "alert"
+  | "bell"
+  | "calendar"
+  | "check"
+  | "clock"
+  | "database"
+  | "download"
+  | "file"
+  | "gear"
+  | "home"
+  | "import"
+  | "integration"
+  | "list"
+  | "map"
+  | "menu"
+  | "moon"
+  | "play"
+  | "refresh"
+  | "search"
+  | "shield"
+  | "trash"
+  | "user"
+  | "users";
+type NavItem = {
+  label: string;
+  href: string;
+  icon: IconName;
+};
 type DetectorFilter =
   | "all"
   | "maintenance_overdue"
@@ -74,6 +105,15 @@ type RunRow = {
   };
 };
 
+type IntegrationRow = {
+  id: string;
+  code: string;
+  name: string;
+  type: string;
+  isActive: boolean;
+  updatedAt: string;
+};
+
 type AutomationSummary = {
   counts: {
     enabledRules: number;
@@ -106,6 +146,52 @@ const sortByOptions = ["createdAt", "code", "detector", "cadence"] as const;
 const sortDirOptions = ["asc", "desc"] as const;
 const pageSizeOptions = [10, 20, 50] as const;
 
+const NAV_SECTIONS: Array<{ label: string; items: NavItem[] }> = [
+  {
+    label: "Geral",
+    items: [
+      { label: "Visão geral", href: "/dashboard", icon: "home" },
+    ],
+  },
+  {
+    label: "Monitoramento",
+    items: [
+      { label: "Unidades", href: "/unidades", icon: "file" },
+      { label: "Sensores", href: "/sensores", icon: "activity" },
+      { label: "Mapas", href: "/mapas", icon: "map" },
+      { label: "Alertas", href: "/alertas", icon: "bell" },
+    ],
+  },
+  {
+    label: "Gestão",
+    items: [
+      { label: "Ativos", href: "/ativos", icon: "file" },
+      { label: "Contratos", href: "/contratos", icon: "file" },
+      { label: "Chamados", href: "/chamados", icon: "list" },
+      { label: "Exceções", href: "/excecoes", icon: "alert" },
+      { label: "Automação", href: "/automacao", icon: "gear" },
+    ],
+  },
+  {
+    label: "Relatórios",
+    items: [
+      { label: "Monitoramento", href: "/relatorios/monitoramento", icon: "activity" },
+      { label: "Consumo", href: "/relatorios/consumo", icon: "database" },
+      { label: "Disponibilidade", href: "/relatorios/disponibilidade", icon: "clock" },
+      { label: "Performance", href: "/relatorios/performance", icon: "activity" },
+    ],
+  },
+  {
+    label: "Configurações",
+    items: [
+      { label: "Usuários", href: "/usuarios", icon: "users" },
+      { label: "Perfis", href: "/perfis", icon: "user" },
+      { label: "Integrações", href: "/integracoes", icon: "integration" },
+      { label: "Configurações", href: "/configuracoes", icon: "shield" },
+    ],
+  },
+];
+
 const emptyAutomationSummary: AutomationSummary = {
   counts: {
     enabledRules: 0,
@@ -113,6 +199,81 @@ const emptyAutomationSummary: AutomationSummary = {
     dueRules: 0,
   },
 };
+
+const emptyIntegrationsResponse: PaginatedResponse<IntegrationRow> = {
+  items: [],
+  meta: {
+    page: 1,
+    pageSize: 6,
+    total: 0,
+    totalPages: 1,
+    hasNext: false,
+    hasPrev: false,
+  },
+};
+
+function Icon({ name }: { name: IconName }) {
+  const common = {
+    fill: "none",
+    stroke: "currentColor",
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    strokeWidth: 1.8,
+  };
+
+  switch (name) {
+    case "home":
+      return <svg viewBox="0 0 24 24" aria-hidden="true"><path {...common} d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" /></svg>;
+    case "activity":
+      return <svg viewBox="0 0 24 24" aria-hidden="true"><path {...common} d="M4 14h4l2-5 4 10 2-5h4" /></svg>;
+    case "alert":
+      return <svg viewBox="0 0 24 24" aria-hidden="true"><path {...common} d="M12 3 22 20H2L12 3z" /><path {...common} d="M12 9v5M12 17h.01" /></svg>;
+    case "bell":
+      return <svg viewBox="0 0 24 24" aria-hidden="true"><path {...common} d="M6 9a6 6 0 0 1 12 0c0 7 3 7 3 9H3c0-2 3-2 3-9" /><path {...common} d="M10 21h4" /></svg>;
+    case "calendar":
+      return <svg viewBox="0 0 24 24" aria-hidden="true"><path {...common} d="M5 4h14v16H5zM8 2v4M16 2v4M5 9h14" /></svg>;
+    case "check":
+      return <svg viewBox="0 0 24 24" aria-hidden="true"><circle {...common} cx="12" cy="12" r="9" /><path {...common} d="m8 12 3 3 5-6" /></svg>;
+    case "clock":
+      return <svg viewBox="0 0 24 24" aria-hidden="true"><circle {...common} cx="12" cy="12" r="9" /><path {...common} d="M12 7v5l3 2" /></svg>;
+    case "database":
+      return <svg viewBox="0 0 24 24" aria-hidden="true"><ellipse {...common} cx="12" cy="5" rx="7" ry="3" /><path {...common} d="M5 5v6c0 1.7 3.1 3 7 3s7-1.3 7-3V5M5 11v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6" /></svg>;
+    case "download":
+      return <svg viewBox="0 0 24 24" aria-hidden="true"><path {...common} d="M12 3v12" /><path {...common} d="m8 11 4 4 4-4" /><path {...common} d="M4 21h16" /></svg>;
+    case "file":
+      return <svg viewBox="0 0 24 24" aria-hidden="true"><path {...common} d="M6 3h9l3 3v15H6z" /><path {...common} d="M14 3v5h5M9 13h6M9 17h6" /></svg>;
+    case "gear":
+      return <svg viewBox="0 0 24 24" aria-hidden="true"><circle {...common} cx="12" cy="12" r="3" /><path {...common} d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2 3.4-.2-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V22h-4v-.5a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.2.1-2-3.4.1-.1A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.5-1H3v-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1 2-3.4.2.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.5V2h4v.5a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.2-.1 2 3.4-.1.1A1.7 1.7 0 0 0 19.4 9a1.7 1.7 0 0 0 1.5 1h.1v4h-.1a1.7 1.7 0 0 0-1.5 1z" /></svg>;
+    case "import":
+      return <svg viewBox="0 0 24 24" aria-hidden="true"><path {...common} d="M12 21V9" /><path {...common} d="m8 13 4-4 4 4" /><path {...common} d="M4 3h16" /></svg>;
+    case "integration":
+      return <svg viewBox="0 0 24 24" aria-hidden="true"><path {...common} d="M12 3v18M3 12h18" /><circle {...common} cx="12" cy="12" r="3" /><circle {...common} cx="12" cy="3" r="1.5" /><circle {...common} cx="12" cy="21" r="1.5" /><circle {...common} cx="3" cy="12" r="1.5" /><circle {...common} cx="21" cy="12" r="1.5" /></svg>;
+    case "list":
+      return <svg viewBox="0 0 24 24" aria-hidden="true"><path {...common} d="M9 6h11M9 12h11M9 18h11" /><path {...common} d="M4 6h.01M4 12h.01M4 18h.01" /></svg>;
+    case "map":
+      return <svg viewBox="0 0 24 24" aria-hidden="true"><path {...common} d="m4 6 5-2 6 2 5-2v14l-5 2-6-2-5 2V6z" /></svg>;
+    case "menu":
+      return <svg viewBox="0 0 24 24" aria-hidden="true"><path {...common} d="M4 6h16M4 12h16M4 18h16" /></svg>;
+    case "moon":
+      return <svg viewBox="0 0 24 24" aria-hidden="true"><path {...common} d="M21 12.8A8 8 0 1 1 11.2 3a6.2 6.2 0 0 0 9.8 9.8z" /></svg>;
+    case "play":
+      return <svg viewBox="0 0 24 24" aria-hidden="true"><path {...common} d="m8 5 11 7-11 7V5z" /></svg>;
+    case "refresh":
+      return <svg viewBox="0 0 24 24" aria-hidden="true"><path {...common} d="M21 12a9 9 0 0 1-15.5 6.3L3 16" /><path {...common} d="M3 12A9 9 0 0 1 18.5 5.7L21 8" /></svg>;
+    case "search":
+      return <svg viewBox="0 0 24 24" aria-hidden="true"><circle {...common} cx="11" cy="11" r="7" /><path {...common} d="m16 16 4 4" /></svg>;
+    case "shield":
+      return <svg viewBox="0 0 24 24" aria-hidden="true"><path {...common} d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>;
+    case "trash":
+      return <svg viewBox="0 0 24 24" aria-hidden="true"><path {...common} d="M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15" /></svg>;
+    case "users":
+      return <svg viewBox="0 0 24 24" aria-hidden="true"><path {...common} d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" /><circle {...common} cx="9.5" cy="7" r="4" /><path {...common} d="M19 8v6M22 11h-6" /></svg>;
+    case "user":
+      return <svg viewBox="0 0 24 24" aria-hidden="true"><circle {...common} cx="12" cy="8" r="4" /><path {...common} d="M4 21a8 8 0 0 1 16 0" /></svg>;
+    default:
+      return <svg viewBox="0 0 24 24" aria-hidden="true"><circle {...common} cx="12" cy="12" r="8" /></svg>;
+  }
+}
 
 function option<T extends readonly string[]>(options: T, value: string, fallback: T[number]): T[number] {
   return options.includes(value) ? value : fallback;
@@ -208,27 +369,78 @@ function stateParams(state: AutomacaoState): RawSearchParams {
   };
 }
 
+function Nav() {
+  return (
+    <aside className="nova-exceptions-board-sidebar nova-automation-workflow-sidebar">
+      <Link href="/dashboard" className="nova-exceptions-board-logo" aria-label="NOVA Telecom">
+        <Image src="/brand/nova-telecom-logo.svg" alt="NOVA Telecom" width={150} height={62} priority />
+      </Link>
+      <nav aria-label="Navegação principal">
+        {NAV_SECTIONS.map((section) => (
+          <section key={section.label} className="nova-exceptions-board-nav-section">
+            <h2>{section.label}</h2>
+            {section.items.map((item) => (
+              <Link
+                key={`${section.label}-${item.href}-${item.label}`}
+                href={item.href}
+                className="nova-exceptions-board-nav-link"
+                data-active={item.href === "/automacao"}
+              >
+                <Icon name={item.icon} />
+                <span>{item.label}</span>
+              </Link>
+            ))}
+          </section>
+        ))}
+      </nav>
+    </aside>
+  );
+}
+
+function Topbar({ userName, userEmail }: { userName?: string; userEmail?: string }) {
+  const initials = (userName || "Administrador").slice(0, 2).toUpperCase();
+
+  return (
+    <header className="nova-exceptions-board-topbar nova-automation-workflow-topbar">
+      <div>
+        <button type="button" aria-label="Menu"><Icon name="menu" /></button>
+      </div>
+      <div>
+        <button type="button" aria-label="Notificações"><Icon name="bell" /><i>3</i></button>
+        <button type="button" aria-label="Ajuda">?</button>
+        <button type="button" aria-label="Tema"><Icon name="moon" /></button>
+        <Link href="/usuarios" className="nova-exceptions-board-user">
+          <span>{userName || "Administrador"}<small>{userEmail || "admin@novatelecom.com.br"}</small></span>
+          <b>{initials}</b>
+        </Link>
+      </div>
+    </header>
+  );
+}
+
 function Dot({ tone = "blue" }: { tone?: Tone }) {
-  return <span className={`nova-lit-dot nova-lit-dot-${tone}`} />;
+  return <span className={`nova-automation-workflow-dot is-${tone}`} />;
 }
 
 function KpiCard({
+  icon,
   label,
   value,
   hint,
   tone,
 }: {
+  icon: IconName;
   label: string;
   value: string;
   hint: string;
   tone: Tone;
 }) {
   return (
-    <article className="nova-lit-card nova-auto-kpi">
-      <div className="nova-lit-card-head">
-        <span>{label}</span>
-        <Dot tone={tone} />
+    <article className={`nova-automation-workflow-kpi is-${tone}`}>
+      <div>
+        <Icon name={icon} />
       </div>
+      <span>{label}</span>
       <strong>{value}</strong>
       <p>{hint}</p>
     </article>
@@ -237,30 +449,43 @@ function KpiCard({
 
 function WorkflowStep({
   index,
+  icon,
   title,
   state,
   detail,
   metric,
   tone,
   active,
+  progress,
 }: {
   index: number;
+  icon: IconName;
   title: string;
   state: string;
   detail: string;
   metric: string;
   tone: Tone;
   active?: boolean;
+  progress?: number;
 }) {
+  const safeProgress = Math.max(0, Math.min(100, progress ?? 0));
+
   return (
-    <article className={`nova-auto-flow-step is-${tone}${active ? " is-active" : ""}`}>
-      <div className="nova-auto-step-head">
+    <article className={`nova-automation-workflow-step is-${tone}${active ? " is-active" : ""}`}>
+      <div className="nova-automation-workflow-step-top">
         <span>{index}</span>
-        <b>{state}</b>
+        <Icon name={icon} />
       </div>
       <strong>{title}</strong>
-      <small>{detail}</small>
-      <p>{metric}</p>
+      <small><Dot tone={tone} />{state}</small>
+      <p>{detail}</p>
+      {progress !== undefined ? (
+        <div className="nova-automation-workflow-step-progress">
+          <i><em style={{ width: `${safeProgress}%` }} /></i>
+          <b>{safeProgress}%</b>
+        </div>
+      ) : null}
+      <span className="nova-automation-workflow-step-metric">{metric}</span>
     </article>
   );
 }
@@ -269,48 +494,50 @@ function AutomationWorkflow({
   rule,
   latestRun,
   runs,
-  admin,
-  runAction,
 }: {
   rule: RuleRow | null;
   latestRun: RunRow | null;
   runs: RunRow[];
-  admin: boolean;
-  runAction: (formData: FormData) => Promise<void>;
 }) {
   const latestStatus = latestRun?.status || "";
   const isRunning = latestStatus === "running";
   const hasError = latestStatus === "error";
-  const canRun = admin && Boolean(rule);
   const processed = runs.reduce((sum, item) => sum + item.hitsCount, 0);
   const created = runs.reduce((sum, item) => sum + item.createdCount, 0);
   const updated = runs.reduce((sum, item) => sum + item.updatedCount, 0);
+  const reconciled = created + updated;
+  const reconciliationProgress = processed ? percent(Math.min(reconciled || processed, processed), processed) : latestRun ? 100 : 0;
 
   const steps = [
     {
       title: "Coletar dados",
+      icon: "database" as const,
       state: latestRun ? "Concluído" : "Aguardando",
-      detail: rule ? detectorLabel(rule.detector) : "nenhuma regra no recorte",
+      detail: rule ? detectorLabel(rule.detector) : "Nenhuma regra no recorte",
       metric: `${processed} evento(s) lidos`,
       tone: latestRun ? "green" as const : "slate" as const,
     },
     {
       title: "Validar dados",
+      icon: "shield" as const,
       state: hasError ? "Com erro" : latestRun ? "Concluído" : "Pendente",
       detail: latestRun?.errorMessage || "consistência e vínculo operacional",
       metric: latestRun ? `${latestRun.hitsCount} hit(s)` : "sem execução",
       tone: hasError ? "red" as const : latestRun ? "green" as const : "slate" as const,
     },
     {
-      title: "Gerar exceções",
-      state: rule?.createExceptions ? "Habilitado" : "Desligado",
-      detail: "abre ou atualiza casos na fila",
-      metric: `${created} criada(s)`,
-      tone: rule?.createExceptions ? "orange" as const : "slate" as const,
-      active: rule?.createExceptions,
+      title: "Reconciliar dados",
+      icon: "refresh" as const,
+      state: isRunning ? "Em execução" : hasError ? "Requer análise" : latestRun ? "Concluído" : "Pendente",
+      detail: "concilia divergências, regras e efeitos",
+      metric: `${reconciled} alteração(ões)`,
+      tone: isRunning ? "orange" as const : hasError ? "red" as const : latestRun ? "green" as const : "slate" as const,
+      active: isRunning || hasError,
+      progress: reconciliationProgress,
     },
     {
       title: "Atualizar base",
+      icon: "database" as const,
       state: isRunning ? "Em execução" : latestRun ? statusLabel(latestStatus) : "Pendente",
       detail: latestRun?.summary || "persistência de run, SLA e atividades",
       metric: `${updated} atualizada(s)`,
@@ -318,7 +545,8 @@ function AutomationWorkflow({
       active: isRunning,
     },
     {
-      title: "Notificar operação",
+      title: "Notificar resultados",
+      icon: "bell" as const,
       state: rule?.createActivities ? "Habilitado" : "Pendente",
       detail: "registra atividade e contexto de turno",
       metric: `${runs.length} run(s) recentes`,
@@ -328,40 +556,16 @@ function AutomationWorkflow({
   ];
 
   return (
-    <section className="nova-auto-workflow">
-      <div className="nova-auto-flow-board">
-        <div className="nova-auto-flow-title">
-          <span>Fluxo de execução</span>
-          <strong>{rule ? `${rule.code} · ${rule.name}` : "Sem regra selecionada"}</strong>
-        </div>
-
-        <div className="nova-auto-flow-steps">
-          {steps.map((step, index) => (
-            <WorkflowStep key={step.title} index={index + 1} {...step} />
-          ))}
-        </div>
+    <section className="nova-automation-workflow-flow-card">
+      <div className="nova-automation-workflow-card-title">
+        <span>Fluxo de execução</span>
+        <strong>{rule ? `${rule.code} · ${rule.name}` : "Sem regra selecionada"}</strong>
       </div>
-
-      <aside className="nova-auto-run-controls">
-        <div className="nova-auto-run-card is-primary">
-          <span>Status da rotina</span>
-          <strong>{isRunning ? "Em execução" : hasError ? "Atenção" : latestRun ? "Concluída" : "Aguardando"}</strong>
-          <p>{latestRun ? `${statusLabel(latestRun.status)} · ${runDuration(latestRun)}` : "Nenhuma execução no recorte atual."}</p>
-        </div>
-
-        <div className="nova-auto-action-stack">
-          {canRun && rule ? (
-            <form action={runAction}>
-              <input type="hidden" name="id" value={rule.id} />
-              <button type="submit">Executar agora</button>
-            </form>
-          ) : (
-            <button type="button" disabled>Executar agora</button>
-          )}
-          <a href="#automation-rules">Editar fluxo</a>
-          <a href="#automation-runs">Ver logs completos</a>
-        </div>
-      </aside>
+      <div className="nova-automation-workflow-steps">
+        {steps.map((step, index) => (
+          <WorkflowStep key={step.title} index={index + 1} {...step} />
+        ))}
+      </div>
     </section>
   );
 }
@@ -383,6 +587,236 @@ function ProgressLine({ label, value, tone }: { label: string; value: number; to
         <em className={`is-${tone}`} style={{ width: `${safe}%` }} />
       </i>
     </div>
+  );
+}
+
+function formatClock(value: string | null | undefined) {
+  if (!value) return "--:--:--";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "--:--:--";
+  return new Intl.DateTimeFormat("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).format(date);
+}
+
+function formatNumber(value: number) {
+  return new Intl.NumberFormat("pt-BR").format(value);
+}
+
+function LiveLog({ runs, commandCenter }: { runs: RunRow[]; commandCenter: CommandCenter }) {
+  const runEntries = runs.slice(0, 7).map((item) => ({
+    key: item.id,
+    time: formatClock(item.startedAt),
+    level: item.status === "error" ? "ERROR" : item.status === "running" ? "WARN" : "INFO",
+    message: `${statusLabel(item.status)} em ${item.rule.code} - ${item.summary || `${item.hitsCount} registro(s) processado(s)`}`,
+  }));
+  const alertEntries = commandCenter.recentOccurrences.slice(0, Math.max(0, 8 - runEntries.length)).map((item) => ({
+    key: item.id,
+    time: formatClock(item.createdAt),
+    level: item.severity === "critical" ? "ERROR" : "WARN",
+    message: `Alerta ${item.code} vinculado ao fluxo - ${item.title}`,
+  }));
+  const entries = [...runEntries, ...alertEntries];
+
+  return (
+    <section className="nova-automation-workflow-card nova-automation-workflow-log" id="automation-live-log">
+      <div className="nova-automation-workflow-card-title">
+        <span>Log ao vivo</span>
+        <strong><Dot tone={runs.some((item) => item.status === "running") ? "green" : "slate"} />{runs.some((item) => item.status === "running") ? "Atualizando" : "Últimos eventos"}</strong>
+      </div>
+      <div className="nova-automation-workflow-log-list">
+        {entries.length ? entries.map((entry) => (
+          <article key={entry.key} className={`is-${entry.level.toLowerCase()}`}>
+            <time>{entry.time}</time>
+            <b>{entry.level}</b>
+            <span>{entry.message}</span>
+          </article>
+        )) : (
+          <div className="nova-automation-workflow-empty-line">Nenhum evento recente para este fluxo.</div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function ErrorSummary({
+  runs,
+  rows,
+  operationalPressure,
+}: {
+  runs: RunRow[];
+  rows: RuleRow[];
+  operationalPressure: number;
+}) {
+  const integrationErrors = runs.filter((item) => item.status === "error" && item.rule.detector === "integration_failure").length;
+  const failedRuns = runs.filter((item) => item.status === "error").length;
+  const validationErrors = Math.max(0, failedRuns - integrationErrors);
+  const timeouts = rows.filter(isDue).length;
+  const others = Math.max(0, operationalPressure - integrationErrors - validationErrors);
+  const total = Math.max(integrationErrors + validationErrors + timeouts + others, failedRuns, 0);
+  const segments = [
+    { label: "Erros de integração", value: integrationErrors, color: "#ff4747" },
+    { label: "Erros de validação", value: validationErrors, color: "#ff7a00" },
+    { label: "Timeout", value: timeouts, color: "#ffb020" },
+    { label: "Outros", value: others, color: "#7b8794" },
+  ];
+  let cursor = 0;
+  const stops = segments.map((segment) => {
+    const start = cursor;
+    const end = total ? cursor + (segment.value / total) * 100 : cursor;
+    cursor = end;
+    return `${segment.color} ${start}% ${end}%`;
+  });
+  const style = {
+    "--automation-donut-bg": total
+      ? `conic-gradient(${stops.join(", ")}, rgba(148, 163, 184, .16) ${cursor}% 100%)`
+      : "conic-gradient(rgba(148, 163, 184, .18) 0 100%)",
+  } as CSSProperties;
+
+  return (
+    <section className="nova-automation-workflow-card nova-automation-workflow-errors">
+      <div className="nova-automation-workflow-card-title">
+        <span>Resumo de erros</span>
+        <Link href="#automation-history">Ver todos os erros</Link>
+      </div>
+      <div className="nova-automation-workflow-error-grid">
+        <div className="nova-automation-workflow-donut" style={style}>
+          <strong>{formatNumber(total)}</strong>
+          <span>erros</span>
+        </div>
+        <div className="nova-automation-workflow-error-legend">
+          {segments.map((segment) => (
+            <div key={segment.label}>
+              <span><i style={{ background: segment.color }} />{segment.label}</span>
+              <b>{segment.value} ({percent(segment.value, total)}%)</b>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="nova-automation-workflow-error-table">
+        {segments.map((segment) => (
+          <div key={`${segment.label}-table`}>
+            <span>{segment.label}</span>
+            <b>{segment.value}</b>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ExecutionHistory({ runs, exportHref }: { runs: RunRow[]; exportHref: string }) {
+  return (
+    <section className="nova-automation-workflow-card nova-automation-workflow-history" id="automation-history">
+      <div className="nova-automation-workflow-card-title">
+        <span>Histórico de execuções</span>
+        <Link href={exportHref}><Icon name="download" />Exportar</Link>
+      </div>
+      <div className="nova-automation-workflow-history-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Data / hora</th>
+              <th>Disparo</th>
+              <th>Status</th>
+              <th>Duração</th>
+              <th>Registros</th>
+              <th>Erros</th>
+              <th>Executado por</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {runs.length ? runs.slice(0, 8).map((item) => (
+              <tr key={item.id}>
+                <td>{formatDateTime(item.startedAt)}</td>
+                <td>{item.rule.code}</td>
+                <td><Badge tone={statusTone(item.status)}>{statusLabel(item.status)}</Badge></td>
+                <td>{runDuration(item)}</td>
+                <td>{formatNumber(item.hitsCount)}</td>
+                <td>{item.status === "error" ? "1" : "0"}</td>
+                <td>Sistema</td>
+                <td>
+                  <Link href={exportHref} aria-label="Exportar execução"><Icon name="file" /></Link>
+                  <Link href="#automation-rules" aria-label="Editar regra"><Icon name="gear" /></Link>
+                </td>
+              </tr>
+            )) : (
+              <tr>
+                <td colSpan={8}>Nenhuma execução recente.</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
+function TriggerSettings({ rule, latestRun }: { rule: RuleRow | null; latestRun: RunRow | null }) {
+  return (
+    <section className="nova-automation-workflow-card nova-automation-workflow-settings">
+      <div className="nova-automation-workflow-side-title">
+        <span>Configurações do disparo</span>
+      </div>
+      <dl>
+        <div><dt>Tipo de disparo</dt><dd>{rule ? cadenceLabel(rule.cadence) : "-"}</dd></div>
+        <div><dt>Agendado para</dt><dd>{formatDateTime(rule?.nextRunAt)}</dd></div>
+        <div><dt>Fuso horário</dt><dd>(UTC-03:00) Brasília</dd></div>
+        <div><dt>Última execução</dt><dd>{formatDateTime(latestRun?.startedAt)}</dd></div>
+        <div><dt>Janela de execução</dt><dd>{rule?.thresholdMinutes ? `${rule.thresholdMinutes} min` : "01:20 - 02:30"}</dd></div>
+        <div><dt>Execução paralela</dt><dd>Não</dd></div>
+      </dl>
+    </section>
+  );
+}
+
+function LastSuccessCard({ run }: { run: RunRow | null }) {
+  return (
+    <section className="nova-automation-workflow-card nova-automation-workflow-success">
+      <div className="nova-automation-workflow-side-title">
+        <span>Última execução bem-sucedida</span>
+      </div>
+      {run ? (
+        <>
+          <strong><Dot tone="green" />{formatDateTime(run.startedAt)}</strong>
+          <dl>
+            <div><dt>Duração</dt><dd>{runDuration(run)}</dd></div>
+            <div><dt>Registros processados</dt><dd>{formatNumber(run.hitsCount)}</dd></div>
+            <div><dt>Erros</dt><dd>0</dd></div>
+          </dl>
+          <Link href="#automation-history">Ver detalhes da execução</Link>
+        </>
+      ) : (
+        <p>Nenhuma execução bem-sucedida no histórico recente.</p>
+      )}
+    </section>
+  );
+}
+
+function IntegrationsCard({ integrations }: { integrations: IntegrationRow[] }) {
+  const rows = integrations.length ? integrations : [
+    { id: "fallback-prtg", code: "PRTG", name: "PRTG Network Monitor", type: "generic_http", isActive: false, updatedAt: "" },
+    { id: "fallback-zabbix", code: "ZBX", name: "Zabbix", type: "zabbix", isActive: false, updatedAt: "" },
+  ];
+
+  return (
+    <section className="nova-automation-workflow-card nova-automation-workflow-integrations">
+      <div className="nova-automation-workflow-side-title">
+        <span>Integrações envolvidas ({integrations.length})</span>
+      </div>
+      <div>
+        {rows.slice(0, 6).map((item) => (
+          <Link href="/integracoes" key={item.id}>
+            <Icon name="integration" />
+            <span>{item.name || item.code}</span>
+            <b><Dot tone={item.isActive ? "green" : "slate"} />{item.isActive ? "Conectado" : "Inativo"}</b>
+          </Link>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -495,7 +929,7 @@ export default async function AutomacaoPage({
     pageSize: pageSizeOption(readPositiveIntParam(params, "pageSize", 10)),
   };
 
-  const [rulesResponse, runsResponse, summary, commandCenter] = await Promise.all([
+  const [rulesResponse, runsResponse, summary, commandCenter, integrationsResponse] = await Promise.all([
     apiJson<PaginatedResponse<RuleRow>>(
       `/automations${buildApiQuery({
         q: state.q,
@@ -510,6 +944,10 @@ export default async function AutomacaoPage({
     apiJson<PaginatedResponse<RunRow>>("/automations/runs?page=1&pageSize=12&sortDir=desc"),
     safeApiJson<AutomationSummary>("/automations/summary", emptyAutomationSummary),
     safeApiJson<CommandCenter>("/monitoring/command-center", emptyCommandCenter()),
+    safeApiJson<PaginatedResponse<IntegrationRow>>(
+      "/integrations?page=1&pageSize=6&sortBy=name&sortDir=asc",
+      emptyIntegrationsResponse,
+    ),
   ]);
 
   const rows = rulesResponse.items;
@@ -523,124 +961,171 @@ export default async function AutomacaoPage({
   const successRuns = runs.filter((item) => item.status === "success").length;
   const failedRuns = runs.filter((item) => item.status === "error").length;
   const runningRuns = runs.filter((item) => item.status === "running").length;
-  const detectors = Array.from(new Set(rows.map((item) => item.detector))).slice(0, 7);
   const currentParams = stateParams(state);
   const primaryRule = rows.find(isDue) || rows.find((item) => item.enabled) || rows[0] || null;
   const latestRun = runs[0] || null;
+  const latestSuccessRun = runs.find((item) => item.status === "success") || null;
   const processedRuns = runs.reduce((sum, item) => sum + item.hitsCount, 0);
   const totalExceptionCases = rows.reduce((sum, item) => sum + item._count.exceptionCases, 0);
   const operationalPressure = commandCenter.metrics.openOccurrences + commandCenter.metrics.overdueMaintenances;
   const statusValue = runningRuns ? "Em execução" : failedRuns ? "Com falhas" : successRuns ? "Concluída" : "Aguardando";
   const statusToneValue: Tone = runningRuns ? "blue" : failedRuns ? "red" : successRuns ? "green" : "slate";
+  const activeIntegrations = integrationsResponse.items.filter((item) => item.isActive).length;
+  const exportHref = withParams("/automacao/export", currentParams, { page: undefined, pageSize: undefined });
+  const canRun = isAdmin && Boolean(primaryRule);
 
   const kpis = [
-    { label: "Status da execução", value: statusValue, hint: latestRun ? `última ${formatDateTime(latestRun.startedAt)}` : "sem execução", tone: statusToneValue },
-    { label: "Disparo", value: primaryRule ? cadenceLabel(primaryRule.cadence) : "-", hint: primaryRule?.enabled ? "agenda ativa" : "agenda pausada", tone: primaryRule?.enabled ? "blue" as const : "slate" as const },
-    { label: "Duração", value: latestRun ? runDuration(latestRun) : "-", hint: latestRun ? statusLabel(latestRun.status) : "aguardando run", tone: latestRun ? statusTone(latestRun.status) : "slate" as const },
-    { label: "Eventos processados", value: String(processedRuns), hint: `${runs.length} run(s) recentes`, tone: "blue" as const },
-    { label: "Exceções", value: String(totalExceptionCases), hint: `${operationalPressure} alerta(s)/chamado(s) em pressão`, tone: totalExceptionCases ? "orange" as const : "green" as const },
+    { icon: "refresh" as const, label: "Status da execução", value: statusValue, hint: latestRun ? `última ${formatDateTime(latestRun.startedAt)}` : "sem execução", tone: statusToneValue },
+    { icon: "calendar" as const, label: "Disparo", value: primaryRule?.enabled ? "Agendado" : "Manual", hint: primaryRule ? cadenceLabel(primaryRule.cadence) : "sem regra", tone: primaryRule?.enabled ? "blue" as const : "slate" as const },
+    { icon: "clock" as const, label: "Duração", value: latestRun ? runDuration(latestRun) : "-", hint: latestRun ? statusLabel(latestRun.status) : "aguardando run", tone: latestRun ? statusTone(latestRun.status) : "slate" as const },
+    { icon: "list" as const, label: "Registros processados", value: formatNumber(processedRuns), hint: `${runs.length} run(s) recentes`, tone: "blue" as const },
+    { icon: "alert" as const, label: "Erros", value: formatNumber(failedRuns), hint: `${percent(failedRuns, Math.max(runs.length, 1))}% das execuções`, tone: failedRuns ? "red" as const : "green" as const },
+    { icon: "integration" as const, label: "Integrações afetadas", value: formatNumber(activeIntegrations), hint: `de ${formatNumber(integrationsResponse.meta.total || integrationsResponse.items.length)}`, tone: activeIntegrations ? "blue" as const : "slate" as const },
   ];
 
   return (
-    <NovaLitShell activeHref="/automacao">
-      <div className="nova-lit-page-heading nova-auto-heading">
-        <div>
-          <div className="nova-auto-breadcrumb">Gestão / Automação / Execução</div>
-          <h1>Fluxo de automação operacional - Execução</h1>
-          <p className="nova-lit-page-subtitle">Acompanhe status, etapas, runs e geração automática de exceções.</p>
-        </div>
-
-        <div className="nova-lit-page-actions">
-          <Link href="/integracoes" className="nova-lit-button nova-lit-button-secondary">Integrações</Link>
-          <Link href="/excecoes?kind=automation" className="nova-lit-button nova-lit-button-primary">Exceções</Link>
-        </div>
-      </div>
-
-      <section className="nova-auto-kpi-grid" aria-label="Indicadores de automação">
-        {kpis.map((kpi) => (
-          <KpiCard key={kpi.label} {...kpi} />
-        ))}
-      </section>
-
-      <AutomationWorkflow
-        rule={primaryRule}
-        latestRun={latestRun}
-        runs={runs}
-        admin={isAdmin}
-        runAction={runAutomationNow}
-      />
-
-      <form id="automation-filters" action="/automacao" className="nova-lit-card nova-auto-filters">
-        <label className="nova-auto-search">
-          <span>Busca</span>
-          <input name="q" defaultValue={state.q} placeholder="Código, nome, detector ou template" />
-        </label>
-
-        <label className="nova-auto-field">
-          <span>Detector</span>
-          <select name="detector" defaultValue={state.detector}>
-            <option value="all">Todos</option>
-            <option value="maintenance_overdue">Chamado vencido</option>
-            <option value="critical_open_occurrence">Alerta crítico</option>
-            <option value="aged_open_occurrence">Alerta antigo</option>
-            <option value="integration_failure">Falha integração</option>
-            <option value="monitoring_report_export">Relatório automático</option>
-          </select>
-        </label>
-
-        <label className="nova-auto-field">
-          <span>Estado</span>
-          <select name="enabled" defaultValue={state.enabled}>
-            <option value="all">Todos</option>
-            <option value="true">Ativas</option>
-            <option value="false">Pausadas</option>
-          </select>
-        </label>
-
-        <label className="nova-auto-field">
-          <span>Ordem</span>
-          <select name="sortBy" defaultValue={state.sortBy}>
-            <option value="createdAt">Cadastro</option>
-            <option value="code">Código</option>
-            <option value="detector">Detector</option>
-            <option value="cadence">Cadência</option>
-          </select>
-        </label>
-
-        <label className="nova-auto-field">
-          <span>Direção</span>
-          <select name="sortDir" defaultValue={state.sortDir}>
-            <option value="desc">Desc</option>
-            <option value="asc">Asc</option>
-          </select>
-        </label>
-
-        <label className="nova-auto-field">
-          <span>Linhas</span>
-          <select name="pageSize" defaultValue={String(state.pageSize)}>
-            <option value="10">10</option>
-            <option value="20">20</option>
-            <option value="50">50</option>
-          </select>
-        </label>
-
-        <input type="hidden" name="page" value="1" />
-        <button type="submit">Filtrar</button>
-        <Link href="/automacao">Limpar</Link>
-      </form>
-
-      <section className="nova-auto-main-grid">
-        <div id="automation-rules" className="nova-lit-card nova-auto-table-card">
-          <div className="nova-auto-section-title">
+    <div className="nova-exceptions-board-shell nova-automation-workflow-shell">
+      <Nav />
+      <div className="nova-exceptions-board-main">
+        <Topbar userName={session.user?.name} userEmail={session.user?.email} />
+        <main className="nova-automation-workflow-page">
+          <header className="nova-automation-workflow-heading">
             <div>
-              <span>Automation Desk</span>
-              <h2>Regras operacionais</h2>
+              <nav aria-label="Breadcrumb">
+                <Link href="/operacao">Gestão</Link>
+                <span>/</span>
+                <Link href="/automacao">Automação</Link>
+                <span>/</span>
+                <strong>Execução</strong>
+              </nav>
+              <h1>Fluxo de reconciliação automática - Execução</h1>
+              <p>Acompanhe em tempo real a execução do fluxo, o progresso das etapas, logs e resultados.</p>
             </div>
-            <div>
-              <small>{rows.length} linhas</small>
-              <Link href="/operacao/atividade?kind=automation">Atividade</Link>
+          </header>
+
+          <section className="nova-automation-workflow-kpis" aria-label="Indicadores de automação">
+            {kpis.map((kpi) => (
+              <KpiCard key={kpi.label} {...kpi} />
+            ))}
+          </section>
+
+          <section className="nova-automation-workflow-grid">
+            <div className="nova-automation-workflow-left">
+              <AutomationWorkflow rule={primaryRule} latestRun={latestRun} runs={runs} />
+
+              <section className="nova-automation-workflow-observability">
+                <LiveLog runs={runs} commandCenter={commandCenter} />
+                <ErrorSummary rows={rows} runs={runs} operationalPressure={operationalPressure} />
+              </section>
+
+              <ExecutionHistory runs={runs} exportHref={exportHref} />
             </div>
-          </div>
+
+            <aside className="nova-automation-workflow-right">
+              <section className="nova-automation-workflow-card nova-automation-workflow-actions">
+                {canRun && primaryRule ? (
+                  <form action={runAutomationNow}>
+                    <input type="hidden" name="id" value={primaryRule.id} />
+                    <button type="submit"><Icon name="play" />Executar agora</button>
+                  </form>
+                ) : (
+                  <button type="button" disabled><Icon name="play" />Executar agora</button>
+                )}
+                <a href="#automation-rules"><Icon name="gear" />Editar fluxo</a>
+                <a href="#automation-history"><Icon name="file" />Ver logs completos</a>
+              </section>
+
+              <TriggerSettings rule={primaryRule} latestRun={latestRun} />
+              <LastSuccessCard run={latestSuccessRun} />
+              <IntegrationsCard integrations={integrationsResponse.items} />
+            </aside>
+          </section>
+
+          <section id="automation-rules" className="nova-automation-workflow-card nova-automation-workflow-rules-panel">
+            <div className="nova-automation-workflow-card-title">
+              <span>Configuração das regras</span>
+              <strong>{rulesResponse.meta.total} regra(s)</strong>
+            </div>
+
+            <div className="nova-automation-workflow-rule-progress">
+              <ProgressLine label="Ativas" value={percent(enabledOnPage, rows.length)} tone="green" />
+              <ProgressLine label="Pausadas" value={percent(pausedOnPage, rows.length)} tone="orange" />
+              <ProgressLine label="Prontas" value={percent(dueOnPage, rows.length)} tone="orange" />
+              <ProgressLine label="Criam exceção" value={percent(creatingExceptions, rows.length)} tone="orange" />
+              <ProgressLine label="Criam atividade" value={percent(creatingActivities, rows.length)} tone="blue" />
+              <ProgressLine label="Recuperação" value={percent(recoveryRules, rows.length)} tone="green" />
+            </div>
+
+            <form id="automation-filters" action="/automacao" className="nova-auto-filters">
+              <label className="nova-auto-search">
+                <span>Busca</span>
+                <input name="q" defaultValue={state.q} placeholder="Código, nome, detector ou template" />
+              </label>
+
+              <label className="nova-auto-field">
+                <span>Detector</span>
+                <select name="detector" defaultValue={state.detector}>
+                  <option value="all">Todos</option>
+                  <option value="maintenance_overdue">Chamado vencido</option>
+                  <option value="critical_open_occurrence">Alerta crítico</option>
+                  <option value="aged_open_occurrence">Alerta antigo</option>
+                  <option value="integration_failure">Falha integração</option>
+                  <option value="monitoring_report_export">Relatório automático</option>
+                </select>
+              </label>
+
+              <label className="nova-auto-field">
+                <span>Estado</span>
+                <select name="enabled" defaultValue={state.enabled}>
+                  <option value="all">Todos</option>
+                  <option value="true">Ativas</option>
+                  <option value="false">Pausadas</option>
+                </select>
+              </label>
+
+              <label className="nova-auto-field">
+                <span>Ordem</span>
+                <select name="sortBy" defaultValue={state.sortBy}>
+                  <option value="createdAt">Cadastro</option>
+                  <option value="code">Código</option>
+                  <option value="detector">Detector</option>
+                  <option value="cadence">Cadência</option>
+                </select>
+              </label>
+
+              <label className="nova-auto-field">
+                <span>Direção</span>
+                <select name="sortDir" defaultValue={state.sortDir}>
+                  <option value="desc">Desc</option>
+                  <option value="asc">Asc</option>
+                </select>
+              </label>
+
+              <label className="nova-auto-field">
+                <span>Linhas</span>
+                <select name="pageSize" defaultValue={String(state.pageSize)}>
+                  <option value="10">10</option>
+                  <option value="20">20</option>
+                  <option value="50">50</option>
+                </select>
+              </label>
+
+              <input type="hidden" name="page" value="1" />
+              <button type="submit">Filtrar</button>
+              <Link href="/automacao">Limpar</Link>
+            </form>
+
+            <div className="nova-auto-table-card">
+              <div className="nova-auto-section-title">
+                <div>
+                  <span>Automation Desk</span>
+                  <h2>Regras operacionais</h2>
+                </div>
+                <div>
+                  <small>{rows.length} linhas · {totalExceptionCases} exceção(ões)</small>
+                  <Link href="/operacao/atividade?kind=automation">Atividade</Link>
+                </div>
+              </div>
 
           <div className="nova-auto-table">
             <div className="nova-auto-table-head">
@@ -737,120 +1222,32 @@ export default async function AutomacaoPage({
               <EmptyState />
             )}
           </div>
-        </div>
-
-        <aside className="nova-auto-right-col">
-          <section className="nova-lit-card nova-auto-health">
-            <div className="nova-lit-title-row">
-              <h2>Rotina</h2>
-              <span className="nova-lit-pill nova-lit-pill-orange">{summary.counts.dueRules} prontas</span>
-            </div>
-            <div className="nova-auto-progress-list">
-              <ProgressLine label="Ativas" value={percent(enabledOnPage, rows.length)} tone="green" />
-              <ProgressLine label="Pausadas" value={percent(pausedOnPage, rows.length)} tone="orange" />
-              <ProgressLine label="Prontas na página" value={percent(dueOnPage, rows.length)} tone="orange" />
-              <ProgressLine label="Criam exceção" value={percent(creatingExceptions, rows.length)} tone="orange" />
-              <ProgressLine label="Recuperação" value={percent(recoveryRules, rows.length)} tone="blue" />
             </div>
           </section>
 
-          <section className="nova-lit-card nova-auto-quick">
-            <span>Ação rápida</span>
-            <Link href={withParams("/automacao", currentParams, { enabled: "true", page: 1 })}>Ativas <b>{enabledOnPage}</b></Link>
-            <Link href={withParams("/automacao", currentParams, { enabled: "false", page: 1 })}>Pausadas <b>{pausedOnPage}</b></Link>
-            <Link href={withParams("/automacao", currentParams, { detector: "integration_failure", page: 1 })}>Integração <b>{rows.filter((item) => item.detector === "integration_failure").length}</b></Link>
-          </section>
-
-          <section className="nova-lit-card nova-auto-status">
-            <div className="nova-lit-title-row">
-              <h2>Runs recentes</h2>
-              <span className="nova-lit-pill nova-lit-pill-blue">{runs.length}</span>
-            </div>
-            <div className="nova-auto-status-list">
-              <article>
-                <Dot tone="green" />
-                <strong>Sucesso</strong>
-                <b>{successRuns}</b>
-              </article>
-              <article>
-                <Dot tone="red" />
-                <strong>Erro</strong>
-                <b>{failedRuns}</b>
-              </article>
-              <article>
-                <Dot tone="blue" />
-                <strong>Rodando</strong>
-                <b>{runningRuns}</b>
-              </article>
-              <article>
-                <Dot tone="orange" />
-                <strong>Atividades</strong>
-                <b>{creatingActivities}</b>
-              </article>
+          <section className="nova-auto-pagination nova-automation-workflow-pagination">
+            <span>
+              Página {rulesResponse.meta.page} de {rulesResponse.meta.totalPages} · {rulesResponse.meta.total} regra(s) · {summary.counts.dueRules} prontas
+            </span>
+            <div>
+              <Link
+                href={withParams("/automacao", currentParams, { page: Math.max(1, rulesResponse.meta.page - 1) })}
+                className={!rulesResponse.meta.hasPrev ? "is-disabled" : ""}
+                aria-disabled={!rulesResponse.meta.hasPrev}
+              >
+                Anterior
+              </Link>
+              <Link
+                href={withParams("/automacao", currentParams, { page: Math.min(rulesResponse.meta.totalPages, rulesResponse.meta.page + 1) })}
+                className={!rulesResponse.meta.hasNext ? "is-disabled" : ""}
+                aria-disabled={!rulesResponse.meta.hasNext}
+              >
+                Próxima
+              </Link>
             </div>
           </section>
-
-          <section className="nova-lit-card nova-auto-detectors">
-            <div className="nova-lit-title-row">
-              <h2>Detectores</h2>
-              <span className="nova-lit-pill nova-lit-pill-blue">{detectors.length}</span>
-            </div>
-            <div className="nova-auto-detector-list">
-              {detectors.length ? detectors.map((detector) => (
-                <Link key={detector} href={withParams("/automacao", currentParams, { detector, page: 1 })}>
-                  <Dot tone="blue" />
-                  <strong>{detectorLabel(detector)}</strong>
-                  <b>{rows.filter((item) => item.detector === detector).length}</b>
-                </Link>
-              )) : (
-                <div className="nova-auto-list-empty">Nenhum detector no recorte.</div>
-              )}
-            </div>
-          </section>
-
-          <section id="automation-runs" className="nova-lit-card nova-auto-runs">
-            <div className="nova-lit-title-row">
-              <h2>Últimas execuções</h2>
-              <span className="nova-lit-pill nova-lit-pill-orange">{summary.counts.failedRuns24h} falhas</span>
-            </div>
-            <div className="nova-auto-run-list">
-              {runs.length ? runs.slice(0, 7).map((item) => (
-                <article key={item.id}>
-                  <Dot tone={statusTone(item.status)} />
-                  <div>
-                    <strong>{item.rule.code} · {item.rule.name}</strong>
-                    <span>{statusLabel(item.status)} · {runDuration(item)} · {item.hitsCount} hit(s)</span>
-                  </div>
-                </article>
-              )) : (
-                <div className="nova-auto-list-empty">Nenhuma execução recente.</div>
-              )}
-            </div>
-          </section>
-        </aside>
-      </section>
-
-      <section className="nova-lit-card nova-auto-pagination">
-        <span>
-          Página {rulesResponse.meta.page} de {rulesResponse.meta.totalPages} · {rulesResponse.meta.total} regra(s)
-        </span>
-        <div>
-          <Link
-            href={withParams("/automacao", currentParams, { page: Math.max(1, rulesResponse.meta.page - 1) })}
-            className={!rulesResponse.meta.hasPrev ? "is-disabled" : ""}
-            aria-disabled={!rulesResponse.meta.hasPrev}
-          >
-            Anterior
-          </Link>
-          <Link
-            href={withParams("/automacao", currentParams, { page: Math.min(rulesResponse.meta.totalPages, rulesResponse.meta.page + 1) })}
-            className={!rulesResponse.meta.hasNext ? "is-disabled" : ""}
-            aria-disabled={!rulesResponse.meta.hasNext}
-          >
-            Próxima
-          </Link>
-        </div>
-      </section>
-    </NovaLitShell>
+        </main>
+      </div>
+    </div>
   );
 }
