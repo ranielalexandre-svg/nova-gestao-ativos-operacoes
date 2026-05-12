@@ -34513,3 +34513,68 @@ body:has(.nova-tickets-board-shell) {
     min-height: 8.25rem;
   }
 }
+
+/* == Compatibilidade de ícones nas telas de usuários == */
+.nova-user-create-page svg,
+.nova-user-detail-page svg,
+.nova-users-create-page svg,
+.nova-users-detail-page svg,
+.nova-user-access-page svg,
+.nova-user-access-card svg,
+.nova-user-access-panel svg {
+  width: 1.05rem;
+  height: 1.05rem;
+  flex: 0 0 auto;
+  display: inline-block;
+}
+
+/* Ícones decorativos de cards de usuário podem ser maiores, mas nunca ocupar o card inteiro. */
+.nova-user-create-page :where(article, section, aside, header) > svg,
+.nova-user-detail-page :where(article, section, aside, header) > svg,
+.nova-users-create-page :where(article, section, aside, header) > svg,
+.nova-users-detail-page :where(article, section, aside, header) > svg {
+  max-width: 2.5rem;
+  max-height: 2.5rem;
+}
+
+/* Evita que SVGs antigos sem tamanho próprio estourem formulários e painéis. */
+.nova-user-create-page :where(label, button, a, summary, span, b, i) svg,
+.nova-user-detail-page :where(label, button, a, summary, span, b, i) svg,
+.nova-users-create-page :where(label, button, a, summary, span, b, i) svg,
+.nova-users-detail-page :where(label, button, a, summary, span, b, i) svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* == Ícone reutilizável de acesso de usuários == */
+.nova-user-access-icon {
+  width: 1rem;
+  height: 1rem;
+  min-width: 1rem;
+  max-width: 1rem;
+  max-height: 1rem;
+  flex: 0 0 auto;
+  display: inline-block;
+}
+
+/* Páginas do editor de usuário usam UserAccessIcon em cards, botões e títulos. */
+.nova-user-editor-page .nova-user-access-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.nova-user-editor-kpi .nova-user-access-icon {
+  width: 1.35rem;
+  height: 1.35rem;
+  min-width: 1.35rem;
+  max-width: 1.35rem;
+  max-height: 1.35rem;
+}
+
+.nova-user-editor-card-head .nova-user-access-icon,
+.nova-user-editor-side-title .nova-user-access-icon,
+.nova-user-editor-security-note .nova-user-access-icon,
+.nova-user-editor-button .nova-user-access-icon {
+  width: 1rem;
+  height: 1rem;
+}

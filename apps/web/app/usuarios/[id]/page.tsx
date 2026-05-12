@@ -9,7 +9,8 @@ import { formatDateTime } from "@/lib/formatters";
 import { apiJson } from "@/lib/server-api";
 import { isAdminRole, ROLE_OPTIONS, roleLabel } from "@/lib/role-policy";
 import { getServerWebSession } from "@/lib/web-session";
-import { UserAccessIcon, UserAccessShell } from "../user-access-shell";
+import { NovaLitShell } from "@/components/nova-lit/nova-lit-shell";
+import { UserAccessIcon } from "../user-access-shell";
 
 type UserDetail = {
   id: string;
@@ -152,7 +153,7 @@ export default async function UsuarioDetalhePage({
   const currentUserId = session.user?.id || "";
 
   return (
-    <UserAccessShell userEmail={session.user?.email} userName={session.user?.name}>
+    <NovaLitShell activeHref="/usuarios" hidePageHeader>
       <main className="nova-user-editor-page">
         <header className="nova-user-editor-heading">
           <div>
@@ -359,6 +360,6 @@ export default async function UsuarioDetalhePage({
           </aside>
         </section>
       </main>
-    </UserAccessShell>
+    </NovaLitShell>
   );
 }
