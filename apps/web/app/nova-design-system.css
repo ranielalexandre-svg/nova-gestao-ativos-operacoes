@@ -33651,3 +33651,669 @@ body:has(.nova-tickets-board-shell) {
   }
 }
 /* == NOVA CONTRATO DETAIL MOCKUP END == */
+
+/* ════════════════════════════════════════════════
+   NOVA AUTH PAGES — /esqueci-senha e /redefinir-senha
+   ════════════════════════════════════════════════ */
+
+.nova-auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background:
+    radial-gradient(ellipse 60% 40% at 5% 0%, rgba(255,122,0,.1), transparent 55%),
+    radial-gradient(ellipse 50% 50% at 95% 25%, rgba(56,189,248,.07), transparent 55%),
+    #020812;
+}
+
+.nova-auth-card {
+  width: 100%;
+  max-width: 420px;
+  background: #0a1525;
+  border: 1px solid rgba(100,170,255,.1);
+  border-radius: 16px;
+  padding: 36px 32px;
+  box-shadow: 0 24px 64px -16px rgba(0,0,0,.6);
+}
+
+/* Brand */
+.nova-auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.nova-auth-brand-mark {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #ff7a00, #ffaa44);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--nova-font-display, Georgia, serif);
+  font-weight: 800;
+  font-size: 20px;
+  color: #000;
+  box-shadow: 0 6px 20px -4px rgba(255,122,0,.45);
+  flex-shrink: 0;
+}
+
+.nova-auth-brand-name {
+  font-family: var(--nova-font-display, Georgia, serif);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -.01em;
+  color: #e8f0fb;
+}
+
+.nova-auth-brand-sub {
+  font-size: 10px;
+  color: #6b8298;
+  font-family: var(--nova-font-mono, monospace);
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  margin-top: 1px;
+}
+
+/* Header */
+.nova-auth-header {
+  margin-bottom: 28px;
+}
+
+.nova-auth-title {
+  font-family: var(--nova-font-display, Georgia, serif);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -.015em;
+  color: #e8f0fb;
+  margin-bottom: 8px;
+}
+
+.nova-auth-subtitle {
+  font-size: 13px;
+  color: #a8bcd4;
+  line-height: 1.65;
+}
+
+.nova-auth-hint {
+  font-size: 12px;
+  color: #6b8298;
+  line-height: 1.6;
+  margin-top: 8px;
+}
+
+/* Form */
+.nova-auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.nova-auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  cursor: text;
+}
+
+.nova-auth-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #a8bcd4;
+  letter-spacing: .01em;
+}
+
+.nova-auth-label span[aria-hidden] {
+  color: #ff7a00;
+  margin-left: 2px;
+}
+
+.nova-auth-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.nova-auth-input-icon {
+  position: absolute;
+  left: 12px;
+  width: 16px;
+  height: 16px;
+  color: #6b8298;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.nova-auth-input-icon svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.nova-auth-input {
+  width: 100%;
+  height: 44px;
+  padding: 0 44px 0 40px;
+  background: #0f1d33;
+  border: 1px solid rgba(100,170,255,.14);
+  border-radius: 9px;
+  color: #e8f0fb;
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+
+.nova-auth-input:focus {
+  border-color: #ff7a00;
+  box-shadow: 0 0 0 3px rgba(255,122,0,.12);
+}
+
+.nova-auth-input.is-error {
+  border-color: #ff3d70;
+  box-shadow: 0 0 0 3px rgba(255,61,112,.1);
+}
+
+.nova-auth-input:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.nova-auth-eye {
+  position: absolute;
+  right: 10px;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: #6b8298;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  transition: color .12s, background .12s;
+}
+
+.nova-auth-eye:hover {
+  color: #a8bcd4;
+  background: rgba(100,170,255,.06);
+}
+
+.nova-auth-eye svg {
+  width: 15px;
+  height: 15px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.nova-auth-field-error {
+  font-size: 11px;
+  color: #ff3d70;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Strength bar */
+.nova-auth-strength {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.nova-auth-strength-bars {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+
+.nova-auth-strength-bar {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(100,170,255,.1);
+  transition: background .2s;
+}
+
+.nova-auth-strength span {
+  font-size: 10px;
+  font-family: monospace;
+  white-space: nowrap;
+  min-width: 44px;
+}
+
+/* Buttons */
+.nova-auth-button-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 20px;
+  background: linear-gradient(135deg, #ff7a00, #ffaa44);
+  color: #000;
+  border: none;
+  border-radius: 9px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity .15s, transform .1s, box-shadow .15s;
+  box-shadow: 0 6px 18px -6px rgba(255,122,0,.5);
+}
+
+.nova-auth-button-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px -6px rgba(255,122,0,.55);
+}
+
+.nova-auth-button-primary:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.nova-auth-button-full {
+  width: 100%;
+}
+
+.nova-auth-button-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 20px;
+  background: #0f1d33;
+  color: #a8bcd4;
+  border: 1px solid rgba(100,170,255,.14);
+  border-radius: 9px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background .12s, border-color .12s, color .12s;
+}
+
+.nova-auth-button-secondary:hover {
+  background: #14253e;
+  border-color: rgba(100,170,255,.22);
+  color: #e8f0fb;
+}
+
+/* Error box */
+.nova-auth-error {
+  padding: 12px 14px;
+  background: rgba(255,61,112,.06);
+  border: 1px solid rgba(255,61,112,.22);
+  border-radius: 8px;
+  color: #ff8aa5;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+/* Success state */
+.nova-auth-success {
+  text-align: center;
+  padding: 8px 0;
+}
+
+.nova-auth-success-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 20px;
+  border-radius: 50%;
+  background: rgba(34,197,99,.1);
+  border: 1px solid rgba(34,197,99,.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #22c563;
+}
+
+.nova-auth-success-icon svg {
+  width: 26px;
+  height: 26px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Footer / back link */
+.nova-auth-footer {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #6b8298;
+}
+
+.nova-auth-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #3dbeff;
+  text-decoration: none;
+  font-size: 12px;
+  transition: color .12s;
+}
+
+.nova-auth-back-link:hover {
+  color: #8cd4ff;
+}
+
+.nova-auth-back-link svg {
+  width: 13px;
+  height: 13px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Actions group */
+.nova-auth-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+/* ── Login form: error message from ?error= query param ── */
+.nova-login-fixed-error {
+  padding: 10px 14px;
+  background: rgba(255,61,112,.07);
+  border: 1px solid rgba(255,61,112,.25);
+  border-radius: 8px;
+  color: #ff8aa5;
+  font-size: 12px;
+  line-height: 1.55;
+  margin-bottom: 8px;
+}
+
+/* == NOVA AUTH PAGES END == */
+
+/* == NOVA DASHBOARD REAL DATA == */
+.nova-lit-table-body {
+  display: grid;
+}
+
+.nova-lit-table-row {
+  display: grid;
+  grid-template-columns: 1.05fr 1.35fr 0.9fr 0.9fr 0.85fr 1fr;
+  align-items: center;
+  min-height: 54px;
+  border-bottom: 1px solid rgba(86, 114, 148, 0.18);
+  color: #dce8f6;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.nova-lit-table-row:last-child {
+  border-bottom: 0;
+}
+
+.nova-lit-table-row:hover {
+  background: rgba(69, 115, 172, 0.12);
+  color: #ffffff;
+}
+
+.nova-lit-table-row > span {
+  min-width: 0;
+  overflow: hidden;
+  padding: 11px 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nova-lit-table-code {
+  color: #ffffff;
+  font-weight: 900;
+}
+
+.nova-lit-maintenance-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.nova-lit-maintenance-item {
+  display: grid;
+  gap: 3px;
+  border: 1px solid rgba(86, 114, 148, 0.22);
+  border-radius: 9px;
+  padding: 10px 11px;
+  background: rgba(5, 13, 21, 0.34);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.nova-lit-maintenance-item:hover {
+  border-color: rgba(88, 166, 255, 0.44);
+  background: rgba(88, 166, 255, 0.10);
+}
+
+.nova-lit-maintenance-item strong {
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.nova-lit-maintenance-item span {
+  overflow: hidden;
+  color: #9db0c8;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nova-lit-sla-list {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+  color: var(--nova-lit-muted);
+  font-size: 12px;
+  line-height: 1.55;
+  list-style: none;
+}
+
+.nova-lit-sla-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nova-lit-sla-button {
+  display: inline-flex;
+  margin-top: 12px;
+}
+
+.nova-lit-dashboard-grid,
+.nova-lit-dashboard-left,
+.nova-lit-dashboard-right {
+  min-width: 0;
+}
+
+@media (max-width: 840px) {
+  .nova-lit-shell-v2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .nova-lit-sidebar-v2 {
+    display: none;
+  }
+
+  .nova-lit-content-v2 {
+    padding: 16px;
+  }
+
+  .nova-lit-page-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .nova-lit-page-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .nova-lit-kpi-grid,
+  .nova-lit-dashboard-grid,
+  .nova-lit-row-3,
+  .nova-lit-events-grid,
+  .nova-lit-dashboard-right,
+  .nova-lit-filter-row {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .nova-lit-command-card {
+    overflow: hidden;
+  }
+
+  .nova-lit-table-row {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 8px 0;
+  }
+
+  .nova-lit-table-row > span {
+    padding: 7px 12px;
+  }
+
+  .nova-lit-table-row > span:nth-child(n + 4) {
+    display: none;
+  }
+}
+/* == NOVA DASHBOARD REAL DATA END == */
+
+/* == NOVA LOGIN MOBILE FORM == */
+@media (max-width: 640px) {
+  .nova-login-fixed-page {
+    display: block;
+    overflow-x: hidden;
+    padding: 0;
+  }
+
+  .nova-login-fixed-wrap {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 100dvh;
+    overflow: visible;
+    border-radius: 0;
+  }
+
+  .nova-login-fixed-stage {
+    position: relative;
+    left: auto !important;
+    top: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 100dvh;
+    display: grid;
+    align-content: center;
+    gap: 18px;
+    padding: 22px 16px;
+    transform: none !important;
+  }
+
+  .nova-login-fixed-frame,
+  .nova-login-fixed-grid,
+  .nova-login-fixed-online,
+  .nova-login-fixed-copy,
+  .nova-login-fixed-network,
+  .nova-login-fixed-features,
+  .nova-login-fixed-safe {
+    display: none;
+  }
+
+  .nova-login-fixed-logo {
+    position: relative;
+    left: auto;
+    top: auto;
+    justify-self: start;
+    margin: 0;
+  }
+
+  .nova-login-fixed-logo div {
+    font-size: 42px;
+  }
+
+  .nova-login-fixed-logo strong {
+    margin-top: 9px;
+    font-size: 13px;
+  }
+
+  .nova-login-fixed-card {
+    position: relative;
+    left: auto;
+    top: auto;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    padding: 28px 20px 22px;
+  }
+
+  .nova-login-fixed-lock {
+    width: 58px;
+    height: 58px;
+  }
+
+  .nova-login-fixed-card-title {
+    margin-top: 20px;
+  }
+
+  .nova-login-fixed-card-title h2 {
+    font-size: 27px;
+  }
+
+  .nova-login-fixed-card-title p,
+  .nova-login-fixed-field input,
+  .nova-login-fixed-options,
+  .nova-login-fixed-options a,
+  .nova-login-fixed-card-footer {
+    font-size: 13px;
+  }
+
+  .nova-login-fixed-field {
+    margin-top: 22px;
+  }
+
+  .nova-login-fixed-field > div {
+    min-height: 52px;
+  }
+
+  .nova-login-fixed-options {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .nova-login-fixed-submit,
+  .nova-login-fixed-sso {
+    min-height: 52px;
+    font-size: 15px;
+  }
+
+  .nova-login-fixed-submit {
+    gap: 28px;
+  }
+}
+/* == NOVA LOGIN MOBILE FORM END == */

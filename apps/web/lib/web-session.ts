@@ -114,13 +114,13 @@ export async function fetchBackendSessionFromToken(token: string): Promise<WebSe
   return normalizeUserLike(mePayload);
 }
 
-export async function callBackendLogin(email: string, password: string) {
+export async function callBackendLogin(email: string, password: string, remember = false) {
   const response = await fetch(`${API_BASE_URL}/auth/login`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email, password, remember }),
     cache: "no-store",
   });
 

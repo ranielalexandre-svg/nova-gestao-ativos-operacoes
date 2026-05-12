@@ -4,11 +4,15 @@ import {
   callBackendLogout,
   BackendHttpError,
   fetchBackendSessionFromToken,
+  normalizeRole,
   WEB_ACCESS_COOKIE,
   type WebSession,
 } from "@/lib/web-session";
 
 export const dynamic = "force-dynamic";
+
+const SESSION_DURATION_NORMAL = 60 * 60 * 8;
+const SESSION_DURATION_REMEMBER = 60 * 60 * 24 * 30;
 
 function shouldUseSecureCookie(request: Request) {
   const forced = process.env.WEB_SESSION_COOKIE_SECURE;
@@ -27,13 +31,13 @@ function shouldUseSecureCookie(request: Request) {
   return false;
 }
 
-function buildCookieOptions(request: Request) {
+function buildCookieOptions(request: Request, remember = false) {
   return {
     httpOnly: true,
     sameSite: "lax" as const,
     secure: shouldUseSecureCookie(request),
     path: "/",
-    maxAge: 60 * 60 * 12,
+    maxAge: remember ? SESSION_DURATION_REMEMBER : SESSION_DURATION_NORMAL,
   };
 }
 
@@ -70,6 +74,12 @@ function loginErrorUrl(request: Request, message: string, next: string) {
   url.searchParams.set("error", message);
   if (next) url.searchParams.set("next", next);
   return url;
+}
+
+function roleDefaultRoute(role: string) {
+  const normalized = normalizeRole(role);
+  if (normalized === "viewer") return "/relatorios/disponibilidade";
+  return "/dashboard";
 }
 
 function authErrorMessage(error: unknown) {
@@ -119,6 +129,7 @@ export async function POST(request: Request) {
       email?: string;
       password?: string;
       next?: string;
+      remember?: string | boolean;
     };
 
     if (jsonRequest) {
@@ -130,10 +141,16 @@ export async function POST(request: Request) {
         email: String(formData.get("email") || ""),
         password: String(formData.get("password") || ""),
         next: String(formData.get("next") || ""),
+        remember: formData.get("remember") ? "true" : "false",
       };
     }
 
-    next = String(body.next || next || "/dashboard");
+    next = String(body.next || next || "");
+    const remember =
+      body.remember === true ||
+      body.remember === "true" ||
+      body.remember === "on" ||
+      body.remember === "1";
 
     let accessToken = String(body.accessToken || "");
     let sessionFromLogin: WebSession | null = null;
@@ -156,7 +173,7 @@ export async function POST(request: Request) {
         );
       }
 
-      const login = await callBackendLogin(email, password);
+      const login = await callBackendLogin(email, password, remember);
       accessToken = login.accessToken;
       sessionFromLogin = login.user ? { authenticated: true, user: login.user } : null;
     }
@@ -179,11 +196,14 @@ export async function POST(request: Request) {
 
     const response = jsonRequest
       ? NextResponse.json(session)
-      : NextResponse.redirect(safeRedirectUrl(request, next), 303);
+      : NextResponse.redirect(
+          safeRedirectUrl(request, next || roleDefaultRoute(session.user.role)),
+          303,
+        );
     response.cookies.set(
       WEB_ACCESS_COOKIE,
       encodeURIComponent(accessToken),
-      buildCookieOptions(request),
+      buildCookieOptions(request, remember),
     );
     return response;
   } catch (error) {

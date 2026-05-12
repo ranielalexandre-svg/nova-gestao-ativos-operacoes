@@ -15,11 +15,27 @@ model User {
   role               String
   passwordHash       String
   isActive           Boolean            @default(true)
+  passwordResetTokens PasswordResetToken[]
   assignedExceptions ExceptionCase[]    @relation("ExceptionAssignee")
   activities         ActivityEntry[]    @relation("ActivityActor")
   exceptionComments  ExceptionComment[] @relation("ExceptionCommentAuthor")
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([usedAt])
 }
 
 model Partner {

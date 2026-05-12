@@ -144,6 +144,7 @@ export function LoginForm() {
   const [email, setEmail] = useState("");
   const [remember, setRemember] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const serverError = searchParams.get("error") ?? "";
 
   useEffect(() => {
     const updateScale = () => {
@@ -327,14 +328,21 @@ export function LoginForm() {
               <label>
                 <input
                   type="checkbox"
+                  name="remember"
                   checked={remember}
                   onChange={(event) => setRemember(event.target.checked)}
                 />
                 <span>Lembrar acesso</span>
               </label>
 
-              <a href="/login?forgot=1">Esqueci minha senha</a>
+              <a href="/esqueci-senha">Esqueci minha senha</a>
             </div>
+
+            {serverError && (
+              <div className="nova-login-fixed-error" role="alert">
+                {serverError}
+              </div>
+            )}
 
             <button className="nova-login-fixed-submit" type="submit">
               <span>Entrar</span>
