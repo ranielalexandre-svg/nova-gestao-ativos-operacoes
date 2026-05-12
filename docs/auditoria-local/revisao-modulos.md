@@ -1,23 +1,22 @@
 # Auditoria local de módulos
 
-Branch: codex/cobertura-modulos-api-4
+Branch: codex/cobertura-automations-api
 Atualizado em: gerado por `corepack pnpm audit:modules`
 
 ## Resumo executivo
 
 - Arquivos estruturais da API encontrados: 69
-- Testes API existentes: 31
+- Testes API existentes: 33
 - Grupos/módulos API mapeados: 23
 - Rotas Web mapeadas: 91
 - Componentes Web mapeados: 28
-- Módulos API de prioridade alta sem teste direto: 3
+- Módulos API de prioridade alta sem teste direto: 2
 - Grupos Web de prioridade alta: 8
 
 ## Prioridades recomendadas
 
 ### API - prioridade alta
 
-- automations: sem teste de controller/service
 - exceptions: sem teste de controller/service
 - monitoring: sem teste de controller/service
 
@@ -45,7 +44,7 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 | attachments | 1 | 1 | 2 | com teste | baixa |
 | audits | 1 | 1 | 2 | com teste | baixa |
 | auth | 1 | 1 | 1 | com teste | baixa |
-| automations | 1 | 1 | 0 | sem teste de controller/service | alta |
+| automations | 1 | 1 | 2 | com teste | baixa |
 | contracts | 1 | 1 | 1 | com teste | baixa |
 | dashboard | 1 | 1 | 2 | com teste | baixa |
 | e2e | 0 | 0 | 1 | com teste | baixa |
@@ -148,6 +147,8 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 - apps/api/src/automations/automations.module.ts
 - apps/api/src/automations/automations.controller.ts
 - apps/api/src/automations/automations.service.ts
+- apps/api/src/automations/automations.controller.spec.ts
+- apps/api/src/automations/automations.service.spec.ts
 
 ### contracts
 
