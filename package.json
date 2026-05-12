@@ -19,6 +19,8 @@
     "test:api:watch": "corepack pnpm --dir apps/api exec jest --watch",
     "test:api:cov": "corepack pnpm --dir apps/api exec jest --coverage",
     "test:web": "corepack pnpm --dir apps/web lint && corepack pnpm --dir apps/web exec tsc --noEmit",
-    "test:smoke": "node scripts/smoke-web-routes.mjs"
+    "test:smoke": "node scripts/smoke-web-routes.mjs",
+    "test:all": "corepack pnpm test:api && corepack pnpm test:web",
+    "qa:local": "corepack pnpm test:all && corepack pnpm build:web && corepack pnpm build:api"
   }
 }
