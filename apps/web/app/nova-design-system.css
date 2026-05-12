@@ -26973,7 +26973,8 @@ body:has(.nova-automation-workflow-shell) {
 }
 
 .nova-lit-collapse-button,
-.nova-lit-mobile-menu {
+.nova-lit-mobile-menu,
+.nova-lit-drawer-close {
   appearance: none;
   border: 1px solid rgba(110, 159, 212, .28);
   border-radius: 10px;
@@ -26990,7 +26991,8 @@ body:has(.nova-automation-workflow-shell) {
 }
 
 .nova-lit-collapse-button:hover,
-.nova-lit-mobile-menu:hover {
+.nova-lit-mobile-menu:hover,
+.nova-lit-drawer-close:hover {
   border-color: rgba(255, 122, 0, .55);
   color: #fff;
 }
@@ -27438,6 +27440,11 @@ body:has(.nova-automation-workflow-shell) {
 }
 
 .nova-lit-mobile-menu {
+  display: none;
+}
+
+.nova-lit-drawer-close,
+.nova-lit-mobile-scrim {
   display: none;
 }
 
@@ -34157,19 +34164,81 @@ body:has(.nova-tickets-board-shell) {
 @media (max-width: 840px) {
   .nova-lit-shell-v2 {
     grid-template-columns: minmax(0, 1fr);
+    min-height: 100dvh;
+    overflow-x: hidden;
   }
 
   .nova-lit-sidebar-v2 {
-    display: none;
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 80;
+    width: min(326px, calc(100vw - 28px));
+    max-width: calc(100vw - 28px);
+    height: 100dvh;
+    display: flex;
+    transform: translateX(-105%);
+    transition: transform .2s ease;
+    border-right-color: rgba(124, 181, 244, .34);
+    box-shadow: 24px 0 60px rgba(0, 0, 0, .5);
+  }
+
+  .nova-lit-shell-v2.is-mobile-menu-open .nova-lit-sidebar-v2 {
+    transform: translateX(0);
+  }
+
+  .nova-lit-mobile-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    display: block;
+    border: 0;
+    background: rgba(0, 0, 0, .48);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s ease;
+  }
+
+  .nova-lit-shell-v2.is-mobile-menu-open .nova-lit-mobile-scrim {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .nova-lit-topbar-v2 {
+    min-height: 56px;
+    height: auto;
+    gap: 10px;
+    padding: 8px 12px;
+  }
+
+  .nova-lit-topbar-v2 > div:first-child {
+    flex: 1;
+  }
+
+  .nova-lit-topbar-v2 span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .nova-lit-content-v2 {
-    padding: 16px;
+    overflow-x: hidden;
+    padding: 14px 12px 32px;
   }
 
   .nova-lit-page-heading {
     align-items: stretch;
     flex-direction: column;
+    gap: 12px;
+  }
+
+  .nova-lit-page-heading h1 {
+    font-size: 24px;
+    line-height: 1.05;
+  }
+
+  .nova-lit-page-heading p {
+    font-size: 13px;
   }
 
   .nova-lit-page-actions {
@@ -34201,6 +34270,113 @@ body:has(.nova-tickets-board-shell) {
 
   .nova-lit-table-row > span:nth-child(n + 4) {
     display: none;
+  }
+
+  .nova-lit-shell-v2.is-collapsed {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .nova-lit-shell-v2.is-collapsed .nova-lit-sidebar-top {
+    grid-template-columns: minmax(0, 1fr) 34px;
+    justify-items: stretch;
+    padding: 18px 14px 10px;
+  }
+
+  .nova-lit-shell-v2.is-collapsed .nova-lit-logo {
+    width: 124px;
+    min-width: 124px;
+    min-height: 54px;
+    justify-content: flex-start;
+    align-items: flex-start;
+  }
+
+  .nova-lit-shell-v2.is-collapsed .nova-lit-logo-img {
+    display: block;
+  }
+
+  .nova-lit-shell-v2.is-collapsed .nova-lit-logo-mark,
+  .nova-lit-collapse-button {
+    display: none;
+  }
+
+  .nova-lit-drawer-close,
+  .nova-lit-mobile-menu {
+    display: grid;
+  }
+
+  .nova-lit-shell-v2.is-collapsed .nova-lit-menu-search {
+    display: grid;
+  }
+
+  .nova-lit-shell-v2.is-collapsed .nova-lit-section-heading > span:not(.nova-lit-heading-line):not(.nova-lit-heading-chevron) {
+    display: inline;
+  }
+
+  .nova-lit-shell-v2.is-collapsed .nova-lit-heading-line {
+    display: block;
+  }
+
+  .nova-lit-shell-v2.is-collapsed .nova-lit-heading-chevron {
+    display: inline-grid;
+  }
+
+  .nova-lit-shell-v2.is-collapsed .nova-lit-nav-label {
+    display: block;
+  }
+
+  .nova-lit-shell-v2.is-collapsed .nova-lit-menu-badge {
+    display: inline-grid;
+  }
+
+  .nova-lit-shell-v2.is-collapsed .nova-lit-inline-toggle {
+    display: grid;
+  }
+
+  .nova-lit-shell-v2.is-collapsed .nova-lit-user-meta {
+    display: grid;
+  }
+
+  .nova-lit-shell-v2.is-collapsed .nova-lit-footer-actions {
+    display: flex;
+  }
+
+  .nova-lit-shell-v2.is-collapsed .nova-lit-submenu.is-open {
+    display: block;
+  }
+
+  .nova-lit-shell-v2.is-collapsed .nova-lit-submenu.is-closed {
+    display: none;
+  }
+
+  .nova-lit-shell-v2.is-collapsed .nova-lit-menu {
+    padding: 2px 10px 12px;
+  }
+
+  .nova-lit-shell-v2.is-collapsed .nova-lit-section-heading {
+    display: grid;
+    grid-template-columns: auto minmax(16px, 1fr) 18px;
+    justify-content: stretch;
+    padding: 0 6px;
+    min-height: auto;
+  }
+
+  .nova-lit-shell-v2.is-collapsed .nova-lit-nav-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    justify-content: stretch;
+    min-height: 34px;
+  }
+
+  .nova-lit-shell-v2.is-collapsed .nova-lit-nav-link {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr);
+    justify-content: stretch;
+    padding: 7px 8px;
+  }
+
+  .nova-lit-shell-v2.is-collapsed .nova-lit-sidebar-footer {
+    grid-template-columns: 38px minmax(0, 1fr) auto;
+    justify-items: stretch;
   }
 }
 /* == NOVA DASHBOARD REAL DATA END == */

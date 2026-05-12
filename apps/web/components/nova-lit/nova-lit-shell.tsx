@@ -537,6 +537,7 @@ export function NovaLitShell({
 
   const [query, setQuery] = useState("");
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>(sectionDefaults());
   const [openItems, setOpenItems] = useState<Record<string, boolean>>(itemDefaults());
   const [favorites, setFavorites] = useState<string[]>(DEFAULT_FAVORITES);
@@ -560,12 +561,42 @@ export function NovaLitShell({
 
       event.preventDefault();
       setIsCollapsed(false);
+      setIsMobileMenuOpen(true);
       window.setTimeout(() => searchInputRef.current?.focus(), 0);
     };
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
+
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [isMobileMenuOpen]);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setIsMobileMenuOpen(false);
+      setQuery("");
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [pathname]);
 
   useEffect(() => {
     if (!currentHref.startsWith("/ativos")) {
@@ -606,6 +637,14 @@ export function NovaLitShell({
       writeJson(COLLAPSED_STORAGE_KEY, next);
       return next;
     });
+  }
+
+  function toggleMobileMenu() {
+    setIsMobileMenuOpen((previous) => !previous);
+  }
+
+  function closeMobileMenu() {
+    setIsMobileMenuOpen(false);
   }
 
   function toggleSection(sectionId: string) {
@@ -681,6 +720,7 @@ export function NovaLitShell({
             className="nova-lit-nav-link"
             aria-current={active && !hasChildren ? "page" : undefined}
             title={item.label}
+            onClick={closeMobileMenu}
           >
             {depth > 0 ? <span className="nova-lit-sub-dot" aria-hidden="true" /> : <NavIcon name={item.icon} />}
             <span className="nova-lit-nav-label">{item.label}</span>
@@ -715,10 +755,18 @@ export function NovaLitShell({
   }
 
   return (
-    <div className={`nova-lit-shell-v2 ${isCollapsed ? "is-collapsed" : ""}`}>
-      <aside className="nova-lit-sidebar-v2" aria-label="Menu principal">
+    <div className={`nova-lit-shell-v2 ${isCollapsed ? "is-collapsed" : ""} ${isMobileMenuOpen ? "is-mobile-menu-open" : ""}`}>
+      <button
+        type="button"
+        className="nova-lit-mobile-scrim"
+        onClick={closeMobileMenu}
+        aria-label="Fechar menu"
+        tabIndex={isMobileMenuOpen ? 0 : -1}
+      />
+
+      <aside className="nova-lit-sidebar-v2" id="nova-lit-menu" aria-label="Menu principal">
         <div className="nova-lit-sidebar-top">
-          <Link href="/dashboard" className="nova-lit-logo" aria-label="NOVA Telecom">
+          <Link href="/dashboard" className="nova-lit-logo" aria-label="NOVA Telecom" onClick={closeMobileMenu}>
             <Image
               className="nova-lit-logo-img"
               src="/brand/nova-telecom-logo.svg"
@@ -745,6 +793,15 @@ export function NovaLitShell({
           >
             «
           </button>
+
+          <button
+            type="button"
+            className="nova-lit-drawer-close"
+            onClick={closeMobileMenu}
+            aria-label="Fechar menu"
+          >
+            ×
+          </button>
         </div>
 
         <form className="nova-lit-menu-search" onSubmit={handleSearchSubmit} role="search">
@@ -763,7 +820,10 @@ export function NovaLitShell({
               {searchResults.length ? (
                 searchResults.map((item, index) => (
                   <div key={navItemKey(item, "search", index)} className="nova-lit-search-result">
-                    <Link href={item.href} onClick={() => setQuery("")}>
+                    <Link href={item.href} onClick={() => {
+                      setQuery("");
+                      closeMobileMenu();
+                    }}>
                       <span>{item.label}</span>
                       <small>{item.parent ? `${item.section} / ${item.parent}` : item.section}</small>
                     </Link>
@@ -813,7 +873,7 @@ export function NovaLitShell({
                     data-favorite={isFavorite ? "true" : "false"}
                   >
                     <div className={`nova-lit-nav-row favorite-row ${currentHref === item.href ? "is-active" : ""}`}>
-                      <Link href={item.href} className="nova-lit-nav-link" title={item.label} tabIndex={isFavorite ? 0 : -1}>
+                      <Link href={item.href} className="nova-lit-nav-link" title={item.label} tabIndex={isFavorite ? 0 : -1} onClick={closeMobileMenu}>
                         <NavIcon name={item.icon} />
                         <span className="nova-lit-nav-label">{item.label}</span>
                       </Link>
@@ -892,8 +952,10 @@ export function NovaLitShell({
             <button
               type="button"
               className="nova-lit-mobile-menu"
-              onClick={toggleCollapsed}
-              aria-label={isCollapsed ? "Expandir menu" : "Recolher menu"}
+              onClick={toggleMobileMenu}
+              aria-label={isMobileMenuOpen ? "Fechar menu" : "Abrir menu"}
+              aria-controls="nova-lit-menu"
+              aria-expanded={isMobileMenuOpen}
             >
               ☰
             </button>
