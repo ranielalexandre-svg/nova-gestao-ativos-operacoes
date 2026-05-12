@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { CSSProperties, ReactNode } from "react";
@@ -15,6 +14,7 @@ import {
 import { formatDateTime } from "@/lib/formatters";
 import { isAdminRole, ROLE_OPTIONS, roleLabel } from "@/lib/role-policy";
 import { getServerWebSession } from "@/lib/web-session";
+import { NovaLitShell } from "@/components/nova-lit/nova-lit-shell";
 
 type Tone = "green" | "orange" | "blue" | "red" | "purple" | "teal" | "slate";
 type IconName =
@@ -55,60 +55,6 @@ type UserRow = {
   createdAt: string;
   updatedAt?: string;
 };
-
-type NavItem = {
-  label: string;
-  href: string;
-  icon: IconName;
-};
-
-const NAV_SECTIONS: Array<{ label: string; items: NavItem[] }> = [
-  {
-    label: "Geral",
-    items: [
-      { label: "Visão geral", href: "/dashboard", icon: "home" },
-      { label: "Unidades", href: "/unidades", icon: "building" },
-      { label: "Mapas", href: "/dashboard/mapas", icon: "map" },
-      { label: "Alertas", href: "/alertas", icon: "alert" },
-    ],
-  },
-  {
-    label: "Monitoramento",
-    items: [
-      { label: "Infraestrutura", href: "/monitoramento", icon: "server" },
-      { label: "Serviços", href: "/sensores", icon: "network" },
-      { label: "Links", href: "/alertas", icon: "activity" },
-      { label: "Sensores", href: "/sensores", icon: "chart" },
-    ],
-  },
-  {
-    label: "Gestão",
-    items: [
-      { label: "Ativos", href: "/ativos", icon: "file" },
-      { label: "Starlinks", href: "/ativos/starlinks", icon: "network" },
-      { label: "Unidades", href: "/unidades", icon: "building" },
-      { label: "Usuários", href: "/usuarios", icon: "users" },
-    ],
-  },
-  {
-    label: "Relatórios",
-    items: [
-      { label: "Consumo", href: "/relatorios/consumo", icon: "chart" },
-      { label: "Disponibilidade", href: "/relatorios/disponibilidade", icon: "activity" },
-      { label: "Performance", href: "/relatorios/performance", icon: "activity" },
-      { label: "SLA", href: "/operacao/sla", icon: "shield" },
-    ],
-  },
-  {
-    label: "Configurações",
-    items: [
-      { label: "Perfis", href: "/perfis", icon: "users" },
-      { label: "Usuários", href: "/usuarios", icon: "plus-user" },
-      { label: "Integrações", href: "/integracoes", icon: "settings" },
-      { label: "Configurações", href: "/configuracoes", icon: "settings" },
-    ],
-  },
-];
 
 const ROLE_COLORS: Record<string, string> = {
   admin: "#8b5cf6",
@@ -247,61 +193,6 @@ function ActionButton({ href, icon, children, variant = "secondary" }: { href: s
       <Icon name={icon} />
       <span>{children}</span>
     </Link>
-  );
-}
-
-function Nav() {
-  return (
-    <aside className="nova-users-board-sidebar">
-      <Link href="/dashboard" className="nova-users-board-logo" aria-label="NOVA Telecom">
-        <Image
-          src="/brand/nova-telecom-logo.svg"
-          alt="NOVA Telecom"
-          width={170}
-          height={70}
-          priority
-        />
-      </Link>
-      <nav aria-label="Navegação principal">
-        {NAV_SECTIONS.map((section) => (
-          <section key={section.label} className="nova-users-board-nav-section">
-            <h2>{section.label}</h2>
-            {section.items.map((item) => (
-              <Link
-                key={`${section.label}-${item.href}-${item.label}`}
-                href={item.href}
-                className="nova-users-board-nav-link"
-                data-active={section.label === "Configurações" && item.href === "/usuarios"}
-              >
-                <Icon name={item.icon} />
-                <span>{item.label}</span>
-              </Link>
-            ))}
-          </section>
-        ))}
-      </nav>
-    </aside>
-  );
-}
-
-function Topbar({ userEmail }: { userEmail?: string }) {
-  return (
-    <header className="nova-users-board-topbar">
-      <div>
-        <button type="button" aria-label="Menu"><Icon name="menu" /></button>
-        <span>Sistema de gestão operacional</span>
-      </div>
-      <div>
-        <button type="button" aria-label="Notificações"><Icon name="bell" /><i>12</i></button>
-        <button type="button" aria-label="Ajuda">?</button>
-        <button type="button" aria-label="Tema"><Icon name="moon" /></button>
-        <Link href="/usuarios" className="nova-users-board-user">
-          <b>A</b>
-          <span>Administrador<small>{userEmail || "admin@novatelecom.com.br"}</small></span>
-          <Icon name="chevron" />
-        </Link>
-      </div>
-    </header>
   );
 }
 
@@ -444,11 +335,8 @@ export default async function UsuariosPage({
   const firstUserHref = users[0] ? `/usuarios/${users[0].id}` : "/usuarios";
 
   return (
-    <div className="nova-users-board-shell">
-      <Nav />
-      <div className="nova-users-board-main">
-        <Topbar userEmail={session.user?.email} />
-        <main className="nova-users-board-page">
+    <NovaLitShell activeHref="/usuarios" hidePageHeader>
+      <main className="nova-users-board-page">
           <header className="nova-users-board-heading">
             <div>
               <nav aria-label="Breadcrumb">
@@ -690,8 +578,7 @@ export default async function UsuariosPage({
               </section>
             </aside>
           </section>
-        </main>
-      </div>
-    </div>
+      </main>
+    </NovaLitShell>
   );
 }

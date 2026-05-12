@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { apiJson } from "@/lib/server-api";
@@ -12,6 +11,7 @@ import {
   roleLabel,
 } from "@/lib/role-policy";
 import { getServerWebSession } from "@/lib/web-session";
+import { NovaLitShell } from "@/components/nova-lit/nova-lit-shell";
 
 type Tone = "green" | "orange" | "blue" | "red" | "purple" | "teal" | "slate";
 type PermissionLevel = "none" | "read" | "write" | "admin";
@@ -57,58 +57,7 @@ type AuditRow = {
   details: string;
 };
 
-type NavItem = {
-  label: string;
-  href: string;
-  icon: IconName;
-};
-
 const ACTIVE_ROLE = "operator";
-
-const NAV_SECTIONS: Array<{ label: string; items: NavItem[] }> = [
-  {
-    label: "Geral",
-    items: [{ label: "Visão geral", href: "/dashboard", icon: "home" }],
-  },
-  {
-    label: "Monitoramento",
-    items: [
-      { label: "Unidades", href: "/unidades", icon: "building" },
-      { label: "Sensores", href: "/sensores", icon: "network" },
-      { label: "Mapas", href: "/mapas", icon: "book" },
-      { label: "Alertas", href: "/alertas", icon: "alert" },
-    ],
-  },
-  {
-    label: "Gestão",
-    items: [
-      { label: "Ativos", href: "/ativos", icon: "file" },
-      { label: "Contratos", href: "/contratos", icon: "book" },
-      { label: "Chamados", href: "/chamados", icon: "activity" },
-      { label: "Exceções", href: "/excecoes", icon: "shield" },
-      { label: "Automação", href: "/automacao", icon: "settings" },
-    ],
-  },
-  {
-    label: "Relatórios",
-    items: [
-      { label: "Monitoramento", href: "/relatorios/monitoramento", icon: "chart" },
-      { label: "Consumo", href: "/relatorios/consumo", icon: "chart" },
-      { label: "Disponibilidade", href: "/relatorios/disponibilidade", icon: "chart" },
-      { label: "Performance", href: "/relatorios/performance", icon: "chart" },
-    ],
-  },
-  {
-    label: "Configurações",
-    items: [
-      { label: "Usuários", href: "/usuarios", icon: "users" },
-      { label: "Perfis", href: "/perfis", icon: "users" },
-      { label: "Integrações", href: "/integracoes", icon: "settings" },
-      { label: "Configurações", href: "/configuracoes", icon: "settings" },
-      { label: "Sistema", href: "/configuracoes", icon: "settings" },
-    ],
-  },
-];
 
 const PROFILE_MODULES = [
   {
@@ -236,62 +185,6 @@ function permissionLevel(value: string): PermissionLevel {
   return "none";
 }
 
-function Nav() {
-  return (
-    <aside className="nova-profile-editor-sidebar">
-      <Link href="/dashboard" className="nova-profile-editor-logo" aria-label="NOVA Telecom">
-        <Image
-          src="/brand/nova-telecom-logo.svg"
-          alt="NOVA Telecom"
-          width={170}
-          height={70}
-          priority
-        />
-      </Link>
-      <nav aria-label="Navegação principal">
-        {NAV_SECTIONS.map((section) => (
-          <section key={section.label} className="nova-profile-editor-nav-section">
-            <h2>{section.label}</h2>
-            {section.items.map((item) => (
-              <Link
-                key={`${section.label}-${item.href}-${item.label}`}
-                href={item.href}
-                className="nova-profile-editor-nav-link"
-                data-active={section.label === "Configurações" && item.href === "/perfis"}
-              >
-                <Icon name={item.icon} />
-                <span>{item.label}</span>
-              </Link>
-            ))}
-          </section>
-        ))}
-      </nav>
-    </aside>
-  );
-}
-
-function Topbar({ userEmail, userName }: { userEmail?: string; userName?: string }) {
-  return (
-    <header className="nova-profile-editor-topbar">
-      <div>
-        <button type="button" aria-label="Menu"><Icon name="menu" /></button>
-      </div>
-      <div>
-        <button type="button" aria-label="Notificações"><Icon name="bell" /><i>3</i></button>
-        <button type="button" aria-label="Ajuda">?</button>
-        <button type="button" aria-label="Tema"><Icon name="moon" /></button>
-        <Link href="/usuarios" className="nova-profile-editor-user">
-          <span>
-            <strong>{userName || "Administrador"}</strong>
-            <small>{userEmail || "admin@novatelecom.com.br"}</small>
-          </span>
-          <b>{initials(userName || "Administrador").slice(0, 1)}</b>
-        </Link>
-      </div>
-    </header>
-  );
-}
-
 async function readUsers() {
   try {
     return await apiJson<PaginatedResponse<UserRow>>(
@@ -357,11 +250,8 @@ export default async function PerfisPage() {
   }));
 
   return (
-    <div className="nova-profile-editor-shell">
-      <Nav />
-      <div className="nova-profile-editor-main">
-        <Topbar userEmail={session.user?.email} userName={session.user?.name} />
-        <main className="nova-profile-editor-page">
+    <NovaLitShell activeHref="/perfis" hidePageHeader>
+      <main className="nova-profile-editor-page">
           <ProfileEditorWorkspace
             description={roleDefinition?.description || "Perfil operacional do sistema."}
             initialModules={moduleRows}
@@ -371,8 +261,7 @@ export default async function PerfisPage() {
               latestUserChange ? formatDateTime(latestUserChange) : "Sem alteração"
             }
           />
-        </main>
-      </div>
-    </div>
+      </main>
+    </NovaLitShell>
   );
 }

@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -47,11 +46,6 @@ type IconName =
   | "trash"
   | "user"
   | "users";
-type NavItem = {
-  label: string;
-  href: string;
-  icon: IconName;
-};
 type DetectorFilter =
   | "all"
   | "maintenance_overdue"
@@ -146,52 +140,6 @@ const enabledOptions = ["all", "true", "false"] as const;
 const sortByOptions = ["createdAt", "code", "detector", "cadence"] as const;
 const sortDirOptions = ["asc", "desc"] as const;
 const pageSizeOptions = [10, 20, 50] as const;
-
-const NAV_SECTIONS: Array<{ label: string; items: NavItem[] }> = [
-  {
-    label: "Geral",
-    items: [
-      { label: "Visão geral", href: "/dashboard", icon: "home" },
-    ],
-  },
-  {
-    label: "Monitoramento",
-    items: [
-      { label: "Unidades", href: "/unidades", icon: "file" },
-      { label: "Sensores", href: "/sensores", icon: "activity" },
-      { label: "Mapas", href: "/mapas", icon: "map" },
-      { label: "Alertas", href: "/alertas", icon: "bell" },
-    ],
-  },
-  {
-    label: "Gestão",
-    items: [
-      { label: "Ativos", href: "/ativos", icon: "file" },
-      { label: "Contratos", href: "/contratos", icon: "file" },
-      { label: "Chamados", href: "/chamados", icon: "list" },
-      { label: "Exceções", href: "/excecoes", icon: "alert" },
-      { label: "Automação", href: "/automacao", icon: "gear" },
-    ],
-  },
-  {
-    label: "Relatórios",
-    items: [
-      { label: "Monitoramento", href: "/relatorios/monitoramento", icon: "activity" },
-      { label: "Consumo", href: "/relatorios/consumo", icon: "database" },
-      { label: "Disponibilidade", href: "/relatorios/disponibilidade", icon: "clock" },
-      { label: "Performance", href: "/relatorios/performance", icon: "activity" },
-    ],
-  },
-  {
-    label: "Configurações",
-    items: [
-      { label: "Usuários", href: "/usuarios", icon: "users" },
-      { label: "Perfis", href: "/perfis", icon: "user" },
-      { label: "Integrações", href: "/integracoes", icon: "integration" },
-      { label: "Configurações", href: "/configuracoes", icon: "shield" },
-    ],
-  },
-];
 
 const emptyAutomationSummary: AutomationSummary = {
   counts: {
@@ -368,55 +316,6 @@ function stateParams(state: AutomacaoState): RawSearchParams {
     page: String(state.page),
     pageSize: String(state.pageSize),
   };
-}
-
-function Nav() {
-  return (
-    <aside className="nova-exceptions-board-sidebar nova-automation-workflow-sidebar">
-      <Link href="/dashboard" className="nova-exceptions-board-logo" aria-label="NOVA Telecom">
-        <Image src="/brand/nova-telecom-logo.svg" alt="NOVA Telecom" width={150} height={62} priority />
-      </Link>
-      <nav aria-label="Navegação principal">
-        {NAV_SECTIONS.map((section) => (
-          <section key={section.label} className="nova-exceptions-board-nav-section">
-            <h2>{section.label}</h2>
-            {section.items.map((item) => (
-              <Link
-                key={`${section.label}-${item.href}-${item.label}`}
-                href={item.href}
-                className="nova-exceptions-board-nav-link"
-                data-active={item.href === "/automacao"}
-              >
-                <Icon name={item.icon} />
-                <span>{item.label}</span>
-              </Link>
-            ))}
-          </section>
-        ))}
-      </nav>
-    </aside>
-  );
-}
-
-function Topbar({ userName, userEmail }: { userName?: string; userEmail?: string }) {
-  const initials = (userName || "Administrador").slice(0, 2).toUpperCase();
-
-  return (
-    <header className="nova-exceptions-board-topbar nova-automation-workflow-topbar">
-      <div>
-        <button type="button" aria-label="Menu"><Icon name="menu" /></button>
-      </div>
-      <div>
-        <button type="button" aria-label="Notificações"><Icon name="bell" /><i>3</i></button>
-        <button type="button" aria-label="Ajuda">?</button>
-        <button type="button" aria-label="Tema"><Icon name="moon" /></button>
-        <Link href="/usuarios" className="nova-exceptions-board-user">
-          <span>{userName || "Administrador"}<small>{userEmail || "admin@novatelecom.com.br"}</small></span>
-          <b>{initials}</b>
-        </Link>
-      </div>
-    </header>
-  );
 }
 
 function Dot({ tone = "blue" }: { tone?: Tone }) {

@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { CSSProperties, ReactNode } from "react";
@@ -49,12 +48,6 @@ type IconName =
   | "trash"
   | "user"
   | "users";
-
-type NavItem = {
-  label: string;
-  href: string;
-  icon: IconName;
-};
 
 type QueueSummary = {
   views: {
@@ -134,56 +127,6 @@ const sortByOptions = ["createdAt", "severity", "status", "priorityScore", "reso
 const sortDirOptions = ["asc", "desc"] as const;
 const viewOptions = ["all", "pending", "breached", "dueSoon", "unassigned"] as const;
 const pageSizeOptions = [10, 20, 50] as const;
-
-const NAV_SECTIONS: Array<{ label: string; items: NavItem[] }> = [
-  {
-    label: "Geral",
-    items: [
-      { label: "Visão geral", href: "/dashboard", icon: "home" },
-    ],
-  },
-  {
-    label: "Monitoramento",
-    items: [
-      { label: "Sensores", href: "/monitoramento/sensores", icon: "activity" },
-      { label: "Mapas", href: "/monitoramento/mapas", icon: "map" },
-      { label: "Alertas", href: "/alertas", icon: "bell" },
-    ],
-  },
-  {
-    label: "Gestão",
-    items: [
-      { label: "Ativos", href: "/ativos", icon: "file" },
-      { label: "Starlinks", href: "/ativos/starlinks", icon: "activity" },
-      { label: "Unidades", href: "/unidades", icon: "building" },
-      { label: "Parceiros", href: "/parceiros", icon: "users" },
-      { label: "Contratos", href: "/contratos", icon: "file" },
-      { label: "Chamados", href: "/chamados", icon: "list" },
-      { label: "Exceções", href: "/excecoes", icon: "alert" },
-      { label: "Automação", href: "/automacao", icon: "gear" },
-    ],
-  },
-  {
-    label: "Relatórios",
-    items: [
-      { label: "Monitoramento", href: "/relatorios/monitoramento", icon: "chart" },
-      { label: "Consumo", href: "/relatorios/consumo", icon: "chart" },
-      { label: "Disponibilidade", href: "/relatorios/disponibilidade", icon: "activity" },
-      { label: "Performance", href: "/relatorios/performance", icon: "chart" },
-    ],
-  },
-  {
-    label: "Configurações",
-    items: [
-      { label: "Importação", href: "/operacao/importacao", icon: "import" },
-      { label: "Reconciliação", href: "/reconciliacao-central", icon: "target" },
-      { label: "Usuários", href: "/usuarios", icon: "users" },
-      { label: "Perfis", href: "/perfis", icon: "user" },
-      { label: "Integrações", href: "/integracoes", icon: "gear" },
-      { label: "Sistemas", href: "/configuracoes", icon: "shield" },
-    ],
-  },
-];
 
 const emptySummary: ExceptionSummary = {
   counts: {
@@ -420,54 +363,6 @@ function ProgressLine({ label, value, tone }: { label: string; value: number; to
         <em className={`is-${tone}`} style={{ width: `${safe}%` }} />
       </i>
     </div>
-  );
-}
-
-function Nav() {
-  return (
-    <aside className="nova-exceptions-board-sidebar">
-      <Link href="/dashboard" className="nova-exceptions-board-logo" aria-label="NOVA Telecom">
-        <Image src="/brand/nova-telecom-logo.svg" alt="NOVA Telecom" width={150} height={62} priority />
-      </Link>
-      <nav aria-label="Navegação principal">
-        {NAV_SECTIONS.map((section) => (
-          <section key={section.label} className="nova-exceptions-board-nav-section">
-            <h2>{section.label}</h2>
-            {section.items.map((item) => (
-              <Link
-                key={`${section.label}-${item.href}-${item.label}`}
-                href={item.href}
-                className="nova-exceptions-board-nav-link"
-                data-active={item.href === "/excecoes"}
-              >
-                <Icon name={item.icon} />
-                <span>{item.label}</span>
-              </Link>
-            ))}
-          </section>
-        ))}
-      </nav>
-    </aside>
-  );
-}
-
-function Topbar({ userName }: { userName?: string }) {
-  return (
-    <header className="nova-exceptions-board-topbar">
-      <div>
-        <button type="button" aria-label="Menu"><Icon name="menu" /></button>
-        <span>Sistema de gestão operacional</span>
-      </div>
-      <div>
-        <button type="button" aria-label="Notificações"><Icon name="bell" /><i>3</i></button>
-        <button type="button" aria-label="Ajuda">?</button>
-        <button type="button" aria-label="Tema"><Icon name="moon" /></button>
-        <Link href="/usuarios" className="nova-exceptions-board-user">
-          <b>{(userName || "Admin").slice(0, 2).toUpperCase()}</b>
-          <span>{userName || "Admin User"}<small>Administrador</small></span>
-        </Link>
-      </div>
-    </header>
   );
 }
 

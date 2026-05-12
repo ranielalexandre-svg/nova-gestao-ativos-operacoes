@@ -1,6 +1,5 @@
-import Image from "next/image";
-import Link from "next/link";
 import type { ReactNode } from "react";
+import { NovaLitShell } from "@/components/nova-lit/nova-lit-shell";
 
 type IconName =
   | "activity"
@@ -22,60 +21,6 @@ type IconName =
   | "shield"
   | "trash"
   | "users";
-
-type NavItem = {
-  label: string;
-  href: string;
-  icon: IconName;
-};
-
-const NAV_SECTIONS: Array<{ label: string; items: NavItem[] }> = [
-  {
-    label: "Geral",
-    items: [
-      { label: "Visão geral", href: "/dashboard", icon: "home" },
-      { label: "Unidades", href: "/unidades", icon: "building" },
-      { label: "Mapas", href: "/mapas", icon: "chart" },
-      { label: "Alertas", href: "/alertas", icon: "alert" },
-    ],
-  },
-  {
-    label: "Monitoramento",
-    items: [
-      { label: "Infraestrutura", href: "/monitoramento", icon: "building" },
-      { label: "Serviços", href: "/sensores", icon: "network" },
-      { label: "Links", href: "/alertas", icon: "activity" },
-      { label: "Sensores", href: "/sensores", icon: "chart" },
-    ],
-  },
-  {
-    label: "Gestão",
-    items: [
-      { label: "Ativos", href: "/ativos", icon: "file" },
-      { label: "Starlinks", href: "/ativos/starlinks", icon: "network" },
-      { label: "Unidades", href: "/unidades", icon: "building" },
-      { label: "Usuários", href: "/usuarios", icon: "users" },
-    ],
-  },
-  {
-    label: "Relatórios",
-    items: [
-      { label: "Consumo", href: "/relatorios/consumo", icon: "chart" },
-      { label: "Disponibilidade", href: "/relatorios/disponibilidade", icon: "activity" },
-      { label: "Performance", href: "/relatorios/performance", icon: "activity" },
-      { label: "SLA", href: "/operacao/sla", icon: "shield" },
-    ],
-  },
-  {
-    label: "Configurações",
-    items: [
-      { label: "Perfis", href: "/perfis", icon: "users" },
-      { label: "Usuários", href: "/usuarios", icon: "plus-user" },
-      { label: "Integrações", href: "/integracoes", icon: "settings" },
-      { label: "Configurações", href: "/configuracoes", icon: "settings" },
-    ],
-  },
-];
 
 export function UserAccessIcon({ name }: { name: IconName }) {
   const common = {
@@ -129,80 +74,7 @@ export function UserAccessIcon({ name }: { name: IconName }) {
   }
 }
 
-function initials(name: string) {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (!parts.length) return "A";
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
-}
-
-function Nav() {
-  return (
-    <aside className="nova-users-board-sidebar">
-      <Link href="/dashboard" className="nova-users-board-logo" aria-label="NOVA Telecom">
-        <Image
-          src="/brand/nova-telecom-logo.svg"
-          alt="NOVA Telecom"
-          width={170}
-          height={70}
-          priority
-        />
-      </Link>
-      <nav aria-label="Navegação principal">
-        {NAV_SECTIONS.map((section) => (
-          <section key={section.label} className="nova-users-board-nav-section">
-            <h2>{section.label}</h2>
-            {section.items.map((item) => (
-              <Link
-                key={`${section.label}-${item.href}-${item.label}`}
-                href={item.href}
-                className="nova-users-board-nav-link"
-                data-active={section.label === "Configurações" && item.href === "/usuarios"}
-              >
-                <UserAccessIcon name={item.icon} />
-                <span>{item.label}</span>
-              </Link>
-            ))}
-          </section>
-        ))}
-      </nav>
-    </aside>
-  );
-}
-
-function Topbar({ userEmail, userName }: { userEmail?: string; userName?: string }) {
-  return (
-    <header className="nova-users-board-topbar">
-      <div>
-        <Link href="/dashboard" className="nova-users-board-topbar-action" aria-label="Menu">
-          <UserAccessIcon name="menu" />
-        </Link>
-        <span>Sistema de gestão operacional</span>
-      </div>
-      <div>
-        <Link href="/alertas" className="nova-users-board-topbar-action" aria-label="Notificações">
-          <UserAccessIcon name="bell" />
-          <i>12</i>
-        </Link>
-        <Link href="/configuracoes" className="nova-users-board-topbar-action" aria-label="Ajuda">
-          ?
-        </Link>
-        <Link href="/configuracoes" className="nova-users-board-topbar-action" aria-label="Tema">
-          <UserAccessIcon name="moon" />
-        </Link>
-        <Link href="/usuarios" className="nova-users-board-user">
-          <b>{initials(userName || "Administrador").slice(0, 1)}</b>
-          <span>{userName || "Administrador"}<small>{userEmail || "admin@novatelecom.com.br"}</small></span>
-          <UserAccessIcon name="chevron" />
-        </Link>
-      </div>
-    </header>
-  );
-}
-
 export function UserAccessShell({
-  userEmail,
-  userName,
   children,
 }: {
   userEmail?: string;
@@ -210,12 +82,8 @@ export function UserAccessShell({
   children: ReactNode;
 }) {
   return (
-    <div className="nova-users-board-shell">
-      <Nav />
-      <div className="nova-users-board-main">
-        <Topbar userEmail={userEmail} userName={userName} />
-        {children}
-      </div>
-    </div>
+    <NovaLitShell activeHref="/usuarios" hidePageHeader>
+      {children}
+    </NovaLitShell>
   );
 }
