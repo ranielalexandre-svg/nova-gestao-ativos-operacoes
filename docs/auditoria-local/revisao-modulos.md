@@ -1,16 +1,16 @@
 # Auditoria local de módulos
 
 Branch: codex/revisao-modulos-local
-Atualizado em: 2026-05-12T21:19:17.353Z
+Atualizado em: gerado por `corepack pnpm audit:modules`
 
 ## Resumo executivo
 
 - Arquivos estruturais da API encontrados: 69
-- Testes API existentes: 11
+- Testes API existentes: 15
 - Grupos/módulos API mapeados: 23
 - Rotas Web mapeadas: 91
 - Componentes Web mapeados: 28
-- Módulos API de prioridade alta sem teste direto: 13
+- Módulos API de prioridade alta sem teste direto: 11
 - Grupos Web de prioridade alta: 8
 
 ## Prioridades recomendadas
@@ -21,7 +21,6 @@ Atualizado em: 2026-05-12T21:19:17.353Z
 - attachments: sem teste de controller/service
 - audits: sem teste de controller/service
 - automations: sem teste de controller/service
-- dashboard: sem teste de controller/service
 - equipments: sem teste de controller/service
 - exceptions: sem teste de controller/service
 - integrations: sem teste de controller/service
@@ -29,7 +28,6 @@ Atualizado em: 2026-05-12T21:19:17.353Z
 - monitoring: sem teste de controller/service
 - occurrences: sem teste de controller/service
 - starlinks: sem teste de controller/service
-- units: sem teste de controller/service
 
 ### API - prioridade média
 
@@ -57,7 +55,7 @@ Atualizado em: 2026-05-12T21:19:17.353Z
 | auth | 1 | 1 | 1 | com teste | baixa |
 | automations | 1 | 1 | 0 | sem teste de controller/service | alta |
 | contracts | 1 | 1 | 1 | com teste | baixa |
-| dashboard | 1 | 1 | 0 | sem teste de controller/service | alta |
+| dashboard | 1 | 1 | 2 | com teste | baixa |
 | e2e | 0 | 0 | 1 | com teste | baixa |
 | equipments | 1 | 1 | 0 | sem teste de controller/service | alta |
 | exceptions | 1 | 1 | 0 | sem teste de controller/service | alta |
@@ -71,7 +69,7 @@ Atualizado em: 2026-05-12T21:19:17.353Z
 | prisma | 0 | 1 | 0 | sem teste de service | média |
 | settings | 1 | 1 | 2 | com teste | baixa |
 | starlinks | 1 | 1 | 0 | sem teste de controller/service | alta |
-| units | 1 | 1 | 0 | sem teste de controller/service | alta |
+| units | 1 | 1 | 2 | com teste | baixa |
 | users | 1 | 1 | 1 | com teste | baixa |
 
 ## Matriz Web
@@ -165,6 +163,8 @@ Atualizado em: 2026-05-12T21:19:17.353Z
 - apps/api/src/dashboard/dashboard.module.ts
 - apps/api/src/dashboard/dashboard.controller.ts
 - apps/api/src/dashboard/dashboard.service.ts
+- apps/api/src/dashboard/dashboard.controller.spec.ts
+- apps/api/src/dashboard/dashboard.service.spec.ts
 
 ### e2e
 
@@ -254,6 +254,8 @@ Atualizado em: 2026-05-12T21:19:17.353Z
 - apps/api/src/units/units.module.ts
 - apps/api/src/units/units.controller.ts
 - apps/api/src/units/units.service.ts
+- apps/api/src/units/units.controller.spec.ts
+- apps/api/src/units/units.service.spec.ts
 
 ### users
 

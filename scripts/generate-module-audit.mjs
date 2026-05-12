@@ -209,7 +209,7 @@ let md = "";
 
 md += "# Auditoria local de módulos\n\n";
 md += `Branch: ${getBranch()}\n`;
-md += `Atualizado em: ${new Date().toISOString()}\n\n`;
+md += "Atualizado em: gerado por `corepack pnpm audit:modules`\n\n";
 
 md += "## Resumo executivo\n\n";
 md += `- Arquivos estruturais da API encontrados: ${apiFiles.length}\n`;
