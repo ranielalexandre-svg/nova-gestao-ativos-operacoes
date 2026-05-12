@@ -34690,6 +34690,185 @@ body:has(.nova-tickets-board-shell) {
   }
 }
 
+/* Compatibilidade mobile: grids, cards e tabelas dentro do NovaLitShell. */
+@media (max-width: 840px) {
+  .nova-lit-shell-v2 :where(
+    .nova-side-grid,
+    .nova-side-grid--wide-main,
+    .nova-side-grid--lg,
+    .nova-inventory-grid,
+    .nova-detail-grid,
+    .nova-detail-grid--partner,
+    .nova-report-date-grid,
+    .nova-report-choice-grid,
+    .nova-report-choice-grid--unit,
+    .nova-report-choice-grid--template,
+    .nova-report-split-grid,
+    .nova-settings-health-row,
+    .nova-settings-integration-row,
+    .nova-integration-card-row,
+    .nova-events-grid,
+    .nova-equipment-row,
+    .nova-command-deck-grid,
+    .nova-loading-grid,
+    .nova-loading-grid--two,
+    .nova-loading-side-grid,
+    .nova-map-page-grid,
+    .nova-map-summary-grid,
+    .nova-integration-health-grid,
+    .nova-users-board-kpis,
+    .nova-profile-editor-kpis,
+    .nova-tickets-board-kpis,
+    .nova-exceptions-board-kpis,
+    .nova-automation-workflow-kpis,
+    .nova-users-board-content,
+    .nova-profile-editor-content,
+    .nova-tickets-board-grid,
+    .nova-exceptions-board-grid
+  ) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .nova-lit-shell-v2 :where(
+    .nova-surface,
+    .nova-panel,
+    .nova-info-card,
+    .nova-summary-card,
+    .nova-form-panel,
+    .nova-attachment-card,
+    .nova-attachment-row,
+    .nova-upload-panel,
+    .nova-right-panel,
+    .nova-chart-card,
+    .nova-report-preview-card,
+    .nova-users-board-card,
+    .nova-profile-editor-card,
+    .nova-tickets-board-card,
+    .nova-exceptions-board-card,
+    .nova-automation-workflow-card
+  ) {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .nova-lit-shell-v2 :where(
+    .nova-table-shell,
+    .nds-table-shell,
+    .nova-tickets-board-table-wrap,
+    .nova-alert-detail-table-wrap,
+    .nova-asset-detail-table,
+    .nova-contract-detail-table,
+    .nova-profile-editor-inline-table,
+    .nova-unit-table-card,
+    .nova-units-table-card,
+    .nova-sensors-table-card,
+    .nova-map-city-table-card
+  ) {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  .nova-lit-shell-v2 :where(
+    .nova-table,
+    .nds-table,
+    .nova-tickets-board-table,
+    .nova-alert-detail-table-wrap table,
+    .nova-asset-detail-table table,
+    .nova-contract-detail-table table,
+    .nova-profile-editor-inline-table table,
+    .nova-map-city-table
+  ) {
+    min-width: 640px;
+  }
+
+  .nova-lit-shell-v2 :where(
+    .nova-users-board-heading,
+    .nova-profile-editor-heading,
+    .nova-tickets-board-heading,
+    .nova-exceptions-board-heading,
+    .nova-automation-workflow-heading,
+    .nova-unit-table-title,
+    .nova-units-table-title,
+    .nova-sensors-table-title,
+    .nova-map-table-title,
+    .nova-lit-card-head,
+    .nova-lit-title-row,
+    .nova-lit-action-row
+  ) {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .nova-lit-shell-v2 :where(
+    .nova-users-board-heading > div:last-child,
+    .nova-profile-editor-heading > div:last-child,
+    .nova-tickets-board-heading > div:last-child,
+    .nova-exceptions-board-heading > div:last-child,
+    .nova-automation-workflow-heading > div:last-child,
+    .nova-lit-action-row
+  ) {
+    width: 100%;
+  }
+
+  .nova-lit-shell-v2 :where(
+    .nova-users-board-heading > div:last-child a,
+    .nova-profile-editor-heading > div:last-child a,
+    .nova-tickets-board-heading > div:last-child a,
+    .nova-exceptions-board-heading > div:last-child a,
+    .nova-automation-workflow-heading > div:last-child a,
+    .nova-tickets-board-filters button,
+    .nova-exceptions-board-filters button,
+    .nova-users-board-filters button,
+    .nova-profile-editor-button,
+    .nova-users-board-button,
+    .nova-tickets-board-button,
+    .nova-exceptions-board-button,
+    .nova-automation-workflow-button
+  ) {
+    justify-content: center;
+    max-width: 100%;
+    white-space: normal;
+  }
+}
+
+@media (max-width: 560px) {
+  .nova-lit-shell-v2 :where(
+    .nova-users-board-page,
+    .nova-profile-editor-page,
+    .nova-tickets-board-page,
+    .nova-exceptions-board-page,
+    .nova-automation-workflow-page
+  ) {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .nova-lit-shell-v2 :where(
+    .nova-users-board-kpis,
+    .nova-profile-editor-kpis,
+    .nova-tickets-board-kpis,
+    .nova-exceptions-board-kpis,
+    .nova-automation-workflow-kpis
+  ) {
+    gap: 0.75rem;
+  }
+
+  .nova-lit-shell-v2 :where(
+    .nova-users-board-kpi,
+    .nova-profile-editor-kpi,
+    .nova-tickets-board-kpi,
+    .nova-exceptions-board-kpi,
+    .nova-automation-workflow-kpi
+  ) {
+    min-height: 0;
+    padding: 0.95rem;
+  }
+}
+
 /* == Compatibilidade de ícones nas telas de usuários == */
 .nova-user-create-page svg,
 .nova-user-detail-page svg,
