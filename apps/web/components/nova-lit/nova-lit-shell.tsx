@@ -725,6 +725,7 @@ export function NovaLitShell({
               alt="NOVA Telecom"
               width={164}
               height={52}
+              loading="eager"
             />
             <Image
               className="nova-lit-logo-mark"
