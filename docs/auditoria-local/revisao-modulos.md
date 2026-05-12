@@ -1,27 +1,24 @@
 # Auditoria local de módulos
 
-Branch: codex/revisao-modulos-local
+Branch: codex/cobertura-modulos-api-2
 Atualizado em: gerado por `corepack pnpm audit:modules`
 
 ## Resumo executivo
 
 - Arquivos estruturais da API encontrados: 69
-- Testes API existentes: 15
+- Testes API existentes: 21
 - Grupos/módulos API mapeados: 23
 - Rotas Web mapeadas: 91
 - Componentes Web mapeados: 28
-- Módulos API de prioridade alta sem teste direto: 11
+- Módulos API de prioridade alta sem teste direto: 8
 - Grupos Web de prioridade alta: 8
 
 ## Prioridades recomendadas
 
 ### API - prioridade alta
 
-- activities: sem teste de controller/service
 - attachments: sem teste de controller/service
-- audits: sem teste de controller/service
 - automations: sem teste de controller/service
-- equipments: sem teste de controller/service
 - exceptions: sem teste de controller/service
 - integrations: sem teste de controller/service
 - maintenances: sem teste de controller/service
@@ -49,15 +46,15 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 | Módulo | Controllers | Services | Specs | Status | Prioridade |
 | --- | --- | --- | --- | --- | --- |
 | (root) | 2 | 1 | 2 | com teste | baixa |
-| activities | 1 | 1 | 0 | sem teste de controller/service | alta |
+| activities | 1 | 1 | 2 | com teste | baixa |
 | attachments | 1 | 1 | 0 | sem teste de controller/service | alta |
-| audits | 1 | 1 | 0 | sem teste de controller/service | alta |
+| audits | 1 | 1 | 2 | com teste | baixa |
 | auth | 1 | 1 | 1 | com teste | baixa |
 | automations | 1 | 1 | 0 | sem teste de controller/service | alta |
 | contracts | 1 | 1 | 1 | com teste | baixa |
 | dashboard | 1 | 1 | 2 | com teste | baixa |
 | e2e | 0 | 0 | 1 | com teste | baixa |
-| equipments | 1 | 1 | 0 | sem teste de controller/service | alta |
+| equipments | 1 | 1 | 2 | com teste | baixa |
 | exceptions | 1 | 1 | 0 | sem teste de controller/service | alta |
 | import-export | 1 | 1 | 1 | com teste | baixa |
 | integrations | 1 | 1 | 0 | sem teste de controller/service | alta |
@@ -125,6 +122,8 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 - apps/api/src/activities/activities.module.ts
 - apps/api/src/activities/activities.controller.ts
 - apps/api/src/activities/activities.service.ts
+- apps/api/src/activities/activities.controller.spec.ts
+- apps/api/src/activities/activities.service.spec.ts
 
 ### attachments
 
@@ -137,6 +136,8 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 - apps/api/src/audits/audits.module.ts
 - apps/api/src/audits/audits.controller.ts
 - apps/api/src/audits/audits.service.ts
+- apps/api/src/audits/audits.controller.spec.ts
+- apps/api/src/audits/audits.service.spec.ts
 
 ### auth
 
@@ -175,6 +176,8 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 - apps/api/src/equipments/equipments.module.ts
 - apps/api/src/equipments/equipments.controller.ts
 - apps/api/src/equipments/equipments.service.ts
+- apps/api/src/equipments/equipments.controller.spec.ts
+- apps/api/src/equipments/equipments.service.spec.ts
 
 ### exceptions
 
