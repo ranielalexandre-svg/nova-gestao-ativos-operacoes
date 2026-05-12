@@ -1,16 +1,16 @@
 # Auditoria local de módulos
 
-Branch: codex/cobertura-modulos-api-3
+Branch: codex/cobertura-modulos-api-4
 Atualizado em: gerado por `corepack pnpm audit:modules`
 
 ## Resumo executivo
 
 - Arquivos estruturais da API encontrados: 69
-- Testes API existentes: 27
+- Testes API existentes: 31
 - Grupos/módulos API mapeados: 23
 - Rotas Web mapeadas: 91
 - Componentes Web mapeados: 28
-- Módulos API de prioridade alta sem teste direto: 5
+- Módulos API de prioridade alta sem teste direto: 3
 - Grupos Web de prioridade alta: 8
 
 ## Prioridades recomendadas
@@ -19,9 +19,7 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 
 - automations: sem teste de controller/service
 - exceptions: sem teste de controller/service
-- integrations: sem teste de controller/service
 - monitoring: sem teste de controller/service
-- starlinks: sem teste de controller/service
 
 ### API - prioridade média
 
@@ -54,7 +52,7 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 | equipments | 1 | 1 | 2 | com teste | baixa |
 | exceptions | 1 | 1 | 0 | sem teste de controller/service | alta |
 | import-export | 1 | 1 | 1 | com teste | baixa |
-| integrations | 1 | 1 | 0 | sem teste de controller/service | alta |
+| integrations | 1 | 1 | 2 | com teste | baixa |
 | legacy | 2 | 1 | 1 | com teste | baixa |
 | maintenances | 1 | 1 | 2 | com teste | baixa |
 | monitoring | 1 | 3 | 0 | sem teste de controller/service | alta |
@@ -62,7 +60,7 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 | partners | 1 | 1 | 1 | com teste | baixa |
 | prisma | 0 | 1 | 0 | sem teste de service | média |
 | settings | 1 | 1 | 2 | com teste | baixa |
-| starlinks | 1 | 1 | 0 | sem teste de controller/service | alta |
+| starlinks | 1 | 1 | 2 | com teste | baixa |
 | units | 1 | 1 | 2 | com teste | baixa |
 | users | 1 | 1 | 1 | com teste | baixa |
 
@@ -196,6 +194,8 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 - apps/api/src/integrations/integrations.module.ts
 - apps/api/src/integrations/integrations.controller.ts
 - apps/api/src/integrations/integrations.service.ts
+- apps/api/src/integrations/integrations.controller.spec.ts
+- apps/api/src/integrations/integrations.service.spec.ts
 
 ### legacy
 
@@ -254,6 +254,8 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 - apps/api/src/starlinks/starlinks.module.ts
 - apps/api/src/starlinks/starlinks.controller.ts
 - apps/api/src/starlinks/starlinks.service.ts
+- apps/api/src/starlinks/starlinks.controller.spec.ts
+- apps/api/src/starlinks/starlinks.service.spec.ts
 
 ### units
 
