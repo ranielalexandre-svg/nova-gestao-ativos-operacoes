@@ -14,6 +14,11 @@
     "check:deploy": "bash scripts/predeploy-check.sh",
     "dev:up": "bash scripts/dev-up-local.sh",
     "dev:down": "bash scripts/dev-down-local.sh",
-    "dev:status": "bash scripts/dev-status-local.sh"
+    "dev:status": "bash scripts/dev-status-local.sh",
+    "test": "corepack pnpm test:api",
+    "test:api:watch": "corepack pnpm --dir apps/api exec jest --watch",
+    "test:api:cov": "corepack pnpm --dir apps/api exec jest --coverage",
+    "test:web": "corepack pnpm --dir apps/web lint && corepack pnpm --dir apps/web exec tsc --noEmit",
+    "test:smoke": "node scripts/smoke-web-routes.mjs"
   }
 }
