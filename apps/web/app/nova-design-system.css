@@ -34869,6 +34869,190 @@ body:has(.nova-tickets-board-shell) {
   }
 }
 
+/* Compatibilidade mobile: telas literais de listas operacionais. */
+@media (max-width: 760px) {
+  .nova-lit-shell-v2 :where(
+    .nova-alerts-kpi-grid,
+    .nova-assets-kpi-grid,
+    .nova-starlinks-kpi-grid,
+    .nova-partners-kpi-grid,
+    .nova-contracts-kpi-grid
+  ) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .nova-lit-shell-v2 :where(
+    .nova-alerts-filters,
+    .nova-assets-filters,
+    .nova-starlinks-filters,
+    .nova-partners-filters,
+    .nova-contracts-filters
+  ) {
+    grid-template-columns: minmax(0, 1fr) !important;
+    padding: 0.75rem;
+  }
+
+  .nova-lit-shell-v2 :where(
+    .nova-alerts-filters button,
+    .nova-alerts-filters > a,
+    .nova-assets-filters button,
+    .nova-assets-filters > a,
+    .nova-starlinks-filters button,
+    .nova-starlinks-filters > a,
+    .nova-partners-filters button,
+    .nova-partners-filters > a,
+    .nova-contracts-filters button,
+    .nova-contracts-filters > a
+  ) {
+    width: 100%;
+    min-width: 0;
+    white-space: normal;
+  }
+
+  .nova-lit-shell-v2 :where(
+    .nova-alerts-section-title,
+    .nova-assets-section-title,
+    .nova-starlinks-section-title,
+    .nova-partners-section-title,
+    .nova-contracts-section-title
+  ) {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  .nova-lit-shell-v2 :where(
+    .nova-alerts-section-title > div:last-child,
+    .nova-assets-section-title > div:last-child,
+    .nova-starlinks-section-title > div:last-child,
+    .nova-partners-section-title > div:last-child,
+    .nova-contracts-section-title > div:last-child
+  ) {
+    align-items: stretch;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .nova-lit-shell-v2 :where(
+    .nova-alerts-section-title a,
+    .nova-assets-section-title a,
+    .nova-starlinks-section-title a,
+    .nova-partners-section-title a,
+    .nova-contracts-section-title a,
+    .nova-alerts-row > div:last-child a,
+    .nova-assets-row > div:last-child a,
+    .nova-starlinks-row > div:last-child a,
+    .nova-partners-row > div:last-child a,
+    .nova-contracts-row > div:last-child a
+  ) {
+    width: 100%;
+  }
+
+  .nova-lit-shell-v2 :where(
+    .nova-alerts-main-grid,
+    .nova-assets-main-grid,
+    .nova-starlinks-main-grid,
+    .nova-partners-main-grid,
+    .nova-contracts-main-grid,
+    .nova-alerts-right-col,
+    .nova-assets-right-col,
+    .nova-starlinks-right-col,
+    .nova-partners-right-col,
+    .nova-contracts-right-col
+  ) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .nova-lit-shell-v2 :where(
+    .nova-alerts-table,
+    .nova-assets-table,
+    .nova-starlinks-table,
+    .nova-partners-table,
+    .nova-contracts-table
+  ) {
+    overflow: visible;
+  }
+
+  .nova-lit-shell-v2 :where(
+    .nova-alerts-row strong,
+    .nova-alerts-row b,
+    .nova-alerts-row small,
+    .nova-alerts-target-link,
+    .nova-assets-row strong,
+    .nova-assets-row b,
+    .nova-assets-row small,
+    .nova-assets-target-link,
+    .nova-starlinks-row strong,
+    .nova-starlinks-row b,
+    .nova-starlinks-row small,
+    .nova-starlinks-target-link,
+    .nova-partners-row strong,
+    .nova-partners-row b,
+    .nova-partners-row small,
+    .nova-partners-target-link,
+    .nova-contracts-row strong,
+    .nova-contracts-row b,
+    .nova-contracts-row small,
+    .nova-contracts-target-link
+  ) {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+  }
+}
+
+@media (max-width: 560px) {
+  .nova-lit-shell-v2 :where(
+    .nova-users-board-card-head,
+    .nova-profile-editor-card-head,
+    .nova-tickets-board-card-title,
+    .nova-exceptions-board-card-title,
+    .nova-alerts-section-title,
+    .nova-assets-section-title,
+    .nova-starlinks-section-title,
+    .nova-partners-section-title,
+    .nova-contracts-section-title
+  ) {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .nova-lit-shell-v2 :where(
+    .nova-users-board-table,
+    .nova-tickets-board-table,
+    .nova-profile-editor-inline-table table
+  ) {
+    min-width: 560px;
+  }
+
+  .nova-lit-shell-v2 :where(
+    .nova-users-board-pagination,
+    .nova-tickets-board-pagination,
+    .nova-alerts-pagination,
+    .nova-assets-pagination,
+    .nova-starlinks-pagination,
+    .nova-partners-pagination,
+    .nova-contracts-pagination
+  ) {
+    align-items: stretch;
+    flex-direction: column;
+    height: auto;
+  }
+
+  .nova-lit-shell-v2 :where(
+    .nova-users-board-pagination > div,
+    .nova-tickets-board-pagination > div,
+    .nova-alerts-pagination div,
+    .nova-assets-pagination div,
+    .nova-starlinks-pagination div,
+    .nova-partners-pagination div,
+    .nova-contracts-pagination div
+  ) {
+    justify-content: stretch;
+    width: 100%;
+  }
+}
+
 /* == Compatibilidade de ícones nas telas de usuários == */
 .nova-user-create-page svg,
 .nova-user-detail-page svg,
