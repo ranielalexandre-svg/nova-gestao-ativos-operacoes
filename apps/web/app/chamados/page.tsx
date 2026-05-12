@@ -17,6 +17,7 @@ import {
 } from "@/lib/noc-overview";
 import { apiJson } from "@/lib/server-api";
 import { getServerWebSession } from "@/lib/web-session";
+import { NovaLitShell } from "@/components/nova-lit/nova-lit-shell";
 
 type Tone = "green" | "orange" | "blue" | "red" | "purple" | "slate";
 type IconName =
@@ -508,12 +509,8 @@ export default async function ChamadosPage({
   ];
 
   return (
-    <div className="nova-exceptions-board-shell nova-tickets-board-shell">
-      <Nav />
-      <div className="nova-exceptions-board-main">
-        <Topbar userName={session.user?.name} userEmail={session.user?.email} />
-
-        <main className="nova-tickets-board-page">
+    <NovaLitShell activeHref="/chamados" hidePageHeader>
+      <main className="nova-tickets-board-page">
           <header className="nova-tickets-board-heading">
             <div>
               <nav aria-label="Breadcrumb">
@@ -682,8 +679,7 @@ export default async function ChamadosPage({
               </Link>
             </div>
           </section>
-        </main>
-      </div>
-    </div>
+      </main>
+    </NovaLitShell>
   );
 }

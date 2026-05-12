@@ -14,6 +14,7 @@ import {
 import { safeApiJson } from "@/lib/noc-overview";
 import { apiJson } from "@/lib/server-api";
 import { getServerWebSession } from "@/lib/web-session";
+import { NovaLitShell } from "@/components/nova-lit/nova-lit-shell";
 
 type Tone = "green" | "orange" | "blue" | "red" | "slate";
 type KindFilter = "all" | "generic" | "sla" | "integration" | "occurrence" | "maintenance" | "automation";
@@ -595,11 +596,8 @@ export default async function ExcecoesPage({
   const pages = Array.from({ length: Math.min(response.meta.totalPages, 5) }, (_, index) => index + 1);
 
   return (
-    <div className="nova-exceptions-board-shell">
-      <Nav />
-      <div className="nova-exceptions-board-main">
-        <Topbar userName={session.user?.name} />
-        <main className="nova-exceptions-board-page">
+    <NovaLitShell activeHref="/excecoes" hidePageHeader>
+      <main className="nova-exceptions-board-page">
           <header className="nova-exceptions-board-heading">
             <div>
               <nav aria-label="Breadcrumb">
@@ -795,8 +793,7 @@ export default async function ExcecoesPage({
               </section>
             </aside>
           </section>
-        </main>
-      </div>
-    </div>
+      </main>
+    </NovaLitShell>
   );
 }

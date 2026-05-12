@@ -19,6 +19,7 @@ import {
   type CommandCenter,
 } from "@/lib/noc-overview";
 import { getServerWebSession, normalizeRole } from "@/lib/web-session";
+import { NovaLitShell } from "@/components/nova-lit/nova-lit-shell";
 
 type Tone = "green" | "orange" | "blue" | "red" | "slate";
 type IconName =
@@ -984,11 +985,8 @@ export default async function AutomacaoPage({
   ];
 
   return (
-    <div className="nova-exceptions-board-shell nova-automation-workflow-shell">
-      <Nav />
-      <div className="nova-exceptions-board-main">
-        <Topbar userName={session.user?.name} userEmail={session.user?.email} />
-        <main className="nova-automation-workflow-page">
+    <NovaLitShell activeHref="/administracao/automacoes" hidePageHeader>
+      <main className="nova-automation-workflow-page">
           <header className="nova-automation-workflow-heading">
             <div>
               <nav aria-label="Breadcrumb">
@@ -1246,8 +1244,7 @@ export default async function AutomacaoPage({
               </Link>
             </div>
           </section>
-        </main>
-      </div>
-    </div>
+      </main>
+    </NovaLitShell>
   );
 }
