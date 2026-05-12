@@ -1,29 +1,26 @@
 # Auditoria local de módulos
 
-Branch: codex/cobertura-modulos-api-2
+Branch: codex/cobertura-modulos-api-3
 Atualizado em: gerado por `corepack pnpm audit:modules`
 
 ## Resumo executivo
 
 - Arquivos estruturais da API encontrados: 69
-- Testes API existentes: 21
+- Testes API existentes: 27
 - Grupos/módulos API mapeados: 23
 - Rotas Web mapeadas: 91
 - Componentes Web mapeados: 28
-- Módulos API de prioridade alta sem teste direto: 8
+- Módulos API de prioridade alta sem teste direto: 5
 - Grupos Web de prioridade alta: 8
 
 ## Prioridades recomendadas
 
 ### API - prioridade alta
 
-- attachments: sem teste de controller/service
 - automations: sem teste de controller/service
 - exceptions: sem teste de controller/service
 - integrations: sem teste de controller/service
-- maintenances: sem teste de controller/service
 - monitoring: sem teste de controller/service
-- occurrences: sem teste de controller/service
 - starlinks: sem teste de controller/service
 
 ### API - prioridade média
@@ -47,7 +44,7 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 | --- | --- | --- | --- | --- | --- |
 | (root) | 2 | 1 | 2 | com teste | baixa |
 | activities | 1 | 1 | 2 | com teste | baixa |
-| attachments | 1 | 1 | 0 | sem teste de controller/service | alta |
+| attachments | 1 | 1 | 2 | com teste | baixa |
 | audits | 1 | 1 | 2 | com teste | baixa |
 | auth | 1 | 1 | 1 | com teste | baixa |
 | automations | 1 | 1 | 0 | sem teste de controller/service | alta |
@@ -59,9 +56,9 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 | import-export | 1 | 1 | 1 | com teste | baixa |
 | integrations | 1 | 1 | 0 | sem teste de controller/service | alta |
 | legacy | 2 | 1 | 1 | com teste | baixa |
-| maintenances | 1 | 1 | 0 | sem teste de controller/service | alta |
+| maintenances | 1 | 1 | 2 | com teste | baixa |
 | monitoring | 1 | 3 | 0 | sem teste de controller/service | alta |
-| occurrences | 1 | 1 | 0 | sem teste de controller/service | alta |
+| occurrences | 1 | 1 | 2 | com teste | baixa |
 | partners | 1 | 1 | 1 | com teste | baixa |
 | prisma | 0 | 1 | 0 | sem teste de service | média |
 | settings | 1 | 1 | 2 | com teste | baixa |
@@ -130,6 +127,8 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 - apps/api/src/attachments/attachments.module.ts
 - apps/api/src/attachments/attachments.controller.ts
 - apps/api/src/attachments/attachments.service.ts
+- apps/api/src/attachments/attachments.controller.spec.ts
+- apps/api/src/attachments/attachments.service.spec.ts
 
 ### audits
 
@@ -211,6 +210,8 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 - apps/api/src/maintenances/maintenances.module.ts
 - apps/api/src/maintenances/maintenances.controller.ts
 - apps/api/src/maintenances/maintenances.service.ts
+- apps/api/src/maintenances/maintenances.controller.spec.ts
+- apps/api/src/maintenances/maintenances.service.spec.ts
 
 ### monitoring
 
@@ -225,6 +226,8 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 - apps/api/src/occurrences/occurrences.module.ts
 - apps/api/src/occurrences/occurrences.controller.ts
 - apps/api/src/occurrences/occurrences.service.ts
+- apps/api/src/occurrences/occurrences.controller.spec.ts
+- apps/api/src/occurrences/occurrences.service.spec.ts
 
 ### partners
 
