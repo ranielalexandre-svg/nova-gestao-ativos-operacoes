@@ -493,12 +493,12 @@ export default async function OcorrenciaDetailPage({
     <NovaLitShell activeHref="/alertas" hidePageHeader>
       <div className="nova-alert-detail-page">
         <header className="nova-alert-detail-hero">
-          <nav className="nova-alert-detail-crumbs" aria-label="Breadcrumb">
-            <Link href="/monitoramento">Monitoramento</Link>
+          <nav className="nova-detail-crumbs nova-alert-detail-crumbs" aria-label="Breadcrumb">
+            <Link href="/dashboard">Dashboard</Link>
             <span>/</span>
             <Link href="/alertas">Alertas</Link>
             <span>/</span>
-            <strong>Detalhe do alerta</strong>
+            <strong>{occurrence.code}</strong>
           </nav>
 
           <div className="nova-alert-detail-heading">

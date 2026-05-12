@@ -283,6 +283,15 @@ export default async function ExceptionDetailPage({
   return (
     <NovaLitShell activeHref="/excecoes">
       <div className="nova-exception-detail-lit-page">
+
+        <nav className="nova-detail-crumbs" aria-label="Breadcrumb">
+          <Link href="/dashboard">Dashboard</Link>
+          <span>/</span>
+          <Link href="/excecoes">Exceções</Link>
+          <span>/</span>
+          <strong>{item.code}</strong>
+        </nav>
+
         <Surface>
           <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
             <div className="min-w-0">

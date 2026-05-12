@@ -34317,3 +34317,37 @@ body:has(.nova-tickets-board-shell) {
   }
 }
 /* == NOVA LOGIN MOBILE FORM END == */
+
+/* == Breadcrumb padronizado de detalhes == */
+.nova-detail-crumbs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin: 0 0 0.85rem;
+  color: #6d86ad;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.nova-detail-crumbs a {
+  color: #9fbce0;
+  transition: color 160ms ease;
+}
+
+.nova-detail-crumbs a:hover,
+.nova-detail-crumbs strong {
+  color: #ffffff;
+}
+
+.nova-detail-crumbs span {
+  color: #465a78;
+}
+
+.nova-alert-detail-crumbs.nova-detail-crumbs,
+.nova-asset-detail-crumbs.nova-detail-crumbs {
+  margin-bottom: 0.85rem;
+}
+

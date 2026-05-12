@@ -158,7 +158,16 @@ export default async function ManutencaoDetailPage({
 
   return (
     <NovaLitShell activeHref="/chamados">
-      <div className="nova-maintenance-detail-lit-page"><RegistryDetailHero
+      <div className="nova-maintenance-detail-lit-page">
+
+        <nav className="nova-detail-crumbs" aria-label="Breadcrumb">
+          <Link href="/dashboard">Dashboard</Link>
+          <span>/</span>
+          <Link href="/chamados">Chamados</Link>
+          <span>/</span>
+          <strong>{maintenance.code}</strong>
+        </nav>
+<RegistryDetailHero
         eyebrow="Chamado"
         title={maintenance.title}
         description={maintenance.description || "Sem descrição complementar registrada."}

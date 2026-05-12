@@ -705,12 +705,12 @@ export default async function AtivoDetailPage({
 
       <section className="nova-asset-detail-mockup">
         <header className="nova-asset-detail-hero">
-          <nav className="nova-asset-detail-crumbs" aria-label="Breadcrumb">
-            <Link href="/ativos">Gestão</Link>
+          <nav className="nova-detail-crumbs nova-asset-detail-crumbs" aria-label="Breadcrumb">
+            <Link href="/dashboard">Dashboard</Link>
             <span>/</span>
             <Link href="/ativos">Ativos</Link>
             <span>/</span>
-            <strong>Detalhe do ativo</strong>
+            <strong>{equipment.tag}</strong>
           </nav>
 
           <div className="nova-asset-detail-title-row">

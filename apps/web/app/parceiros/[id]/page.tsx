@@ -563,6 +563,15 @@ export default async function ParceiroDetailPage({
       <div className="nova-partner-detail-lit-page">
       {created ? <CreatedNotice from={from} /> : null}
 
+      <nav className="nova-detail-crumbs" aria-label="Breadcrumb">
+        <Link href="/dashboard">Dashboard</Link>
+        <span>/</span>
+        <Link href="/parceiros">Parceiros</Link>
+        <span>/</span>
+        <strong>{partner.code}</strong>
+      </nav>
+
+
       <RegistryDetailHero
         eyebrow="Parceiro"
         title={partner.name}
