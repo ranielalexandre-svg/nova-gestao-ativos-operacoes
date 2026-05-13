@@ -244,13 +244,13 @@ export default async function OperacaoSlaPage() {
   ];
 
   return (
-    <NovaLitShell activeHref="/administracao/sla">
+    <NovaLitShell activeHref="/operacao/sla">
       <div className="nova-operation-sla-lit-page">
-        <Surface className="nova-sla-command-hero">
+        <Surface className="nova-sla-command-hero nova-operation-hero-panel">
           <div className="nova-sla-command-bar">
             <div className="min-w-0">
               <div className="nds-label">Operação / SLA</div>
-              <h1>Políticas de SLA</h1>
+              <h1>Políticas e pressão de SLA</h1>
               <p>
                 Configure prazos, filas e prioridade para manter a resposta operacional consistente.
               </p>
@@ -314,7 +314,7 @@ export default async function OperacaoSlaPage() {
           <Surface className="nova-sla-policies-panel">
             <SectionIntro
               eyebrow="Mesa de políticas"
-              title="Políticas de SLA cadastradas"
+              title="Políticas ativas de SLA"
               description={`Médias atuais: primeira resposta em ${minutesLabel(avgFirstResponse)} e resolução em ${minutesLabel(avgResolve)}.`}
               actions={<TonePill tone="info">{formatNumber(caseCount)} caso(s) vinculados</TonePill>}
               compact
@@ -386,10 +386,10 @@ export default async function OperacaoSlaPage() {
           </Surface>
 
           <aside className="nova-sla-side-stack">
-            <Surface className="nova-sla-side-panel">
+            <Surface className="nova-sla-side-panel nova-operation-side-panel">
               <SectionIntro
                 eyebrow="Fila do turno"
-                title="Pressão atual"
+                title="Pressão atual da fila"
                 description={`${formatNumber(queueSummary.views.all)} caso(s) aberto(s), ${formatNumber(queueSummary.views.unassigned)} sem responsável.`}
                 compact
               />
@@ -412,11 +412,11 @@ export default async function OperacaoSlaPage() {
               </div>
             </Surface>
 
-            <Surface className="nova-sla-side-panel">
+            <Surface className="nova-sla-side-panel nova-operation-side-panel">
               <SectionIntro
                 eyebrow="Ações rápidas"
-                title="Recalcular e conferir"
-                description="Aplique as regras atuais nos casos abertos e confira exceções impactadas."
+                title="Recalcular impacto nas exceções"
+                description="Aplique as regras atuais nos casos abertos e confira o impacto direto na fila consolidada."
                 compact
               />
               <div className="nova-sla-action-list">
@@ -428,7 +428,7 @@ export default async function OperacaoSlaPage() {
                 >
                   <input type="hidden" name="scope" value="all" />
                 </ActionForm>
-                <Link href="/excecoes" className="nds-button" data-variant="secondary">
+                <Link href="/operacao/excecoes" className="nds-button" data-variant="secondary">
                   Ver exceções
                 </Link>
                 <Link href="/operacao/atividade" className="nds-button" data-variant="secondary">

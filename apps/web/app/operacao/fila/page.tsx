@@ -177,7 +177,7 @@ function FilaTable({
                   </TableCell>
                 ) : null}
                 <TableCell>
-                  <Link href={`/excecoes/${item.id}`} className="nova-queue-case-link">
+                  <Link href={`/operacao/excecoes/${item.id}`} className="nova-queue-case-link">
                     {item.code}
                   </Link>
                   <div className="mt-1 max-w-[340px] text-[11px] font-semibold leading-5 text-slate-200">
@@ -210,7 +210,7 @@ function FilaTable({
                   <div className="mt-1 text-[10px] text-slate-500">{formatDateTime(item.updatedAt, "-")}</div>
                 </TableCell>
                 <TableCell>
-                  <Link href={`/excecoes/${item.id}`} className="nova-queue-row-action">
+                  <Link href={`/operacao/excecoes/${item.id}`} className="nova-queue-row-action">
                     Abrir
                   </Link>
                 </TableCell>
@@ -348,11 +348,11 @@ export default async function FilaOperacionalPage({
   return (
     <NovaLitShell activeHref="/operacao/fila">
       <div className="nova-operation-queue-lit-page">
-        <Surface className="nova-queue-command-hero">
+        <Surface className="nova-queue-command-hero nova-operation-hero-panel">
           <div className="nova-queue-command-bar">
             <div className="min-w-0">
               <div className="nds-label">Operação / Fila</div>
-              <h1>Fila do turno</h1>
+              <h1>Fila operacional do turno</h1>
               <p>
                 Priorize, reconheça e despache os casos que exigem tratativa no turno.
               </p>
@@ -362,7 +362,7 @@ export default async function FilaOperacionalPage({
                 Recarregar fila
               </Link>
               <Link href="/excecoes/cadastro" className="nds-button" data-variant="primary">
-                Cadastrar exceção
+                Cadastrar exceção operacional
               </Link>
             </div>
           </div>
@@ -405,8 +405,8 @@ export default async function FilaOperacionalPage({
             <Surface className="nova-queue-filter-panel">
               <SectionIntro
                 eyebrow="Recortes"
-                title="Recortes da fila"
-                description="Escolha o recorte do turno sem perder filtros, fila ou paginação."
+                title="Recortes de decisão"
+                description="Alterne entre triagem, SLA, vencimento e responsáveis sem perder o contexto atual."
                 compact
               />
               <div className="nova-queue-chip-row">
@@ -470,8 +470,8 @@ export default async function FilaOperacionalPage({
             <Surface className="nova-queue-board-panel">
               <SectionIntro
                 eyebrow="Lista de casos"
-                title="Backlog priorizado"
-                description={`${formatNumber(response.meta.total)} caso(s) no recorte, ordenado por prioridade operacional.`}
+                title="Backlog priorizado para ação"
+                description={`${formatNumber(response.meta.total)} caso(s) no recorte, ordenado por impacto, SLA e prioridade operacional.`}
                 actions={<TonePill tone={breachedOnPage ? "critical" : "info"}>{formatNumber(breachedOnPage)} vencido(s)</TonePill>}
                 compact
               />
@@ -520,7 +520,7 @@ export default async function FilaOperacionalPage({
           </main>
 
           <aside className="nova-queue-side-stack">
-            <Surface className="nova-queue-side-panel">
+            <Surface className="nova-queue-side-panel nova-operation-side-panel">
               <SectionIntro
                 eyebrow="Distribuição"
                 title="Distribuição"
@@ -546,7 +546,7 @@ export default async function FilaOperacionalPage({
               </div>
             </Surface>
 
-            <Surface className="nova-queue-side-panel">
+            <Surface className="nova-queue-side-panel nova-operation-side-panel">
               <SectionIntro
                 eyebrow="Próximo despacho"
                 title={priorityItem ? priorityItem.code : "Sem item"}
@@ -566,7 +566,7 @@ export default async function FilaOperacionalPage({
                     {queueLabel(priorityItem.queueKey)} · vence {formatDateTime(priorityItem.resolveDueAt, "-")}
                   </div>
                   <div className="nova-queue-quick-actions">
-                    <Link href={`/excecoes/${priorityItem.id}`} className="nds-button" data-variant="secondary">
+                    <Link href={`/operacao/excecoes/${priorityItem.id}`} className="nds-button" data-variant="secondary">
                       Abrir caso
                     </Link>
                     {isAdmin ? (
@@ -598,11 +598,11 @@ export default async function FilaOperacionalPage({
               ) : null}
             </Surface>
 
-            <Surface className="nova-queue-side-panel">
+            <Surface className="nova-queue-side-panel nova-operation-side-panel">
               <SectionIntro
                 eyebrow="Sinais"
-                title="Leitura rápida"
-                description="Dados para decidir se o próximo passo é triagem, NOC ou execução."
+                title="Leitura rápida do próximo passo"
+                description="Sinais para decidir se o próximo movimento é triagem, NOC, parceiro ou execução técnica."
                 compact
               />
               <div className="nova-queue-signal-grid">
@@ -615,7 +615,7 @@ export default async function FilaOperacionalPage({
                 <Link href="/alertas">Alertas operacionais</Link>
                 <Link href="/chamados">Agenda técnica</Link>
                 <Link href="/monitoramento/sensores">Monitoramento NOC</Link>
-                <Link href="/administracao/sla">Contratos SLA</Link>
+                <Link href="/operacao/sla">Contratos SLA</Link>
               </div>
             </Surface>
           </aside>

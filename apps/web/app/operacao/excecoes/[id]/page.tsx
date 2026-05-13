@@ -285,9 +285,9 @@ export default async function ExceptionDetailPage({
       <div className="nova-exception-detail-lit-page">
 
         <nav className="nova-detail-crumbs" aria-label="Breadcrumb">
-          <Link href="/dashboard">Dashboard</Link>
+          <Link href="/operacao">Operação</Link>
           <span>/</span>
-          <Link href="/excecoes">Exceções</Link>
+          <Link href="/operacao/excecoes">Exceções</Link>
           <span>/</span>
           <strong>{item.code}</strong>
         </nav>
@@ -310,10 +310,10 @@ export default async function ExceptionDetailPage({
               <Link href="/operacao/fila" className="nds-button" data-variant="primary">
                 Fila
               </Link>
-              <Link href="/excecoes" className="nds-button" data-variant="secondary">
+              <Link href="/operacao/excecoes" className="nds-button" data-variant="secondary">
                 Exceções
               </Link>
-              <Link href="/administracao/sla" className="nds-button" data-variant="secondary">
+              <Link href="/operacao/sla" className="nds-button" data-variant="secondary">
                 SLA
               </Link>
             </div>
@@ -348,8 +348,8 @@ export default async function ExceptionDetailPage({
             <Surface>
               <SectionIntro
                 eyebrow="Execução"
-                title="Comentários"
-                description="O centro do caso fica com o que move a decisão para frente: hipótese, encaminhamento e registro operacional."
+                title="Comentários e decisão"
+                description="Use este espaço para hipótese, encaminhamento, evidência e registro do que muda o próximo passo."
                 compact
               />
               <ActionForm
@@ -387,7 +387,7 @@ export default async function ExceptionDetailPage({
             <Surface>
               <SectionIntro
                 eyebrow="Histórico"
-                title="Atividade recente"
+                title="Rastro recente do caso"
                 description="Rastro do sistema, das automações e dos operadores em leitura mais limpa e sequencial."
                 compact
               />
@@ -424,8 +424,8 @@ export default async function ExceptionDetailPage({
               <Surface>
                 <SectionIntro
                   eyebrow="Ações"
-                  title="Despacho do caso"
-                  description="Atualize status e responsável separadamente para evitar troca acidental no turno."
+                  title="Despacho e responsabilidade"
+                  description="Atualize status e responsável com ações separadas para preservar clareza no handoff do turno."
                   compact
                 />
                 <ActionForm
@@ -473,7 +473,7 @@ export default async function ExceptionDetailPage({
             <Surface>
               <SectionIntro
                 eyebrow="Continuidade"
-                title="Contexto vinculado"
+                title="Contexto vinculado ao caso"
                 description="Abra unidade, alerta, chamado ou automação sem voltar para a busca."
                 compact
               />
@@ -483,7 +483,7 @@ export default async function ExceptionDetailPage({
             <Surface>
               <SectionIntro
                 eyebrow="Contexto"
-                title="Roteamento e SLA"
+                title="Roteamento, origem e SLA"
                 description="Classificação, origem, política, automação e janelas do caso."
                 compact
               />
