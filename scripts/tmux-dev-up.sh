@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PROJECT="/home/raniel/projetos/nova-gestao-ativos-operacoes"
+PROJECT="$(cd "$(dirname "$0")/.." && pwd)"
 SESSION="nova-dev"
 
 cd "$PROJECT" || exit 1

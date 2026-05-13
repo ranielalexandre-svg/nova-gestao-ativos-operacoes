@@ -2,6 +2,7 @@
 set -euo pipefail
 
 SESSION="nova-dev"
+PROJECT="$(cd "$(dirname "$0")/.." && pwd)"
 
 echo "== TMUX WINDOWS =="
 tmux list-windows -t "$SESSION" 2>/dev/null || echo "Sessao tmux nao encontrada"
@@ -12,8 +13,8 @@ ss -ltnp | grep -E ':4000|:3010' || true
 
 echo
 echo "== LOG API =="
-tail -n 30 /home/raniel/projetos/nova-gestao-ativos-operacoes/.run-logs/api.log || true
+tail -n 30 "$PROJECT/.run-logs/api.log" || true
 
 echo
 echo "== LOG WEB =="
-tail -n 30 /home/raniel/projetos/nova-gestao-ativos-operacoes/.run-logs/web.log || true
+tail -n 30 "$PROJECT/.run-logs/web.log" || true
