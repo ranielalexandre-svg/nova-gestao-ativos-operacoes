@@ -1,38 +1,29 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PROJECT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$(dirname "$0")/.." || exit 1
+source scripts/dev-processes-local.sh
+
 SESSION="nova-dev"
 
-cd "$PROJECT" || exit 1
-mkdir -p .run-logs
+mkdir -p "$RUN_LOG_DIR"
 
 cat > apps/web/.env.local <<'ENVEOF'
 API_BASE_URL_INTERNAL=http://127.0.0.1:4000
 NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:4000
 ENVEOF
 
-if command -v fuser >/dev/null 2>&1; then
-  fuser -k 4000/tcp >/dev/null 2>&1 || true
-  fuser -k 3010/tcp >/dev/null 2>&1 || true
-fi
-
-pkill -f "nest start --watch" || true
-pkill -f "next dev --port 3010" || true
-
+echo "== LIMPANDO AMBIENTE LOCAL ANTERIOR =="
 tmux kill-session -t "$SESSION" 2>/dev/null || true
+cleanup_dev_processes
 
 tmux new-session -d -s "$SESSION" -n api -c "$PROJECT"
-tmux send-keys -t "$SESSION:api" "cd $PROJECT && corepack pnpm --dir apps/api start:dev 2>&1 | tee .run-logs/api.log" C-m
+tmux send-keys -t "$SESSION:api" "cd \"$PROJECT\" && corepack pnpm --dir apps/api start:dev 2>&1 | tee ${RUN_LOG_DIR}/api.log" C-m
 
 echo
-echo "== AGUARDANDO API EM 4000 =="
-for i in $(seq 1 60); do
-  if curl -fsS -o /dev/null http://127.0.0.1:4000/auth/session 2>/dev/null; then
-    echo "API respondeu em /auth/session"
-    break
-  fi
-  status="$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:4000/auth/session || true)"
+echo "== AGUARDANDO API EM ${API_PORT} =="
+for _ in $(seq 1 60); do
+  status="$(curl -s -o /dev/null -w "%{http_code}" "${API_BASE_URL}/auth/session" || true)"
   if [ "$status" = "401" ] || [ "$status" = "403" ] || [ "$status" = "200" ]; then
     echo "API pronta com status $status"
     break
@@ -41,33 +32,30 @@ for i in $(seq 1 60); do
 done
 
 tmux new-window -t "$SESSION" -n web -c "$PROJECT"
-tmux send-keys -t "$SESSION:web" "cd $PROJECT && corepack pnpm --dir apps/web dev --port 3010 2>&1 | tee .run-logs/web.log" C-m
+tmux send-keys -t "$SESSION:web" "cd \"$PROJECT\" && corepack pnpm --dir apps/web dev --port \"$WEB_PORT\" 2>&1 | tee ${RUN_LOG_DIR}/web.log" C-m
 
-sleep 8
+wait_for_web 60 || true
 
 echo
 echo "== TMUX WINDOWS =="
 tmux list-windows -t "$SESSION"
 
 echo
-echo "== PORTAS =="
-ss -ltnp | grep -E ':4000|:3010' || true
+print_ports
 
 echo
 echo "== TESTE API =="
-curl -s -o /dev/null -w "API /auth/session -> HTTP %{http_code}\n" http://127.0.0.1:4000/auth/session || true
+curl -s -o /dev/null -w "API /auth/session -> HTTP %{http_code}\n" "${API_BASE_URL}/auth/session" || true
 
 echo
 echo "== TESTE WEB =="
-curl -I http://127.0.0.1:3010 || true
+curl -I "$WEB_BASE_URL" || true
 
 echo
-echo "== ULTIMAS LINHAS API =="
-tail -n 30 .run-logs/api.log || true
+print_log "ULTIMAS LINHAS API" "${RUN_LOG_DIR}/api.log"
 
 echo
-echo "== ULTIMAS LINHAS WEB =="
-tail -n 30 .run-logs/web.log || true
+print_log "ULTIMAS LINHAS WEB" "${RUN_LOG_DIR}/web.log"
 
 echo
 echo "Para acompanhar ao vivo:"

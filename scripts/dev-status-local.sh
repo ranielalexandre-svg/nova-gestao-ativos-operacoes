@@ -2,24 +2,15 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/.." || exit 1
+source scripts/dev-processes-local.sh
 
-echo "== PORTAS =="
-ss -ltnp | grep -E ":3010|:4000" || true
-
-echo
-print_log() {
-  local label="$1"
-  local file="$2"
-
-  echo "== ${label} =="
-  if [ -f "$file" ]; then
-    tail -n 30 "$file" || true
-  else
-    echo "Log ainda não existe: $file"
-  fi
-}
-
-print_log "LOG API" ".run-logs/api.log"
+print_ports
 
 echo
-print_log "LOG WEB" ".run-logs/web.log"
+print_project_processes
+
+echo
+print_log "LOG API" "${RUN_LOG_DIR}/api.log"
+
+echo
+print_log "LOG WEB" "${RUN_LOG_DIR}/web.log"

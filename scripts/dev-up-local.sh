@@ -2,72 +2,41 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/.." || exit 1
-PROJECT="$(pwd)"
-mkdir -p .run-logs .run-pids
+source scripts/dev-processes-local.sh
 
-kill_project_processes() {
-  local pids
-  pids="$(ps -eo pid=,cmd= | awk '
-    /nova-gestao-ativos-operacoes\/apps\/api\/node_modules\/\.bin\/\.\.\/@nestjs\/cli\/bin\/nest\.js start --watch/ { print $1 }
-    /nova-gestao-ativos-operacoes\/apps\/web\/node_modules\/\.bin\/\.\.\/next\/dist\/bin\/next dev --port 3010/ { print $1 }
-    /corepack pnpm dev:api/ { print $1 }
-    /corepack pnpm dev:web/ { print $1 }
-    /corepack pnpm --dir apps\/api start:dev/ { print $1 }
-    /corepack pnpm --dir apps\/web dev --port 3010/ { print $1 }
-  ')"
+mkdir -p "$RUN_LOG_DIR" "$RUN_PID_DIR"
 
-  if [ -n "$pids" ]; then
-    kill $pids 2>/dev/null || true
-    sleep 1
-    kill -9 $pids 2>/dev/null || true
-  fi
-}
-
-if command -v fuser >/dev/null 2>&1; then
-  fuser -k 3010/tcp >/dev/null 2>&1 || true
-  fuser -k 4000/tcp >/dev/null 2>&1 || true
-fi
-
-pkill -f "nest start --watch" || true
-pkill -f "next dev --port 3010" || true
-kill_project_processes
-
-if command -v setsid >/dev/null 2>&1; then
-  setsid bash -lc "cd \"$PROJECT\" && corepack pnpm dev:api" \
-    > .run-logs/api.log 2>&1 < /dev/null &
-else
-  nohup bash -lc "cd \"$PROJECT\" && corepack pnpm dev:api" \
-    > .run-logs/api.log 2>&1 < /dev/null &
-fi
-echo $! > .run-pids/api.pid
-
-if command -v setsid >/dev/null 2>&1; then
-  setsid bash -lc "cd \"$PROJECT\" && corepack pnpm dev:web" \
-    > .run-logs/web.log 2>&1 < /dev/null &
-else
-  nohup bash -lc "cd \"$PROJECT\" && corepack pnpm dev:web" \
-    > .run-logs/web.log 2>&1 < /dev/null &
-fi
-echo $! > .run-pids/web.pid
-
-sleep 14
+echo "== LIMPANDO AMBIENTE LOCAL ANTERIOR =="
+cleanup_dev_processes
 
 echo
-echo "== PORTAS =="
-ss -ltnp | grep -E ":3010|:4000" || true
+echo "== SUBINDO AMBIENTE LOCAL =="
+start_dev_server "API" "${RUN_PID_DIR}/api.pid" "${RUN_LOG_DIR}/api.log" \
+  "cd \"$PROJECT\" && corepack pnpm dev:api"
+
+start_dev_server "Web" "${RUN_PID_DIR}/web.pid" "${RUN_LOG_DIR}/web.log" \
+  "cd \"$PROJECT\" && corepack pnpm dev:web"
+
+echo
+wait_for_url "API /health" "${API_BASE_URL}/health" 60 || true
+wait_for_web 60 || true
+
+echo
+print_ports
 
 echo
 echo "== TESTE API =="
-curl -I http://127.0.0.1:4000/auth/session || true
+curl -I "${API_BASE_URL}/auth/session" || true
 
 echo
 echo "== TESTE WEB =="
-curl -I http://127.0.0.1:3010 || true
+curl -I "$WEB_BASE_URL" || true
 
 echo
-echo "== LOG API =="
-tail -n 40 .run-logs/api.log || true
+print_project_processes
 
 echo
-echo "== LOG WEB =="
-tail -n 40 .run-logs/web.log || true
+print_log "LOG API" "${RUN_LOG_DIR}/api.log"
+
+echo
+print_log "LOG WEB" "${RUN_LOG_DIR}/web.log"
