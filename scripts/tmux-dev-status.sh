@@ -1,30 +1,22 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+cd "$(dirname "$0")/.." || exit 1
+source scripts/dev-processes-local.sh
+
 SESSION="nova-dev"
-PROJECT="$(cd "$(dirname "$0")/.." && pwd)"
 
 echo "== TMUX WINDOWS =="
 tmux list-windows -t "$SESSION" 2>/dev/null || echo "Sessao tmux nao encontrada"
 
 echo
-echo "== PORTAS =="
-ss -ltnp | grep -E ':4000|:3010' || true
+print_ports
 
 echo
-print_log() {
-  local label="$1"
-  local file="$2"
-
-  echo "== ${label} =="
-  if [ -f "$file" ]; then
-    tail -n 30 "$file" || true
-  else
-    echo "Log ainda não existe: $file"
-  fi
-}
-
-print_log "LOG API" "$PROJECT/.run-logs/api.log"
+print_project_processes
 
 echo
-print_log "LOG WEB" "$PROJECT/.run-logs/web.log"
+print_log "LOG API" "${RUN_LOG_DIR}/api.log"
+
+echo
+print_log "LOG WEB" "${RUN_LOG_DIR}/web.log"
