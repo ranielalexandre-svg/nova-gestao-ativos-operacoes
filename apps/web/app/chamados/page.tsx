@@ -418,7 +418,7 @@ export default async function ChamadosPage({
             </div>
             <div>
               <Link href="/operacao/fila?view=dueSoon"><Icon name="ticket" />Abrir fila</Link>
-              <Link href="/chamados/novo"><Icon name="plus" />Novo chamado</Link>
+              <Link href="/chamados/cadastro"><Icon name="plus" />Cadastrar chamado</Link>
             </div>
           </header>
 

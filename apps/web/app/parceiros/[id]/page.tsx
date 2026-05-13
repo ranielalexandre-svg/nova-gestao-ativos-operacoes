@@ -118,7 +118,7 @@ function CreatedNotice({ from }: { from: string }) {
             Origem: {from === "wizard" ? "cadastro guiado" : "cadastro direto"}.
             Revise o vínculo das unidades e a cobertura importada.
           </div></div><div className="flex flex-wrap gap-2"><Link
-            href="/parceiros/nova"
+            href="/parceiros/cadastro"
             className="nds-button"
             data-variant="primary"
           >
@@ -534,11 +534,11 @@ export default async function ParceiroDetailPage({
             >
               Ver unidades
             </Link><Link
-              href={`/unidades/nova?partnerId=${partner.id}`}
+              href={`/unidades/cadastro?partnerId=${partner.id}`}
               className="nds-button"
               data-variant="primary"
             >
-              Nova unidade
+              Cadastrar unidade
             </Link></div></div>
       ),
     },
@@ -598,11 +598,11 @@ export default async function ParceiroDetailPage({
             </Link>
             {isAdmin ? (
               <Link
-                href={`/unidades/nova?partnerId=${partner.id}`}
+                href={`/unidades/cadastro?partnerId=${partner.id}`}
                 className="nds-button"
                 data-variant="primary"
               >
-                Nova unidade
+                Cadastrar unidade
               </Link>
             ) : null}
             {isAdmin ? (
@@ -700,11 +700,11 @@ export default async function ParceiroDetailPage({
                 action={
                   isAdmin ? (
                     <Link
-                      href={`/unidades/nova?partnerId=${partner.id}`}
+                      href={`/unidades/cadastro?partnerId=${partner.id}`}
                       className="nds-button"
                       data-variant="primary"
                     >
-                      Nova unidade
+                      Cadastrar unidade
                     </Link>
                   ) : null
                 }

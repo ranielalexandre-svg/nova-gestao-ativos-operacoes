@@ -342,7 +342,7 @@ export default async function AlertasPage({
         <div className="nova-lit-page-actions">
           <Link href="/monitoramento/sensores" className="nova-lit-button nova-lit-button-secondary">Ver sensores</Link>
           <Link href="/chamados" className="nova-lit-button nova-lit-button-secondary">Abrir chamado</Link>
-          <Link href="/alertas/novo" className="nova-lit-button nova-lit-button-primary">Novo alerta</Link>
+          <Link href="/alertas/cadastro" className="nova-lit-button nova-lit-button-primary">Cadastrar alerta</Link>
         </div>
       </div>
 

@@ -9,7 +9,7 @@ const webRoutes = [
   "/dashboard",
 
   "/alertas",
-  "/alertas/novo",
+  "/alertas/cadastro",
   "/ativos",
   "/ativos/starlinks",
   "/equipamentos",
@@ -19,7 +19,7 @@ const webRoutes = [
   "/usuarios",
   "/chamados",
   "/excecoes",
-  "/excecoes/nova",
+  "/excecoes/cadastro",
   "/unidades",
 
   "/operacao",

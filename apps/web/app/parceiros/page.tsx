@@ -251,7 +251,7 @@ export default async function ParceirosPage({
 
         <div className="nova-lit-page-actions">
           <Link href="/contratos" className="nova-lit-button nova-lit-button-secondary">Contratos</Link>
-          {isAdmin ? <Link href="/parceiros/nova" className="nova-lit-button nova-lit-button-primary">Novo parceiro</Link> : null}
+          {isAdmin ? <Link href="/parceiros/cadastro" className="nova-lit-button nova-lit-button-primary">Cadastrar parceiro</Link> : null}
         </div>
       </div>
 

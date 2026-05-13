@@ -1861,11 +1861,11 @@ export default async function UnidadeDetailPage({
         <div className="grid gap-2"><div className="flex flex-wrap items-center justify-between gap-2"><div className="text-[11px] font-bold text-slate-100">
               {unit.equipments.length} ativo(s) vinculado(s)
             </div><Link
-              href={`/ativos/nova?unitId=${unit.id}`}
+              href={`/ativos/cadastro?unitId=${unit.id}`}
               className="nds-button"
               data-variant="primary"
             >
-              Novo ativo nesta unidade
+              Cadastrar ativo nesta unidade
             </Link></div>
 
           {unit.equipments.length ? (
@@ -2035,7 +2035,7 @@ export default async function UnidadeDetailPage({
               }
               compact
             /><div className="flex flex-wrap gap-2"><Link
-                href="/unidades/nova"
+                href="/unidades/cadastro"
                 className="nds-button"
                 data-variant="primary"
               >
@@ -2190,11 +2190,11 @@ export default async function UnidadeDetailPage({
           actions={
             isAdmin ? (
               <Link
-                href={`/ativos/nova?unitId=${unit.id}`}
+                href={`/ativos/cadastro?unitId=${unit.id}`}
                 className="nds-button"
                 data-variant="primary"
               >
-                Novo ativo
+                Cadastrar ativo
               </Link>
             ) : null
           }
@@ -2224,11 +2224,11 @@ export default async function UnidadeDetailPage({
               description="Quando o inventário for associado, ele aparece aqui com tag, tipo e status."
               action={
                 <Link
-                  href={`/ativos/nova?unitId=${unit.id}`}
+                  href={`/ativos/cadastro?unitId=${unit.id}`}
                   className="nds-button"
                   data-variant="primary"
                 >
-                  Novo ativo
+                  Cadastrar ativo
                 </Link>
               }
             />

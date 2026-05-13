@@ -247,7 +247,7 @@ export default async function ContratosPage({
             <div className="nova-contract-detail-actions">
               <Link href="/parceiros">Parceiros</Link>
               <Link href="/unidades">Unidades</Link>
-              {isAdmin ? <Link href="/contratos/novo" className="is-primary">Novo contrato</Link> : null}
+              {isAdmin ? <Link href="/contratos/cadastro" className="is-primary">Cadastrar contrato</Link> : null}
             </div>
           </div>
         </header>
@@ -412,7 +412,7 @@ export default async function ContratosPage({
 
           <div className="nova-lit-page-actions">
             <Link href={withParams("/contratos", currentParams, { page: safePage })} className="nova-lit-button nova-lit-button-secondary">Atualizar</Link>
-            {isAdmin ? <Link href="/contratos/novo" className="nova-lit-button nova-lit-button-primary">Novo contrato</Link> : null}
+            {isAdmin ? <Link href="/contratos/cadastro" className="nova-lit-button nova-lit-button-primary">Cadastrar contrato</Link> : null}
           </div>
         </div>
 

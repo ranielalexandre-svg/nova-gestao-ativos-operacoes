@@ -294,7 +294,7 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 
 - apps/web/app/alertas/[id]/editar/page.tsx
 - apps/web/app/alertas/[id]/page.tsx
-- apps/web/app/alertas/novo/page.tsx
+- apps/web/app/alertas/cadastro/page.tsx
 - apps/web/app/alertas/page.tsx
 
 ### api routes
@@ -306,7 +306,7 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 ### ativos
 
 - apps/web/app/ativos/[id]/page.tsx
-- apps/web/app/ativos/nova/page.tsx
+- apps/web/app/ativos/cadastro/page.tsx
 - apps/web/app/ativos/onus/page.tsx
 - apps/web/app/ativos/outros/page.tsx
 - apps/web/app/ativos/page.tsx
@@ -326,7 +326,7 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 
 - apps/web/app/chamados/[id]/editar/page.tsx
 - apps/web/app/chamados/[id]/page.tsx
-- apps/web/app/chamados/novo/page.tsx
+- apps/web/app/chamados/cadastro/page.tsx
 - apps/web/app/chamados/page.tsx
 
 ### configuracoes
@@ -337,7 +337,7 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 
 - apps/web/app/contratos/[id]/editar/page.tsx
 - apps/web/app/contratos/[id]/page.tsx
-- apps/web/app/contratos/novo/page.tsx
+- apps/web/app/contratos/cadastro/page.tsx
 - apps/web/app/contratos/page.tsx
 
 ### dashboard
@@ -347,7 +347,7 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 ### equipamentos
 
 - apps/web/app/equipamentos/[id]/page.tsx
-- apps/web/app/equipamentos/nova/page.tsx
+- apps/web/app/equipamentos/cadastro/page.tsx
 - apps/web/app/equipamentos/page.tsx
 - apps/web/app/equipamentos/starlinks/page.tsx
 
@@ -358,7 +358,7 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 ### excecoes
 
 - apps/web/app/excecoes/[id]/page.tsx
-- apps/web/app/excecoes/nova/page.tsx
+- apps/web/app/excecoes/cadastro/page.tsx
 - apps/web/app/excecoes/page.tsx
 - apps/web/app/excecoes/export/route.ts
 
@@ -382,7 +382,7 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 
 - apps/web/app/manutencoes/[id]/editar/page.tsx
 - apps/web/app/manutencoes/[id]/page.tsx
-- apps/web/app/manutencoes/nova/page.tsx
+- apps/web/app/manutencoes/cadastro/page.tsx
 - apps/web/app/manutencoes/page.tsx
 
 ### mapas
@@ -400,7 +400,7 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 
 - apps/web/app/ocorrencias/[id]/editar/page.tsx
 - apps/web/app/ocorrencias/[id]/page.tsx
-- apps/web/app/ocorrencias/nova/page.tsx
+- apps/web/app/ocorrencias/cadastro/page.tsx
 - apps/web/app/ocorrencias/page.tsx
 
 ### operacao
@@ -417,7 +417,7 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 ### parceiros
 
 - apps/web/app/parceiros/[id]/page.tsx
-- apps/web/app/parceiros/nova/page.tsx
+- apps/web/app/parceiros/cadastro/page.tsx
 - apps/web/app/parceiros/page.tsx
 
 ### perfis
@@ -455,13 +455,13 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 ### unidades
 
 - apps/web/app/unidades/[id]/page.tsx
-- apps/web/app/unidades/nova/page.tsx
+- apps/web/app/unidades/cadastro/page.tsx
 - apps/web/app/unidades/page.tsx
 
 ### usuarios
 
 - apps/web/app/usuarios/[id]/page.tsx
-- apps/web/app/usuarios/nova/page.tsx
+- apps/web/app/usuarios/cadastro/page.tsx
 - apps/web/app/usuarios/page.tsx
 - apps/web/app/usuarios/export/route.ts
 
@@ -492,6 +492,6 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 - apps/web/components/report-print-button.tsx
 - apps/web/components/sensores/nova-sensores-view.tsx
 - apps/web/components/starlinks/starlink-secret-actions.tsx
-- apps/web/components/unidades/nova-unidades-view.tsx
+- apps/web/components/unidades/cadastro-unidades-view.tsx
 - apps/web/components/unidades/operational-secret-actions.tsx
 - apps/web/components/unit-watchlist-panel.tsx

@@ -349,7 +349,7 @@ export default async function UsuariosPage({
             </div>
             <div>
               <ActionButton href={currentHref} icon="refresh">Atualizar dados</ActionButton>
-              <ActionButton href="/usuarios/nova" icon="plus-user" variant="primary">Novo usuário</ActionButton>
+              <ActionButton href="/usuarios/cadastro" icon="plus-user" variant="primary">Cadastrar usuário</ActionButton>
             </div>
           </header>
 
@@ -571,7 +571,7 @@ export default async function UsuariosPage({
                   <Icon name="activity" />
                   <h2>Atalhos de acesso</h2>
                 </div>
-                <Link href="/usuarios/nova"><Icon name="plus-user" /><span>Novo usuário</span><Icon name="chevron" /></Link>
+                <Link href="/usuarios/cadastro"><Icon name="plus-user" /><span>Cadastrar usuário</span><Icon name="chevron" /></Link>
                 <Link href={exportHref}><Icon name="download" /><span>Exportar lista</span><Icon name="chevron" /></Link>
                 <Link href="/usuarios?active=false"><Icon name="mail" /><span>Revisar pendentes</span><Icon name="chevron" /></Link>
                 <Link href={firstUserHref}><Icon name="lock" /><span>Redefinir senha</span><Icon name="chevron" /></Link>
