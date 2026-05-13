@@ -208,7 +208,7 @@ const highWeb = webRows.filter((item) => item.priority === "alta");
 let md = "";
 
 md += "# Auditoria local de módulos\n\n";
-md += `Branch: ${getBranch()}\n`;
+md += "Branch: repositório local\n";
 md += "Atualizado em: gerado por `corepack pnpm audit:modules`\n\n";
 
 md += "## Resumo executivo\n\n";

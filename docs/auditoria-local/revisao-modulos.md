@@ -1,6 +1,6 @@
 # Auditoria local de módulos
 
-Branch: codex/cobertura-monitoring-api
+Branch: repositório local
 Atualizado em: gerado por `corepack pnpm audit:modules`
 
 ## Resumo executivo
