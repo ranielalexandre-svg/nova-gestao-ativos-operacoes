@@ -2039,7 +2039,7 @@ export default async function UnidadeDetailPage({
                 className="nds-button"
                 data-variant="primary"
               >
-                Criar outra
+                Cadastrar outra
               </Link><Link
                 href="/unidades"
                 className="nds-button"

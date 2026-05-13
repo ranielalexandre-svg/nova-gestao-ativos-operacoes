@@ -49,7 +49,7 @@ function buildWizardHref(
   return `/parceiros/cadastro?${params.toString()}`;
 }
 
-export default async function NovoParceiroPage({
+export default async function CadastroParceiroPage({
   searchParams,
 }: {
   searchParams?: Promise<RawSearchParams> | RawSearchParams;
@@ -121,7 +121,7 @@ export default async function NovoParceiroPage({
     <NovaLitShell activeHref="/parceiros">
       <div className="nova-partner-create-lit-page"><div className="nds-surface w-full"><div className="flex items-start justify-between gap-2 border-b border-white/[0.08] px-3 py-2 sm:px-3"><SectionIntro
             eyebrow="Cadastro guiado"
-            title="Cadastrar parceiro"
+            title="Cadastro de parceiro"
             description="Fluxo direto para criar a estrutura parceira e persistir contato/cobertura inicial."
             compact
           /><Link
@@ -145,7 +145,7 @@ export default async function NovoParceiroPage({
             /><WizardStep
               index={3}
               title="Operação"
-              description="Revisão e criação."
+              description="Revisão e cadastro."
               state={step === 3 ? "current" : identityReady ? "available" : "locked"}
               href={identityReady ? buildWizardHref(3, wizardValues) : undefined}
             /></div></div><div className="px-3 py-2 sm:px-3">
@@ -218,12 +218,12 @@ export default async function NovoParceiroPage({
           {step === 3 ? (
             <WizardPanel
               title="Operação"
-              description="Revise a entidade que será criada e mantenha contato e cobertura como guia operacional."
+              description="Revise a entidade que será cadastrada e mantenha contato e cobertura como guia operacional."
             ><ActionForm
                 action={createFromWizard}
                 className="grid gap-2"
-                submitLabel="Criar parceiro"
-                pendingLabel="Criando parceiro..."
+                submitLabel="Cadastrar parceiro"
+                pendingLabel="Cadastrando parceiro..."
                 hideSubmit
               ><input type="hidden" name="code" value={code} /><input type="hidden" name="name" value={name} /><input type="hidden" name="cityBase" value={cityBase} /><input type="hidden" name="contactName" value={contactName} /><input type="hidden" name="contactPhone" value={contactPhone} /><input type="hidden" name="coverage" value={coverage} /><div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3"><SummaryItem label="Código" value={code} /><SummaryItem label="Nome" value={name} /><SummaryItem label="Cidade base" value={cityBase || "não informado"} /><SummaryItem label="Contato" value={contactName || "não informado"} /><SummaryItem label="Telefone" value={contactPhone || "não informado"} /><SummaryItem label="Cobertura" value={coverage || "não informado"} /></div><div className="nds-card text-[11px] leading-5 text-slate-400">
                   O parceiro será criado com identificação principal e, quando informado, o contato operacional ficará gravado no banco.
@@ -234,8 +234,8 @@ export default async function NovoParceiroPage({
                   >
                     Voltar
                   </Link><FormSubmitButton
-                    idleLabel="Criar parceiro"
-                    pendingLabel="Criando parceiro..."
+                    idleLabel="Cadastrar parceiro"
+                    pendingLabel="Cadastrando parceiro..."
                     className="min-w-[148px]"
                   /></div></ActionForm></WizardPanel>
           ) : null}

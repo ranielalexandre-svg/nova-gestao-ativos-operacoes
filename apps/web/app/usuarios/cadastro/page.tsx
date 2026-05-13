@@ -41,7 +41,7 @@ async function createUser(
   redirect(`/usuarios/${createdId}`);
 }
 
-export default async function NovoUsuarioPage() {
+export default async function CadastroUsuarioPage() {
   const session = await getServerWebSession();
 
   if (!session.authenticated) {
@@ -62,7 +62,7 @@ export default async function NovoUsuarioPage() {
               <span>/</span>
               <Link href="/usuarios">Usuários</Link>
               <span>/</span>
-              <strong>Novo</strong>
+              <strong>Cadastro</strong>
             </nav>
             <h1>Cadastro de usuário</h1>
             <p>Crie o acesso em uma etapa dedicada, com papel, e-mail e senha inicial provisória.</p>
@@ -92,8 +92,8 @@ export default async function NovoUsuarioPage() {
                 className="nova-user-editor-form"
                 noticeClassName="nova-user-editor-form-wide"
                 submitClassName="nova-user-editor-form-wide"
-                submitLabel="Criar usuário"
-                pendingLabel="Criando..."
+                submitLabel="Cadastrar usuário"
+                pendingLabel="Cadastrando usuário..."
                 variant="primary"
               >
                 <label>

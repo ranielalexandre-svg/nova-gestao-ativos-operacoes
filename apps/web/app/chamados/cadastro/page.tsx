@@ -138,7 +138,7 @@ function TextField({
   );
 }
 
-export default async function NovoChamadoPage({
+export default async function CadastroChamadoPage({
   searchParams,
 }: {
   searchParams?: Promise<RawSearchParams> | RawSearchParams;
@@ -179,7 +179,7 @@ export default async function NovoChamadoPage({
     <NovaLitShell activeHref="/chamados">
       <div className="nova-lit-page-heading nova-tickets-heading">
         <div>
-          <h1>Cadastrar chamado</h1>
+          <h1>Cadastro de chamado</h1>
           <p className="nova-lit-page-subtitle">
             Cadastre uma ação técnica vinculada a parceiro, unidade, ativo ou alerta.
           </p>
@@ -286,7 +286,7 @@ export default async function NovoChamadoPage({
 
             <div className="flex flex-wrap items-center gap-2 pt-2">
               <button type="submit" className="nova-lit-button nova-lit-button-primary">
-                Criar chamado
+                Cadastrar chamado
               </button>
               <Link href="/chamados" className="nova-lit-button nova-lit-button-secondary">
                 Cancelar
