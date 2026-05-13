@@ -254,11 +254,11 @@ export default async function RelatoriosPage() {
           <div>
             <span>Relatórios / Central</span>
             <h1>Relatórios</h1>
-            <p>Biblioteca operacional, modelos, exportações recentes e pontos de qualidade para consumo, disponibilidade e performance.</p>
+            <p>Central de geração e acompanhamento de relatórios operacionais, com modelos, exportações e qualidade dos metadados.</p>
           </div>
           <div className="nova-reports-hub-actions">
             <Link href="/relatorios/monitoramento" className="nova-lit-button nova-lit-button-secondary">
-              Monitoramento
+              Abrir monitoramento
             </Link>
             <Link href="/relatorios/monitoramento?source=unit" className="nova-lit-button nova-lit-button-primary">
               Novo relatório
@@ -267,18 +267,18 @@ export default async function RelatoriosPage() {
         </header>
 
         <section className="nova-reports-hub-stats" aria-label="Indicadores de relatórios">
-          <StatCard label="Unidades" value={units.total} hint="aptas para exportação" tone="blue" />
+          <StatCard label="Unidades" value={units.total} hint="no catálogo de relatórios" tone="blue" />
           <StatCard label="Modelos" value={templates.length} hint={`${enabledTemplates} ativo(s)`} tone={enabledTemplates ? "green" : "slate"} />
           <StatCard label="Com gráficos" value={withCharts} hint="incluem séries Zabbix" tone={withCharts ? "green" : "slate"} />
           <StatCard label="Última geração" value={lastRun ? formatShortDateTime(lastRun.startedAt) : "-"} hint={lastRun?.status || "sem execução"} tone={lastRun ? statusTone(lastRun.status) : "slate"} />
-          <StatCard label="Prontas" value={readyUnits} hint="metadados completos" tone={readyUnits ? "green" : "orange"} />
+          <StatCard label="Metadados completos" value={readyUnits} hint="prontas para exportar" tone={readyUnits ? "green" : "orange"} />
         </section>
 
         <section className="nova-reports-hub-layout">
           <div className="nova-reports-hub-main">
             <Panel
               eyebrow="Biblioteca"
-              title="Modelos de relatório"
+              title="Modelos salvos"
               action={<Badge tone="blue">{templates.length} modelo(s)</Badge>}
             >
               {templates.length ? (
@@ -310,37 +310,37 @@ export default async function RelatoriosPage() {
                   ))}
                 </div>
               ) : (
-                <EmptyState>Nenhum modelo de consumo salvo. Gere o primeiro relatório em Monitoramento.</EmptyState>
+                <EmptyState>Nenhum modelo salvo. Gere o primeiro relatório na central de monitoramento.</EmptyState>
               )}
             </Panel>
 
             <Panel
               eyebrow="Rotas"
-              title="Centrais de relatório"
+              title="Tipos de relatório"
               action={<Badge tone="green">4 áreas</Badge>}
             >
               <div className="nova-reports-hub-shortcut-grid">
                 <ReportShortcut
                   title="Monitoramento"
-                  description="Geração guiada por unidade, grupo Zabbix ou template."
+                  description="Monte DOCX por unidade, grupo Zabbix ou modelo salvo."
                   href="/relatorios/monitoramento"
                   tone="green"
                 />
                 <ReportShortcut
                   title="Consumo"
-                  description="Biblioteca de modelos, exportações e cobertura de metadados."
+                  description="Acompanhe modelos, exportações e cobertura de metadados."
                   href="/relatorios/consumo"
                   tone="blue"
                 />
                 <ReportShortcut
                   title="Disponibilidade"
-                  description="SLA por unidade, vínculo Zabbix e fila de atenção."
+                  description="Veja disponibilidade, vínculo Zabbix e unidades que exigem atenção."
                   href="/relatorios/disponibilidade"
                   tone="orange"
                 />
                 <ReportShortcut
                   title="Performance"
-                  description="Latência, perda, temperatura e saúde técnica por unidade."
+                  description="Compare latência, perda, temperatura e saúde técnica por unidade."
                   href="/relatorios/performance"
                   tone="slate"
                 />
@@ -349,8 +349,8 @@ export default async function RelatoriosPage() {
 
             <section className="nova-reports-hub-split">
               <Panel
-                eyebrow="Unidades recentes"
-                title="Prontas para exportar"
+                eyebrow="Catálogo"
+                title="Unidades prontas para exportar"
                 action={<Badge tone="green">{readyUnits} prontas</Badge>}
               >
                 <div className="nova-reports-hub-unit-list">
@@ -369,7 +369,7 @@ export default async function RelatoriosPage() {
 
               <Panel
                 eyebrow="Metadados"
-                title="Cobertura operacional"
+                title="Qualidade dos metadados"
                 action={<Badge tone={readyUnits === units.total && units.total ? "green" : "orange"}>{percent(readyUnits, units.total)}%</Badge>}
               >
                 <div className="nova-reports-hub-progress-list">
@@ -383,14 +383,14 @@ export default async function RelatoriosPage() {
           </div>
 
           <aside className="nova-reports-hub-side">
-            <Panel eyebrow="Exportação" title="Resumo">
+            <Panel eyebrow="Exportação" title="Próxima exportação">
               <div className="nova-reports-hub-preview">
                 <div>
                   <b>NOVA</b>
                   <i />
                   <span>Relatório</span>
-                  <strong>CONSUMO</strong>
-                  <p>Banda, tráfego e séries Zabbix por unidade monitorada.</p>
+                  <strong>MONITORAMENTO</strong>
+                  <p>Unidade, contrato, sensores e séries Zabbix para acompanhamento operacional.</p>
                 </div>
               </div>
               <Link href="/relatorios/monitoramento" className="nova-reports-hub-primary-action">
@@ -407,7 +407,7 @@ export default async function RelatoriosPage() {
               </div>
             </Panel>
 
-            <Panel eyebrow="Qualidade" title="Recorte atual">
+            <Panel eyebrow="Qualidade" title="Saúde da base">
               <div className="nova-reports-hub-progress-list">
                 <ProgressLine label="Prontos" value={readyUnits} total={Math.max(units.total, 1)} tone="green" />
                 <ProgressLine label="Com erro" value={failedRuns} total={Math.max(runs.length, 1)} tone="red" />
@@ -416,11 +416,11 @@ export default async function RelatoriosPage() {
               </div>
             </Panel>
 
-            <Panel eyebrow="Ação rápida" title="Atalhos">
+            <Panel eyebrow="Ação rápida" title="Atalhos de geração">
               <div className="nova-reports-hub-quick">
-                <Link href="/relatorios/monitoramento"><span>Novo relatório</span><b>gerar</b></Link>
+                <Link href="/relatorios/monitoramento"><span>Gerar agora</span><b>novo</b></Link>
                 <Link href="/relatorios/monitoramento?source=unit"><span>Por unidade</span><b>{units.total}</b></Link>
-                <Link href="/relatorios/monitoramento?source=template"><span>Por template</span><b>{templates.length}</b></Link>
+                <Link href="/relatorios/monitoramento?source=template"><span>Por modelo</span><b>{templates.length}</b></Link>
               </div>
             </Panel>
           </aside>
