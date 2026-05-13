@@ -92,7 +92,7 @@ function assetTypeLabel(value: string) {
   if (value === "onu") return "ONUs";
   if (value === "switch") return "Switches";
   if (value === "outros") return "Outros / SAD";
-  return "Todos os tipos";
+  return "Inventário completo";
 }
 
 function statusTone(value: string, isActive: boolean): Tone {
@@ -134,7 +134,7 @@ function monitorTone(item: UnitHostTelemetryItem | null): Tone {
 }
 
 function monitorLabel(item: UnitHostTelemetryItem | null) {
-  if (!item) return "Na unidade";
+  if (!item) return "Vinculado à unidade";
   if (item.health === "online") return "Online";
   if (item.health === "degraded") return "Atenção";
   if (item.health === "down") return "Offline";
@@ -320,7 +320,7 @@ export default async function AtivosPage({
       <div className="nova-lit-page-heading nova-assets-heading">
         <div>
           <h1>Ativos</h1>
-          <p className="nova-lit-page-subtitle">Inventário técnico, Starlinks, rastreabilidade e monitoramento por unidade.</p>
+          <p className="nova-lit-page-subtitle">Inventário técnico por unidade, com Starlinks, rastreabilidade e status operacional.</p>
         </div>
 
         <div className="nova-lit-page-actions">
@@ -339,7 +339,7 @@ export default async function AtivosPage({
       <form action="/ativos" className="nova-lit-card nova-assets-filters">
         <label className="nova-assets-search">
           <span>Busca</span>
-          <input name="q" defaultValue={state.q} placeholder="Ativo, serial, MAC, unidade ou parceiro" />
+          <input name="q" defaultValue={state.q} placeholder="Buscar ativo, serial, MAC, unidade ou parceiro" />
         </label>
 
         <label className="nova-assets-field">
@@ -450,7 +450,7 @@ export default async function AtivosPage({
 
                   <div>
                     <b>{equipment.serialNumber || "-"}</b>
-                    <small>{isStarlink(equipment) ? "terminal Starlink" : "inventário atual"}</small>
+                    <small>{isStarlink(equipment) ? "terminal Starlink" : "cadastro atual"}</small>
                   </div>
 
                   <div>
@@ -477,7 +477,7 @@ export default async function AtivosPage({
         <aside className="nova-assets-right-col">
           <section className="nova-lit-card nova-assets-life">
             <div className="nova-lit-title-row">
-              <h2>Ciclo de vida</h2>
+              <h2>Status do inventário</h2>
               <span className="nova-lit-pill nova-lit-pill-blue">{rows.length}</span>
             </div>
             <div className="nova-assets-progress-list">
@@ -489,7 +489,7 @@ export default async function AtivosPage({
           </section>
 
           <section className="nova-lit-card nova-assets-quick">
-            <span>Ação rápida</span>
+            <span>Atalhos do inventário</span>
             <Link href="/ativos/starlinks">Starlinks <b>{starlinksOnPage}</b></Link>
             <Link href="/ativos/onus">ONUs <b>{rows.filter((item) => item.type.toLowerCase().includes("onu")).length}</b></Link>
             <Link href="/ativos/switches">Switches <b>{rows.filter((item) => item.type.toLowerCase().includes("switch")).length}</b></Link>
@@ -500,7 +500,7 @@ export default async function AtivosPage({
 
           <section className="nova-lit-card nova-assets-status">
             <div className="nova-lit-title-row">
-              <h2>Recorte atual</h2>
+              <h2>Resumo do recorte</h2>
               <span className="nova-lit-pill nova-lit-pill-orange">{attentionOnPage} atenção</span>
             </div>
             <div className="nova-assets-status-list">

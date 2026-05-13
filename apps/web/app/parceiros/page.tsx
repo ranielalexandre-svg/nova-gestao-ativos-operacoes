@@ -69,12 +69,12 @@ function firstPhones(item?: PartnerOperationalContact | null) {
 }
 
 function contactCaption(item?: PartnerOperationalContact | null) {
-  if (!item?.name) return "Contato principal não cadastrado";
+  if (!item?.name) return "Sem contato principal cadastrado";
   return [item.name, item.role].filter(Boolean).join(" · ");
 }
 
 function coverageLabel(item?: PartnerOperationalContact | null) {
-  return item?.notes || item?.city || (item ? "Contato cadastrado" : "Sem cobertura cadastrada");
+  return item?.notes || item?.city || (item ? "Contato cadastrado" : "Sem cobertura informada");
 }
 
 function cityBase(item?: PartnerOperationalContact | null) {
@@ -246,7 +246,7 @@ export default async function ParceirosPage({
       <div className="nova-lit-page-heading nova-partners-heading">
         <div>
           <h1>Parceiros</h1>
-          <p className="nova-lit-page-subtitle">Cadastro, contatos operacionais, cobertura e unidades vinculadas.</p>
+          <p className="nova-lit-page-subtitle">Base de parceiros com contatos, cobertura operacional e unidades vinculadas.</p>
         </div>
 
         <div className="nova-lit-page-actions">
@@ -264,7 +264,7 @@ export default async function ParceirosPage({
       <form action="/parceiros" className="nova-lit-card nova-partners-filters">
         <label className="nova-partners-search">
           <span>Busca</span>
-          <input name="q" defaultValue={state.q} placeholder="Nome, código, cidade base ou contato" />
+          <input name="q" defaultValue={state.q} placeholder="Buscar nome, código, cidade base ou contato" />
         </label>
 
         <label className="nova-partners-field">
@@ -312,7 +312,7 @@ export default async function ParceirosPage({
           <div className="nova-partners-section-title">
             <div>
               <span>Partner Desk</span>
-              <h2>Contatos e cobertura</h2>
+              <h2>Parceiros do recorte</h2>
             </div>
             <div>
               <small>{rows.length} linhas</small>
@@ -382,7 +382,7 @@ export default async function ParceirosPage({
         <aside className="nova-partners-right-col">
           <section className="nova-lit-card nova-partners-quality">
             <div className="nova-lit-title-row">
-              <h2>Qualidade</h2>
+              <h2>Qualidade cadastral</h2>
               <span className="nova-lit-pill nova-lit-pill-blue">{rows.length}</span>
             </div>
             <div className="nova-partners-progress-list">
@@ -394,7 +394,7 @@ export default async function ParceirosPage({
           </section>
 
           <section className="nova-lit-card nova-partners-quick">
-            <span>Ação rápida</span>
+            <span>Atalhos do recorte</span>
             <Link href={withParams("/parceiros", currentParams, { active: "true", page: 1 })}>Ativos <b>{activeOnPage}</b></Link>
             <Link href="/unidades">Unidades <b>{totalUnitsOnPage}</b></Link>
             <Link href="/contratos">Contratos <b>ver</b></Link>
@@ -402,7 +402,7 @@ export default async function ParceirosPage({
 
           <section className="nova-lit-card nova-partners-coverage">
             <div className="nova-lit-title-row">
-              <h2>Recorte atual</h2>
+              <h2>Resumo do recorte</h2>
               <span className="nova-lit-pill nova-lit-pill-orange">{contactsOnPage} contato(s)</span>
             </div>
             <div className="nova-partners-status-list">

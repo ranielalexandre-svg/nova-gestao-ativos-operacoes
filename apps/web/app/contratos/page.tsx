@@ -241,7 +241,7 @@ export default async function ContratosPage({
           <div className="nova-contract-detail-title-row">
             <div>
               <h1>Contratos</h1>
-              <p>Carteira contratual real ligada a parceiros, unidades, serviços, SLA e faturamento.</p>
+              <p>Contratos do recorte ligada a parceiros, unidades, serviços, SLA e faturamento.</p>
             </div>
 
             <div className="nova-contract-detail-actions">
@@ -377,7 +377,7 @@ export default async function ContratosPage({
         ) : null}
       </section>
 
-      <section className="nova-contracts-portfolio-section" aria-label="Carteira contratual">
+      <section className="nova-contracts-portfolio-section" aria-label="Contratos do recorte">
         <nav className="nova-admin-breadcrumb" aria-label="Breadcrumb">
           <Link href="/dashboard">Dashboard</Link>
           <span>/</span>
@@ -388,7 +388,7 @@ export default async function ContratosPage({
           <article className="is-active">
             <span>01</span>
             <strong>Contrato</strong>
-            <small>Parceiro, vigência, valor e SLA.</small>
+            <small>Parceiro, vigência, serviços, valor e SLA.</small>
           </article>
           <i>→</i>
           <article>
@@ -406,7 +406,7 @@ export default async function ContratosPage({
 
         <div className="nova-lit-page-heading nova-contracts-heading">
           <div>
-            <h1>Carteira operacional</h1>
+            <h1>Carteira de contratos</h1>
             <p className="nova-lit-page-subtitle">Lista rastreável dos contratos reais cadastrados no backend.</p>
           </div>
 
@@ -425,7 +425,7 @@ export default async function ContratosPage({
         <form action="/contratos" className="nova-lit-card nova-contracts-filters">
           <label className="nova-contracts-search">
             <span>Busca</span>
-            <input name="q" defaultValue={state.q} placeholder="Contrato, parceiro, unidade ou cidade" />
+            <input name="q" defaultValue={state.q} placeholder="Buscar contrato, parceiro, unidade ou cidade" />
           </label>
 
           <label className="nova-contracts-field">
@@ -458,7 +458,7 @@ export default async function ContratosPage({
             <div className="nova-contracts-section-title">
               <div>
                 <span>Contratos</span>
-                <h2>Carteira contratual</h2>
+                <h2>Contratos do recorte</h2>
               </div>
               <div>
                 <small>{contracts.items.length} linhas</small>
@@ -522,7 +522,7 @@ export default async function ContratosPage({
           <aside className="nova-contracts-right-col">
             <section className="nova-lit-card nova-contracts-governance">
               <div className="nova-lit-title-row">
-                <h2>Governança</h2>
+                <h2>Qualidade contratual</h2>
                 <span className="nova-lit-pill nova-lit-pill-orange">{pendingContracts.length} pendências</span>
               </div>
               <div className="nova-contracts-progress-list">
@@ -534,7 +534,7 @@ export default async function ContratosPage({
             </section>
 
             <section className="nova-lit-card nova-contracts-quick">
-              <span>Ação rápida</span>
+              <span>Atalhos da carteira</span>
               <Link href={statusHref(state, "active")}>Ativos <b>{activeContracts.meta.total}</b></Link>
               <Link href={statusHref(state, "draft")}>Rascunhos <b>{draftContracts.meta.total}</b></Link>
               <Link href={statusHref(state, "expired")}>Vencidos <b>{expiredContracts.meta.total}</b></Link>
@@ -542,7 +542,7 @@ export default async function ContratosPage({
 
             <section className="nova-lit-card nova-contracts-pending">
               <div className="nova-lit-title-row">
-                <h2>Pendências</h2>
+                <h2>Contratos pendentes</h2>
                 <span className="nova-lit-pill nova-lit-pill-orange">{pendingContracts.length}</span>
               </div>
               <div className="nova-contracts-unit-list">
@@ -562,7 +562,7 @@ export default async function ContratosPage({
 
             <section className="nova-lit-card nova-contracts-ready">
               <div className="nova-lit-title-row">
-                <h2>Prontos</h2>
+                <h2>Contratos prontos</h2>
                 <span className="nova-lit-pill nova-lit-pill-green">{readyContracts.length}</span>
               </div>
               <div className="nova-contracts-unit-list">
