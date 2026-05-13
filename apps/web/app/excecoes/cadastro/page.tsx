@@ -125,10 +125,10 @@ async function createExceptionCase(formData: FormData) {
     body: JSON.stringify(payload),
   });
 
-  revalidatePath("/excecoes");
+  revalidatePath("/operacao/excecoes");
   revalidatePath("/operacao");
   revalidatePath("/operacao/fila");
-  redirect(`/excecoes/${created.id}`);
+  redirect(`/operacao/excecoes/${created.id}`);
 }
 
 function SelectField({
@@ -195,11 +195,11 @@ export default async function CadastroExcecaoPage({
   const session = await getServerWebSession();
 
   if (!session.authenticated) {
-    redirect("/login?next=/excecoes/cadastro");
+    redirect("/login?next=/operacao/excecoes/cadastro");
   }
 
   if (!isAdminRole(session.user?.role || "")) {
-    redirect("/excecoes");
+    redirect("/operacao/excecoes");
   }
 
   const params = searchParams ? await searchParams : {};
@@ -249,7 +249,7 @@ export default async function CadastroExcecaoPage({
     Number(Boolean(defaultMaintenanceId));
 
   return (
-    <NovaLitShell activeHref="/excecoes">
+    <NovaLitShell activeHref="/operacao/excecoes">
       <div className="nova-lit-page-heading nova-exception-create-heading">
         <div>
           <div className="nova-exception-create-breadcrumb">Operação / Exceções / Cadastro</div>
@@ -260,7 +260,7 @@ export default async function CadastroExcecaoPage({
         </div>
 
         <div className="nova-lit-page-actions">
-          <Link href="/excecoes" className="nova-lit-button nova-lit-button-secondary">Voltar</Link>
+          <Link href="/operacao/excecoes" className="nova-lit-button nova-lit-button-secondary">Voltar</Link>
           <Link href="/operacao/fila" className="nova-lit-button nova-lit-button-primary">Abrir fila</Link>
         </div>
       </div>
@@ -450,7 +450,7 @@ export default async function CadastroExcecaoPage({
               <button type="submit" className="nova-lit-button nova-lit-button-primary">
                 Cadastrar exceção
               </button>
-              <Link href="/excecoes" className="nova-lit-button nova-lit-button-secondary">
+              <Link href="/operacao/excecoes" className="nova-lit-button nova-lit-button-secondary">
                 Cancelar
               </Link>
             </div>

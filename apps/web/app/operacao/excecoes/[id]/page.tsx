@@ -86,7 +86,7 @@ type ContextualLink = {
 function revalidateExceptionWorkspace(id: string) {
   revalidatePath(`/excecoes/${id}`);
   revalidatePath(`/operacao/excecoes/${id}`);
-  revalidatePath("/excecoes");
+  revalidatePath("/operacao/excecoes");
   revalidatePath("/operacao/fila");
   revalidatePath("/operacao");
   revalidatePath("/operacao/atividade");
@@ -199,7 +199,7 @@ export default async function ExceptionDetailPage({
   params: Promise<{ id: string }> | { id: string };
 }) {
   const session = await getServerWebSession();
-  if (!session.authenticated) redirect("/login?next=/excecoes");
+  if (!session.authenticated) redirect("/login?next=/operacao/excecoes");
 
   const resolvedParams = await params;
   const id = resolvedParams.id;
@@ -281,7 +281,7 @@ export default async function ExceptionDetailPage({
   const contextualLinks = buildContextualLinks(item);
 
   return (
-    <NovaLitShell activeHref="/excecoes">
+    <NovaLitShell activeHref="/operacao/excecoes">
       <div className="nova-exception-detail-lit-page">
 
         <nav className="nova-detail-crumbs" aria-label="Breadcrumb">
