@@ -284,7 +284,7 @@ export default async function StarlinksPage({
       <form action="/ativos/starlinks" className="nova-lit-card nova-starlinks-filters">
         <label className="nova-starlinks-search">
           <span>Busca</span>
-          <input name="q" defaultValue={state.q} placeholder="Terminal, serial, unidade, parceiro ou cidade" />
+          <input name="q" defaultValue={state.q} placeholder="Buscar terminal, serial, unidade, parceiro ou cidade" />
         </label>
 
         <label className="nova-starlinks-field">
@@ -317,7 +317,7 @@ export default async function StarlinksPage({
           <div className="nova-starlinks-section-title">
             <div>
               <span>Inventário satelital</span>
-              <h2>Terminais Starlink</h2>
+              <h2>Terminais do recorte</h2>
             </div>
             <div>
               <small>{pageItems.length} linhas</small>
@@ -360,7 +360,7 @@ export default async function StarlinksPage({
 
                 <div>
                   <Badge tone={statusTone(item.status)}>{statusLabel(item.status)}</Badge>
-                  <small>{item.inventoryStatus || "inventário atual"}</small>
+                  <small>{item.inventoryStatus || "cadastro atual"}</small>
                 </div>
 
                 <div>
@@ -388,7 +388,7 @@ export default async function StarlinksPage({
         <aside className="nova-starlinks-right-col">
           <section className="nova-lit-card nova-starlinks-life">
             <div className="nova-lit-title-row">
-              <h2>Qualidade</h2>
+              <h2>Qualidade cadastral</h2>
               <span className="nova-lit-pill nova-lit-pill-orange">{filtered.length}</span>
             </div>
             <div className="nova-starlinks-progress-list">
@@ -401,7 +401,7 @@ export default async function StarlinksPage({
           </section>
 
           <section className="nova-lit-card nova-starlinks-quick">
-            <span>Ação rápida</span>
+            <span>Atalhos Starlink</span>
             <Link href={withParams("/ativos/starlinks", currentParams, { status: "active", page: 1 })}>Ativos <b>{active}</b></Link>
             <Link href={withParams("/ativos/starlinks", currentParams, { status: "stock", page: 1 })}>Estoque <b>{stock}</b></Link>
             <Link href={withParams("/ativos/starlinks", currentParams, { status: "repair", page: 1 })}>Reparo <b>{repair}</b></Link>
@@ -409,7 +409,7 @@ export default async function StarlinksPage({
 
           <section className="nova-lit-card nova-starlinks-status">
             <div className="nova-lit-title-row">
-              <h2>Recorte atual</h2>
+              <h2>Resumo do recorte</h2>
               <span className="nova-lit-pill nova-lit-pill-blue">{cities} cidades</span>
             </div>
             <div className="nova-starlinks-status-list">

@@ -318,7 +318,7 @@ export default async function UsuariosPage({
   const recentActivities = latestLogins.map((user) => ({
     id: user.id,
     action: user.isActive ? "Acesso validado" : "Acesso bloqueado",
-    detail: user.isActive ? "Sessão operacional atualizada" : "Usuário aguardando liberação",
+    detail: user.isActive ? "Acesso operacional atualizado" : "Acesso aguardando liberação",
     entity: user.name,
     when: user.updatedAt || user.createdAt,
     tone: (user.isActive ? "green" : "orange") as Tone,
@@ -356,7 +356,7 @@ export default async function UsuariosPage({
           <form method="GET" className="nova-users-board-top-filters">
             <label className="is-search">
               <Icon name="search" />
-              <input name="q" defaultValue={q} placeholder="Buscar usuário ou e-mail..." />
+              <input name="q" defaultValue={q} placeholder="Buscar usuário, e-mail ou perfil..." />
             </label>
             <label>
               <span>Perfil</span>
@@ -391,7 +391,7 @@ export default async function UsuariosPage({
             <div className="nova-users-board-left">
               <section className="nova-users-board-card nova-users-board-list-card">
                 <div className="nova-users-board-card-head">
-                  <h2>Lista de usuários</h2>
+                  <h2>Usuários do recorte</h2>
                   <div>
                     <Link href={exportHref} className="nova-users-board-icon-button" aria-label="Exportar lista"><Icon name="download" /></Link>
                     <Link href={currentHref} className="nova-users-board-icon-button" aria-label="Ajustar filtros"><Icon name="settings" /></Link>
@@ -448,7 +448,7 @@ export default async function UsuariosPage({
 
               <section className="nova-users-board-card nova-users-board-activity">
                 <div className="nova-users-board-card-head">
-                  <h2>Atividade recente <span>{recentActivities.length}</span></h2>
+                  <h2>Movimentações recentes <span>{recentActivities.length}</span></h2>
                 </div>
                 <div className="nova-users-board-table-wrap">
                   <table className="nova-users-board-table">
@@ -482,7 +482,7 @@ export default async function UsuariosPage({
 
               <section className="nova-users-board-card nova-users-board-invites">
                 <div className="nova-users-board-card-head">
-                  <h2>Convites pendentes <span>{pendingInvites.length}</span></h2>
+                  <h2>Acessos pendentes <span>{pendingInvites.length}</span></h2>
                 </div>
                 <div className="nova-users-board-table-wrap">
                   <table className="nova-users-board-table">
@@ -560,7 +560,7 @@ export default async function UsuariosPage({
 
               <section className="nova-users-board-card">
                 <div className="nova-users-board-card-head">
-                  <h2>Distribuição por perfil</h2>
+                  <h2>Perfis de acesso</h2>
                   <button type="button" aria-label="Mais opções"><Icon name="more" /></button>
                 </div>
                 <DistributionDonut counts={roleCounts} total={users.length} />
@@ -569,12 +569,12 @@ export default async function UsuariosPage({
               <section className="nova-users-board-card nova-users-board-quick">
                 <div className="nova-users-board-side-title is-orange">
                   <Icon name="activity" />
-                  <h2>Ações rápidas</h2>
+                  <h2>Atalhos de acesso</h2>
                 </div>
                 <Link href="/usuarios/nova"><Icon name="plus-user" /><span>Novo usuário</span><Icon name="chevron" /></Link>
                 <Link href={exportHref}><Icon name="download" /><span>Exportar lista</span><Icon name="chevron" /></Link>
-                <Link href="/usuarios?active=false"><Icon name="mail" /><span>Reenviar convite</span><Icon name="chevron" /></Link>
-                <Link href={firstUserHref}><Icon name="lock" /><span>Forçar redefinição de senha</span><Icon name="chevron" /></Link>
+                <Link href="/usuarios?active=false"><Icon name="mail" /><span>Revisar pendentes</span><Icon name="chevron" /></Link>
+                <Link href={firstUserHref}><Icon name="lock" /><span>Redefinir senha</span><Icon name="chevron" /></Link>
               </section>
             </aside>
           </section>
