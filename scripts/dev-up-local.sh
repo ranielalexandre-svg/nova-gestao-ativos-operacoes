@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd /home/raniel/projetos/nova-gestao-ativos-operacoes || exit 1
+cd "$(dirname "$0")/.." || exit 1
+PROJECT="$(pwd)"
 mkdir -p .run-logs .run-pids
 
 kill_project_processes() {
@@ -32,19 +33,19 @@ pkill -f "next dev --port 3010" || true
 kill_project_processes
 
 if command -v setsid >/dev/null 2>&1; then
-  setsid bash -lc 'cd /home/raniel/projetos/nova-gestao-ativos-operacoes && corepack pnpm dev:api' \
+  setsid bash -lc "cd \"$PROJECT\" && corepack pnpm dev:api" \
     > .run-logs/api.log 2>&1 < /dev/null &
 else
-  nohup bash -lc 'cd /home/raniel/projetos/nova-gestao-ativos-operacoes && corepack pnpm dev:api' \
+  nohup bash -lc "cd \"$PROJECT\" && corepack pnpm dev:api" \
     > .run-logs/api.log 2>&1 < /dev/null &
 fi
 echo $! > .run-pids/api.pid
 
 if command -v setsid >/dev/null 2>&1; then
-  setsid bash -lc 'cd /home/raniel/projetos/nova-gestao-ativos-operacoes && corepack pnpm dev:web' \
+  setsid bash -lc "cd \"$PROJECT\" && corepack pnpm dev:web" \
     > .run-logs/web.log 2>&1 < /dev/null &
 else
-  nohup bash -lc 'cd /home/raniel/projetos/nova-gestao-ativos-operacoes && corepack pnpm dev:web' \
+  nohup bash -lc "cd \"$PROJECT\" && corepack pnpm dev:web" \
     > .run-logs/web.log 2>&1 < /dev/null &
 fi
 echo $! > .run-pids/web.pid

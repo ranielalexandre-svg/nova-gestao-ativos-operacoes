@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd /home/raniel/projetos/nova-gestao-ativos-operacoes || exit 1
+cd "$(dirname "$0")/.." || exit 1
 
 echo "== PORTAS =="
 ss -ltnp | grep -E ":3010|:4000" || true
