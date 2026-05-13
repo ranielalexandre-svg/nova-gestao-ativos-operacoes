@@ -424,8 +424,8 @@ export default async function ExceptionDetailPage({
               <Surface>
                 <SectionIntro
                   eyebrow="Ações"
-                  title="Despacho rápido"
-                  description="Status e responsável ficam separados para evitar desatribuição acidental durante o turno."
+                  title="Despacho do caso"
+                  description="Atualize status e responsável separadamente para evitar troca acidental no turno."
                   compact
                 />
                 <ActionForm
@@ -459,7 +459,7 @@ export default async function ExceptionDetailPage({
                   variant="secondary"
                 >
                   <select name="assigneeUserId" defaultValue={item.assignee?.id || ""}>
-                    <option value="">Sem responsável</option>
+                    <option value="">Sem responsável atribuído</option>
                     {usersResponse.items.map((user) => (
                       <option key={user.id} value={user.id}>
                         {user.name} · {user.email}
@@ -473,8 +473,8 @@ export default async function ExceptionDetailPage({
             <Surface>
               <SectionIntro
                 eyebrow="Continuidade"
-                title="Vínculos operacionais"
-                description="Abra o objeto que originou ou sustenta o caso sem voltar para a busca."
+                title="Contexto vinculado"
+                description="Abra unidade, alerta, chamado ou automação sem voltar para a busca."
                 compact
               />
               <ContextualLinks links={contextualLinks} />
@@ -483,8 +483,8 @@ export default async function ExceptionDetailPage({
             <Surface>
               <SectionIntro
                 eyebrow="Contexto"
-                title="Metadados do caso"
-                description="Origem, política, automação e vínculos."
+                title="Roteamento e SLA"
+                description="Classificação, origem, política, automação e janelas do caso."
                 compact
               />
               <div className="mt-2 grid gap-2 text-[11px] leading-5 text-slate-300">

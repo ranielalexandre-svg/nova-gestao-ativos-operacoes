@@ -501,10 +501,10 @@ export default async function ExcecoesPage({
                 <strong>Exceções</strong>
               </nav>
               <h1>Exceções</h1>
-              <p>Tratamento de inconsistências operacionais e desvios de regra.</p>
+              <p>Centralize desvios, SLA, origem e responsáveis para decidir o próximo passo.</p>
             </div>
             <div>
-              <BoardButton href={withParams("/excecoes", currentParams, {})} icon="refresh">Atualizar dados</BoardButton>
+              <BoardButton href={withParams("/excecoes", currentParams, {})} icon="refresh">Recarregar lista</BoardButton>
               <BoardButton href="/excecoes/nova" icon="plus" primary>Nova exceção</BoardButton>
             </div>
           </header>
@@ -513,17 +513,17 @@ export default async function ExcecoesPage({
             <article>
               <div><Icon name="alert" /></div>
               <span>Detecção</span>
-              <p>Identificação automática de desvios e inconsistências.</p>
+              <p>Entrada manual ou automática de desvios, alertas e inconsistências.</p>
             </article>
             <article>
               <div><Icon name="search" /></div>
               <span>Análise</span>
-              <p>Classificação, impacto e validação da exceção.</p>
+              <p>Priorize impacto, fila, SLA e responsável antes do despacho.</p>
             </article>
             <article>
               <div><Icon name="check" /></div>
               <span>Resolução</span>
-              <p>Tratamento, aprovação e acompanhamento.</p>
+              <p>Registre decisão, acompanhe atividade e feche o caso com contexto.</p>
             </article>
           </section>
 
@@ -537,7 +537,7 @@ export default async function ExcecoesPage({
             <form action="/excecoes" className="nova-exceptions-board-filters">
                 <label>
                   <span>Código</span>
-                  <input name="q" defaultValue={state.q} placeholder="Buscar código, título ou vínculo" />
+                  <input name="q" defaultValue={state.q} placeholder="Buscar código, título, vínculo ou origem" />
                 </label>
                 <label>
                   <span>Categoria</span>
@@ -605,7 +605,7 @@ export default async function ExcecoesPage({
                 <div className="nova-exceptions-board-card-head">
                   <div>
                     <Icon name="list" />
-                    <h2>Lista de exceções</h2>
+                    <h2>Casos do recorte</h2>
                     <span>Total {response.meta.total} exceção(ões)</span>
                   </div>
                   <Link href={exportHref} aria-label="Exportar relatório"><Icon name="download" /></Link>
@@ -663,7 +663,7 @@ export default async function ExcecoesPage({
               <section className="nova-exceptions-board-card nova-exceptions-board-summary">
                 <div className="nova-exceptions-board-side-title">
                   <Icon name="activity" />
-                  <h2>Resumo das exceções</h2>
+                  <h2>Pressão do recorte</h2>
                 </div>
                 <SummaryDonut rows={rows} />
                 <div className="nova-exceptions-board-pressure">
@@ -677,13 +677,13 @@ export default async function ExcecoesPage({
               <section className="nova-exceptions-board-card nova-exceptions-board-quick">
                 <div className="nova-exceptions-board-side-title">
                   <Icon name="activity" />
-                  <h2>Ações rápidas</h2>
+                  <h2>Atalhos operacionais</h2>
                 </div>
                 <Link href="/excecoes/nova"><Icon name="plus" /><span>Nova exceção</span></Link>
                 <Link href="/operacao/importacao"><Icon name="import" /><span>Importar exceções</span></Link>
                 <Link href={exportHref}><Icon name="download" /><span>Exportar relatório</span></Link>
-                <Link href={firstCaseHref}><Icon name="file" /><span>Base de conhecimento</span></Link>
-                <Link href="/administracao/sla"><Icon name="gear" /><span>Configurar regras</span></Link>
+                <Link href={firstCaseHref}><Icon name="file" /><span>Abrir primeiro caso</span></Link>
+                <Link href="/administracao/sla"><Icon name="gear" /><span>Configurar SLA</span></Link>
                 <Link href="/operacao/atividade"><Icon name="clock" /><span>Histórico de exceções</span></Link>
               </section>
             </aside>
