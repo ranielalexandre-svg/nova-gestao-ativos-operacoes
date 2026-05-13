@@ -32,7 +32,7 @@
 
 - Sempre parar preview anterior:
   ```bash
-  kill "$(cat .tmp/public-preview-3430.pid)" 2>/dev/null || true
+  corepack pnpm dev:down
   ```
 - Não reintroduzir `NAV_SECTIONS`, `function Nav(`, `function Topbar(`.
 - Páginas internas devem usar `NovaLitShell`.
@@ -55,3 +55,22 @@
 4. Criar testes.
 5. Revisar módulos.
 6. Só depois preparar produção.
+
+## Fluxo local atual
+
+Use o fluxo consolidado em `docs/qa-local/fluxo-local-robusto.md`.
+
+Comandos principais:
+
+```bash
+corepack pnpm dev:up
+corepack pnpm dev:status
+SMOKE_ROUTE_TIMEOUT_MS=45000 SMOKE_HEARTBEAT_MS=5000 corepack pnpm test:smoke
+corepack pnpm dev:down
+```
+
+Para QA completo:
+
+```bash
+corepack pnpm qa:local
+```
