@@ -8,7 +8,7 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 - Arquivos estruturais da API encontrados: 69
 - Testes API existentes: 37
 - Grupos/módulos API mapeados: 23
-- Rotas Web mapeadas: 91
+- Rotas Web mapeadas: 102
 - Componentes Web mapeados: 28
 - Módulos API de prioridade alta sem teste direto: 0
 - Grupos Web de prioridade alta: 8
@@ -25,14 +25,14 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 
 ### Web - prioridade alta
 
-- ativos: 7 page(s), 0 route handler(s)
-- chamados: 4 page(s), 0 route handler(s)
-- contratos: 4 page(s), 0 route handler(s)
+- ativos: 8 page(s), 0 route handler(s)
+- chamados: 5 page(s), 0 route handler(s)
+- contratos: 5 page(s), 0 route handler(s)
 - dashboard: 1 page(s), 0 route handler(s)
-- excecoes: 3 page(s), 1 route handler(s)
-- parceiros: 3 page(s), 0 route handler(s)
-- unidades: 3 page(s), 0 route handler(s)
-- usuarios: 3 page(s), 1 route handler(s)
+- excecoes: 4 page(s), 1 route handler(s)
+- parceiros: 4 page(s), 0 route handler(s)
+- unidades: 4 page(s), 0 route handler(s)
+- usuarios: 4 page(s), 1 route handler(s)
 
 ## Matriz API
 
@@ -68,36 +68,36 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 | --- | --- | --- | --- | --- |
 | (root) | 1 | 0 | 1 | baixa |
 | administracao | 4 | 0 | 0 | média |
-| alertas | 4 | 0 | 0 | média |
+| alertas | 5 | 0 | 0 | média |
 | api routes | 0 | 3 | 0 | baixa |
-| ativos | 7 | 0 | 0 | alta |
+| ativos | 8 | 0 | 0 | alta |
 | attachments | 0 | 1 | 0 | baixa |
 | automacao | 1 | 1 | 0 | baixa |
-| chamados | 4 | 0 | 0 | alta |
+| chamados | 5 | 0 | 0 | alta |
 | configuracoes | 1 | 0 | 0 | baixa |
-| contratos | 4 | 0 | 0 | alta |
+| contratos | 5 | 0 | 0 | alta |
 | dashboard | 1 | 0 | 0 | alta |
-| equipamentos | 4 | 0 | 0 | média |
+| equipamentos | 5 | 0 | 0 | média |
 | esqueci-senha | 1 | 0 | 0 | baixa |
-| excecoes | 3 | 1 | 0 | alta |
+| excecoes | 4 | 1 | 0 | alta |
 | export | 0 | 1 | 0 | baixa |
 | importacao | 1 | 0 | 0 | baixa |
 | integracoes | 1 | 0 | 0 | baixa |
 | login | 1 | 0 | 0 | baixa |
-| manutencoes | 4 | 0 | 0 | média |
+| manutencoes | 5 | 0 | 0 | média |
 | mapas | 1 | 0 | 0 | baixa |
 | monitoramento | 4 | 0 | 0 | média |
-| ocorrencias | 4 | 0 | 0 | média |
+| ocorrencias | 5 | 0 | 0 | média |
 | operacao | 8 | 0 | 0 | média |
-| parceiros | 3 | 0 | 0 | alta |
+| parceiros | 4 | 0 | 0 | alta |
 | perfis | 1 | 0 | 0 | baixa |
 | reconciliacao | 1 | 0 | 0 | baixa |
 | reconciliacao-central | 1 | 0 | 0 | baixa |
 | redefinir-senha | 1 | 0 | 0 | baixa |
 | relatorios | 5 | 4 | 0 | média |
 | sensores | 1 | 0 | 0 | baixa |
-| unidades | 3 | 0 | 0 | alta |
-| usuarios | 3 | 1 | 0 | alta |
+| unidades | 4 | 0 | 0 | alta |
+| usuarios | 4 | 1 | 0 | alta |
 
 ## API - arquivos mapeados
 
@@ -295,6 +295,7 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 - apps/web/app/alertas/[id]/editar/page.tsx
 - apps/web/app/alertas/[id]/page.tsx
 - apps/web/app/alertas/cadastro/page.tsx
+- apps/web/app/alertas/novo/page.tsx
 - apps/web/app/alertas/page.tsx
 
 ### api routes
@@ -307,6 +308,7 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 
 - apps/web/app/ativos/[id]/page.tsx
 - apps/web/app/ativos/cadastro/page.tsx
+- apps/web/app/ativos/nova/page.tsx
 - apps/web/app/ativos/onus/page.tsx
 - apps/web/app/ativos/outros/page.tsx
 - apps/web/app/ativos/page.tsx
@@ -327,6 +329,7 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 - apps/web/app/chamados/[id]/editar/page.tsx
 - apps/web/app/chamados/[id]/page.tsx
 - apps/web/app/chamados/cadastro/page.tsx
+- apps/web/app/chamados/novo/page.tsx
 - apps/web/app/chamados/page.tsx
 
 ### configuracoes
@@ -338,6 +341,7 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 - apps/web/app/contratos/[id]/editar/page.tsx
 - apps/web/app/contratos/[id]/page.tsx
 - apps/web/app/contratos/cadastro/page.tsx
+- apps/web/app/contratos/novo/page.tsx
 - apps/web/app/contratos/page.tsx
 
 ### dashboard
@@ -348,6 +352,7 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 
 - apps/web/app/equipamentos/[id]/page.tsx
 - apps/web/app/equipamentos/cadastro/page.tsx
+- apps/web/app/equipamentos/nova/page.tsx
 - apps/web/app/equipamentos/page.tsx
 - apps/web/app/equipamentos/starlinks/page.tsx
 
@@ -359,6 +364,7 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 
 - apps/web/app/excecoes/[id]/page.tsx
 - apps/web/app/excecoes/cadastro/page.tsx
+- apps/web/app/excecoes/nova/page.tsx
 - apps/web/app/excecoes/page.tsx
 - apps/web/app/excecoes/export/route.ts
 
@@ -383,6 +389,7 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 - apps/web/app/manutencoes/[id]/editar/page.tsx
 - apps/web/app/manutencoes/[id]/page.tsx
 - apps/web/app/manutencoes/cadastro/page.tsx
+- apps/web/app/manutencoes/nova/page.tsx
 - apps/web/app/manutencoes/page.tsx
 
 ### mapas
@@ -401,6 +408,7 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 - apps/web/app/ocorrencias/[id]/editar/page.tsx
 - apps/web/app/ocorrencias/[id]/page.tsx
 - apps/web/app/ocorrencias/cadastro/page.tsx
+- apps/web/app/ocorrencias/nova/page.tsx
 - apps/web/app/ocorrencias/page.tsx
 
 ### operacao
@@ -418,6 +426,7 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 
 - apps/web/app/parceiros/[id]/page.tsx
 - apps/web/app/parceiros/cadastro/page.tsx
+- apps/web/app/parceiros/nova/page.tsx
 - apps/web/app/parceiros/page.tsx
 
 ### perfis
@@ -456,12 +465,14 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 
 - apps/web/app/unidades/[id]/page.tsx
 - apps/web/app/unidades/cadastro/page.tsx
+- apps/web/app/unidades/nova/page.tsx
 - apps/web/app/unidades/page.tsx
 
 ### usuarios
 
 - apps/web/app/usuarios/[id]/page.tsx
 - apps/web/app/usuarios/cadastro/page.tsx
+- apps/web/app/usuarios/nova/page.tsx
 - apps/web/app/usuarios/page.tsx
 - apps/web/app/usuarios/export/route.ts
 
