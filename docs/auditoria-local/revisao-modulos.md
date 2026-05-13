@@ -1,23 +1,22 @@
 # Auditoria local de módulos
 
-Branch: codex/cobertura-automations-api
+Branch: codex/cobertura-exceptions-api
 Atualizado em: gerado por `corepack pnpm audit:modules`
 
 ## Resumo executivo
 
 - Arquivos estruturais da API encontrados: 69
-- Testes API existentes: 33
+- Testes API existentes: 35
 - Grupos/módulos API mapeados: 23
 - Rotas Web mapeadas: 91
 - Componentes Web mapeados: 28
-- Módulos API de prioridade alta sem teste direto: 2
+- Módulos API de prioridade alta sem teste direto: 1
 - Grupos Web de prioridade alta: 8
 
 ## Prioridades recomendadas
 
 ### API - prioridade alta
 
-- exceptions: sem teste de controller/service
 - monitoring: sem teste de controller/service
 
 ### API - prioridade média
@@ -49,7 +48,7 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 | dashboard | 1 | 1 | 2 | com teste | baixa |
 | e2e | 0 | 0 | 1 | com teste | baixa |
 | equipments | 1 | 1 | 2 | com teste | baixa |
-| exceptions | 1 | 1 | 0 | sem teste de controller/service | alta |
+| exceptions | 1 | 1 | 2 | com teste | baixa |
 | import-export | 1 | 1 | 1 | com teste | baixa |
 | integrations | 1 | 1 | 2 | com teste | baixa |
 | legacy | 2 | 1 | 1 | com teste | baixa |
@@ -182,6 +181,8 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 - apps/api/src/exceptions/exceptions.module.ts
 - apps/api/src/exceptions/exceptions.controller.ts
 - apps/api/src/exceptions/exceptions.service.ts
+- apps/api/src/exceptions/exceptions.controller.spec.ts
+- apps/api/src/exceptions/exceptions.service.spec.ts
 
 ### import-export
 
