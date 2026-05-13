@@ -285,9 +285,9 @@ export default async function ExceptionDetailPage({
       <div className="nova-exception-detail-lit-page">
 
         <nav className="nova-detail-crumbs" aria-label="Breadcrumb">
-          <Link href="/dashboard">Dashboard</Link>
+          <Link href="/operacao">Operação</Link>
           <span>/</span>
-          <Link href="/excecoes">Exceções</Link>
+          <Link href="/operacao/excecoes">Exceções</Link>
           <span>/</span>
           <strong>{item.code}</strong>
         </nav>
@@ -310,10 +310,10 @@ export default async function ExceptionDetailPage({
               <Link href="/operacao/fila" className="nds-button" data-variant="primary">
                 Fila
               </Link>
-              <Link href="/excecoes" className="nds-button" data-variant="secondary">
+              <Link href="/operacao/excecoes" className="nds-button" data-variant="secondary">
                 Exceções
               </Link>
-              <Link href="/administracao/sla" className="nds-button" data-variant="secondary">
+              <Link href="/operacao/sla" className="nds-button" data-variant="secondary">
                 SLA
               </Link>
             </div>

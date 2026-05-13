@@ -428,7 +428,7 @@ export default async function OperacaoSlaPage() {
                 >
                   <input type="hidden" name="scope" value="all" />
                 </ActionForm>
-                <Link href="/excecoes" className="nds-button" data-variant="secondary">
+                <Link href="/operacao/excecoes" className="nds-button" data-variant="secondary">
                   Ver exceções
                 </Link>
                 <Link href="/operacao/atividade" className="nds-button" data-variant="secondary">

@@ -268,7 +268,7 @@ export default async function AtividadePage({
               <Link href="/operacao/fila" className="nds-button" data-variant="secondary">
                 Abrir fila
               </Link>
-              <Link href="/excecoes" className="nds-button" data-variant="primary">
+              <Link href="/operacao/excecoes" className="nds-button" data-variant="primary">
                 Exceções
               </Link>
             </div>
@@ -459,7 +459,7 @@ export default async function AtividadePage({
                     <input type="hidden" name="exceptionId" value={priorityException.id} />
                     <input type="hidden" name="userId" value={session.user?.id || ""} />
                   </ActionForm>
-                  <Link href={`/excecoes/${priorityException.id}`} className="nds-button" data-variant="primary">
+                  <Link href={`/operacao/excecoes/${priorityException.id}`} className="nds-button" data-variant="primary">
                     Abrir caso
                   </Link>
                 </div>

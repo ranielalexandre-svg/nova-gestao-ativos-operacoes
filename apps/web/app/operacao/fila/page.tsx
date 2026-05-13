@@ -177,7 +177,7 @@ function FilaTable({
                   </TableCell>
                 ) : null}
                 <TableCell>
-                  <Link href={`/excecoes/${item.id}`} className="nova-queue-case-link">
+                  <Link href={`/operacao/excecoes/${item.id}`} className="nova-queue-case-link">
                     {item.code}
                   </Link>
                   <div className="mt-1 max-w-[340px] text-[11px] font-semibold leading-5 text-slate-200">
@@ -210,7 +210,7 @@ function FilaTable({
                   <div className="mt-1 text-[10px] text-slate-500">{formatDateTime(item.updatedAt, "-")}</div>
                 </TableCell>
                 <TableCell>
-                  <Link href={`/excecoes/${item.id}`} className="nova-queue-row-action">
+                  <Link href={`/operacao/excecoes/${item.id}`} className="nova-queue-row-action">
                     Abrir
                   </Link>
                 </TableCell>
@@ -566,7 +566,7 @@ export default async function FilaOperacionalPage({
                     {queueLabel(priorityItem.queueKey)} · vence {formatDateTime(priorityItem.resolveDueAt, "-")}
                   </div>
                   <div className="nova-queue-quick-actions">
-                    <Link href={`/excecoes/${priorityItem.id}`} className="nds-button" data-variant="secondary">
+                    <Link href={`/operacao/excecoes/${priorityItem.id}`} className="nds-button" data-variant="secondary">
                       Abrir caso
                     </Link>
                     {isAdmin ? (
@@ -615,7 +615,7 @@ export default async function FilaOperacionalPage({
                 <Link href="/alertas">Alertas operacionais</Link>
                 <Link href="/chamados">Agenda técnica</Link>
                 <Link href="/monitoramento/sensores">Monitoramento NOC</Link>
-                <Link href="/administracao/sla">Contratos SLA</Link>
+                <Link href="/operacao/sla">Contratos SLA</Link>
               </div>
             </Surface>
           </aside>
