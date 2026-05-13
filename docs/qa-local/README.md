@@ -27,3 +27,4 @@ Critérios esperados:
 - portas 3010/4000 ficam livres ao final;
 - `.tmp` não aparece no `git status`;
 - working tree fica limpo antes do push.
+- [Fluxo local robusto](./fluxo-local-robusto.md): dev, smoke, QA e cleanup local.
