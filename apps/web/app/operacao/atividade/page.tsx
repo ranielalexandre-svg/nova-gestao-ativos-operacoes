@@ -259,7 +259,7 @@ export default async function AtividadePage({
           <div className="nova-activity-command-bar">
             <div className="min-w-0">
               <div className="nds-label">Operação / Atividade</div>
-              <h1>Linha do tempo</h1>
+              <h1>Linha do tempo operacional</h1>
               <p>
                 Decisões, automações, evidências e registros manuais ligados ao trabalho do turno.
               </p>
@@ -307,8 +307,8 @@ export default async function AtividadePage({
             <Surface className="nova-activity-filter-panel">
               <SectionIntro
                 eyebrow="Consulta"
-                title="Buscar atividade"
-                description="Filtro compartilhável por texto, tipo, origem e severidade."
+                title="Filtrar atividade do turno"
+                description="Recorte compartilhável por texto, tipo, origem e severidade para reconstruir a decisão."
                 actions={<Link href="/operacao/atividade" className="nds-button" data-variant="secondary">Limpar</Link>}
                 compact
               />
@@ -359,7 +359,7 @@ export default async function AtividadePage({
             <Surface className="nova-activity-timeline-panel">
               <SectionIntro
                 eyebrow="Linha do tempo"
-                title="Atividades registradas"
+                title="Rastro operacional registrado"
                 description={`${formatNumber(response.meta.total)} evento(s) no recorte atual.`}
                 actions={<TonePill tone={criticalCount ? "critical" : "info"}>{formatNumber(criticalCount)} alta atenção</TonePill>}
                 compact
@@ -425,7 +425,7 @@ export default async function AtividadePage({
             <Surface className="nova-activity-side-panel">
               <SectionIntro
                 eyebrow="Registro rápido"
-                title="Handoff do turno"
+                title="Handoff e próximo passo"
                 description={priorityException ? `${priorityException.code} · ${priorityException.title}` : "Nenhuma exceção para registrar."}
                 compact
               />
@@ -470,7 +470,7 @@ export default async function AtividadePage({
               <Surface className="nova-activity-side-panel">
                 <SectionIntro
                   eyebrow="Registro manual"
-                  title="Nova atividade"
+                  title="Registrar nova atividade"
                   description="Decisão, contato, evidência ou próximo passo."
                   compact
                 />

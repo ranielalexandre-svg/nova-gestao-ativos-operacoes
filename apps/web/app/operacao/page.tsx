@@ -150,19 +150,19 @@ export default async function OperacaoPage() {
     <NovaLitShell activeHref="/operacao">
       <div className="nova-operation-lit-page"><section className="grid gap-2"><Surface><SectionIntro
             eyebrow="Operação"
-            title="Triagem, backlog e resposta imediata"
-            description="Resumo do turno com backlog, SLA, risco de host e atalhos para resposta."
+            title="Cockpit do turno operacional"
+            description="Visão consolidada para priorizar fila, SLA, hosts em risco, automações e próximos passos sem sair do workspace."
             actions={
               <div className="flex flex-wrap gap-2"><Link href="/operacao/fila?view=pending" className="nds-button" data-variant="primary">
-                  Abrir triagem
+                  Abrir fila do turno
                 </Link><Link href="/monitoramento/sensores" className="nds-button" data-variant="secondary">
                   Ver sensores
                 </Link></div>
             }
           /><div className="mt-2 flex flex-wrap gap-2"><FilterChip href="/operacao/fila?view=pending" active label="Triagem" count={exceptionSummary.counts.pendingTriageCount} /><FilterChip href="/operacao/fila?view=breached" label="SLA estourado" count={exceptionSummary.counts.breachedCount} /><FilterChip href="/operacao/fila?view=dueSoon" label="Vencendo" count={exceptionSummary.counts.dueSoonCount} /><FilterChip href="/operacao/fila?view=unassigned" label="Sem dono" count={exceptionSummary.counts.unassignedCount} /></div><div className="mt-2 grid gap-2 md:grid-cols-2 xl:grid-cols-4"><KpiTile href="/operacao/fila" label="Fila aberta" value={exceptionSummary.counts.openCount} meta={`${exceptionSummary.counts.pendingTriageCount} pendentes de triagem`} tone="info" /><KpiTile href="/operacao/fila?view=breached" label="SLA estourado" value={exceptionSummary.counts.breachedCount} meta={`${exceptionSummary.counts.dueSoonCount} vencendo em breve`} tone={exceptionSummary.counts.breachedCount > 0 ? "critical" : "neutral"} /><KpiTile href="/operacao/fila?view=unassigned" label="Sem responsável" value={exceptionSummary.counts.unassignedCount} meta={`${exceptionSummary.counts.silencedCount} silenciadas`} tone={exceptionSummary.counts.unassignedCount > 0 ? "attention" : "neutral"} /><KpiTile href="/monitoramento/sensores?health=down" label="Hosts offline" value={telemetry.counts.down} meta={`${telemetry.counts.degraded} em atenção`} tone={telemetry.counts.down > 0 ? "critical" : telemetry.counts.degraded > 0 ? "attention" : "neutral"} /></div><div className="mt-2 grid gap-2 md:grid-cols-2 xl:grid-cols-6"><InlineStat label="Alertas abertos" value={commandCenter.metrics.openOccurrences} tone={commandCenter.metrics.openOccurrences > 0 ? "info" : "neutral"} /><InlineStat label="Críticas abertas" value={commandCenter.metrics.criticalOpenOccurrences} tone={commandCenter.metrics.criticalOpenOccurrences > 0 ? "critical" : "neutral"} /><InlineStat label="Chamados vencidos" value={commandCenter.metrics.overdueMaintenances} tone={commandCenter.metrics.overdueMaintenances > 0 ? "attention" : "neutral"} /><InlineStat label="Regras vencendo" value={automationSummary.counts.dueRules} tone={automationSummary.counts.dueRules > 0 ? "attention" : "neutral"} /><InlineStat label="Fonte com falha" value={sourceFailures} tone={sourceFailures > 0 ? "attention" : "neutral"} /><InlineStat label="Pressão do turno" value={pressure} tone={pressure > 0 ? "attention" : "neutral"} /></div></Surface><Surface><SectionIntro
             eyebrow="Prioridades"
-            title="O que muda a resposta agora"
-            description="Atalhos para os casos que mais rapidamente mudam a prioridade do turno."
+            title="Prioridades que mudam o turno agora"
+            description="Acesse os recortes que mais alteram prioridade, dono e prazo de resposta."
             compact
           /><div className="mt-2 grid gap-2 md:grid-cols-2 xl:grid-cols-4">
             {priorityRoutes.map((item) => (
@@ -181,8 +181,8 @@ export default async function OperacaoPage() {
             limit={8}
           /><Surface><SectionIntro
               eyebrow="Execução"
-              title="Áreas de trabalho"
-              description="Acesse fila, exceções, atividade, automações e políticas sem perder o contexto do turno."
+              title="Workspaces da operação"
+              description="Navegue entre fila, exceções, atividade, automações, importação e políticas mantendo o contexto consolidado."
               compact
             /><div className="mt-2 grid gap-2">
               {executionAreas.map((item) => (

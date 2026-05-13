@@ -352,7 +352,7 @@ export default async function FilaOperacionalPage({
           <div className="nova-queue-command-bar">
             <div className="min-w-0">
               <div className="nds-label">Operação / Fila</div>
-              <h1>Fila do turno</h1>
+              <h1>Fila operacional do turno</h1>
               <p>
                 Priorize, reconheça e despache os casos que exigem tratativa no turno.
               </p>
@@ -405,8 +405,8 @@ export default async function FilaOperacionalPage({
             <Surface className="nova-queue-filter-panel">
               <SectionIntro
                 eyebrow="Recortes"
-                title="Recortes da fila"
-                description="Escolha o recorte do turno sem perder filtros, fila ou paginação."
+                title="Recortes de decisão"
+                description="Alterne entre triagem, SLA, vencimento e responsáveis sem perder o contexto atual."
                 compact
               />
               <div className="nova-queue-chip-row">
@@ -470,8 +470,8 @@ export default async function FilaOperacionalPage({
             <Surface className="nova-queue-board-panel">
               <SectionIntro
                 eyebrow="Lista de casos"
-                title="Backlog priorizado"
-                description={`${formatNumber(response.meta.total)} caso(s) no recorte, ordenado por prioridade operacional.`}
+                title="Backlog priorizado para ação"
+                description={`${formatNumber(response.meta.total)} caso(s) no recorte, ordenado por impacto, SLA e prioridade operacional.`}
                 actions={<TonePill tone={breachedOnPage ? "critical" : "info"}>{formatNumber(breachedOnPage)} vencido(s)</TonePill>}
                 compact
               />
@@ -601,8 +601,8 @@ export default async function FilaOperacionalPage({
             <Surface className="nova-queue-side-panel">
               <SectionIntro
                 eyebrow="Sinais"
-                title="Leitura rápida"
-                description="Dados para decidir se o próximo passo é triagem, NOC ou execução."
+                title="Leitura rápida do próximo passo"
+                description="Sinais para decidir se o próximo movimento é triagem, NOC, parceiro ou execução técnica."
                 compact
               />
               <div className="nova-queue-signal-grid">
