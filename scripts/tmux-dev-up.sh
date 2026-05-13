@@ -13,8 +13,8 @@ NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:4000
 ENVEOF
 
 if command -v fuser >/dev/null 2>&1; then
-  fuser -k 4000/tcp 2>/dev/null || true
-  fuser -k 3010/tcp 2>/dev/null || true
+  fuser -k 4000/tcp >/dev/null 2>&1 || true
+  fuser -k 3010/tcp >/dev/null 2>&1 || true
 fi
 
 pkill -f "nest start --watch" || true

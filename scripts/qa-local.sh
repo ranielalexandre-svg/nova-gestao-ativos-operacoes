@@ -118,6 +118,11 @@ echo "== SMOKE LOCAL =="
 WEB_BASE_URL="$WEB_BASE_URL" API_BASE_URL="$API_BASE_URL" corepack pnpm test:smoke
 
 echo
+echo "== LIMPANDO SERVIDORES TEMPORARIOS =="
+cleanup
+trap - EXIT INT TERM
+
+echo
 echo "== STATUS FINAL =="
 git status --short
 

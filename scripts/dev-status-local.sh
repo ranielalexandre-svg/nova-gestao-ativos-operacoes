@@ -7,9 +7,19 @@ echo "== PORTAS =="
 ss -ltnp | grep -E ":3010|:4000" || true
 
 echo
-echo "== LOG API =="
-tail -n 30 .run-logs/api.log || true
+print_log() {
+  local label="$1"
+  local file="$2"
+
+  echo "== ${label} =="
+  if [ -f "$file" ]; then
+    tail -n 30 "$file" || true
+  else
+    echo "Log ainda não existe: $file"
+  fi
+}
+
+print_log "LOG API" ".run-logs/api.log"
 
 echo
-echo "== LOG WEB =="
-tail -n 30 .run-logs/web.log || true
+print_log "LOG WEB" ".run-logs/web.log"
