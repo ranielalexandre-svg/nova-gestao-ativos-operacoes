@@ -263,7 +263,7 @@ export function ImportCsvWorkspace({
     setCsv(template);
     setFileName("");
     setFileSize("");
-    setClientNotice("Template carregado no editor.");
+    setClientNotice("Template operacional carregado no editor.");
     setMappingOverrides({});
   }
 
@@ -284,7 +284,7 @@ export function ImportCsvWorkspace({
     setFileSize(formatBytes(file.size));
 
     if (!lowerName.endsWith(".csv") && !lowerName.endsWith(".txt")) {
-      setClientNotice("Use CSV UTF-8. XLSX e Conector externo devem ser convertidos antes desta etapa.");
+      setClientNotice("Use CSV UTF-8. XLSX e dados de conector externo devem ser convertidos antes desta etapa.");
       return;
     }
 
@@ -308,12 +308,12 @@ export function ImportCsvWorkspace({
         <div>
           <div className="nova-import-breadcrumb">Operação / Importação</div>
           <h1>Importação operacional de dados</h1>
-          <p>Envie CSV, mapeie os campos, valide a estrutura e execute a carga operacional com controle de upsert.</p>
+          <p>Orquestre cargas CSV com mapeamento, pré-validação, prévia transformada e execução controlada no workspace operacional.</p>
         </div>
         <div className="nova-import-actions">
           <Link href="/operacao/importacao">Recarregar importação</Link>
           <button type="button" className="is-primary" onClick={() => fileInputRef.current?.click()}>
-            Nova importação
+            Escolher arquivo
           </button>
         </div>
       </header>
@@ -329,10 +329,10 @@ export function ImportCsvWorkspace({
           </div>
           <div className="nova-import-source-grid">
             <button type="button" className="is-active" onClick={() => fileInputRef.current?.click()}>
-              Arquivo CSV
+              Selecionar CSV
             </button>
             <button type="button" onClick={() => loadTemplate()}>
-              Template CSV
+              Carregar template
             </button>
             <Link href="/integracoes">Conector externo</Link>
           </div>
@@ -354,7 +354,7 @@ export function ImportCsvWorkspace({
         <div className="nova-import-card nova-import-run-card">
           <div>
             <span>Status da carga local</span>
-            <strong>{dataRows.length ? (readiness === 100 ? "Pronta para validar" : "Mapeamento pendente") : "Aguardando CSV"}</strong>
+            <strong>{dataRows.length ? (readiness === 100 ? "Pronta para execução" : "Completar mapeamento") : "Aguardando lote"}</strong>
           </div>
           <div>
             <span>Registros detectados</span>
@@ -364,7 +364,7 @@ export function ImportCsvWorkspace({
             <span>Campos obrigatórios</span>
             <strong>{requiredReady}/{requiredHeaders.length}</strong>
           </div>
-          <Link href={`/export/${resource}`}>Baixar base atual</Link>
+          <Link href={`/export/${resource}`}>Exportar base atual</Link>
         </div>
       </section>
 
@@ -381,7 +381,7 @@ export function ImportCsvWorkspace({
             <div className="nova-import-upload-head">
               <div>
                 <span>Arquivo de importação</span>
-                <h2>Arraste ou selecione um CSV</h2>
+                <h2>Envie o lote CSV</h2>
               </div>
               <button type="button" onClick={() => fileInputRef.current?.click()}>
                 Selecionar arquivo
@@ -389,7 +389,7 @@ export function ImportCsvWorkspace({
             </div>
             <div className="nova-import-upload-drop">
               <strong>{fileName || "Nenhum arquivo selecionado"}</strong>
-              <span>{fileName ? `${fileSize} carregado no navegador` : "CSV UTF-8, separado por virgulas, ate 50MB"}</span>
+              <span>{fileName ? `${fileSize} carregado no navegador` : "CSV UTF-8, separado por vírgulas, até 50MB"}</span>
               <div className="nova-import-progress">
                 <i style={{ width: `${readiness}%` }} />
               </div>
@@ -401,7 +401,7 @@ export function ImportCsvWorkspace({
           <div className="nova-import-card">
             <div className="nova-import-section-head">
               <div>
-                <span>Mapeamento de campos</span>
+                <span>Mapeamento operacional de campos</span>
                 <h2>Conecte colunas do arquivo aos campos do sistema</h2>
               </div>
               <Badge tone={readiness === 100 ? "green" : "orange"}>{`${readiness}%`}</Badge>
@@ -446,7 +446,7 @@ export function ImportCsvWorkspace({
             <div className="nova-import-section-head">
               <div>
                 <span>Resumo da importação</span>
-                <h2>Pré-validação local</h2>
+                <h2>Prontidão do lote</h2>
               </div>
             </div>
             <div className="nova-import-summary-grid">
@@ -460,7 +460,7 @@ export function ImportCsvWorkspace({
           <div className="nova-import-card nova-import-quick-preview">
             <div className="nova-import-section-head">
               <div>
-                <span>Prévia rápida</span>
+                <span>Amostra rápida</span>
                 <h2>Linhas mapeadas</h2>
               </div>
             </div>
@@ -501,9 +501,9 @@ export function ImportCsvWorkspace({
       <section className="nova-import-card">
         <div className="nova-import-section-head">
           <div>
-            <span>Pré-visualização dos dados</span>
+            <span>Prévia transformada dos dados</span>
             <h2>Primeiras linhas enviadas ao backend</h2>
-            <p>Esta tabela já considera o mapeamento acima. Validar usa o mesmo CSV transformado.</p>
+            <p>Esta tabela considera o mapeamento atual. Validar e executar usam a mesma estrutura transformada.</p>
           </div>
           <button type="button" className="nova-import-soft-button" onClick={() => setCsv(csv)}>
             Atualizar pré-visualização
@@ -541,8 +541,8 @@ export function ImportCsvWorkspace({
 
         <ActionForm
           action={action}
-          submitLabel="Processar"
-          pendingLabel="Processando..."
+          submitLabel="Processar importação"
+          pendingLabel="Processando lote..."
           hideSubmit
           className="nova-import-form"
         >
@@ -550,14 +550,14 @@ export function ImportCsvWorkspace({
           <textarea name="csv" value={mappedCsv} readOnly />
           <div className="nova-import-editor-row">
             <label>
-              <span>Editor CSV de origem</span>
+              <span>Editor do CSV de origem</span>
               <textarea
                 value={csv}
                 onChange={(event) => {
                   setCsv(event.target.value);
                   setFileName("");
                   setFileSize("");
-                  setClientNotice("CSV editado manualmente.");
+                  setClientNotice("CSV ajustado no editor.");
                 }}
                 rows={8}
                 spellCheck={false}
@@ -566,10 +566,10 @@ export function ImportCsvWorkspace({
           </div>
           <div className="nova-import-form-actions">
             <button type="submit" name="actionType" value="preview">
-              Validar CSV
+              Validar prévia
             </button>
             <button type="submit" name="actionType" value="execute" className="is-primary" disabled={!dataRows.length}>
-              Processar lote
+              Executar carga operacional
             </button>
           </div>
         </ActionForm>
