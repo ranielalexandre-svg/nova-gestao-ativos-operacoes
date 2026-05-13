@@ -1320,7 +1320,7 @@ function UnitMonitoringVisualPanel({
   return (
     <Surface><SectionIntro
         eyebrow="Monitoramento"
-        title="Operação, histórico e sincronização"
+        title="Telemetria e sincronização"
         description={
           hasHistoricalData
             ? `Histórico Zabbix · ${monitoringWindowDescription(windowPreset).toLowerCase()}`
@@ -1383,7 +1383,7 @@ function UnitMonitoringVisualPanel({
                   Sem tráfego nesta janela. Use 7D ou 30D para conferir consumo consolidado.
                 </div>
               )}
-            </div><div className="mt-2 grid gap-2 border-t border-white/[0.08] pt-2 sm:grid-cols-2 xl:grid-cols-5"><div className="nds-card min-w-0"><div className="nds-label">Total do período</div><div className="mt-2 whitespace-nowrap text-[18px] font-black leading-none text-white tabular-nums">{formatBytes(trafficBlock?.consumption?.totalBytes ?? null)}</div></div><div className="nds-card min-w-0"><div className="nds-label">Média download</div><div className="mt-2 whitespace-nowrap text-[16px] font-black leading-tight text-[var(--nova-success)] tabular-nums">{formatBits(trafficBlock?.consumption?.avgReceiveBps ?? null)}</div></div><div className="nds-card min-w-0"><div className="nds-label">Média upload</div><div className="mt-2 whitespace-nowrap text-[16px] font-black leading-tight text-[var(--nova-warning)] tabular-nums">{formatBits(trafficBlock?.consumption?.avgSendBps ?? null)}</div></div><div className="nds-card min-w-0"><div className="nds-label">Pico download</div><div className="mt-2 whitespace-nowrap text-[16px] font-black leading-tight text-[var(--nova-success)] tabular-nums">{formatBits(trafficBlock?.consumption?.peakReceiveBps ?? null)}</div></div><div className="nds-card min-w-0"><div className="nds-label">Pico upload</div><div className="mt-2 whitespace-nowrap text-[16px] font-black leading-tight text-[var(--nova-warning)] tabular-nums">{formatBits(trafficBlock?.consumption?.peakSendBps ?? null)}</div></div></div></div></div><div className="grid content-start gap-2"><div className="nds-card"><div className="flex items-start justify-between gap-2"><div className="flex items-center gap-2"><span className={iconTileClass}><IconPulse className="h-4 w-4" /></span><div><div className="text-[15px] font-black text-white">Status da unidade</div><div className="mt-1 nds-label">
+            </div><div className="mt-2 grid gap-2 border-t border-white/[0.08] pt-2 sm:grid-cols-2 xl:grid-cols-5"><div className="nds-card min-w-0"><div className="nds-label">Total do período</div><div className="mt-2 whitespace-nowrap text-[18px] font-black leading-none text-white tabular-nums">{formatBytes(trafficBlock?.consumption?.totalBytes ?? null)}</div></div><div className="nds-card min-w-0"><div className="nds-label">Média download</div><div className="mt-2 whitespace-nowrap text-[16px] font-black leading-tight text-[var(--nova-success)] tabular-nums">{formatBits(trafficBlock?.consumption?.avgReceiveBps ?? null)}</div></div><div className="nds-card min-w-0"><div className="nds-label">Média upload</div><div className="mt-2 whitespace-nowrap text-[16px] font-black leading-tight text-[var(--nova-warning)] tabular-nums">{formatBits(trafficBlock?.consumption?.avgSendBps ?? null)}</div></div><div className="nds-card min-w-0"><div className="nds-label">Pico download</div><div className="mt-2 whitespace-nowrap text-[16px] font-black leading-tight text-[var(--nova-success)] tabular-nums">{formatBits(trafficBlock?.consumption?.peakReceiveBps ?? null)}</div></div><div className="nds-card min-w-0"><div className="nds-label">Pico upload</div><div className="mt-2 whitespace-nowrap text-[16px] font-black leading-tight text-[var(--nova-warning)] tabular-nums">{formatBits(trafficBlock?.consumption?.peakSendBps ?? null)}</div></div></div></div></div><div className="grid content-start gap-2"><div className="nds-card"><div className="flex items-start justify-between gap-2"><div className="flex items-center gap-2"><span className={iconTileClass}><IconPulse className="h-4 w-4" /></span><div><div className="text-[15px] font-black text-white">Saúde da unidade</div><div className="mt-1 nds-label">
                     {monitoringWindowLabel(windowPreset)}
                   </div></div></div><TonePill tone={snapshot ? toneForHealth(snapshot.health) : "neutral"}>
                 {snapshot ? health : "sem leitura"}
@@ -1509,7 +1509,7 @@ function OperationalDataCard({
       ) : null}
 
       {isAdmin ? (
-        <details className="mt-2 rounded-[var(--nova-radius-card)] border border-white/[0.08] bg-white/[0.02] p-2"><summary className="cursor-pointer text-[11px] font-black text-slate-100">Editar dados operacionais e credenciais</summary><form action={updateAction} className="mt-2 grid gap-2"><input type="hidden" name="unitId" value={unitId} /><input type="hidden" name="infoId" value={item.id} /><div className="grid gap-2 md:grid-cols-2"><label className="grid gap-1.5"><span className={editLabelClass}>Parceiro</span><input name="partnerCode" defaultValue={item.partnerCode || ""} className={editInputClass} /></label><label className="grid gap-1.5"><span className={editLabelClass}>Servico</span><input name="serviceType" defaultValue={item.serviceType || ""} className={editInputClass} /></label><label className="grid gap-1.5"><span className={editLabelClass}>Conexao</span><input name="connectionType" defaultValue={item.connectionType || ""} className={editInputClass} /></label><label className="grid gap-1.5"><span className={editLabelClass}>Porta RB</span><input name="routerPort" defaultValue={item.routerPort || ""} className={editInputClass} /></label><label className="grid gap-1.5"><span className={editLabelClass}>Tecnologia</span><input name="technology" defaultValue={item.technology || ""} className={editInputClass} /></label><label className="grid gap-1.5"><span className={editLabelClass}>Latencia</span><input name="latency" defaultValue={item.latency || ""} className={editInputClass} /></label><label className="grid gap-1.5"><span className={editLabelClass}>Telefone/acionamento</span><input name="phone" defaultValue={item.phone || ""} className={editInputClass} /></label><label className="grid gap-1.5"><span className={editLabelClass}>Contrato IXC</span><input name="contractIxc" defaultValue={item.contractIxc || ""} className={editInputClass} /></label><label className="grid gap-1.5 md:col-span-2"><span className={editLabelClass}>MAC/ONU</span><input name="macOnu" defaultValue={item.macOnu || ""} className={editInputClass} /></label><label className="grid gap-1.5 md:col-span-2"><span className={editLabelClass}>Observacoes</span><textarea name="notes" defaultValue={item.notes || ""} className={editTextareaClass} rows={3} /></label></div><div className="nds-card grid gap-2 md:grid-cols-3"><label className="grid gap-1.5"><span className={editLabelClass}>Rotulo da credencial</span><input name="secretLabel" placeholder="Credencial operacional" className={editInputClass} /></label><label className="grid gap-1.5"><span className={editLabelClass}>Usuario/login</span><input name="username" placeholder="preencha para substituir" className={editInputClass} /></label><label className="grid gap-1.5"><span className={editLabelClass}>Senha/valor</span><input name="secret" placeholder="preencha para substituir" className={editInputClass} /></label><label className="grid gap-1.5 md:col-span-3"><span className={editLabelClass}>Nota sensivel</span><input name="secretNote" placeholder="observacao opcional criptografada" className={editInputClass} /></label></div><div className="flex justify-end"><button type="submit" className="nds-button" data-variant="primary">Salvar dados operacionais</button></div></form></details>
+        <details className="mt-2 rounded-[var(--nova-radius-card)] border border-white/[0.08] bg-white/[0.02] p-2"><summary className="cursor-pointer text-[11px] font-black text-slate-100">Editar acionamento e credenciais</summary><form action={updateAction} className="mt-2 grid gap-2"><input type="hidden" name="unitId" value={unitId} /><input type="hidden" name="infoId" value={item.id} /><div className="grid gap-2 md:grid-cols-2"><label className="grid gap-1.5"><span className={editLabelClass}>Parceiro</span><input name="partnerCode" defaultValue={item.partnerCode || ""} className={editInputClass} /></label><label className="grid gap-1.5"><span className={editLabelClass}>Serviço</span><input name="serviceType" defaultValue={item.serviceType || ""} className={editInputClass} /></label><label className="grid gap-1.5"><span className={editLabelClass}>Conexão</span><input name="connectionType" defaultValue={item.connectionType || ""} className={editInputClass} /></label><label className="grid gap-1.5"><span className={editLabelClass}>Porta RB</span><input name="routerPort" defaultValue={item.routerPort || ""} className={editInputClass} /></label><label className="grid gap-1.5"><span className={editLabelClass}>Tecnologia</span><input name="technology" defaultValue={item.technology || ""} className={editInputClass} /></label><label className="grid gap-1.5"><span className={editLabelClass}>Latência</span><input name="latency" defaultValue={item.latency || ""} className={editInputClass} /></label><label className="grid gap-1.5"><span className={editLabelClass}>Telefone/acionamento</span><input name="phone" defaultValue={item.phone || ""} className={editInputClass} /></label><label className="grid gap-1.5"><span className={editLabelClass}>Contrato IXC</span><input name="contractIxc" defaultValue={item.contractIxc || ""} className={editInputClass} /></label><label className="grid gap-1.5 md:col-span-2"><span className={editLabelClass}>MAC/ONU</span><input name="macOnu" defaultValue={item.macOnu || ""} className={editInputClass} /></label><label className="grid gap-1.5 md:col-span-2"><span className={editLabelClass}>Observações</span><textarea name="notes" defaultValue={item.notes || ""} className={editTextareaClass} rows={3} /></label></div><div className="nds-card grid gap-2 md:grid-cols-3"><label className="grid gap-1.5"><span className={editLabelClass}>Rótulo da credencial</span><input name="secretLabel" placeholder="Credencial operacional" className={editInputClass} /></label><label className="grid gap-1.5"><span className={editLabelClass}>Usuário/login</span><input name="username" placeholder="preencha para substituir" className={editInputClass} /></label><label className="grid gap-1.5"><span className={editLabelClass}>Senha/valor</span><input name="secret" placeholder="preencha para substituir" className={editInputClass} /></label><label className="grid gap-1.5 md:col-span-3"><span className={editLabelClass}>Nota sensível</span><input name="secretNote" placeholder="observação opcional criptografada" className={editInputClass} /></label></div><div className="flex justify-end"><button type="submit" className="nds-button" data-variant="primary">Salvar dados operacionais</button></div></form></details>
       ) : null}
     </div>
   );
@@ -1539,8 +1539,8 @@ function OperationalDataBlock({
   return (
     <Surface><SectionIntro
         eyebrow="Dados operacionais"
-        title="Links, acionamento e credenciais reais"
-        description="Dados importados ou editados no cadastro da unidade, com credenciais mascaradas por padrao."
+        title="Acionamento e credenciais"
+        description="Dados operacionais e credenciais ficam mascarados por padrão."
         actions={
           <div className="flex flex-wrap gap-2">
             <TonePill tone="success">{data.total} registro(s)</TonePill>
@@ -1802,7 +1802,7 @@ export default async function UnidadeDetailPage({
     },
     {
       title: "Vínculos",
-      description: "Parceiro responsável e host Zabbix da unidade.",
+      description: "Parceiro responsável, host Zabbix e identificação da unidade.",
       body: (
         <div className="grid gap-2"><div className="grid gap-1.5"><label
               htmlFor="unit-partner"
@@ -1856,7 +1856,7 @@ export default async function UnidadeDetailPage({
     },
     {
       title: "Ativos",
-      description: "Ativos ligados a esta unidade.",
+      description: "Inventário vinculado a esta unidade.",
       body: (
         <div className="grid gap-2"><div className="flex flex-wrap items-center justify-between gap-2"><div className="text-[11px] font-bold text-slate-100">
               {unit.equipments.length} ativo(s) vinculado(s)
@@ -1894,7 +1894,7 @@ export default async function UnidadeDetailPage({
       ),
     },
     {
-      title: "Relatório",
+      title: "Dados do relatório",
       description: "Dados oficiais usados automaticamente no DOCX/PDF da unidade.",
       body: (
         <div className="grid gap-2"><div className="grid gap-2 md:grid-cols-2"><div className="grid gap-1.5"><label
@@ -1949,7 +1949,7 @@ export default async function UnidadeDetailPage({
     },
     {
       title: "Fechamento",
-      description: "Status final e revisão rápida antes de salvar.",
+      description: "Revisão final antes de salvar.",
       body: (
         <div className="grid gap-2"><label className="nds-card flex items-start gap-2 text-[11px] text-slate-300"><input
               type="checkbox"
@@ -2052,7 +2052,7 @@ export default async function UnidadeDetailPage({
       <RegistryDetailHero
         eyebrow={showUnitCode ? unit.code : "Unidade"}
         title={unit.name}
-        description={zabbixSnapshot?.match.status === "matched" ? "Host Zabbix vinculado." : "Cadastro operacional da unidade."}
+        description={zabbixSnapshot?.match.status === "matched" ? "Host Zabbix vinculado." : "Cadastro, vínculos e operação da unidade."}
         badges={
           <><TonePill tone={unit.isActive ? "success" : "subtle"}>
               {unit.isActive ? "ativo" : "inativo"}
@@ -2099,8 +2099,8 @@ export default async function UnidadeDetailPage({
           <div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
             <SectionIntro
               eyebrow="Monitoramento sob demanda"
-              title="Painel pesado não carregado na abertura"
-              description="A unidade abre mais rápido. Carregue gráficos e snapshot Zabbix apenas quando precisar analisar telemetria."
+              title="Telemetria sob demanda"
+              description="Carregue gráficos e snapshot Zabbix apenas quando precisar analisar telemetria."
               compact
             />
             <div className="flex flex-wrap gap-2">
@@ -2153,8 +2153,8 @@ export default async function UnidadeDetailPage({
             <Surface>
               <SectionIntro
                 eyebrow="Dados operacionais"
-                title="Sem dados operacionais nesta unidade"
-                description="Nenhum link operacional foi encontrado para esta unidade. Use a importação operacional ou edite os dados no cadastro da unidade."
+                title="Sem acionamento cadastrado"
+                description="Nenhum link operacional foi encontrado. Importe ou edite dados operacionais da unidade."
                 compact
               />
             </Surface>
@@ -2164,7 +2164,7 @@ export default async function UnidadeDetailPage({
             <div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
               <SectionIntro
                 eyebrow="Dados operacionais"
-                title="Dados operacionais sob demanda"
+                title="Acionamento sob demanda"
                 description="Links, acionamento e credenciais ficam fora da abertura inicial para manter a página rápida."
                 compact
               />
@@ -2186,7 +2186,7 @@ export default async function UnidadeDetailPage({
       /><Surface><SectionIntro
           eyebrow="Inventário"
           title="Ativos"
-          description="Ativos já vinculados a esta unidade."
+          description="Inventário já vinculado a esta unidade."
           actions={
             isAdmin ? (
               <Link
@@ -2236,7 +2236,7 @@ export default async function UnidadeDetailPage({
         </div></Surface><section className="grid gap-2 xl:grid-cols-2"><Surface><SectionIntro
             eyebrow="Histórico"
             title="Alertas recentes"
-            description="Últimas alertas ligadas à unidade."
+            description="Últimos alertas ligados à unidade."
             compact
           /><div className="mt-2">
             {unit.occurrences.length ? (
@@ -2264,13 +2264,13 @@ export default async function UnidadeDetailPage({
             ) : (
               <EmptyState
                 title="Nenhum alerta recente"
-                description="Alertas vinculadas à unidade serão listadas aqui."
+                description="Alertas vinculados à unidade serão listados aqui."
               />
             )}
           </div></Surface><Surface><SectionIntro
             eyebrow="Histórico"
             title="Chamados recentes"
-            description="Chamados associadas à unidade."
+            description="Chamados associados à unidade."
             compact
           /><div className="mt-2">
             {unit.maintenances.length ? (
@@ -2296,7 +2296,7 @@ export default async function UnidadeDetailPage({
             ) : (
               <EmptyState
                 title="Nenhum chamado recente"
-                description="Chamados ligadas à unidade serão listadas aqui."
+                description="Chamados ligados à unidade serão listados aqui."
               />
             )}
           </div></Surface></section>      </div>
