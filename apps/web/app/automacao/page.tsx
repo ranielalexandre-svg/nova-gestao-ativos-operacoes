@@ -875,12 +875,12 @@ export default async function AutomacaoPage({
   const canRun = isAdmin && Boolean(primaryRule);
 
   const kpis = [
-    { icon: "refresh" as const, label: "Status da execução", value: statusValue, hint: latestRun ? `última ${formatDateTime(latestRun.startedAt)}` : "sem execução", tone: statusToneValue },
-    { icon: "calendar" as const, label: "Disparo", value: primaryRule?.enabled ? "Agendado" : "Manual", hint: primaryRule ? cadenceLabel(primaryRule.cadence) : "sem regra", tone: primaryRule?.enabled ? "blue" as const : "slate" as const },
+    { icon: "refresh" as const, label: "Execução atual", value: statusValue, hint: latestRun ? `última ${formatDateTime(latestRun.startedAt)}` : "sem execução", tone: statusToneValue },
+    { icon: "calendar" as const, label: "Próximo disparo", value: primaryRule?.enabled ? "Agendado" : "Manual", hint: primaryRule ? cadenceLabel(primaryRule.cadence) : "sem regra", tone: primaryRule?.enabled ? "blue" as const : "slate" as const },
     { icon: "clock" as const, label: "Duração", value: latestRun ? runDuration(latestRun) : "-", hint: latestRun ? statusLabel(latestRun.status) : "aguardando run", tone: latestRun ? statusTone(latestRun.status) : "slate" as const },
-    { icon: "list" as const, label: "Registros processados", value: formatNumber(processedRuns), hint: `${runs.length} run(s) recentes`, tone: "blue" as const },
+    { icon: "list" as const, label: "Processados", value: formatNumber(processedRuns), hint: `${runs.length} run(s) recentes`, tone: "blue" as const },
     { icon: "alert" as const, label: "Erros", value: formatNumber(failedRuns), hint: `${percent(failedRuns, Math.max(runs.length, 1))}% das execuções`, tone: failedRuns ? "red" as const : "green" as const },
-    { icon: "integration" as const, label: "Integrações afetadas", value: formatNumber(activeIntegrations), hint: `de ${formatNumber(integrationsResponse.meta.total || integrationsResponse.items.length)}`, tone: activeIntegrations ? "blue" as const : "slate" as const },
+    { icon: "integration" as const, label: "Integrações ativas", value: formatNumber(activeIntegrations), hint: `de ${formatNumber(integrationsResponse.meta.total || integrationsResponse.items.length)}`, tone: activeIntegrations ? "blue" as const : "slate" as const },
   ];
 
   return (
@@ -889,14 +889,14 @@ export default async function AutomacaoPage({
           <header className="nova-automation-workflow-heading">
             <div>
               <nav aria-label="Breadcrumb">
-                <Link href="/operacao">Gestão</Link>
+                <Link href="/operacao">Operação</Link>
                 <span>/</span>
                 <Link href="/administracao/automacoes">Automação</Link>
                 <span>/</span>
                 <strong>Execução</strong>
               </nav>
-              <h1>Fluxo de reconciliação automática - Execução</h1>
-              <p>Acompanhe em tempo real a execução do fluxo, o progresso das etapas, logs e resultados.</p>
+              <h1>Automações operacionais</h1>
+              <p>Acompanhe regras, execuções, efeitos e falhas que impactam exceções e atividades.</p>
             </div>
           </header>
 
@@ -928,8 +928,8 @@ export default async function AutomacaoPage({
                 ) : (
                   <button type="button" disabled><Icon name="play" />Executar agora</button>
                 )}
-                <a href="#automation-rules"><Icon name="gear" />Editar fluxo</a>
-                <a href="#automation-history"><Icon name="file" />Ver logs completos</a>
+                <a href="#automation-rules"><Icon name="gear" />Editar regras</a>
+                <a href="#automation-history"><Icon name="file" />Ver histórico</a>
               </section>
 
               <TriggerSettings rule={primaryRule} latestRun={latestRun} />
@@ -940,7 +940,7 @@ export default async function AutomacaoPage({
 
           <section id="automation-rules" className="nova-automation-workflow-card nova-automation-workflow-rules-panel">
             <div className="nova-automation-workflow-card-title">
-              <span>Configuração das regras</span>
+              <span>Regras configuradas</span>
               <strong>{rulesResponse.meta.total} regra(s)</strong>
             </div>
 
@@ -972,7 +972,7 @@ export default async function AutomacaoPage({
               </label>
 
               <label className="nova-auto-field">
-                <span>Estado</span>
+                <span>Situação</span>
                 <select name="enabled" defaultValue={state.enabled}>
                   <option value="all">Todos</option>
                   <option value="true">Ativas</option>
@@ -991,7 +991,7 @@ export default async function AutomacaoPage({
               </label>
 
               <label className="nova-auto-field">
-                <span>Direção</span>
+                <span>Ordenação</span>
                 <select name="sortDir" defaultValue={state.sortDir}>
                   <option value="desc">Desc</option>
                   <option value="asc">Asc</option>
@@ -1015,8 +1015,8 @@ export default async function AutomacaoPage({
             <div className="nova-auto-table-card">
               <div className="nova-auto-section-title">
                 <div>
-                  <span>Automation Desk</span>
-                  <h2>Regras operacionais</h2>
+                  <span>Mesa de automação</span>
+                  <h2>Regras de automação</h2>
                 </div>
                 <div>
                   <small>{rows.length} linhas · {totalExceptionCases} exceção(ões)</small>
@@ -1028,24 +1028,24 @@ export default async function AutomacaoPage({
             <div className="nova-auto-table-head">
               <span>Regra</span>
               <span>Detector</span>
-              <span>Sev.</span>
+              <span>Severidade</span>
               <span>Cadência</span>
               <span>Próxima</span>
               <span>Efeitos</span>
               <span>Runs</span>
-              <span>Ações</span>
+              <span>Ação</span>
             </div>
 
             {rows.length ? rows.map((item) => (
               <div className={`nova-auto-row ${item.enabled ? "is-green" : "is-slate"}`} key={item.id}>
                 <div>
                   <strong>{item.code} · {item.name}</strong>
-                  <small>{item.reportTemplate ? `${item.reportTemplate.code} · ${item.reportTemplate.name}` : "sem template vinculado"}</small>
+                  <small>{item.reportTemplate ? `${item.reportTemplate.code} · ${item.reportTemplate.name}` : "sem modelo vinculado"}</small>
                 </div>
 
                 <div>
                   <b>{detectorLabel(item.detector)}</b>
-                  <small>{item.thresholdMinutes ? `limite ${item.thresholdMinutes} min` : "sem limite extra"}</small>
+                  <small>{item.thresholdMinutes ? `limite ${item.thresholdMinutes} min` : "sem limite adicional"}</small>
                 </div>
 
                 <div>
@@ -1093,7 +1093,7 @@ export default async function AutomacaoPage({
                         />
                         Recuperação
                       </label>
-                      <button type="submit">Salvar efeitos</button>
+                      <button type="submit">Salvar</button>
                     </form>
                   ) : null}
                 </div>
