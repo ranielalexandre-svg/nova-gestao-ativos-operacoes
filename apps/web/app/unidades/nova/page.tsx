@@ -166,7 +166,7 @@ export default async function NovaUnidadePage({
       <div className="nova-unit-create-lit-page"><div className="nds-surface w-full"><div className="flex items-start justify-between gap-2 border-b border-white/[0.08] px-3 py-2 sm:px-3"><SectionIntro
             eyebrow="Cadastro guiado"
             title="Nova unidade"
-            description="Fluxo curto para identificar, vincular e revisar antes de criar."
+            description="Cadastre base, parceiro e dados de relatório antes de abrir detalhes operacionais."
             actions={
               isImportedOrigin ? (
                 <TonePill tone="info">pré-preenchido por dados importados</TonePill>
@@ -182,19 +182,19 @@ export default async function NovaUnidadePage({
             </Link></div></div><div className="border-b border-white/[0.08] bg-[var(--nova-surface-3)] px-3 py-2 sm:px-3"><div className="grid gap-2 lg:grid-cols-4"><WizardStep
               index={1}
               title="Base"
-              description="Identificação principal."
+              description="Código e nome operacional."
               state={step === 1 ? "current" : step > 1 ? "done" : "available"}
               href={buildWizardHref(1, wizardValues)}
             /><WizardStep
               index={2}
               title="Vínculos"
-              description="Parceiro e localização."
+              description="Parceiro, cidade e UF."
               state={step === 2 ? "current" : step > 2 ? "done" : baseReady ? "available" : "locked"}
               href={baseReady ? buildWizardHref(2, wizardValues) : undefined}
             /><WizardStep
               index={3}
               title="Monitoramento"
-              description="Leitura e sync depois da criação."
+              description="Match técnico após criar."
               state={step === 3 ? "current" : step > 3 ? "done" : linkReady ? "available" : "locked"}
               href={linkReady ? buildWizardHref(3, wizardValues) : undefined}
             /><WizardStep
@@ -207,7 +207,7 @@ export default async function NovaUnidadePage({
           {step === 1 ? (
             <WizardPanel
               title="Base"
-              description="Identifique a unidade e sua posição operacional."
+              description="Informe código e nome usados na operação."
             ><form method="GET" className="grid gap-2"><input type="hidden" name="step" value="2" /><input type="hidden" name="city" value={city} /><input type="hidden" name="state" value={state} /><input type="hidden" name="partnerId" value={partnerId} /><input type="hidden" name="partnerCode" value={partnerCode} /><input type="hidden" name="from" value={origin} /><div className="grid gap-2 md:grid-cols-2"><div className="grid gap-1.5"><FieldLabel htmlFor="wizard-code" label="Código" hint="Mínimo de 2 caracteres" /><input
                       id="wizard-code"
                       name="code"
@@ -236,7 +236,7 @@ export default async function NovaUnidadePage({
           {step === 2 ? (
             <WizardPanel
               title="Vínculos"
-              description="Associe o parceiro principal e guarde o mínimo de localização útil para consulta e reconciliação."
+              description="Associe parceiro principal e localização para consulta e reconciliação."
             ><form method="GET" className="grid gap-2"><input type="hidden" name="step" value="3" /><input type="hidden" name="code" value={code} /><input type="hidden" name="name" value={name} /><input type="hidden" name="partnerCode" value={partnerCode} /><input type="hidden" name="from" value={origin} /><div className="grid gap-2 md:grid-cols-2"><div className="grid gap-1.5"><FieldLabel htmlFor="wizard-partner" label="Parceiro principal" hint="Obrigatório para avançar" /><select
                       id="wizard-partner"
                       name="partnerId"
@@ -269,8 +269,8 @@ export default async function NovaUnidadePage({
                       defaultValue={state}
                       placeholder="TO"
                       maxLength={2}
-                    /></div><div className="nds-card"><div className="text-[12px] font-black text-slate-50">Leitura do vínculo</div><div className="mt-1 text-[11px] leading-5 text-slate-400">
-                      O parceiro já entra aqui porque ele é a peça central do atendimento externo. O restante do contexto operacional continua no detalhe da unidade depois da criação.
+                    /></div><div className="nds-card"><div className="text-[12px] font-black text-slate-50">Vínculo operacional</div><div className="mt-1 text-[11px] leading-5 text-slate-400">
+                      O parceiro sustenta o atendimento externo; host, acionamento e dados técnicos ficam no detalhe da unidade.
                     </div></div></div><div className="flex items-center justify-between gap-2 border-t border-white/[0.08] pt-2"><Link
                     href={buildWizardHref(1, wizardValues)}
                     className="nds-button"
@@ -285,15 +285,15 @@ export default async function NovaUnidadePage({
           {step === 3 ? (
             <WizardPanel
               title="Monitoramento"
-              description="Prepare a unidade para o match técnico com host, dados importados e cobertura do parceiro."
-            ><div className="nova-side-grid nova-side-grid--320 nova-side-grid--lg"><div className="grid gap-2"><div className="nds-card"><div className="text-[12px] font-black text-slate-50">Fluxo recomendado</div><div className="mt-1 text-[11px] leading-5 text-slate-400">
-                      1. Crie a unidade com base e vínculo corretos. 2. Abra a ficha da unidade. 3. Resolva o match do host Zabbix, dados importados e cobertura do parceiro no detalhe operacional.
+              description="Confirme que o monitoramento será amarrado no detalhe após a criação."
+            ><div className="nova-side-grid nova-side-grid--320 nova-side-grid--lg"><div className="grid gap-2"><div className="nds-card"><div className="text-[12px] font-black text-slate-50">Próximo passo recomendado</div><div className="mt-1 text-[11px] leading-5 text-slate-400">
+                      Crie a unidade, abra a ficha e resolva host Zabbix, dados importados e cobertura no detalhe operacional.
 </div></div><div className="grid gap-2 md:grid-cols-3"><SummaryItem label="Código" value={code} /><SummaryItem label="Nome" value={name} /><SummaryItem label="Parceiro" value={selectedPartner ? `${selectedPartner.code} - ${selectedPartner.name}` : "-"} /><SummaryItem label="Cidade" value={city || "-"} /><SummaryItem label="UF" value={state || "-"} /><SummaryItem label="Origem" value={isImportedOrigin ? "dados importados" : "cadastro manual"} /></div></div><div className="rounded-[6px] border border-[var(--nova-primary)]/20 bg-[var(--nova-primary-soft)] p-2"><div className="nds-label">
                     pós-criação
                   </div><div className="mt-2 text-[12px] font-black text-white">
-                    O monitoramento nasce no detalhe
+                    Monitoramento fica no detalhe
                   </div><div className="mt-1 text-[11px] leading-5 text-slate-300">
-                    Após criar, complete vínculos, monitoramento e acionamento.
+                    Após criar, complete host, vínculos, acionamento e ativos.
                   </div></div></div><div className="mt-2 flex items-center justify-between gap-2 border-t border-white/[0.08] pt-2"><Link
                   href={buildWizardHref(2, wizardValues)}
                   className="nds-button"
@@ -312,7 +312,7 @@ export default async function NovaUnidadePage({
           {step === 4 ? (
             <WizardPanel
               title="Observações"
-              description="Revise os dados antes de criar a unidade."
+              description="Revise cadastro e dados de relatório antes de criar."
             ><ActionForm
                 action={createFromWizard}
                 className="grid gap-2"
@@ -320,9 +320,9 @@ export default async function NovaUnidadePage({
                 pendingLabel="Criando unidade..."
                 hideSubmit
 ><input type="hidden" name="code" value={code} /><input type="hidden" name="name" value={name} /><input type="hidden" name="city" value={city} /><input type="hidden" name="state" value={state} /><input type="hidden" name="partnerId" value={partnerId} /><input type="hidden" name="partnerCode" value={partnerCode} /><input type="hidden" name="from" value={origin} /><div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3"><SummaryItem label="Código" value={code} /><SummaryItem label="Nome da unidade" value={name} /><SummaryItem label="Parceiro" value={selectedPartner ? `${selectedPartner.code} - ${selectedPartner.name}` : "-"} /><SummaryItem label="Cidade" value={city || "-"} /><SummaryItem label="UF" value={state || "-"} /><SummaryItem label="Origem" value={isImportedOrigin ? "dados importados" : "cadastro manual"} /></div><div className="nds-card"><div className="nds-label">
-                  Dados para relatório
+                  Dados do relatório
                 </div><div className="mt-1 text-[11px] leading-5 text-slate-400">
-                  Preencha quando a unidade já tiver contrato, endereço de instalação ou banda oficial. Esses dados entram automaticamente no DOCX/PDF.
+                  Preencha contrato, endereço e banda quando já existirem; esses dados entram automaticamente no DOCX/PDF.
                 </div><div className="mt-2 grid gap-2 md:grid-cols-2"><div className="grid gap-1.5"><FieldLabel htmlFor="new-unit-report-contract" label="Contrato do relatório" hint="Opcional" /><input
                       id="new-unit-report-contract"
                       name="reportContractLabel"
@@ -341,7 +341,7 @@ export default async function NovaUnidadePage({
                       rows={3}
                       placeholder="Observações internas para emissão do relatório"
                     /></div></div></div><div className="nds-card text-[11px] leading-5 text-slate-400">
-                  Depois de criar, abra a ficha da unidade para amarrar monitoramento, dados operacionais, backup e ativos.
+                  Depois de criar, abra a ficha para amarrar monitoramento, dados operacionais, backup e ativos.
                 </div><div className="flex items-center justify-between gap-2 border-t border-white/[0.08] pt-2"><Link
                     href={buildWizardHref(3, wizardValues)}
                     className="nds-button"

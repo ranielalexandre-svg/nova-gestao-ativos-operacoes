@@ -101,7 +101,7 @@ function contactOf(unit: NovaUnitListItem) {
   if (phone) return phone;
   if (unit.operational?.phones) return `${unit.operational.phones} telefone(s) operacional(is)`;
   if (service || technology) return [service, technology].filter(Boolean).join(" · ");
-  return "Sem telefone operacional";
+  return "Sem telefone de acionamento";
 }
 
 function equipmentBadge(unit: NovaUnitListItem) {
@@ -117,13 +117,13 @@ function equipmentBadge(unit: NovaUnitListItem) {
 
 function monitoringLabel(unit: NovaUnitListItem) {
   if (!unit.isActive) return "Inativa";
-  if (!unit._count.equipments) return "Sem item";
-  return "Com ativo";
+  if (!unit._count.equipments) return "Sem ativo";
+  return "Com ativo vinculado";
 }
 
 function monitoringDetail(unit: NovaUnitListItem) {
   if (!unit.isActive) return "Unidade fora da operação ativa";
-  if (!unit._count.equipments) return "Sem host confiável · sem sensores lidos";
+  if (!unit._count.equipments) return "Sem ativo vinculado · sem sensores lidos";
 
   const firstEquipment = unit.equipments[0];
   if (!firstEquipment) return `${unit._count.equipments} ativo(s) vinculados`;
@@ -183,7 +183,7 @@ function EmptyRows({ error }: { error: string }) {
     <div className="nova-units-empty">
       <div>N</div>
       <strong>{error ? "Unidades indisponíveis" : "Nenhuma unidade encontrada"}</strong>
-      <span>{error || "Ajuste os filtros para ampliar o resultado."}</span>
+      <span>{error || "Ajuste filtros ou limpe a busca para voltar ao recorte ativo."}</span>
     </div>
   );
 }
@@ -201,7 +201,7 @@ export default function NovaUnidadesView({
   const currentParams = searchParamsFromState(state);
   const activeRows = rows.filter((unit) => unit.isActive).length;
   const linkedRows = rows.filter((unit) => unit._count.equipments > 0).length;
-  const contactRows = rows.filter((unit) => contactOf(unit) !== "Sem telefone operacional").length;
+  const contactRows = rows.filter((unit) => contactOf(unit) !== "Sem telefone de acionamento").length;
   const activeRatio = rows.length ? Math.round((activeRows / rows.length) * 100) : 0;
   const linkedRatio = rows.length ? Math.round((linkedRows / rows.length) * 100) : 0;
   const contactRatio = rows.length ? Math.round((contactRows / rows.length) * 100) : 0;
@@ -222,7 +222,7 @@ export default function NovaUnidadesView({
       <div className="nova-lit-page-heading nova-units-heading">
         <div>
           <h1>Unidades</h1>
-          <p className="nova-lit-page-subtitle">Cadastro, vínculo e cobertura por unidade.</p>
+          <p className="nova-lit-page-subtitle">Base de unidades com vínculo, contato, ativos e cobertura operacional.</p>
         </div>
 
         <div className="nova-lit-page-actions">
@@ -243,7 +243,7 @@ export default function NovaUnidadesView({
           <input
             name="q"
             defaultValue={state.q}
-            placeholder="Unidade, cidade, parceiro, telefone ou serial"
+            placeholder="Buscar unidade, cidade, parceiro, telefone ou serial"
           />
         </label>
 
@@ -294,13 +294,13 @@ export default function NovaUnidadesView({
         <div className="nova-lit-card nova-units-table-card">
           <div className="nova-units-table-title">
             <div>
-              <span>Base técnica</span>
-              <h2>Unidades cadastradas</h2>
+              <span>Base de unidades</span>
+              <h2>Unidades do recorte</h2>
             </div>
 
             <div>
               <small>{rows.length} linhas</small>
-              <Link href="/relatorios/monitoramento">Relatório</Link>
+              <Link href="/relatorios/monitoramento">Gerar relatório</Link>
             </div>
           </div>
 
@@ -363,10 +363,10 @@ export default function NovaUnidadesView({
         <aside className="nova-units-right-col">
           <section className="nova-lit-card nova-units-completion">
             <div className="nova-lit-title-row">
-              <h2>Completude</h2>
+              <h2>Qualidade cadastral</h2>
               <span className="nova-lit-pill nova-lit-pill-blue">{completeness}%</span>
             </div>
-            <p>Média técnica nesta página.</p>
+            <p>Média de vínculo, contato e ativos nesta página.</p>
 
             <div className="nova-units-completion-bars">
               <CompletionBar label="Unidades ativas" value={activeRatio} />
@@ -377,7 +377,7 @@ export default function NovaUnidadesView({
           </section>
 
           <section className="nova-lit-card nova-units-quick">
-            <span>Ação rápida</span>
+            <span>Atalhos das unidades</span>
             <Link href={withParams("/unidades", currentParams, { q: "", active: "true", page: 1 })}>
               Ativas <b>{activeRows}</b>
             </Link>
