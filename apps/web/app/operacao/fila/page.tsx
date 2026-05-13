@@ -148,16 +148,16 @@ function FilaTable({
       <DenseTable>
         <TableHead>
           <tr>
-            {admin ? <th className="px-3 py-2">Sel.</th> : null}
+            {admin ? <th className="px-3 py-2">Selecionar</th> : null}
             <th className="px-3 py-2">Caso</th>
             <th className="px-3 py-2">Origem</th>
             <th className="px-3 py-2">Fila</th>
-            <th className="px-3 py-2">Sev.</th>
+            <th className="px-3 py-2">Severidade</th>
             <th className="px-3 py-2">Status</th>
             <th className="px-3 py-2">Triagem</th>
             <th className="px-3 py-2">SLA</th>
             <th className="px-3 py-2">Responsável</th>
-            <th className="px-3 py-2">Ação</th>
+            <th className="px-3 py-2">Abrir</th>
           </tr>
         </TableHead>
         <tbody>
@@ -326,7 +326,7 @@ export default async function FilaOperacionalPage({
       tone: "info",
     },
     {
-      label: "SLA vencido",
+      label: "SLA estourado",
       value: summary.views.breached,
       detail: `${formatNumber(summary.views.dueSoon)} vencendo`,
       tone: summary.views.breached ? "critical" : "success",
@@ -338,7 +338,7 @@ export default async function FilaOperacionalPage({
       tone: summary.views.unassigned ? "attention" : "success",
     },
     {
-      label: "Hosts em queda",
+      label: "Hosts offline",
       value: telemetry.counts.down,
       detail: `${formatNumber(telemetry.counts.degraded)} degradado(s)`,
       tone: telemetry.counts.down ? "critical" : telemetry.counts.degraded ? "attention" : "success",
@@ -354,12 +354,12 @@ export default async function FilaOperacionalPage({
               <div className="nds-label">Operação / Fila</div>
               <h1>Fila do turno</h1>
               <p>
-                Priorização, reconhecimento e despacho dos casos que exigem tratativa operacional.
+                Priorize, reconheça e despache os casos que exigem tratativa no turno.
               </p>
             </div>
             <div className="nova-queue-hero-actions">
               <Link href="/operacao/fila" className="nds-button" data-variant="secondary">
-                Atualizar dados
+                Recarregar fila
               </Link>
               <Link href="/excecoes/nova" className="nds-button" data-variant="primary">
                 Nova exceção
@@ -377,7 +377,7 @@ export default async function FilaOperacionalPage({
               <strong>{activeQueueLabel}</strong>
             </div>
             <div>
-              <span>Pressão</span>
+              <span>Pressão do turno</span>
               <strong>{formatNumber(pressureScore)}</strong>
             </div>
             <div>
@@ -405,8 +405,8 @@ export default async function FilaOperacionalPage({
             <Surface className="nova-queue-filter-panel">
               <SectionIntro
                 eyebrow="Recortes"
-                title="Ordem de trabalho"
-                description="Troque a visão sem sair da fila."
+                title="Recortes da fila"
+                description="Escolha o recorte do turno sem perder filtros, fila ou paginação."
                 compact
               />
               <div className="nova-queue-chip-row">
@@ -522,7 +522,7 @@ export default async function FilaOperacionalPage({
           <aside className="nova-queue-side-stack">
             <Surface className="nova-queue-side-panel">
               <SectionIntro
-                eyebrow="Fila do turno"
+                eyebrow="Distribuição"
                 title="Distribuição"
                 description="Volume aberto por fila."
                 compact

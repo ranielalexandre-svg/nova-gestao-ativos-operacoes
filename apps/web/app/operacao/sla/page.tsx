@@ -250,9 +250,9 @@ export default async function OperacaoSlaPage() {
           <div className="nova-sla-command-bar">
             <div className="min-w-0">
               <div className="nds-label">Operação / SLA</div>
-              <h1>Contratos SLA</h1>
+              <h1>Políticas de SLA</h1>
               <p>
-                Regras de prazo, fila e prioridade para exceções operacionais.
+                Configure prazos, filas e prioridade para manter a resposta operacional consistente.
               </p>
             </div>
             <div className="nova-sla-hero-actions">
@@ -274,7 +274,7 @@ export default async function OperacaoSlaPage() {
             <div className="nova-sla-stage-card" data-tone="orange">
               <span>01</span>
               <div>
-                <strong>Política</strong>
+                <strong>Regra</strong>
                 <p>Tipo, severidade e prazo.</p>
               </div>
             </div>
@@ -290,7 +290,7 @@ export default async function OperacaoSlaPage() {
             <div className="nova-sla-stage-card" data-tone="green">
               <span>03</span>
               <div>
-                <strong>Recalculo</strong>
+                <strong>Recálculo</strong>
                 <p>Casos atualizados.</p>
               </div>
             </div>
@@ -313,8 +313,8 @@ export default async function OperacaoSlaPage() {
         <div className="nova-sla-main-grid">
           <Surface className="nova-sla-policies-panel">
             <SectionIntro
-              eyebrow="Policy desk"
-              title="Políticas cadastradas"
+              eyebrow="Mesa de políticas"
+              title="Políticas de SLA cadastradas"
               description={`Médias atuais: primeira resposta em ${minutesLabel(avgFirstResponse)} e resolução em ${minutesLabel(avgResolve)}.`}
               actions={<TonePill tone="info">{formatNumber(caseCount)} caso(s) vinculados</TonePill>}
               compact
@@ -380,7 +380,7 @@ export default async function OperacaoSlaPage() {
             ) : (
               <EmptyState
                 title="Sem políticas cadastradas"
-                description="Crie a primeira política de SLA para sustentar prioridade, prazo e fila padrão com consistência."
+                description="Crie a primeira política para padronizar prioridade, prazo e fila de atendimento."
               />
             )}
           </Surface>
@@ -415,8 +415,8 @@ export default async function OperacaoSlaPage() {
             <Surface className="nova-sla-side-panel">
               <SectionIntro
                 eyebrow="Ações rápidas"
-                title="Operação SLA"
-                description="Aplicação real das regras nos casos."
+                title="Recalcular e conferir"
+                description="Aplique as regras atuais nos casos abertos e confira exceções impactadas."
                 compact
               />
               <div className="nova-sla-action-list">
@@ -444,7 +444,7 @@ export default async function OperacaoSlaPage() {
             <SectionIntro
               eyebrow="Administração"
               title="Nova política"
-              description="Cadastro de contrato operacional."
+              description="Defina fila, severidade e prazos de primeira resposta e resolução."
               compact
             />
             <ActionForm action={createPolicy} className="nova-sla-create-form" submitLabel="Criar política" pendingLabel="Criando...">
@@ -507,7 +507,7 @@ export default async function OperacaoSlaPage() {
             <SectionIntro
               eyebrow="Administração"
               title="Editar políticas"
-              description="Ao salvar, use o recalculo para refletir a regra nos casos existentes."
+              description="Ao salvar, use o recálculo para refletir a regra nos casos existentes."
               compact
             />
             {items.length ? (

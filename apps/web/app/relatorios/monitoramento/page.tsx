@@ -515,11 +515,11 @@ export default async function MonitoringReportsPage({
         <PageHeader
           eyebrow="Relatórios / Monitoramento"
           title="Gerar relatório de monitoramento"
-          subtitle="Selecione o período, as unidades e revise os dados antes de exportar."
+          subtitle="Defina fonte, período e unidades; depois revise metadados antes de exportar."
           actions={(
             <>
               <Link href={returnTo} className="nds-button" data-variant="secondary">
-                Atualizar dados
+                Recarregar seleção
               </Link>
               <Link href="/relatorios/monitoramento" className="nds-button" data-variant="primary">
                 Novo relatório
@@ -538,7 +538,7 @@ export default async function MonitoringReportsPage({
             </div>
           </ReportNotice>
         ) : exportStatus === "queued" || highlightedRun?.status === "queued" || highlightedRun?.status === "running" ? (
-          <ReportNotice tone="info">Relatório em processamento. O arquivo aparecerá em Últimas exportações.</ReportNotice>
+          <ReportNotice tone="info">Relatório em processamento. O arquivo aparecerá em Exportações recentes.</ReportNotice>
         ) : null}
 
         {exportStatus === "error" || highlightedRun?.status === "error" ? (
@@ -551,8 +551,8 @@ export default async function MonitoringReportsPage({
           <div className="flex items-center gap-2">
             <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[var(--nova-primary)] text-[12px] font-black text-white">1</span>
             <div>
-              <div className="text-[12px] font-black text-slate-50">Filtros</div>
-              <div className="mt-1 text-[10px] text-[var(--nova-text-muted)]">Seleção do período e unidades</div>
+              <div className="text-[12px] font-black text-slate-50">Fonte e período</div>
+              <div className="mt-1 text-[10px] text-[var(--nova-text-muted)]">Origem, período e recorte</div>
             </div>
           </div>
 
@@ -560,7 +560,7 @@ export default async function MonitoringReportsPage({
             <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-white/10 bg-white/[0.08] text-[11px] font-black text-slate-100">2</span>
             <div>
               <div className="text-[12px] font-black text-slate-50">Revisão</div>
-              <div className="mt-1 text-[10px] text-[var(--nova-text-muted)]">Confira os dados e resumo</div>
+              <div className="mt-1 text-[10px] text-[var(--nova-text-muted)]">Valide unidades e metadados</div>
             </div>
           </div>
 
@@ -568,7 +568,7 @@ export default async function MonitoringReportsPage({
             <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-white/10 bg-white/[0.08] text-[11px] font-black text-slate-100">3</span>
             <div>
               <div className="text-[12px] font-black text-slate-50">Exportação</div>
-              <div className="mt-1 text-[10px] text-[var(--nova-text-muted)]">Gere o relatório</div>
+              <div className="mt-1 text-[10px] text-[var(--nova-text-muted)]">Baixe ou gere em segundo plano</div>
             </div>
           </div>
         </div>
@@ -581,7 +581,7 @@ export default async function MonitoringReportsPage({
 
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div>
-                    <h2 className="text-[13px] font-black text-slate-50">Período do relatório</h2>
+                    <h2 className="text-[13px] font-black text-slate-50">Fonte e período do relatório</h2>
                     <p className="mt-1 text-[11px] text-[var(--nova-text-muted)]">
                       {sourceLabel(activeSource)} · {formatDate(from)} até {formatDate(to)} · {resultUnits.length} unidade(s)
                     </p>
@@ -600,7 +600,7 @@ export default async function MonitoringReportsPage({
                       className="nds-button"
                       data-variant="primary"
                     >
-                      Aplicar filtros
+                      Aplicar recorte
                     </button>
                   </div>
                 </div>
@@ -613,7 +613,7 @@ export default async function MonitoringReportsPage({
 
                 <div className="nova-report-date-grid">
                   <label className="grid gap-1.5">
-                    <FieldLabel>Mês / início</FieldLabel>
+                    <FieldLabel>Início</FieldLabel>
                     <input name="from" type="date" defaultValue={from} className="px-3" />
                   </label>
 
@@ -660,9 +660,9 @@ export default async function MonitoringReportsPage({
                 {activeSource === "template" ? (
                   <div className="nova-report-choice-grid nova-report-choice-grid--template">
                     <label className="grid gap-1.5">
-                      <FieldLabel>Template</FieldLabel>
+                      <FieldLabel>Modelo</FieldLabel>
                       <select name="templateId" defaultValue={selectedTemplate?.id || ""} className="px-3">
-                        <option value="">Selecione um template</option>
+                        <option value="">Selecione um modelo</option>
                         {templates.map((template) => (
                           <option key={template.id} value={template.id}>{template.code} - {template.name}</option>
                         ))}
@@ -670,14 +670,14 @@ export default async function MonitoringReportsPage({
                     </label>
 
                     <div className="nds-card">
-                      <FieldLabel>Resumo do template</FieldLabel>
+                      <FieldLabel>Resumo do modelo</FieldLabel>
                       {selectedTemplate ? (
                         <div className="mt-2 grid gap-1 text-[11px] text-slate-300">
                           <div>{selectedTemplate.sourceType === "zabbix_group" ? "Origem por grupo Zabbix" : "Origem por unidades salvas"}</div>
                           <div>{selectedTemplate.outputFormat.toUpperCase()} · {selectedTemplate.includeCharts ? "com gráficos" : "sem gráficos"}</div>
                         </div>
                       ) : (
-                        <div className="mt-2 text-[11px] text-[var(--nova-text-muted)]">Nenhum template selecionado.</div>
+                        <div className="mt-2 text-[11px] text-[var(--nova-text-muted)]">Nenhum modelo selecionado.</div>
                       )}
                     </div>
                   </div>
@@ -697,7 +697,7 @@ export default async function MonitoringReportsPage({
 
                     <div className="nds-card">
                       <div className="flex items-center justify-between gap-2">
-                        <FieldLabel>Host groups</FieldLabel>
+                        <FieldLabel>Grupos de hosts</FieldLabel>
                         {effectiveGroupIds.length ? <Link href={clearGroupsHref} className="nds-button" data-variant="ghost">Limpar grupos</Link> : null}
                       </div>
 
@@ -728,8 +728,8 @@ export default async function MonitoringReportsPage({
               <Surface>
                 <div className="flex items-center justify-between gap-2">
                   <div>
-                    <h2 className="text-[13px] font-black text-slate-50">Seleção de unidades</h2>
-                    <p className="mt-1 text-[11px] text-[var(--nova-text-muted)]">Unidades que entrarão no lote do relatório.</p>
+                    <h2 className="text-[13px] font-black text-slate-50">Unidades selecionadas</h2>
+                    <p className="mt-1 text-[11px] text-[var(--nova-text-muted)]">Unidades incluídas no lote que será exportado.</p>
                   </div>
                   <TonePill tone={resultUnits.length ? "success" : "attention"}>{resultUnits.length}</TonePill>
                 </div>
@@ -752,7 +752,7 @@ export default async function MonitoringReportsPage({
               </Surface>
 
               <Surface>
-                <h2 className="text-[13px] font-black text-slate-50">Prévia do relatório (DOCX)</h2>
+                <h2 className="text-[13px] font-black text-slate-50">Prévia da capa (DOCX)</h2>
                 <div className="nds-report-preview nova-report-preview-card nova-docx-preview-shell mt-2 p-2">
                   <div className="nova-docx-page relative mx-auto aspect-[0.72] max-h-[430px] overflow-hidden rounded-[3px] border border-slate-300 bg-white text-slate-950" style={{ backgroundColor: "#ffffff", color: "#0f172a" }}>
                     <div className="nova-docx-header-band absolute left-0 top-0 h-20 w-full" />
@@ -786,8 +786,8 @@ export default async function MonitoringReportsPage({
             <Surface>
               <div className="flex items-center justify-between gap-2">
                 <div>
-                  <h2 className="text-[13px] font-black text-slate-50">Dados das unidades selecionadas</h2>
-                  <p className="mt-1 text-[11px] text-[var(--nova-text-muted)]">Contrato, endereço e banda que aparecerão antes dos sensores.</p>
+                  <h2 className="text-[13px] font-black text-slate-50">Metadados das unidades selecionadas</h2>
+                  <p className="mt-1 text-[11px] text-[var(--nova-text-muted)]">Contrato, endereço e banda exibidos antes das leituras dos sensores.</p>
                 </div>
                 <span className="text-slate-400">⌃</span>
               </div>
@@ -829,7 +829,7 @@ export default async function MonitoringReportsPage({
 
           <aside className="grid gap-2 xl:sticky xl:top-3">
             <Surface>
-              <h2 className="text-[13px] font-black text-slate-50">Resumo do relatório</h2>
+              <h2 className="text-[13px] font-black text-slate-50">Resumo da exportação</h2>
 
               <div className="nds-card mt-2 divide-y divide-white/[0.08] p-0 text-[11px]">
                 <div className="flex items-center justify-between gap-2 px-3 py-2">
@@ -884,7 +884,7 @@ export default async function MonitoringReportsPage({
               })}
 
               <Surface>
-                <h2 className="text-[13px] font-black text-slate-50">Ações de exportação</h2>
+                <h2 className="text-[13px] font-black text-slate-50">Exportação</h2>
 
                 {groupPreviewError ? (
                   <div className="nds-notice-error mt-2 rounded-[var(--nova-radius-card)] border px-3 py-2 text-[11px]">
@@ -905,7 +905,7 @@ export default async function MonitoringReportsPage({
 
                 <label className="nds-card mt-2 flex items-center gap-2 text-[11px] font-bold text-slate-100">
                   <input type="checkbox" name="includeCharts" defaultChecked={defaultIncludeCharts} className="h-4 w-4" />
-                  Gráficos
+                  Incluir gráficos
                 </label>
 
                 <div className="mt-2 grid gap-2">
@@ -951,7 +951,7 @@ export default async function MonitoringReportsPage({
 
             <Surface>
               <div className="flex items-center justify-between gap-2">
-                <h2 className="text-[13px] font-black text-slate-50">Últimas exportações</h2>
+                <h2 className="text-[13px] font-black text-slate-50">Exportações recentes</h2>
                 <span className="text-[10px] font-black text-[var(--nova-primary)]">Ver todas</span>
               </div>
 
