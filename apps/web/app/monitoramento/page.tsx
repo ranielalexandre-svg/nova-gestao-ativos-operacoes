@@ -91,8 +91,8 @@ function partnerLabel(partner: UnitHostTelemetryItem["partner"]) {
 
 function healthLabel(value: string) {
   if (value === "online") return "Online";
-  if (value === "degraded") return "Atenção";
-  if (value === "down") return "Offline";
+  if (value === "degraded") return "Atenção NOC";
+  if (value === "down") return "Offline crítico";
   return "Sem leitura";
 }
 
@@ -401,8 +401,8 @@ function PartnerRows({ rows }: { rows: PartnerRow[] }) {
         <span>Parceiro</span>
         <span>Unidades</span>
         <span>Online</span>
-        <span>Atenção</span>
-        <span>Offline</span>
+        <span>Atenção NOC</span>
+        <span>Offline crítico</span>
         <span>Vínculo</span>
         <span>Latência</span>
         <span>Ações</span>
@@ -552,14 +552,14 @@ export default async function MonitoramentoPage({
       : state.view === "events"
         ? "Eventos recentes"
         : state.view === "sensors"
-          ? "Sensores correlacionados"
+          ? "Sensores NOC correlacionados"
           : "Unidades monitoradas";
 
   const kpis = [
     { label: "Unidades", value: String(telemetry.counts.units), hint: "recorte filtrado", tone: "blue" as const },
     { label: "Online", value: String(telemetry.counts.online), hint: "hosts saudáveis", tone: telemetry.counts.online ? "green" as const : "slate" as const },
-    { label: "Atenção", value: String(telemetry.counts.degraded), hint: "degradadas", tone: telemetry.counts.degraded ? "orange" as const : "green" as const },
-    { label: "Offline", value: String(telemetry.counts.down), hint: "sem resposta", tone: telemetry.counts.down ? "red" as const : "slate" as const },
+    { label: "Atenção NOC", value: String(telemetry.counts.degraded), hint: "degradadas", tone: telemetry.counts.degraded ? "orange" as const : "green" as const },
+    { label: "Offline crítico", value: String(telemetry.counts.down), hint: "sem resposta", tone: telemetry.counts.down ? "red" as const : "slate" as const },
     { label: "Eventos", value: String(eventCount + commandCenter.metrics.criticalOpenOccurrences), hint: `${commandCenter.metrics.openOccurrences} alertas NOC`, tone: eventCount ? "orange" as const : "blue" as const },
   ];
 
@@ -567,7 +567,7 @@ export default async function MonitoramentoPage({
     <NovaLitShell activeHref="/monitoramento">
       <div className="nova-lit-page-heading nova-monitor-heading">
         <div>
-          <h1>Monitoramento</h1>
+          <h1>Monitoramento NOC</h1>
           <p className="nova-lit-page-subtitle">Leitura do turno com cobertura, saúde dos hosts, latência, perda e eventos por unidade.</p>
         </div>
 
@@ -594,7 +594,7 @@ export default async function MonitoramentoPage({
           Parceiros <b>{partnerRows.length}</b>
         </Link>
         <Link href={withParams("/monitoramento", currentParams, { view: "sensors" })} className={state.view === "sensors" ? "is-active" : ""}>
-          Sensores <b>{telemetry.counts.matched}</b>
+          Sensores NOC <b>{telemetry.counts.matched}</b>
         </Link>
         <Link href={withParams("/monitoramento", currentParams, { view: "events" })} className={state.view === "events" ? "is-active" : ""}>
           Eventos <b>{eventCount}</b>
@@ -622,8 +622,8 @@ export default async function MonitoramentoPage({
           <select name="health" defaultValue={state.health}>
             <option value="all">Todos</option>
             <option value="online">Online</option>
-            <option value="degraded">Atenção</option>
-            <option value="down">Offline</option>
+            <option value="degraded">Atenção NOC</option>
+            <option value="down">Offline crítico</option>
             <option value="problem">Com evento</option>
             <option value="high-latency">Alta latência</option>
             <option value="high-loss">Perda alta</option>
@@ -695,15 +695,15 @@ export default async function MonitoramentoPage({
             </div>
             <div className="nova-monitor-progress-list">
               <ProgressLine label="Online" value={percent(telemetry.counts.online, telemetry.counts.units)} tone="green" />
-              <ProgressLine label="Atenção" value={percent(telemetry.counts.degraded, telemetry.counts.units)} tone="orange" />
-              <ProgressLine label="Offline" value={percent(telemetry.counts.down, telemetry.counts.units)} tone="red" />
+              <ProgressLine label="Atenção NOC" value={percent(telemetry.counts.degraded, telemetry.counts.units)} tone="orange" />
+              <ProgressLine label="Offline crítico" value={percent(telemetry.counts.down, telemetry.counts.units)} tone="red" />
               <ProgressLine label="Sem vínculo" value={percent(telemetry.counts.unmapped, telemetry.counts.units)} tone="slate" />
             </div>
           </section>
 
           <section className="nova-lit-card nova-monitor-quick">
             <span>Atalhos do recorte</span>
-            <Link href={withParams("/monitoramento", currentParams, { health: "down", page: undefined })}>Offline <b>{telemetry.counts.down}</b></Link>
+            <Link href={withParams("/monitoramento", currentParams, { health: "down", page: undefined })}>Offline crítico <b>{telemetry.counts.down}</b></Link>
             <Link href={withParams("/monitoramento", currentParams, { health: "problem", page: undefined })}>Com eventos <b>{eventCount}</b></Link>
             <Link href={withParams("/monitoramento", currentParams, { health: "unmapped", page: undefined })}>Sem vínculo <b>{telemetry.counts.unmapped}</b></Link>
           </section>

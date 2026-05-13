@@ -234,7 +234,7 @@ export default function NovaSensoresView({
     <NovaLitShell activeHref="/monitoramento/sensores">
       <div className="nova-lit-page-heading nova-sensors-heading">
         <div>
-          <h1>Sensores</h1>
+          <h1>Sensores NOC</h1>
           <p className="nova-lit-page-subtitle">Telemetria, host Zabbix, latência, perda e vínculos por unidade.</p>
         </div>
 
@@ -284,7 +284,7 @@ export default function NovaSensoresView({
           <div className="nova-sensors-table-title">
             <div>
               <span>Telemetria Zabbix</span>
-              <h2>Sensores por unidade</h2>
+              <h2>Sensores NOC por unidade</h2>
             </div>
             <div>
               <small>{pageItems.length} linhas</small>

@@ -122,7 +122,7 @@ const MENU_SECTIONS: NavSection[] = [
     label: "Monitoramento",
     items: [
       { label: "Saúde da rede", href: "/monitoramento", icon: "chart" },
-      { label: "Sensores e hosts", href: "/monitoramento/sensores", icon: "sensor" },
+      { label: "Sensores NOC", href: "/monitoramento/sensores", icon: "sensor" },
       { label: "Mapa operacional", href: "/monitoramento/mapas", icon: "map" },
       { label: "Fontes de dados", href: "/monitoramento/fontes", icon: "integrations" },
     ],
@@ -184,12 +184,14 @@ const MENU_SECTIONS: NavSection[] = [
 const DEFAULT_FAVORITES = ["/dashboard", "/operacao/fila", "/alertas"];
 
 const ACTIVE_HREF_ALIASES: Record<string, string> = {
+  "/sensores": "/monitoramento/sensores",
+  "/monitoramento/mapas": "/monitoramento",
+  "/monitoramento/fontes": "/integracoes",
   "/excecoes": "/operacao/excecoes",
   "/excecoes/cadastro": "/operacao/excecoes",
   "/excecoes/nova": "/operacao/excecoes",
   "/operacao/excecoes/cadastro": "/operacao/excecoes",
   "/operacao/excecoes/nova": "/operacao/excecoes",
-  "/sensores": "/monitoramento/sensores",
   "/mapas": "/monitoramento/mapas",
   "/equipamentos": "/ativos",
   "/ocorrencias": "/alertas",
