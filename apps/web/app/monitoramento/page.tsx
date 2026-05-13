@@ -568,11 +568,11 @@ export default async function MonitoramentoPage({
       <div className="nova-lit-page-heading nova-monitor-heading">
         <div>
           <h1>Monitoramento</h1>
-          <p className="nova-lit-page-subtitle">Cobertura, saúde, latência, perda, sensores e eventos consolidados por unidade.</p>
+          <p className="nova-lit-page-subtitle">Leitura do turno com cobertura, saúde dos hosts, latência, perda e eventos por unidade.</p>
         </div>
 
         <div className="nova-lit-page-actions">
-          <Link href="/monitoramento/sensores" className="nova-lit-button nova-lit-button-secondary">Sensores</Link>
+          <Link href="/monitoramento/sensores" className="nova-lit-button nova-lit-button-secondary">Ver sensores</Link>
           <Link href="/relatorios/monitoramento" className="nova-lit-button nova-lit-button-primary">Gerar relatório</Link>
         </div>
       </div>
@@ -604,7 +604,7 @@ export default async function MonitoramentoPage({
       <form action="/monitoramento" className="nova-lit-card nova-monitor-filters">
         <label className="nova-monitor-search">
           <span>Busca</span>
-          <input name="q" defaultValue={state.q} placeholder="Unidade, parceiro, host, cidade, serial ou ativo" />
+          <input name="q" defaultValue={state.q} placeholder="Buscar unidade, parceiro, host, cidade, serial ou ativo" />
         </label>
 
         <label className="nova-monitor-field">
@@ -618,7 +618,7 @@ export default async function MonitoramentoPage({
         </label>
 
         <label className="nova-monitor-field">
-          <span>Estado</span>
+          <span>Saúde</span>
           <select name="health" defaultValue={state.health}>
             <option value="all">Todos</option>
             <option value="online">Online</option>
@@ -653,12 +653,12 @@ export default async function MonitoramentoPage({
         <div className="nova-lit-card nova-monitor-table-card">
           <div className="nova-monitor-section-title">
             <div>
-              <span>Network Desk</span>
+              <span>NOC</span>
               <h2>{visibleTitle}</h2>
             </div>
             <div>
               <small>{formatDateTime(rawTelemetry.generatedAt)}</small>
-              <Link href="/monitoramento/sensores">Fonte</Link>
+              <Link href="/monitoramento/sensores">Abrir sensores</Link>
             </div>
           </div>
 
@@ -702,15 +702,15 @@ export default async function MonitoramentoPage({
           </section>
 
           <section className="nova-lit-card nova-monitor-quick">
-            <span>Ação rápida</span>
+            <span>Atalhos do recorte</span>
             <Link href={withParams("/monitoramento", currentParams, { health: "down", page: undefined })}>Offline <b>{telemetry.counts.down}</b></Link>
-            <Link href={withParams("/monitoramento", currentParams, { health: "problem", page: undefined })}>Com evento <b>{eventCount}</b></Link>
+            <Link href={withParams("/monitoramento", currentParams, { health: "problem", page: undefined })}>Com eventos <b>{eventCount}</b></Link>
             <Link href={withParams("/monitoramento", currentParams, { health: "unmapped", page: undefined })}>Sem vínculo <b>{telemetry.counts.unmapped}</b></Link>
           </section>
 
           <section className="nova-lit-card nova-monitor-metrics">
             <div className="nova-lit-title-row">
-              <h2>Métricas</h2>
+              <h2>Leituras</h2>
               <span className="nova-lit-pill nova-lit-pill-orange">{sourceFailureCount} falhas</span>
             </div>
             <div className="nova-monitor-status-list">
@@ -731,7 +731,7 @@ export default async function MonitoramentoPage({
               </article>
               <article>
                 <Dot tone="green" />
-                <strong>Sync pronto</strong>
+                <strong>Pronto para sync</strong>
                 <b>{telemetry.counts.syncReady}</b>
               </article>
             </div>
@@ -739,7 +739,7 @@ export default async function MonitoramentoPage({
 
           <section className="nova-lit-card nova-monitor-sources">
             <div className="nova-lit-title-row">
-              <h2>Fontes</h2>
+              <h2>Fontes de dados</h2>
               <span className="nova-lit-pill nova-lit-pill-blue">{rawTelemetry.sources.length}</span>
             </div>
             <div className="nova-monitor-source-list">
@@ -752,7 +752,7 @@ export default async function MonitoramentoPage({
                   </div>
                 </article>
               )) : (
-                <div className="nova-monitor-list-empty">Nenhuma fonte carregada.</div>
+                <div className="nova-monitor-list-empty">Nenhuma fonte de monitoramento carregada.</div>
               )}
             </div>
           </section>
@@ -765,7 +765,7 @@ export default async function MonitoramentoPage({
         </span>
         <div>
           <Link href="/relatorios/monitoramento">Relatório</Link>
-          <Link href="/monitoramento/sensores">Sensores</Link>
+          <Link href="/monitoramento/sensores">Ver sensores</Link>
         </div>
       </section>
     </NovaLitShell>
