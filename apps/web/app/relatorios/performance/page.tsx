@@ -372,7 +372,7 @@ export default async function RelatorioPerformancePage() {
                 <small>tráfego, latência, perda e banda por unidade</small>
               </div>
               <div className="nova-performance-actions">
-                <Link href="/administracao/importacao" className="nds-button" data-variant="secondary">Importar base</Link>
+                <Link href="/operacao/importacao" className="nds-button" data-variant="secondary">Importar base operacional</Link>
                 <Link href="/relatorios/monitoramento" className="nds-button" data-variant="primary">Exportar relatório</Link>
               </div>
             </section>

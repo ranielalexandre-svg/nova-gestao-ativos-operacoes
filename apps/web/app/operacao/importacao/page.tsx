@@ -192,7 +192,7 @@ export default async function ImportacaoPage({
   );
 
   return (
-    <NovaLitShell activeHref="/administracao/importacao">
+    <NovaLitShell activeHref="/operacao/importacao">
       <ImportCsvWorkspace
         action={importCsvAction}
         resources={RESOURCES}
