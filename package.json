@@ -21,7 +21,8 @@
     "test:web": "corepack pnpm --dir apps/web lint && corepack pnpm --dir apps/web exec tsc --noEmit",
     "test:smoke": "node scripts/smoke-web-routes.mjs",
     "test:all": "corepack pnpm test:api && corepack pnpm test:web",
-    "qa:local": "corepack pnpm test:all && corepack pnpm build:web && corepack pnpm build:api",
-    "audit:modules": "node scripts/generate-module-audit.mjs"
+    "qa:local": "bash scripts/qa-local.sh",
+    "audit:modules": "node scripts/generate-module-audit.mjs",
+    "qa:local:static": "corepack pnpm test:all && corepack pnpm build:web && corepack pnpm build:api && corepack pnpm audit:modules"
   }
 }
