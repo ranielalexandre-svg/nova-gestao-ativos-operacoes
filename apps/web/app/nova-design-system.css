@@ -35117,3 +35117,81 @@ body:has(.nova-tickets-board-shell) {
   width: 1rem;
   height: 1rem;
 }
+
+/* Operacao consolidated visual polish */
+.nova-operation-overview-card,
+.nova-operation-hero-panel {
+  position: relative;
+  overflow: hidden;
+}
+
+.nova-operation-overview-card::before,
+.nova-operation-hero-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at top left, rgba(56, 189, 248, 0.14), transparent 36%),
+    radial-gradient(circle at bottom right, rgba(14, 165, 233, 0.08), transparent 34%);
+  opacity: 0.9;
+}
+
+.nova-operation-overview-card > *,
+.nova-operation-hero-panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+.nova-operation-hero-actions {
+  align-items: center;
+}
+
+.nova-operation-priority-row {
+  padding-top: 0.125rem;
+}
+
+.nova-operation-kpi-grid .nova-kpi,
+.nova-operation-side-panel {
+  min-width: 0;
+}
+
+.nova-operation-signal-grid > .nds-card {
+  min-height: 42px;
+}
+
+.nova-operation-support-card .nova-section-intro {
+  max-width: 980px;
+}
+
+.nova-operation-side-panel .nova-section-intro {
+  gap: 0.35rem;
+}
+
+.nova-operation-queue-lit-page,
+.nova-operation-activity-lit-page,
+.nova-operation-sla-lit-page,
+.nova-importacao-lit-page {
+  scroll-margin-top: 1rem;
+}
+
+@media (max-width: 768px) {
+  .nova-operation-hero-actions,
+  .nova-queue-hero-actions,
+  .nova-activity-hero-actions,
+  .nova-sla-hero-actions,
+  .nova-import-actions {
+    width: 100%;
+  }
+
+  .nova-operation-hero-actions .nds-button,
+  .nova-queue-hero-actions .nds-button,
+  .nova-activity-hero-actions .nds-button,
+  .nova-sla-hero-actions .nds-button,
+  .nova-import-actions a,
+  .nova-import-actions button {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+}
+/* End operacao consolidated visual polish */

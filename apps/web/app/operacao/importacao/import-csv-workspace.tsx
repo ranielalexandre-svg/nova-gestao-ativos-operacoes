@@ -284,7 +284,7 @@ export function ImportCsvWorkspace({
     setFileSize(formatBytes(file.size));
 
     if (!lowerName.endsWith(".csv") && !lowerName.endsWith(".txt")) {
-      setClientNotice("Use CSV UTF-8. XLSX e API externa devem ser convertidos antes desta etapa.");
+      setClientNotice("Use CSV UTF-8. XLSX e Conector externo devem ser convertidos antes desta etapa.");
       return;
     }
 
@@ -306,12 +306,12 @@ export function ImportCsvWorkspace({
 
       <header className="nova-import-hero">
         <div>
-          <div className="nova-import-breadcrumb">Configurações / Importação</div>
-          <h1>Importação de dados</h1>
+          <div className="nova-import-breadcrumb">Operação / Importação</div>
+          <h1>Importação operacional de dados</h1>
           <p>Envie CSV, mapeie os campos, valide a estrutura e execute a carga operacional com controle de upsert.</p>
         </div>
         <div className="nova-import-actions">
-          <Link href="/operacao/importacao">Atualizar dados</Link>
+          <Link href="/operacao/importacao">Recarregar importação</Link>
           <button type="button" className="is-primary" onClick={() => fileInputRef.current?.click()}>
             Nova importação
           </button>
@@ -323,7 +323,7 @@ export function ImportCsvWorkspace({
           <div className="nova-import-section-head">
             <div>
               <span>Origem da importação</span>
-              <h2>Selecione a entrada da carga</h2>
+              <h2>Escolha a origem da carga</h2>
             </div>
             <Badge tone={selectedResource.tone}>{selectedResource.label}</Badge>
           </div>
@@ -334,7 +334,7 @@ export function ImportCsvWorkspace({
             <button type="button" onClick={() => loadTemplate()}>
               Template CSV
             </button>
-            <Link href="/integracoes">API externa</Link>
+            <Link href="/integracoes">Conector externo</Link>
           </div>
           <div className="nova-import-resource-strip">
             {resources.map((item) => (

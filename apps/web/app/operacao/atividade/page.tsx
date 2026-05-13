@@ -255,7 +255,7 @@ export default async function AtividadePage({
   return (
     <NovaLitShell activeHref="/operacao/atividade">
       <div className="nova-operation-activity-lit-page">
-        <Surface className="nova-activity-command-hero">
+        <Surface className="nova-activity-command-hero nova-operation-hero-panel">
           <div className="nova-activity-command-bar">
             <div className="min-w-0">
               <div className="nds-label">Operação / Atividade</div>
@@ -422,7 +422,7 @@ export default async function AtividadePage({
           </main>
 
           <aside className="nova-activity-side-stack">
-            <Surface className="nova-activity-side-panel">
+            <Surface className="nova-activity-side-panel nova-operation-side-panel">
               <SectionIntro
                 eyebrow="Registro rápido"
                 title="Handoff e próximo passo"
@@ -467,7 +467,7 @@ export default async function AtividadePage({
             </Surface>
 
             {isAdmin ? (
-              <Surface className="nova-activity-side-panel">
+              <Surface className="nova-activity-side-panel nova-operation-side-panel">
                 <SectionIntro
                   eyebrow="Registro manual"
                   title="Registrar nova atividade"

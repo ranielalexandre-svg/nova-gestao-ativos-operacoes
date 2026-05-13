@@ -348,7 +348,7 @@ export default async function FilaOperacionalPage({
   return (
     <NovaLitShell activeHref="/operacao/fila">
       <div className="nova-operation-queue-lit-page">
-        <Surface className="nova-queue-command-hero">
+        <Surface className="nova-queue-command-hero nova-operation-hero-panel">
           <div className="nova-queue-command-bar">
             <div className="min-w-0">
               <div className="nds-label">Operação / Fila</div>
@@ -362,7 +362,7 @@ export default async function FilaOperacionalPage({
                 Recarregar fila
               </Link>
               <Link href="/excecoes/cadastro" className="nds-button" data-variant="primary">
-                Cadastrar exceção
+                Cadastrar exceção operacional
               </Link>
             </div>
           </div>
@@ -520,7 +520,7 @@ export default async function FilaOperacionalPage({
           </main>
 
           <aside className="nova-queue-side-stack">
-            <Surface className="nova-queue-side-panel">
+            <Surface className="nova-queue-side-panel nova-operation-side-panel">
               <SectionIntro
                 eyebrow="Distribuição"
                 title="Distribuição"
@@ -546,7 +546,7 @@ export default async function FilaOperacionalPage({
               </div>
             </Surface>
 
-            <Surface className="nova-queue-side-panel">
+            <Surface className="nova-queue-side-panel nova-operation-side-panel">
               <SectionIntro
                 eyebrow="Próximo despacho"
                 title={priorityItem ? priorityItem.code : "Sem item"}
@@ -598,7 +598,7 @@ export default async function FilaOperacionalPage({
               ) : null}
             </Surface>
 
-            <Surface className="nova-queue-side-panel">
+            <Surface className="nova-queue-side-panel nova-operation-side-panel">
               <SectionIntro
                 eyebrow="Sinais"
                 title="Leitura rápida do próximo passo"

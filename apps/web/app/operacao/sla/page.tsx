@@ -244,9 +244,9 @@ export default async function OperacaoSlaPage() {
   ];
 
   return (
-    <NovaLitShell activeHref="/administracao/sla">
+    <NovaLitShell activeHref="/operacao/sla">
       <div className="nova-operation-sla-lit-page">
-        <Surface className="nova-sla-command-hero">
+        <Surface className="nova-sla-command-hero nova-operation-hero-panel">
           <div className="nova-sla-command-bar">
             <div className="min-w-0">
               <div className="nds-label">Operação / SLA</div>
@@ -386,7 +386,7 @@ export default async function OperacaoSlaPage() {
           </Surface>
 
           <aside className="nova-sla-side-stack">
-            <Surface className="nova-sla-side-panel">
+            <Surface className="nova-sla-side-panel nova-operation-side-panel">
               <SectionIntro
                 eyebrow="Fila do turno"
                 title="Pressão atual da fila"
@@ -412,7 +412,7 @@ export default async function OperacaoSlaPage() {
               </div>
             </Surface>
 
-            <Surface className="nova-sla-side-panel">
+            <Surface className="nova-sla-side-panel nova-operation-side-panel">
               <SectionIntro
                 eyebrow="Ações rápidas"
                 title="Recalcular impacto nas exceções"
