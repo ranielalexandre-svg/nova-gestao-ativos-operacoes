@@ -97,3 +97,16 @@ Critérios:
 - portas 3010/4000 ficam livres ao final;
 - `.tmp` não aparece no status;
 - working tree fica limpo antes do push.
+
+## Fluxo local robusto
+
+Guia consolidado: `docs/qa-local/fluxo-local-robusto.md`.
+
+Fluxo curto recomendado:
+
+```bash
+corepack pnpm dev:up
+corepack pnpm dev:status
+SMOKE_ROUTE_TIMEOUT_MS=45000 SMOKE_HEARTBEAT_MS=5000 corepack pnpm test:smoke
+corepack pnpm dev:down
+```
