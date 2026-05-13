@@ -29,8 +29,8 @@ pkill -f "next dev --port 3010" || true
 kill_project_processes
 
 if command -v fuser >/dev/null 2>&1; then
-  fuser -k 3010/tcp 2>/dev/null || true
-  fuser -k 4000/tcp 2>/dev/null || true
+  fuser -k 3010/tcp >/dev/null 2>&1 || true
+  fuser -k 4000/tcp >/dev/null 2>&1 || true
 fi
 
 echo "Processos locais encerrados."
