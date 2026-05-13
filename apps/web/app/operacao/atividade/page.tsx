@@ -167,7 +167,7 @@ export default async function AtividadePage({
 
       const title = String(formData.get("title") || "").trim();
       if (title.length < 2) {
-        return { status: "error", message: "Informe um título para a atividade." };
+        return { status: "error", message: "Informe um resumo para registrar no handoff." };
       }
 
       await apiJson("/activities", {
@@ -239,7 +239,7 @@ export default async function AtividadePage({
       tone: manualCount ? "attention" : "success",
     },
     {
-      label: "Exceções",
+      label: "Casos operacionais",
       value: exceptionCount,
       detail: "com vínculo",
       tone: exceptionCount ? "critical" : "neutral",
@@ -259,17 +259,17 @@ export default async function AtividadePage({
           <div className="nova-activity-command-bar">
             <div className="min-w-0">
               <div className="nds-label">Operação / Atividade</div>
-              <h1>Linha do tempo operacional</h1>
+              <h1>Handoff operacional do turno</h1>
               <p>
-                Decisões, automações, evidências e registros manuais ligados ao trabalho do turno.
+                Consolide decisões, evidências, automações e próximos passos para preservar contexto entre turnos.
               </p>
             </div>
             <div className="nova-activity-hero-actions">
               <Link href="/operacao/fila" className="nds-button" data-variant="secondary">
-                Abrir fila
+                Abrir fila do turno
               </Link>
               <Link href="/operacao/excecoes" className="nds-button" data-variant="primary">
-                Exceções
+                Casos operacionais
               </Link>
             </div>
           </div>
@@ -307,8 +307,8 @@ export default async function AtividadePage({
             <Surface className="nova-activity-filter-panel">
               <SectionIntro
                 eyebrow="Consulta"
-                title="Filtrar atividade do turno"
-                description="Recorte compartilhável por texto, tipo, origem e severidade para reconstruir a decisão."
+                title="Filtrar rastro do turno"
+                description="Recorte compartilhável por texto, tipo, origem e severidade para reconstruir decisão e passagem de turno."
                 actions={<Link href="/operacao/atividade" className="nds-button" data-variant="secondary">Limpar</Link>}
                 compact
               />
@@ -359,7 +359,7 @@ export default async function AtividadePage({
             <Surface className="nova-activity-timeline-panel">
               <SectionIntro
                 eyebrow="Linha do tempo"
-                title="Rastro operacional registrado"
+                title="Rastro e decisões registradas"
                 description={`${formatNumber(response.meta.total)} evento(s) no recorte atual.`}
                 actions={<TonePill tone={criticalCount ? "critical" : "info"}>{formatNumber(criticalCount)} alta atenção</TonePill>}
                 compact
@@ -425,7 +425,7 @@ export default async function AtividadePage({
             <Surface className="nova-activity-side-panel nova-operation-side-panel">
               <SectionIntro
                 eyebrow="Registro rápido"
-                title="Handoff e próximo passo"
+                title="Handoff rápido do turno"
                 description={priorityException ? `${priorityException.code} · ${priorityException.title}` : "Nenhuma exceção para registrar."}
                 compact
               />
@@ -434,8 +434,8 @@ export default async function AtividadePage({
                   <ActionForm
                     action={createActivity}
                     className="nova-activity-quick-form"
-                    submitLabel="Registrar handoff"
-                    pendingLabel="Registrando..."
+                    submitLabel="Registrar passagem de turno"
+                    pendingLabel="Registrando no rastro..."
                     variant="secondary"
                   >
                     <input type="hidden" name="title" value={`Handoff registrado: ${priorityException.code}`} />
@@ -448,8 +448,8 @@ export default async function AtividadePage({
                   <ActionForm
                     action={createActivity}
                     className="nova-activity-quick-form"
-                    submitLabel="Registrar evidência"
-                    pendingLabel="Registrando..."
+                    submitLabel="Registrar evidência operacional"
+                    pendingLabel="Registrando no rastro..."
                     variant="secondary"
                   >
                     <input type="hidden" name="title" value={`Evidência anexada ao caso: ${priorityException.code}`} />
@@ -470,19 +470,19 @@ export default async function AtividadePage({
               <Surface className="nova-activity-side-panel nova-operation-side-panel">
                 <SectionIntro
                   eyebrow="Registro manual"
-                  title="Registrar nova atividade"
+                  title="Registrar atividade detalhada"
                   description="Decisão, contato, evidência ou próximo passo."
                   compact
                 />
                 <ActionForm
                   action={createActivity}
                   className="nova-activity-create-form"
-                  submitLabel="Criar atividade"
-                  pendingLabel="Criando..."
+                  submitLabel="Salvar no handoff"
+                  pendingLabel="Salvando rastro..."
                 >
                   <div>
                     <FieldLabel>Título</FieldLabel>
-                    <input name="title" placeholder="Resumo curto da atividade" className={inputClass} />
+                    <input name="title" placeholder="Resumo da decisão ou evidência" className={inputClass} />
                   </div>
                   <div className="nova-activity-create-row">
                     <div>
