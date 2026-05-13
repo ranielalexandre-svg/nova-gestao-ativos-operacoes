@@ -227,7 +227,7 @@ export default function NovaUnidadesView({
 
         <div className="nova-lit-page-actions">
           <Link href="/administracao/importacao" className="nova-lit-button nova-lit-button-secondary">Importar CSV</Link>
-          <Link href="/unidades/nova" className="nova-lit-button nova-lit-button-primary">Nova unidade</Link>
+          <Link href="/unidades/cadastro" className="nova-lit-button nova-lit-button-primary">Cadastrar unidade</Link>
         </div>
       </div>
 

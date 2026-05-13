@@ -361,8 +361,8 @@ export default async function FilaOperacionalPage({
               <Link href="/operacao/fila" className="nds-button" data-variant="secondary">
                 Recarregar fila
               </Link>
-              <Link href="/excecoes/nova" className="nds-button" data-variant="primary">
-                Nova exceção
+              <Link href="/excecoes/cadastro" className="nds-button" data-variant="primary">
+                Cadastrar exceção
               </Link>
             </div>
           </div>

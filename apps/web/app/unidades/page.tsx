@@ -1,7 +1,7 @@
 import NovaUnidadesView, {
   type NovaUnitsListResponse,
   type NovaUnitsSearchState,
-} from "@/components/unidades/nova-unidades-view";
+} from "@/components/unidades/cadastro-unidades-view";
 import { apiJson } from "@/lib/server-api";
 import {
   buildApiQuery,

@@ -172,9 +172,9 @@ export default async function UsuarioDetalhePage({
               <UserAccessIcon name="chevron" />
               <span>Voltar</span>
             </Link>
-            <Link href="/usuarios/nova" className="nova-user-editor-button is-primary">
+            <Link href="/usuarios/cadastro" className="nova-user-editor-button is-primary">
               <UserAccessIcon name="plus-user" />
-              <span>Novo usuário</span>
+              <span>Cadastrar usuário</span>
             </Link>
           </div>
         </header>

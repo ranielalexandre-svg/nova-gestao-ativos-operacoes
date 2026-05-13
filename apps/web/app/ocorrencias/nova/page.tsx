@@ -1,1 +1,5 @@
-export { default } from "../../alertas/novo/page";
+import { redirect } from "next/navigation";
+
+export default function LegacyCadastroRedirectPage() {
+  redirect("/ocorrencias/cadastro");
+}

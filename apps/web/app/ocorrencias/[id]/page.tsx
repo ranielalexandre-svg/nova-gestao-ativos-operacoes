@@ -412,7 +412,7 @@ export default async function OcorrenciaDetailPage({
   if (occurrence.partner?.id) newExceptionParams.set("partnerId", occurrence.partner.id);
   if (occurrence.unit?.id) newExceptionParams.set("unitId", occurrence.unit.id);
   if (occurrence.equipment?.id) newExceptionParams.set("equipmentId", occurrence.equipment.id);
-  const newExceptionHref = `/excecoes/nova?${newExceptionParams.toString()}`;
+  const newExceptionHref = `/excecoes/cadastro?${newExceptionParams.toString()}`;
 
   const newTicketParams = new URLSearchParams();
   newTicketParams.set("occurrenceId", occurrence.id);
@@ -420,7 +420,7 @@ export default async function OcorrenciaDetailPage({
   if (occurrence.partner?.id) newTicketParams.set("partnerId", occurrence.partner.id);
   if (occurrence.unit?.id) newTicketParams.set("unitId", occurrence.unit.id);
   if (occurrence.equipment?.id) newTicketParams.set("equipmentId", occurrence.equipment.id);
-  const newTicketHref = `/chamados/novo?${newTicketParams.toString()}`;
+  const newTicketHref = `/chamados/cadastro?${newTicketParams.toString()}`;
 
   const editHref = isAdmin ? `/alertas/${occurrence.id}/editar` : `/alertas/${occurrence.id}`;
   const actionLog = [

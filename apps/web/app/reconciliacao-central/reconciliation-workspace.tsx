@@ -190,7 +190,7 @@ function buildRows(
       systemB: unit.bestCurrentUnit ? `${unit.bestCurrentUnit.code} · ${unit.bestCurrentUnit.name}` : "Sem cadastro atual",
       difference: unit.bestCurrentUnit ? `score ${unit.bestScore}` : "Não localizado",
       date,
-      href: `/unidades/nova?from=imported&code=${encodeURIComponent(unit.code || "")}&name=${encodeURIComponent(unit.name || "")}&partnerCode=${encodeURIComponent(unit.partnerCode || "")}`,
+      href: `/unidades/cadastro?from=imported&code=${encodeURIComponent(unit.code || "")}&name=${encodeURIComponent(unit.name || "")}&partnerCode=${encodeURIComponent(unit.partnerCode || "")}`,
       score: 90,
     });
   }
@@ -220,7 +220,7 @@ function buildRows(
       systemB: "Sem parceiro atual",
       difference: `${partner.contacts} contato(s), ${partner.primaryUnitCount + partner.backupUnitCount} vínculo(s)`,
       date,
-      href: "/parceiros/nova",
+      href: "/parceiros/cadastro",
       score: 58,
     });
   }
@@ -235,7 +235,7 @@ function buildRows(
       systemB: equipment.unitCode || "Sem unidade vinculada",
       difference: equipment.serialNumber ? `serial ${equipment.serialNumber}` : "Sem serial para bater",
       date,
-      href: "/ativos/nova",
+      href: "/ativos/cadastro",
       score: 52,
     });
   }

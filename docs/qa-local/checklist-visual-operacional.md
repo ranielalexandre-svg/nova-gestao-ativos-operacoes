@@ -67,7 +67,7 @@ Validar fila, SLA, automações, importação, permissões e responsividade.
 ### Exceções
 
 - `/excecoes`
-- `/excecoes/nova`
+- `/excecoes/cadastro`
 - `/excecoes/[id]`
 - `/operacao/excecoes`
 - `/operacao/excecoes/[id]`

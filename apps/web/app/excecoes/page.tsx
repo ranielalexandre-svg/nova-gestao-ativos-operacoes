@@ -505,7 +505,7 @@ export default async function ExcecoesPage({
             </div>
             <div>
               <BoardButton href={withParams("/excecoes", currentParams, {})} icon="refresh">Recarregar lista</BoardButton>
-              <BoardButton href="/excecoes/nova" icon="plus" primary>Nova exceção</BoardButton>
+              <BoardButton href="/excecoes/cadastro" icon="plus" primary>Cadastrar exceção</BoardButton>
             </div>
           </header>
 
@@ -679,7 +679,7 @@ export default async function ExcecoesPage({
                   <Icon name="activity" />
                   <h2>Atalhos operacionais</h2>
                 </div>
-                <Link href="/excecoes/nova"><Icon name="plus" /><span>Nova exceção</span></Link>
+                <Link href="/excecoes/cadastro"><Icon name="plus" /><span>Cadastrar exceção</span></Link>
                 <Link href="/operacao/importacao"><Icon name="import" /><span>Importar exceções</span></Link>
                 <Link href={exportHref}><Icon name="download" /><span>Exportar relatório</span></Link>
                 <Link href={firstCaseHref}><Icon name="file" /><span>Abrir primeiro caso</span></Link>

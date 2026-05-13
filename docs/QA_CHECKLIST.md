@@ -50,7 +50,7 @@
 ## Chamados
 
 - [ ] `/chamados` abre.
-- [ ] `/chamados/novo` abre.
+- [ ] `/chamados/cadastro` abre.
 - [ ] Detalhe abre.
 - [ ] Breadcrumb aparece.
 - [ ] Criar/editar funciona.
@@ -58,7 +58,7 @@
 ## Exceções
 
 - [ ] `/excecoes` abre.
-- [ ] `/excecoes/nova` abre.
+- [ ] `/excecoes/cadastro` abre.
 - [ ] Detalhe abre.
 - [ ] SLA aparece.
 - [ ] Comentário funciona.
@@ -72,7 +72,7 @@
 ## Usuários
 
 - [ ] `/usuarios` abre.
-- [ ] `/usuarios/nova` abre.
+- [ ] `/usuarios/cadastro` abre.
 - [ ] Detalhe abre.
 - [ ] Ícones não estouram.
 - [ ] Shell é `NovaLitShell`.

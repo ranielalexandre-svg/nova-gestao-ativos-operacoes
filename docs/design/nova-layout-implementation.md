@@ -290,7 +290,7 @@ A superficie visual e a navegacao principal usam os nomes da prancha. As rotas l
 | --- | --- |
 | `/sensores` | `/monitoramento` |
 | `/alertas` e `/alertas/[id]` | `/ocorrencias` e `/ocorrencias/[id]` |
-| `/ativos`, `/ativos/[id]`, `/ativos/nova`, `/ativos/starlinks` | `/equipamentos`, `/equipamentos/[id]`, `/equipamentos/nova`, `/equipamentos/starlinks` |
+| `/ativos`, `/ativos/[id]`, `/ativos/cadastro`, `/ativos/starlinks` | `/equipamentos`, `/equipamentos/[id]`, `/equipamentos/cadastro`, `/equipamentos/starlinks` |
 | `/chamados` e `/chamados/[id]` | `/manutencoes` e `/manutencoes/[id]` |
 | `/excecoes` e `/excecoes/[id]` | `/operacao/excecoes` e `/operacao/excecoes/[id]` |
 | `/automacao` | `/operacao/automacoes` |

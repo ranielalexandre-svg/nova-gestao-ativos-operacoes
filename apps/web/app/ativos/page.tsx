@@ -326,7 +326,7 @@ export default async function AtivosPage({
         <div className="nova-lit-page-actions">
           <Link href="/ativos/onus" className="nova-lit-button nova-lit-button-secondary">ONUs</Link>
           <Link href="/ativos/starlinks" className="nova-lit-button nova-lit-button-secondary">Starlinks</Link>
-          {isAdmin ? <Link href="/ativos/nova" className="nova-lit-button nova-lit-button-primary">Novo ativo</Link> : null}
+          {isAdmin ? <Link href="/ativos/cadastro" className="nova-lit-button nova-lit-button-primary">Cadastrar ativo</Link> : null}
         </div>
       </div>
 

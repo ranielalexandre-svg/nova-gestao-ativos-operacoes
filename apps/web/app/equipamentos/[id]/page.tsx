@@ -237,7 +237,7 @@ function CreatedNotice({ from }: { from: string }) {
             Origem: {from === "wizard" ? "cadastro guiado" : "cadastro direto"}.
             Revise serial, vínculo com a unidade e leitura de monitoramento herdada.
           </div></div><div className="flex flex-wrap gap-2"><Link
-            href="/ativos/nova"
+            href="/ativos/cadastro"
             className="nds-button"
             data-variant="primary"
           >
@@ -674,7 +674,7 @@ export default async function AtivoDetailPage({
   newMaintenanceParams.set("partnerId", equipment.unit.partner.id);
   newMaintenanceParams.set("title", `Manutenção - ${equipment.tag}`);
   newMaintenanceParams.set("type", "corrective");
-  const newMaintenanceHref = `/chamados/novo?${newMaintenanceParams.toString()}`;
+  const newMaintenanceHref = `/chamados/cadastro?${newMaintenanceParams.toString()}`;
   const timelineItems = equipment.maintenances.length
     ? equipment.maintenances.slice(0, 5)
     : [

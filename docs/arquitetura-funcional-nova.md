@@ -117,7 +117,7 @@ DocumentAttachment(entityType="contract")
 Rotas canonicas:
 
 - `/contratos`
-- `/contratos/novo`
+- `/contratos/cadastro`
 - `/contratos/[id]`
 - `/contratos/[id]/editar`
 
