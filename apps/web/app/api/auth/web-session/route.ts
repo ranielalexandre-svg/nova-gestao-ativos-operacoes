@@ -54,8 +54,28 @@ function isJsonRequest(request: Request) {
     .includes("application/json");
 }
 
+function publicWebBaseUrl(request: Request) {
+  const configured = String(
+    process.env.NEXT_PUBLIC_WEB_BASE_URL ||
+      process.env.NEXT_PUBLIC_APP_URL ||
+      process.env.WEB_BASE_URL ||
+      process.env.APP_URL ||
+      "",
+  ).trim();
+
+  if (configured) {
+    try {
+      return new URL(configured);
+    } catch {
+      // fallback abaixo
+    }
+  }
+
+  return new URL(request.url);
+}
+
 function safeRedirectUrl(request: Request, value: string) {
-  const base = new URL(request.url);
+  const base = publicWebBaseUrl(request);
   const fallback = new URL("/dashboard", base);
 
   if (!value) return fallback;
@@ -70,7 +90,7 @@ function safeRedirectUrl(request: Request, value: string) {
 }
 
 function loginErrorUrl(request: Request, message: string, next: string) {
-  const url = new URL("/login", request.url);
+  const url = new URL("/login", publicWebBaseUrl(request));
   url.searchParams.set("error", message);
   if (next) url.searchParams.set("next", next);
   return url;
