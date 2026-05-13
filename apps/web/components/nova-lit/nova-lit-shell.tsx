@@ -175,7 +175,7 @@ const MENU_SECTIONS: NavSection[] = [
       { label: "Importação", href: "/operacao/importacao", icon: "import" },
       { label: "Reconciliação", href: "/administracao/reconciliacao", icon: "sync" },
       { label: "Automações", href: "/administracao/automacoes", icon: "automation" },
-      { label: "Políticas SLA", href: "/administracao/sla", icon: "shield" },
+      { label: "Políticas SLA", href: "/operacao/sla", icon: "shield" },
       { label: "Sistema", href: "/configuracoes", icon: "settings" },
     ],
   },
@@ -200,7 +200,7 @@ const ACTIVE_HREF_ALIASES: Record<string, string> = {
   "/administracao/importacao": "/operacao/importacao",
   "/reconciliacao": "/administracao/reconciliacao",
   "/reconciliacao-central": "/administracao/reconciliacao",
-  "/operacao/sla": "/administracao/sla",
+  "/administracao/sla": "/operacao/sla",
 };
 
 function canonicalHref(value: string) {

@@ -270,7 +270,7 @@ export default async function FilaOperacionalPage({
       revalidatePath("/excecoes");
       revalidatePath("/operacao");
       revalidatePath("/operacao/atividade");
-    revalidatePath("/administracao/sla");
+    revalidatePath("/operacao/sla");
       return { status: "success", message: `Ação ${action} aplicada em ${ids.length} item(ns).` };
     } catch (error) {
       return { status: "error", message: getActionErrorMessage(error) };

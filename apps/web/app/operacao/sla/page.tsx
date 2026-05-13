@@ -252,7 +252,7 @@ export default async function OperacaoSlaPage() {
               <div className="nds-label">Operação / SLA</div>
               <h1>Políticas e pressão de SLA</h1>
               <p>
-                Configure prazos, filas e prioridade para manter a resposta operacional consistente.
+                Controle prazos, filas e recálculo de impacto para manter o turno dentro do acordo operacional.
               </p>
             </div>
             <div className="nova-sla-hero-actions">
@@ -275,7 +275,7 @@ export default async function OperacaoSlaPage() {
               <span>01</span>
               <div>
                 <strong>Regra</strong>
-                <p>Tipo, severidade e prazo.</p>
+                <p>Tipo, severidade, fila e prazo.</p>
               </div>
             </div>
             <div className="nova-sla-stage-line" />
@@ -313,8 +313,8 @@ export default async function OperacaoSlaPage() {
         <div className="nova-sla-main-grid">
           <Surface className="nova-sla-policies-panel">
             <SectionIntro
-              eyebrow="Mesa de políticas"
-              title="Políticas ativas de SLA"
+              eyebrow="Governança de SLA"
+              title="Políticas operacionais ativas"
               description={`Médias atuais: primeira resposta em ${minutesLabel(avgFirstResponse)} e resolução em ${minutesLabel(avgResolve)}.`}
               actions={<TonePill tone="info">{formatNumber(caseCount)} caso(s) vinculados</TonePill>}
               compact
@@ -380,7 +380,7 @@ export default async function OperacaoSlaPage() {
             ) : (
               <EmptyState
                 title="Sem políticas cadastradas"
-                description="Crie a primeira política para padronizar prioridade, prazo e fila de atendimento."
+                description="Crie a primeira política para padronizar prioridade, prazo, fila e recálculo dos casos."
               />
             )}
           </Surface>
@@ -443,8 +443,8 @@ export default async function OperacaoSlaPage() {
           <Surface className="nova-sla-form-panel">
             <SectionIntro
               eyebrow="Administração"
-              title="Nova política"
-              description="Defina fila, severidade e prazos de primeira resposta e resolução."
+              title="Nova política operacional"
+              description="Defina fila, severidade, primeira resposta e prazo de resolução para a operação."
               compact
             />
             <ActionForm action={createPolicy} className="nova-sla-create-form" submitLabel="Criar política" pendingLabel="Criando...">
@@ -506,7 +506,7 @@ export default async function OperacaoSlaPage() {
           <Surface className="nova-sla-edit-panel">
             <SectionIntro
               eyebrow="Administração"
-              title="Editar políticas"
+              title="Editar políticas operacionais"
               description="Ao salvar, use o recálculo para refletir a regra nos casos existentes."
               compact
             />
