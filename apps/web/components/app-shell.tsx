@@ -28,7 +28,7 @@ const NAV: NavEntry[] = [
   { href: "/parceiros", label: "Parceiros", short: "PR", icon: "partners", section: "Gestão" },
   { href: "/contratos", label: "Contratos", short: "CT", icon: "contracts", section: "Gestão" },
   { href: "/chamados", label: "Chamados", short: "CH", icon: "queue", section: "Gestão" },
-  { href: "/excecoes", label: "Exceções", short: "EX", icon: "exceptions", section: "Gestão" },
+  { href: "/operacao/excecoes", label: "Exceções", short: "EX", icon: "exceptions", section: "Gestão" },
   { href: "/automacao", label: "Automação", short: "AU", icon: "automation", section: "Gestão" },
 
   { href: "/relatorios/monitoramento", label: "Monitoramento", short: "RM", icon: "reports", section: "Relatórios" },

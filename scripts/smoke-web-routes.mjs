@@ -25,7 +25,7 @@ const legacyCadastroRedirects = [
   ["/chamados/novo", "/chamados/cadastro"],
   ["/contratos/novo", "/contratos/cadastro"],
   ["/equipamentos/nova", "/equipamentos/cadastro"],
-  ["/excecoes/nova", "/excecoes/cadastro"],
+  ["/excecoes/nova", "/operacao/excecoes/cadastro"],
   ["/manutencoes/nova", "/manutencoes/cadastro"],
   ["/ocorrencias/nova", "/ocorrencias/cadastro"],
   ["/parceiros/nova", "/parceiros/cadastro"],

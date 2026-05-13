@@ -111,7 +111,7 @@ export default async function OperacaoPage() {
       badge: <TonePill tone="info">core</TonePill>,
     },
     {
-      href: "/excecoes",
+      href: "/operacao/excecoes",
       title: "Exceções",
       description: "Backlog qualificado e abertura manual de casos especiais.",
       badge: (

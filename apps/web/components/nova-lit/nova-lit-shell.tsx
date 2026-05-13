@@ -113,7 +113,7 @@ const MENU_SECTIONS: NavSection[] = [
       { label: "Fila priorizada", href: "/operacao/fila", icon: "queue" },
       { label: "Alertas", href: "/alertas", icon: "bell", badge: { key: "alertas", tone: "orange", fallback: 24 } },
       { label: "Chamados", href: "/chamados", icon: "ticket", badge: { key: "chamados", tone: "blue", fallback: 12 } },
-      { label: "Exceções", href: "/excecoes", icon: "alert", badge: { key: "excecoes", tone: "orange", fallback: 3 } },
+      { label: "Exceções", href: "/operacao/excecoes", icon: "alert", badge: { key: "excecoes", tone: "orange", fallback: 3 } },
       { label: "Atividade", href: "/operacao/atividade", icon: "activity" },
     ],
   },
@@ -184,6 +184,11 @@ const MENU_SECTIONS: NavSection[] = [
 const DEFAULT_FAVORITES = ["/dashboard", "/operacao/fila", "/alertas"];
 
 const ACTIVE_HREF_ALIASES: Record<string, string> = {
+  "/excecoes": "/operacao/excecoes",
+  "/excecoes/cadastro": "/operacao/excecoes",
+  "/excecoes/nova": "/operacao/excecoes",
+  "/operacao/excecoes/cadastro": "/operacao/excecoes",
+  "/operacao/excecoes/nova": "/operacao/excecoes",
   "/sensores": "/monitoramento/sensores",
   "/mapas": "/monitoramento/mapas",
   "/equipamentos": "/ativos",

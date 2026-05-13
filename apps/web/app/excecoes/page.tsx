@@ -435,7 +435,7 @@ export default async function ExcecoesPage({
   searchParams?: Promise<RawSearchParams> | RawSearchParams;
 }) {
   const session = await getServerWebSession();
-  if (!session.authenticated) redirect("/login?next=/excecoes");
+  if (!session.authenticated) redirect("/login?next=/operacao/excecoes");
 
   const params = await resolveSearchParams(searchParams);
   const state: ExcecoesState = {
@@ -479,8 +479,8 @@ export default async function ExcecoesPage({
   const criticalOnPage = rows.filter((item) => item.severity === "critical").length;
   const automatedOnPage = rows.filter((item) => item.source === "automation").length;
   const currentParams = stateParams(state);
-  const exportHref = withParams("/excecoes/export", currentParams, { page: undefined, pageSize: undefined });
-  const firstCaseHref = rows[0] ? `/excecoes/${rows[0].id}` : "/excecoes";
+  const exportHref = withParams("/operacao/excecoes/export", currentParams, { page: undefined, pageSize: undefined });
+  const firstCaseHref = rows[0] ? `/operacao/excecoes/${rows[0].id}` : "/operacao/excecoes";
 
   const kpis = [
     { icon: "alert" as const, label: "Exceções abertas", value: String(summary.counts.openCount), hint: "em tratamento", tone: summary.counts.openCount ? "orange" as const : "green" as const },
@@ -491,7 +491,7 @@ export default async function ExcecoesPage({
   const pages = Array.from({ length: Math.min(response.meta.totalPages, 5) }, (_, index) => index + 1);
 
   return (
-    <NovaLitShell activeHref="/excecoes" hidePageHeader>
+    <NovaLitShell activeHref="/operacao/excecoes" hidePageHeader>
       <main className="nova-exceptions-board-page">
           <header className="nova-exceptions-board-heading">
             <div>
@@ -504,8 +504,8 @@ export default async function ExcecoesPage({
               <p>Centralize desvios, SLA, origem e responsáveis para decidir o próximo passo.</p>
             </div>
             <div>
-              <BoardButton href={withParams("/excecoes", currentParams, {})} icon="refresh">Recarregar lista</BoardButton>
-              <BoardButton href="/excecoes/cadastro" icon="plus" primary>Cadastrar exceção</BoardButton>
+              <BoardButton href={withParams("/operacao/excecoes", currentParams, {})} icon="refresh">Recarregar lista</BoardButton>
+              <BoardButton href="/operacao/excecoes/cadastro" icon="plus" primary>Cadastrar exceção</BoardButton>
             </div>
           </header>
 
@@ -534,7 +534,7 @@ export default async function ExcecoesPage({
               ))}
             </section>
 
-            <form action="/excecoes" className="nova-exceptions-board-filters">
+            <form action="/operacao/excecoes" className="nova-exceptions-board-filters">
                 <label>
                   <span>Código</span>
                   <input name="q" defaultValue={state.q} placeholder="Buscar código, título, vínculo ou origem" />
@@ -594,7 +594,7 @@ export default async function ExcecoesPage({
                 <input type="hidden" name="sortDir" value={state.sortDir} />
                 <input type="hidden" name="pageSize" value={state.pageSize} />
                 <input type="hidden" name="page" value="1" />
-                <Link href="/excecoes"><Icon name="trash" />Limpar</Link>
+                <Link href="/operacao/excecoes"><Icon name="trash" />Limpar</Link>
                 <button type="submit"><Icon name="gear" />Aplicar filtros</button>
             </form>
           </section>
@@ -628,14 +628,14 @@ export default async function ExcecoesPage({
                     <tbody>
                       {rows.length ? rows.map((item) => (
                         <tr key={item.id}>
-                          <td><Link href={`/excecoes/${item.id}`}>{item.code}</Link></td>
+                          <td><Link href={`/operacao/excecoes/${item.id}`}>{item.code}</Link></td>
                           <td><strong>{item.title}</strong><small>{linkSummary(item)}</small></td>
                           <td>{queueLabel(item.queueKey)}</td>
                           <td><Badge tone={severityTone(item.severity)}>{kindLabel(item.kind)}</Badge></td>
                           <td><Badge tone={statusTone(item.status)}>{statusLabel(item.status)}</Badge></td>
                           <td>{item.assignee?.name || "Sem responsável"}</td>
                           <td>{formatDateTime(item.createdAt)}</td>
-                          <td><Link href={`/excecoes/${item.id}`} className="nova-exceptions-board-action">Abrir</Link></td>
+                          <td><Link href={`/operacao/excecoes/${item.id}`} className="nova-exceptions-board-action">Abrir</Link></td>
                         </tr>
                       )) : (
                         <tr>
@@ -649,11 +649,11 @@ export default async function ExcecoesPage({
                 <div className="nova-exceptions-board-pagination">
                   <span>Mostrando {rows.length ? (response.meta.page - 1) * response.meta.pageSize + 1 : 0} a {Math.min(response.meta.total, (response.meta.page - 1) * response.meta.pageSize + rows.length)} de {response.meta.total} resultados</span>
                   <div>
-                    <Link href={withParams("/excecoes", currentParams, { page: Math.max(1, response.meta.page - 1) })} aria-disabled={!response.meta.hasPrev}>‹</Link>
+                    <Link href={withParams("/operacao/excecoes", currentParams, { page: Math.max(1, response.meta.page - 1) })} aria-disabled={!response.meta.hasPrev}>‹</Link>
                     {pages.map((pageNumber) => (
-                      <Link key={pageNumber} href={withParams("/excecoes", currentParams, { page: pageNumber })} data-active={pageNumber === response.meta.page}>{pageNumber}</Link>
+                      <Link key={pageNumber} href={withParams("/operacao/excecoes", currentParams, { page: pageNumber })} data-active={pageNumber === response.meta.page}>{pageNumber}</Link>
                     ))}
-                    <Link href={withParams("/excecoes", currentParams, { page: Math.min(response.meta.totalPages, response.meta.page + 1) })} aria-disabled={!response.meta.hasNext}>›</Link>
+                    <Link href={withParams("/operacao/excecoes", currentParams, { page: Math.min(response.meta.totalPages, response.meta.page + 1) })} aria-disabled={!response.meta.hasNext}>›</Link>
                   </div>
                 </div>
               </section>
@@ -679,11 +679,11 @@ export default async function ExcecoesPage({
                   <Icon name="activity" />
                   <h2>Atalhos operacionais</h2>
                 </div>
-                <Link href="/excecoes/cadastro"><Icon name="plus" /><span>Cadastrar exceção</span></Link>
+                <Link href="/operacao/excecoes/cadastro"><Icon name="plus" /><span>Cadastrar exceção</span></Link>
                 <Link href="/operacao/importacao"><Icon name="import" /><span>Importar exceções</span></Link>
                 <Link href={exportHref}><Icon name="download" /><span>Exportar relatório</span></Link>
                 <Link href={firstCaseHref}><Icon name="file" /><span>Abrir primeiro caso</span></Link>
-                <Link href="/administracao/sla"><Icon name="gear" /><span>Configurar SLA</span></Link>
+                <Link href="/operacao/sla"><Icon name="gear" /><span>Configurar SLA</span></Link>
                 <Link href="/operacao/atividade"><Icon name="clock" /><span>Histórico de exceções</span></Link>
               </section>
             </aside>
