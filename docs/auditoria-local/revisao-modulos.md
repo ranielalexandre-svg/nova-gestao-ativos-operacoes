@@ -1,23 +1,23 @@
 # Auditoria local de módulos
 
-Branch: codex/cobertura-exceptions-api
+Branch: codex/cobertura-monitoring-api
 Atualizado em: gerado por `corepack pnpm audit:modules`
 
 ## Resumo executivo
 
 - Arquivos estruturais da API encontrados: 69
-- Testes API existentes: 35
+- Testes API existentes: 37
 - Grupos/módulos API mapeados: 23
 - Rotas Web mapeadas: 91
 - Componentes Web mapeados: 28
-- Módulos API de prioridade alta sem teste direto: 1
+- Módulos API de prioridade alta sem teste direto: 0
 - Grupos Web de prioridade alta: 8
 
 ## Prioridades recomendadas
 
 ### API - prioridade alta
 
-- monitoring: sem teste de controller/service
+- Nenhuma prioridade alta sem teste direto encontrada.
 
 ### API - prioridade média
 
@@ -53,7 +53,7 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 | integrations | 1 | 1 | 2 | com teste | baixa |
 | legacy | 2 | 1 | 1 | com teste | baixa |
 | maintenances | 1 | 1 | 2 | com teste | baixa |
-| monitoring | 1 | 3 | 0 | sem teste de controller/service | alta |
+| monitoring | 1 | 3 | 2 | com teste | baixa |
 | occurrences | 1 | 1 | 2 | com teste | baixa |
 | partners | 1 | 1 | 1 | com teste | baixa |
 | prisma | 0 | 1 | 0 | sem teste de service | média |
@@ -222,6 +222,8 @@ Atualizado em: gerado por `corepack pnpm audit:modules`
 - apps/api/src/monitoring/monitoring.service.ts
 - apps/api/src/monitoring/report-export.service.ts
 - apps/api/src/monitoring/report-presentation.service.ts
+- apps/api/src/monitoring/monitoring.controller.spec.ts
+- apps/api/src/monitoring/monitoring.service.spec.ts
 
 ### occurrences
 
