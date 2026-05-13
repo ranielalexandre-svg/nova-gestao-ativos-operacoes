@@ -241,7 +241,7 @@ function CreatedNotice({ from }: { from: string }) {
             className="nds-button"
             data-variant="primary"
           >
-            Criar outro
+            Cadastrar outro
           </Link><Link
             href="/ativos"
             className="nds-button"

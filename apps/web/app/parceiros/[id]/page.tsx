@@ -122,7 +122,7 @@ function CreatedNotice({ from }: { from: string }) {
             className="nds-button"
             data-variant="primary"
           >
-            Criar outro
+            Cadastrar outro
           </Link><Link
             href="/parceiros"
             className="nds-button"
@@ -252,7 +252,7 @@ function PersistedPartnerContactsBlock({
         </div>
 
         <div className="nds-card">
-          <div className="text-[12px] font-black text-slate-50">Novo contato</div>
+          <div className="text-[12px] font-black text-slate-50">Cadastrar contato</div>
           <div className="mt-1 text-[11px] leading-5 text-slate-400">
             Adicione contato manual para manter o acionamento atualizado no cadastro.
           </div>

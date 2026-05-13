@@ -187,7 +187,7 @@ function TextField({
   );
 }
 
-export default async function NovaExcecaoPage({
+export default async function CadastroExcecaoPage({
   searchParams,
 }: {
   searchParams?: Promise<RawSearchParams> | RawSearchParams;
@@ -448,7 +448,7 @@ export default async function NovaExcecaoPage({
 
             <div className="nova-exception-create-actions">
               <button type="submit" className="nova-lit-button nova-lit-button-primary">
-                Criar exceção
+                Cadastrar exceção
               </button>
               <Link href="/excecoes" className="nova-lit-button nova-lit-button-secondary">
                 Cancelar

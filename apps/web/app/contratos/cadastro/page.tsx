@@ -48,7 +48,7 @@ function setOptional(payload: Record<string, unknown>, key: string, value: FormD
   if (clean) payload[key] = clean;
 }
 
-export default async function NovoContratoPage() {
+export default async function CadastroContratoPage() {
   const session = await getServerWebSession();
 
   if (!session.authenticated) {
@@ -130,14 +130,14 @@ export default async function NovoContratoPage() {
 
   return (
     <NovaLitShell activeHref="/contratos">
-      <section className="nova-contract-detail-page" aria-label="Cadastrar contrato">
+      <section className="nova-contract-detail-page" aria-label="Cadastro de contrato">
         <header className="nova-contract-detail-hero">
           <nav className="nova-contract-detail-crumbs" aria-label="Breadcrumb">
             <Link href="/dashboard">Dashboard</Link>
             <span>/</span>
             <Link href="/contratos">Contratos</Link>
             <span>/</span>
-            <strong>Cadastrar contrato</strong>
+            <strong>Cadastro de contrato</strong>
           </nav>
 
           <div className="nova-contract-detail-title-row">
@@ -154,8 +154,8 @@ export default async function NovoContratoPage() {
         <div className="nova-lit-card nova-contract-form-card">
           <ActionForm
             action={createContract}
-            submitLabel="Criar contrato"
-            pendingLabel="Criando contrato..."
+            submitLabel="Cadastrar contrato"
+            pendingLabel="Cadastrando contrato..."
             className="grid gap-3"
           >
             <section className="grid gap-3 md:grid-cols-3">
@@ -243,7 +243,7 @@ export default async function NovoContratoPage() {
                 <label className="grid gap-1.5 md:col-span-2">
                   <span>Unidade coberta</span>
                   <select name="unitId">
-                    <option value="">Criar contrato sem unidade agora</option>
+                    <option value="">Sem unidade inicial por enquanto</option>
                     {unitsResponse.items.map((unit) => (
                       <option key={unit.id} value={unit.id}>
                         {unit.partner.code} · {unit.code} - {unit.name}

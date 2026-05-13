@@ -69,7 +69,7 @@ function buildWizardHref(
   return `/unidades/cadastro?${params.toString()}`;
 }
 
-export default async function NovaUnidadePage({
+export default async function CadastroUnidadePage({
   searchParams,
 }: {
   searchParams?: Promise<RawSearchParams> | RawSearchParams;
@@ -165,7 +165,7 @@ export default async function NovaUnidadePage({
     <NovaLitShell activeHref="/unidades">
       <div className="nova-unit-create-lit-page"><div className="nds-surface w-full"><div className="flex items-start justify-between gap-2 border-b border-white/[0.08] px-3 py-2 sm:px-3"><SectionIntro
             eyebrow="Cadastro guiado"
-            title="Cadastrar unidade"
+            title="Cadastro de unidade"
             description="Cadastre base, parceiro e dados de relatório antes de abrir detalhes operacionais."
             actions={
               isImportedOrigin ? (
@@ -316,8 +316,8 @@ export default async function NovaUnidadePage({
             ><ActionForm
                 action={createFromWizard}
                 className="grid gap-2"
-                submitLabel="Criar unidade"
-                pendingLabel="Criando unidade..."
+                submitLabel="Cadastrar unidade"
+                pendingLabel="Cadastrando unidade..."
                 hideSubmit
 ><input type="hidden" name="code" value={code} /><input type="hidden" name="name" value={name} /><input type="hidden" name="city" value={city} /><input type="hidden" name="state" value={state} /><input type="hidden" name="partnerId" value={partnerId} /><input type="hidden" name="partnerCode" value={partnerCode} /><input type="hidden" name="from" value={origin} /><div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3"><SummaryItem label="Código" value={code} /><SummaryItem label="Nome da unidade" value={name} /><SummaryItem label="Parceiro" value={selectedPartner ? `${selectedPartner.code} - ${selectedPartner.name}` : "-"} /><SummaryItem label="Cidade" value={city || "-"} /><SummaryItem label="UF" value={state || "-"} /><SummaryItem label="Origem" value={isImportedOrigin ? "dados importados" : "cadastro manual"} /></div><div className="nds-card"><div className="nds-label">
                   Dados do relatório
@@ -349,8 +349,8 @@ export default async function NovaUnidadePage({
                   >
                     Voltar
                   </Link><FormSubmitButton
-                    idleLabel="Criar unidade"
-                    pendingLabel="Criando unidade..."
+                    idleLabel="Cadastrar unidade"
+                    pendingLabel="Cadastrando unidade..."
                     className="min-w-[148px]"
                   /></div></ActionForm></WizardPanel>
           ) : null}

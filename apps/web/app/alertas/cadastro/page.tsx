@@ -117,7 +117,7 @@ function TextField({
   );
 }
 
-export default async function NovoAlertaPage() {
+export default async function CadastroAlertaPage() {
   const session = await getServerWebSession();
 
   if (!session.authenticated) {
@@ -143,7 +143,7 @@ export default async function NovoAlertaPage() {
     <NovaLitShell activeHref="/alertas">
       <div className="nova-lit-page-heading nova-tickets-heading">
         <div>
-          <h1>Cadastrar alerta</h1>
+          <h1>Cadastro de alerta</h1>
           <p className="nova-lit-page-subtitle">
             Registre uma ocorrência operacional vinculada a parceiro, unidade ou ativo.
           </p>
@@ -243,7 +243,7 @@ export default async function NovoAlertaPage() {
 
             <div className="flex flex-wrap items-center gap-2 pt-2">
               <button type="submit" className="nova-lit-button nova-lit-button-primary">
-                Criar alerta
+                Cadastrar alerta
               </button>
               <Link href="/alertas" className="nova-lit-button nova-lit-button-secondary">
                 Cancelar

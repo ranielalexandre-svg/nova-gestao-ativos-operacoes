@@ -60,7 +60,7 @@ function buildWizardHref(
   return `/ativos/cadastro?${params.toString()}`;
 }
 
-export default async function NovoAtivoPage({
+export default async function CadastroAtivoPage({
   searchParams,
 }: {
   searchParams?: Promise<RawSearchParams> | RawSearchParams;
@@ -139,8 +139,8 @@ export default async function NovoAtivoPage({
     <NovaLitShell activeHref="/ativos">
       <div className="nova-equipment-create-lit-page"><div className="nds-surface w-full"><div className="flex items-start justify-between gap-2 border-b border-white/[0.08] px-3 py-2 sm:px-3"><SectionIntro
             eyebrow="Cadastro guiado"
-            title="Cadastrar ativo"
-            description="Cadastro de ativo."
+            title="Cadastro de ativo"
+            description="Cadastre identificação, vínculo e revisão do ativo."
             compact
           /><Link
             href="/ativos"
@@ -163,7 +163,7 @@ export default async function NovoAtivoPage({
             /><WizardStep
               index={3}
               title="Revisão"
-              description="Salvar ativo."
+              description="Finalizar cadastro."
               state={step === 3 ? "current" : linkReady ? "available" : "locked"}
               href={linkReady ? buildWizardHref(3, wizardValues) : undefined}
             /></div></div><div className="px-3 py-2 sm:px-3">
@@ -247,8 +247,8 @@ export default async function NovoAtivoPage({
             ><ActionForm
                 action={createFromWizard}
                 className="grid gap-2"
-                submitLabel="Criar ativo"
-                pendingLabel="Criando ativo..."
+                submitLabel="Cadastrar ativo"
+                pendingLabel="Cadastrando ativo..."
                 hideSubmit
               ><input type="hidden" name="tag" value={tag} /><input type="hidden" name="name" value={name} /><input type="hidden" name="type" value={type} /><input type="hidden" name="serialNumber" value={serialNumber} /><input type="hidden" name="status" value={status} /><input type="hidden" name="unitId" value={unitId} /><div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3"><SummaryItem label="Tag" value={tag} /><SummaryItem label="Nome" value={name} /><SummaryItem label="Tipo" value={type} /><SummaryItem label="Serial / MAC" value={serialNumber || "-"} /><SummaryItem label="Status" value={equipmentStatusLabel(status, "title")} /><SummaryItem
                     label="Unidade"
@@ -262,8 +262,8 @@ export default async function NovoAtivoPage({
                   >
                     Voltar
                   </Link><FormSubmitButton
-                    idleLabel="Criar ativo"
-                    pendingLabel="Criando ativo..."
+                    idleLabel="Cadastrar ativo"
+                    pendingLabel="Cadastrando ativo..."
                     className="min-w-[148px]"
                   /></div></ActionForm></WizardPanel>
           ) : null}
