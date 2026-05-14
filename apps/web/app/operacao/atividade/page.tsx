@@ -265,10 +265,13 @@ export default async function AtividadePage({
               </p>
             </div>
             <div className="nova-activity-hero-actions">
+              <Link href="/operacao/handoff" className="nds-button" data-variant="primary">
+                Preparar handoff
+              </Link>
               <Link href="/operacao/fila" className="nds-button" data-variant="secondary">
                 Abrir fila do turno
               </Link>
-              <Link href="/operacao/excecoes" className="nds-button" data-variant="primary">
+              <Link href="/operacao/excecoes" className="nds-button" data-variant="secondary">
                 Casos operacionais
               </Link>
             </div>

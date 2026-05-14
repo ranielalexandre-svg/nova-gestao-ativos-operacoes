@@ -12,6 +12,7 @@ type NavEntry = NavItem & { adminOnly?: boolean };
 const NAV: NavEntry[] = [
   { href: "/dashboard", label: "Visão geral", short: "VG", icon: "dashboard", section: "Geral" },
   { href: "/operacao/pendencias", label: "Pendências", short: "PD", icon: "exceptions", section: "Operação" },
+  { href: "/operacao/handoff", label: "Handoff", short: "HO", icon: "activity", section: "Operação" },
 
   { href: "/unidades", label: "Unidades", short: "UN", icon: "units", section: "Monitoramento" },
   { href: "/sensores", label: "Sensores", short: "SN", icon: "monitoring", section: "Monitoramento" },

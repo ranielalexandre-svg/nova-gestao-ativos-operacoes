@@ -111,6 +111,7 @@ const MENU_SECTIONS: NavSection[] = [
     items: [
       { label: "Resumo do turno", href: "/operacao", icon: "operation" },
       { label: "Pendências", href: "/operacao/pendencias", icon: "alert" },
+      { label: "Handoff", href: "/operacao/handoff", icon: "activity" },
       { label: "Fila priorizada", href: "/operacao/fila", icon: "queue" },
       { label: "Alertas", href: "/alertas", icon: "bell", badge: { key: "alertas", tone: "orange", fallback: 24 } },
       { label: "Chamados", href: "/chamados", icon: "ticket", badge: { key: "chamados", tone: "blue", fallback: 12 } },
