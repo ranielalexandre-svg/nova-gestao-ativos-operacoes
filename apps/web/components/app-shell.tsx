@@ -29,7 +29,7 @@ const NAV: NavEntry[] = [
   { href: "/contratos", label: "Contratos", short: "CT", icon: "contracts", section: "Gestão" },
   { href: "/chamados", label: "Chamados", short: "CH", icon: "queue", section: "Gestão" },
   { href: "/operacao/excecoes", label: "Exceções", short: "EX", icon: "exceptions", section: "Gestão" },
-  { href: "/automacao", label: "Automação", short: "AU", icon: "automation", section: "Gestão" },
+  { href: "/operacao/automacoes", label: "Automação", short: "AU", icon: "automation", section: "Gestão" },
 
   { href: "/relatorios/monitoramento", label: "Monitoramento", short: "RM", icon: "reports", section: "Relatórios" },
   { href: "/relatorios/consumo", label: "Consumo", short: "RC", icon: "reports", section: "Relatórios" },

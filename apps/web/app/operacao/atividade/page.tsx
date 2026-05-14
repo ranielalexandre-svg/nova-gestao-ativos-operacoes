@@ -81,7 +81,7 @@ function refs(item: ActivityRow) {
 
 function activityHref(item: ActivityRow) {
   if (item.exceptionCase) return `/excecoes/${item.exceptionCase.id}`;
-  if (item.automation) return "/automacao";
+  if (item.automation) return "/operacao/automacoes";
   if (item.occurrence) return `/alertas/${item.occurrence.id}`;
   if (item.maintenance) return `/chamados/${item.maintenance.id}`;
   if (item.equipment) return `/equipamentos/${item.equipment.id}`;

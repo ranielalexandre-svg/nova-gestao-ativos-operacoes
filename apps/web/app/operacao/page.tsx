@@ -127,7 +127,7 @@ export default async function OperacaoPage() {
       badge: <TonePill tone="neutral">histórico</TonePill>,
     },
     {
-      href: "/administracao/automacoes",
+      href: "/operacao/automacoes",
       title: "Automações",
       description: "Saúde das execuções, falhas e recovery das regras recorrentes.",
       badge: (
