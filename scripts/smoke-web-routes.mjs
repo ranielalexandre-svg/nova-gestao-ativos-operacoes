@@ -56,6 +56,7 @@ const webRoutes = [
   "/operacao/pendencias",
   "/operacao/handoff",
   "/operacao/war-room",
+  "/operacao/playbooks",
   "/operacao/atividade",
   "/operacao/fila",
   "/operacao/excecoes",
