@@ -488,7 +488,7 @@ function unitOperationalHref(unitId: string, windowPreset: MonitoringWindowPrese
 
 function monitoringReportHref(unitId: string, windowPreset: MonitoringWindowPreset) {
   const query = new URLSearchParams({ unitId, mw: windowPreset });
-  return `/relatorios/monitoramento?${query.toString()}`;
+  return `/operacao/relatorios/monitoramento?${query.toString()}`;
 }
 
 async function readUnitZabbixSnapshot(unitId: string) {
@@ -1632,7 +1632,7 @@ export default async function UnidadeDetailPage({
       if (nextPartnerId) revalidatePath(`/parceiros/${nextPartnerId}`);
       revalidatePath("/integracoes");
       revalidatePath("/reconciliacao");
-      revalidatePath("/relatorios/monitoramento");
+      revalidatePath("/operacao/relatorios/monitoramento");
 
       return { status: "success", message: "Unidade atualizada com sucesso." };
     } catch (error) {
@@ -1666,7 +1666,7 @@ export default async function UnidadeDetailPage({
       revalidatePath("/unidades");
       revalidatePath(`/unidades/${id}`);
       revalidatePath("/sensores");
-      revalidatePath("/relatorios/monitoramento");
+      revalidatePath("/operacao/relatorios/monitoramento");
       if (partnerId) revalidatePath(`/parceiros/${partnerId}`);
     } catch (error) {
       return { status: "error", message: getActionErrorMessage(error) };

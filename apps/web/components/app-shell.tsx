@@ -31,10 +31,10 @@ const NAV: NavEntry[] = [
   { href: "/operacao/excecoes", label: "Exceções", short: "EX", icon: "exceptions", section: "Gestão" },
   { href: "/operacao/automacoes", label: "Automação", short: "AU", icon: "automation", section: "Gestão" },
 
-  { href: "/relatorios/monitoramento", label: "Monitoramento", short: "RM", icon: "reports", section: "Relatórios" },
-  { href: "/relatorios/consumo", label: "Consumo", short: "RC", icon: "reports", section: "Relatórios" },
-  { href: "/relatorios/disponibilidade", label: "Disponibilidade", short: "DI", icon: "sla", section: "Relatórios" },
-  { href: "/relatorios/performance", label: "Performance", short: "PF", icon: "activity", section: "Relatórios" },
+  { href: "/operacao/relatorios/monitoramento", label: "Monitoramento", short: "RM", icon: "reports", section: "Relatórios" },
+  { href: "/operacao/relatorios/consumo", label: "Consumo", short: "RC", icon: "reports", section: "Relatórios" },
+  { href: "/operacao/relatorios/disponibilidade", label: "Disponibilidade", short: "DI", icon: "sla", section: "Relatórios" },
+  { href: "/operacao/relatorios/performance", label: "Performance", short: "PF", icon: "activity", section: "Relatórios" },
 
   { href: "/importacao", label: "Importação", short: "IM", icon: "import", section: "Configurações", adminOnly: true },
   { href: "/reconciliacao", label: "Reconciliação", short: "RE", icon: "reconcile", section: "Configurações", adminOnly: true },
@@ -293,7 +293,7 @@ export async function AppShell({
               <TopbarActionLink href={alertHref} label="Sinais críticos" count={urgentSignals}>
                 <TopbarIcon name="alert" />
               </TopbarActionLink>
-              <TopbarActionLink href="/relatorios/monitoramento" label="Gerar relatório">
+              <TopbarActionLink href="/operacao/relatorios/monitoramento" label="Gerar relatório">
                 <TopbarIcon name="report" />
               </TopbarActionLink>
               {isAdmin ? (

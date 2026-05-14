@@ -547,7 +547,7 @@ export default async function AtivoDetailPage({
       revalidatePath("/ativos");
       revalidatePath(`/ativos/${id}`);
       revalidatePath("/sensores");
-      revalidatePath("/relatorios/monitoramento");
+      revalidatePath("/operacao/relatorios/monitoramento");
       if (unitId) revalidatePath(`/unidades/${unitId}`);
     } catch (error) {
       return { status: "error", message: getActionErrorMessage(error) };

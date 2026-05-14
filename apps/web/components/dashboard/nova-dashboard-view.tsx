@@ -33,7 +33,7 @@ const quickLinks = [
   { href: "/unidades", label: "Abrir unidades", meta: "cadastro e operação" },
   { href: "/monitoramento/sensores", label: "Ver sensores", meta: "telemetria e vínculos" },
   { href: "/alertas", label: "Fila de alertas", meta: "eventos e ocorrências" },
-  { href: "/relatorios/monitoramento", label: "Gerar relatório", meta: "monitoramento NOVA" },
+  { href: "/operacao/relatorios/monitoramento", label: "Gerar relatório", meta: "monitoramento NOVA" },
 ];
 
 const tableColumns = ["Caso", "Alvo", "Severidade", "Status", "Criado", "Responsável"];
@@ -245,7 +245,7 @@ export default function NovaDashboardView({
           <Link href="/alertas" className="nova-lit-button nova-lit-button-secondary">
             Atualizar fila
           </Link>
-          <Link href="/relatorios/monitoramento" className="nova-lit-button nova-lit-button-primary">
+          <Link href="/operacao/relatorios/monitoramento" className="nova-lit-button nova-lit-button-primary">
             Gerar relatório
           </Link>
         </div>

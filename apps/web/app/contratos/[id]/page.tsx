@@ -250,7 +250,7 @@ export default async function ContratoDetalhePage({ params }: { params: Promise<
               <div className="nova-contract-detail-quick">
                 {isAdmin ? <Link href={`/contratos/${contract.id}/editar`}>Editar contrato</Link> : null}
                 <Link href={`/parceiros/${contract.partner.id}`}>Abrir parceiro</Link>
-                <Link href="/relatorios">Relatórios</Link>
+                <Link href="/operacao/relatorios">Relatórios</Link>
               </div>
             </article>
           </aside>

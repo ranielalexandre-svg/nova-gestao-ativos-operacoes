@@ -98,7 +98,7 @@ function loginErrorUrl(request: Request, message: string, next: string) {
 
 function roleDefaultRoute(role: string) {
   const normalized = normalizeRole(role);
-  if (normalized === "viewer") return "/relatorios/disponibilidade";
+  if (normalized === "viewer") return "/operacao/relatorios/disponibilidade";
   return "/dashboard";
 }
 

@@ -300,7 +300,7 @@ export default function NovaUnidadesView({
 
             <div>
               <small>{rows.length} linhas</small>
-              <Link href="/relatorios/monitoramento">Gerar relatório</Link>
+              <Link href="/operacao/relatorios/monitoramento">Gerar relatório</Link>
             </div>
           </div>
 
@@ -384,7 +384,7 @@ export default function NovaUnidadesView({
             <Link href={withParams("/unidades", currentParams, { q: state.q || "sem", page: 1 })}>
               Recorte atual <b>{rows.length}</b>
             </Link>
-            <Link href="/relatorios/monitoramento">Gerar relatório</Link>
+            <Link href="/operacao/relatorios/monitoramento">Gerar relatório</Link>
           </section>
         </aside>
       </section>

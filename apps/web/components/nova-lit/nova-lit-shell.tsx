@@ -158,11 +158,11 @@ const MENU_SECTIONS: NavSection[] = [
     id: "relatorios",
     label: "Relatórios",
     items: [
-      { label: "Central", href: "/relatorios", icon: "reports" },
-      { label: "Monitoramento", href: "/relatorios/monitoramento", icon: "chart" },
-      { label: "Consumo", href: "/relatorios/consumo", icon: "reports" },
-      { label: "Disponibilidade", href: "/relatorios/disponibilidade", icon: "shield" },
-      { label: "Performance", href: "/relatorios/performance", icon: "performance" },
+      { label: "Central", href: "/operacao/relatorios", icon: "reports" },
+      { label: "Monitoramento NOC", href: "/operacao/relatorios/monitoramento", icon: "chart" },
+      { label: "Consumo", href: "/operacao/relatorios/consumo", icon: "reports" },
+      { label: "Disponibilidade", href: "/operacao/relatorios/disponibilidade", icon: "shield" },
+      { label: "Performance", href: "/operacao/relatorios/performance", icon: "performance" },
     ],
   },
   {
@@ -184,6 +184,11 @@ const MENU_SECTIONS: NavSection[] = [
 const DEFAULT_FAVORITES = ["/dashboard", "/operacao/fila", "/alertas"];
 
 const ACTIVE_HREF_ALIASES: Record<string, string> = {
+  "/relatorios": "/operacao/relatorios",
+  "/relatorios/monitoramento": "/operacao/relatorios/monitoramento",
+  "/relatorios/consumo": "/operacao/relatorios/consumo",
+  "/relatorios/disponibilidade": "/operacao/relatorios/disponibilidade",
+  "/relatorios/performance": "/operacao/relatorios/performance",
   "/sensores": "/monitoramento/sensores",
   "/monitoramento/mapas": "/monitoramento",
   "/monitoramento/fontes": "/integracoes",

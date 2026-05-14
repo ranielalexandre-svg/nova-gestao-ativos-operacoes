@@ -240,7 +240,7 @@ export default function NovaSensoresView({
 
         <div className="nova-lit-page-actions">
           <Link href="/integracoes" className="nova-lit-button nova-lit-button-secondary">Integrações</Link>
-          <Link href="/relatorios/monitoramento" className="nova-lit-button nova-lit-button-primary">Relatório</Link>
+          <Link href="/operacao/relatorios/monitoramento" className="nova-lit-button nova-lit-button-primary">Relatório</Link>
         </div>
       </div>
 
