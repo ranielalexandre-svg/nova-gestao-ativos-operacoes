@@ -36095,3 +36095,409 @@ body:has(.nova-tickets-board-shell) {
   }
 }
 /* END PR42-43-mobile-ux-operacional-unificado */
+/* PR43-central-pendencias-operacionais */
+.nova-pendencias-page {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.nova-pendencias-hero,
+.nova-pendencias-panel,
+.nova-pendencias-kpi,
+.nova-pendencias-action-card {
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background:
+    radial-gradient(circle at top left, rgba(59, 130, 246, 0.12), transparent 32%),
+    rgba(15, 23, 42, 0.84);
+  box-shadow: 0 24px 70px rgba(2, 6, 23, 0.22);
+  border-radius: 24px;
+}
+
+.nova-pendencias-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: end;
+  padding: 20px;
+  overflow: hidden;
+}
+
+.nova-pendencias-hero span,
+.nova-pendencias-panel-head span,
+.nova-pendencias-kpi span,
+.nova-pendencias-action-card span,
+.nova-pendencias-signal-grid span,
+.nova-pendencias-context span {
+  color: #93a4bb;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.nova-pendencias-hero h1 {
+  margin: 8px 0;
+  color: #f8fafc;
+  font-size: clamp(1.7rem, 4vw, 3.4rem);
+  line-height: 0.98;
+  letter-spacing: -0.06em;
+}
+
+.nova-pendencias-hero p,
+.nova-pendencias-panel-head p,
+.nova-pendencias-action-card p,
+.nova-pendencias-empty p,
+.nova-pendencias-signal-grid p {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.nova-pendencias-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+
+.nova-pendencias-kpi-grid,
+.nova-pendencias-action-grid,
+.nova-pendencias-signal-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.nova-pendencias-action-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.nova-pendencias-kpi,
+.nova-pendencias-action-card {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 14px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.nova-pendencias-kpi strong,
+.nova-pendencias-action-card strong {
+  color: #f8fafc;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.nova-pendencias-kpi p,
+.nova-pendencias-action-card p {
+  min-height: 42px;
+}
+
+.nova-pendencias-action-card {
+  transition: border-color 160ms ease, transform 160ms ease, background 160ms ease;
+}
+
+.nova-pendencias-action-card:hover {
+  border-color: rgba(125, 211, 252, 0.44);
+  transform: translateY(-1px);
+}
+
+.nova-pendencias-action-card > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.nova-pendencias-action-card b {
+  color: #bfdbfe;
+  font-size: 12px;
+}
+
+.nova-pendencias-kpi.is-critical,
+.nova-pendencias-action-card.is-critical {
+  border-color: rgba(248, 113, 113, 0.36);
+}
+
+.nova-pendencias-kpi.is-attention,
+.nova-pendencias-action-card.is-attention {
+  border-color: rgba(251, 191, 36, 0.34);
+}
+
+.nova-pendencias-kpi.is-success,
+.nova-pendencias-action-card.is-success {
+  border-color: rgba(34, 197, 94, 0.30);
+}
+
+.nova-pendencias-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+  gap: 12px;
+  align-items: start;
+  min-width: 0;
+}
+
+.nova-pendencias-main,
+.nova-pendencias-side {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.nova-pendencias-side {
+  position: sticky;
+  top: 12px;
+}
+
+.nova-pendencias-panel {
+  min-width: 0;
+  padding: 14px;
+}
+
+.nova-pendencias-panel-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: start;
+  min-width: 0;
+  margin-bottom: 12px;
+}
+
+.nova-pendencias-panel-head.is-compact {
+  margin-bottom: 8px;
+}
+
+.nova-pendencias-panel-head h2 {
+  margin: 4px 0;
+  color: #f8fafc;
+  font-size: 18px;
+  letter-spacing: -0.03em;
+}
+
+.nova-pendencias-list {
+  display: grid;
+  gap: 8px;
+}
+
+.nova-pendencias-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(120px, 160px);
+  gap: 10px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 18px;
+  background: rgba(15, 23, 42, 0.58);
+  min-width: 0;
+}
+
+.nova-pendencias-row a {
+  color: #93c5fd;
+  font-size: 12px;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.nova-pendencias-row strong {
+  display: block;
+  margin-top: 2px;
+  color: #f8fafc;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.nova-pendencias-row small,
+.nova-pendencias-row-meta small {
+  display: block;
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 11px;
+}
+
+.nova-pendencias-row-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.nova-pendencias-row-meta {
+  color: #cbd5e1;
+  font-size: 12px;
+  text-align: right;
+}
+
+.nova-pendencias-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  border-radius: 999px;
+  padding: 3px 8px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(15, 23, 42, 0.72);
+  color: #cbd5e1;
+  font-size: 11px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.nova-pendencias-pill.is-info {
+  border-color: rgba(96, 165, 250, 0.38);
+  color: #bfdbfe;
+}
+
+.nova-pendencias-pill.is-success {
+  border-color: rgba(34, 197, 94, 0.38);
+  color: #bbf7d0;
+}
+
+.nova-pendencias-pill.is-attention {
+  border-color: rgba(251, 191, 36, 0.44);
+  color: #fde68a;
+}
+
+.nova-pendencias-pill.is-critical {
+  border-color: rgba(248, 113, 113, 0.44);
+  color: #fecaca;
+}
+
+.nova-pendencias-empty {
+  display: grid;
+  gap: 4px;
+  padding: 18px;
+  border: 1px dashed rgba(148, 163, 184, 0.22);
+  border-radius: 18px;
+  background: rgba(15, 23, 42, 0.44);
+}
+
+.nova-pendencias-empty strong {
+  color: #f8fafc;
+}
+
+.nova-pendencias-signal-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.nova-pendencias-signal-grid div,
+.nova-pendencias-context div {
+  min-width: 0;
+  padding: 12px;
+  border-radius: 18px;
+  background: rgba(2, 6, 23, 0.32);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.nova-pendencias-signal-grid strong,
+.nova-pendencias-context strong {
+  display: block;
+  margin: 5px 0;
+  color: #f8fafc;
+  font-size: 20px;
+  overflow-wrap: anywhere;
+}
+
+.nova-pendencias-checklist,
+.nova-pendencias-context {
+  display: grid;
+  gap: 8px;
+}
+
+.nova-pendencias-checklist a {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+  padding: 10px;
+  border-radius: 16px;
+  background: rgba(2, 6, 23, 0.28);
+  color: #dbeafe;
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+@media (max-width: 1180px) {
+  .nova-pendencias-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .nova-pendencias-side {
+    position: static;
+  }
+}
+
+@media (max-width: 920px) {
+  .nova-pendencias-hero,
+  .nova-pendencias-panel-head,
+  .nova-pendencias-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .nova-pendencias-panel-head {
+    display: grid;
+  }
+
+  .nova-pendencias-hero-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    justify-content: stretch;
+  }
+
+  .nova-pendencias-hero-actions > * {
+    width: 100%;
+  }
+
+  .nova-pendencias-kpi-grid,
+  .nova-pendencias-action-grid,
+  .nova-pendencias-signal-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .nova-pendencias-row-tags {
+    justify-content: flex-start;
+  }
+
+  .nova-pendencias-row-meta {
+    text-align: left;
+  }
+}
+
+@media (max-width: 680px) {
+  .nova-pendencias-page {
+    gap: 10px;
+  }
+
+  .nova-pendencias-hero,
+  .nova-pendencias-panel,
+  .nova-pendencias-kpi,
+  .nova-pendencias-action-card {
+    border-radius: 18px;
+  }
+
+  .nova-pendencias-hero {
+    padding: 14px;
+  }
+
+  .nova-pendencias-hero h1 {
+    font-size: clamp(1.5rem, 10vw, 2.2rem);
+  }
+
+  .nova-pendencias-hero-actions,
+  .nova-pendencias-kpi-grid,
+  .nova-pendencias-action-grid,
+  .nova-pendencias-signal-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .nova-pendencias-kpi p,
+  .nova-pendencias-action-card p {
+    min-height: auto;
+  }
+}
+/* END PR43-central-pendencias-operacionais */
