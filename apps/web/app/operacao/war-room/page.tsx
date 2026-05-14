@@ -586,6 +586,12 @@ export default async function WarRoomOperacionalPage() {
             <Link href="/operacao/pendencias" className="nova-lit-button nova-lit-button-secondary">
               Pendências
             </Link>
+            <Link href="/operacao/evidencias" className="nova-lit-button nova-lit-button-secondary">
+              Evidências
+            </Link>
+            <Link href="/operacao/comunicacao-turno" className="nova-lit-button nova-lit-button-secondary">
+              Comunicação
+            </Link>
           </div>
         </header>
 

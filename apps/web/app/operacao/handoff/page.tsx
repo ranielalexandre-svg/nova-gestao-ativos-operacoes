@@ -474,6 +474,12 @@ export default async function HandoffOperacionalPage() {
             <Link href="/operacao/handoff/export" className="nova-lit-button nova-lit-button-secondary">
               Exportar CSV
             </Link>
+            <Link href="/operacao/evidencias" className="nova-lit-button nova-lit-button-secondary">
+              Evidências
+            </Link>
+            <Link href="/operacao/comunicacao-turno" className="nova-lit-button nova-lit-button-secondary">
+              Comunicação
+            </Link>
           </div>
         </header>
 

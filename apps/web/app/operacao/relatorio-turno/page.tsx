@@ -552,6 +552,12 @@ export default async function RelatorioTurnoPage() {
             <Link href="/operacao/playbooks" className="nova-lit-button nova-lit-button-secondary">
               Playbooks
             </Link>
+            <Link href="/operacao/evidencias" className="nova-lit-button nova-lit-button-secondary">
+              Evidências
+            </Link>
+            <Link href="/operacao/pos-incidente" className="nova-lit-button nova-lit-button-secondary">
+              Pós-incidente
+            </Link>
           </div>
         </header>
 

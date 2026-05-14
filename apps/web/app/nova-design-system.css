@@ -38278,3 +38278,443 @@ body:has(.nova-tickets-board-shell) {
   }
 }
 /* END PR47-relatorio-turno-pos-incidente */
+/* PR48-suite-pos-incidente-evidencias-auditoria */
+.nova-suite-page {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.nova-suite-hero,
+.nova-suite-panel,
+.nova-suite-kpi,
+.nova-suite-evidence,
+.nova-suite-post,
+.nova-suite-audit,
+.nova-suite-message {
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background:
+    radial-gradient(circle at top left, rgba(59, 130, 246, 0.16), transparent 32%),
+    rgba(15, 23, 42, 0.88);
+  border-radius: 24px;
+  box-shadow: 0 24px 70px rgba(2, 6, 23, 0.22);
+}
+
+.nova-suite-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: end;
+  overflow: hidden;
+  padding: 20px;
+}
+
+.nova-suite-hero span,
+.nova-suite-panel-head span,
+.nova-suite-kpi span,
+.nova-suite-evidence span,
+.nova-suite-post span,
+.nova-suite-audit span,
+.nova-suite-message span,
+.nova-suite-context span,
+.nova-suite-evidence dt {
+  color: #a7b3c7;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.nova-suite-hero h1 {
+  margin: 8px 0;
+  color: #f8fafc;
+  font-size: clamp(1.7rem, 4vw, 3.45rem);
+  line-height: 0.98;
+  letter-spacing: -0.06em;
+}
+
+.nova-suite-hero p,
+.nova-suite-panel-head p,
+.nova-suite-kpi p,
+.nova-suite-evidence p,
+.nova-suite-audit p,
+.nova-suite-message p,
+.nova-suite-empty p,
+.nova-suite-timeline span,
+.nova-suite-case small {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.nova-suite-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+
+.nova-suite-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.nova-suite-kpi {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 14px;
+}
+
+.nova-suite-kpi strong {
+  color: #f8fafc;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.nova-suite-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(310px, 410px);
+  gap: 12px;
+  align-items: start;
+  min-width: 0;
+}
+
+.nova-suite-main,
+.nova-suite-side {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.nova-suite-side {
+  position: sticky;
+  top: 12px;
+}
+
+.nova-suite-panel {
+  min-width: 0;
+  padding: 14px;
+}
+
+.nova-suite-panel-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  min-width: 0;
+}
+
+.nova-suite-panel-head.is-compact {
+  margin-bottom: 8px;
+}
+
+.nova-suite-panel-head h2 {
+  margin: 4px 0;
+  color: #f8fafc;
+  font-size: 18px;
+  letter-spacing: -0.03em;
+}
+
+.nova-suite-evidence-grid,
+.nova-suite-post-grid,
+.nova-suite-audit-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.nova-suite-evidence,
+.nova-suite-post,
+.nova-suite-audit,
+.nova-suite-message,
+.nova-suite-case,
+.nova-suite-timeline a,
+.nova-suite-context div {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px;
+  text-decoration: none;
+}
+
+.nova-suite-evidence strong,
+.nova-suite-post strong,
+.nova-suite-audit strong,
+.nova-suite-message strong,
+.nova-suite-case strong,
+.nova-suite-timeline strong,
+.nova-suite-empty strong {
+  display: block;
+  color: #f8fafc;
+  font-size: 13px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.nova-suite-evidence > div,
+.nova-suite-message > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.nova-suite-evidence dl {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.nova-suite-evidence dl div {
+  padding: 10px;
+  border-radius: 14px;
+  background: rgba(2, 6, 23, 0.34);
+}
+
+.nova-suite-evidence dd {
+  margin: 3px 0 0;
+  color: #f8fafc;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.nova-suite-communication-list,
+.nova-suite-case-list,
+.nova-suite-timeline,
+.nova-suite-context {
+  display: grid;
+  gap: 8px;
+}
+
+.nova-suite-case {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 18px;
+  background: rgba(15, 23, 42, 0.58);
+}
+
+.nova-suite-case a,
+.nova-suite-timeline a {
+  color: #93c5fd;
+  font-size: 12px;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.nova-suite-case-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.nova-suite-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  border-radius: 999px;
+  padding: 3px 8px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(15, 23, 42, 0.72);
+  color: #cbd5e1;
+  font-size: 11px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.nova-suite-pill.is-info,
+.nova-suite-evidence.is-info,
+.nova-suite-post.is-info,
+.nova-suite-audit.is-info,
+.nova-suite-message.is-info {
+  border-color: rgba(96, 165, 250, 0.38);
+}
+
+.nova-suite-pill.is-success,
+.nova-suite-evidence.is-success,
+.nova-suite-post.is-success,
+.nova-suite-audit.is-success,
+.nova-suite-message.is-success {
+  border-color: rgba(34, 197, 94, 0.38);
+}
+
+.nova-suite-pill.is-attention,
+.nova-suite-evidence.is-attention,
+.nova-suite-post.is-attention,
+.nova-suite-audit.is-attention,
+.nova-suite-message.is-attention {
+  border-color: rgba(251, 191, 36, 0.44);
+}
+
+.nova-suite-pill.is-critical,
+.nova-suite-evidence.is-critical,
+.nova-suite-post.is-critical,
+.nova-suite-audit.is-critical,
+.nova-suite-message.is-critical {
+  border-color: rgba(248, 113, 113, 0.44);
+}
+
+.nova-suite-pill.is-info {
+  color: #bfdbfe;
+}
+
+.nova-suite-pill.is-success {
+  color: #bbf7d0;
+}
+
+.nova-suite-pill.is-attention {
+  color: #fde68a;
+}
+
+.nova-suite-pill.is-critical {
+  color: #fecaca;
+}
+
+.nova-suite-empty {
+  display: grid;
+  gap: 4px;
+  padding: 18px;
+  border: 1px dashed rgba(148, 163, 184, 0.22);
+  border-radius: 18px;
+  background: rgba(15, 23, 42, 0.44);
+}
+
+.nova-suite-form {
+  display: grid;
+  gap: 10px;
+}
+
+.nova-suite-form label {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  color: #cbd5e1;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.nova-suite-form input,
+.nova-suite-form select,
+.nova-suite-form textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 14px;
+  background: rgba(2, 6, 23, 0.44);
+  color: #f8fafc;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.nova-suite-form textarea {
+  min-height: 220px;
+  resize: vertical;
+}
+
+.nova-suite-timeline a {
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 18px;
+  background: rgba(15, 23, 42, 0.58);
+}
+
+.nova-suite-timeline small {
+  color: #64748b;
+  font-size: 11px;
+}
+
+.nova-suite-context div {
+  border-radius: 18px;
+  background: rgba(2, 6, 23, 0.32);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.nova-suite-context strong {
+  display: block;
+  margin-top: 5px;
+  color: #f8fafc;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 1180px) {
+  .nova-suite-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .nova-suite-side {
+    position: static;
+  }
+}
+
+@media (max-width: 920px) {
+  .nova-suite-hero,
+  .nova-suite-panel-head,
+  .nova-suite-case {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .nova-suite-panel-head {
+    display: grid;
+  }
+
+  .nova-suite-hero-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    justify-content: stretch;
+  }
+
+  .nova-suite-hero-actions > * {
+    width: 100%;
+  }
+
+  .nova-suite-kpi-grid,
+  .nova-suite-evidence-grid,
+  .nova-suite-post-grid,
+  .nova-suite-audit-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .nova-suite-case-tags {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 680px) {
+  .nova-suite-page {
+    gap: 10px;
+  }
+
+  .nova-suite-hero,
+  .nova-suite-panel,
+  .nova-suite-kpi,
+  .nova-suite-evidence,
+  .nova-suite-post,
+  .nova-suite-audit,
+  .nova-suite-message {
+    border-radius: 18px;
+  }
+
+  .nova-suite-hero {
+    padding: 14px;
+  }
+
+  .nova-suite-hero h1 {
+    font-size: clamp(1.5rem, 10vw, 2.25rem);
+  }
+
+  .nova-suite-hero-actions,
+  .nova-suite-kpi-grid,
+  .nova-suite-evidence-grid,
+  .nova-suite-post-grid,
+  .nova-suite-audit-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+/* END PR48-suite-pos-incidente-evidencias-auditoria */
