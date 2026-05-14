@@ -1164,7 +1164,7 @@ export default async function IntegracoesPage({
                 <Link href="/monitoramento/sensores"><span>Sensores</span><strong>abrir</strong></Link>
                 <Link href="/monitoramento"><span>Monitoramento</span><strong>abrir</strong></Link>
                 <Link href="/administracao/reconciliacao"><span>Reconciliação</span><strong>abrir</strong></Link>
-                <Link href="/administracao/automacoes"><span>Automação</span><strong>abrir</strong></Link>
+                <Link href="/operacao/automacoes"><span>Automação</span><strong>abrir</strong></Link>
               </div>
             </Panel>
 

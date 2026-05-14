@@ -157,7 +157,7 @@ function buildContextualLinks(item: ExceptionDetail): ContextualLink[] {
 
   if (item.automation) {
     links.push({
-      href: `/automacao?q=${encodeURIComponent(item.automation.code)}`,
+      href: `/operacao/automacoes?q=${encodeURIComponent(item.automation.code)}`,
       label: "Automação",
       title: item.automation.code,
       description: item.automation.name,
