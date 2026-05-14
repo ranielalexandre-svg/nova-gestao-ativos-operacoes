@@ -37,7 +37,7 @@ const NAV: NavEntry[] = [
   { href: "/operacao/relatorios/performance", label: "Performance", short: "PF", icon: "activity", section: "Relatórios" },
 
   { href: "/importacao", label: "Importação", short: "IM", icon: "import", section: "Configurações", adminOnly: true },
-  { href: "/reconciliacao", label: "Reconciliação", short: "RE", icon: "reconcile", section: "Configurações", adminOnly: true },
+  { href: "/operacao/reconciliacao", label: "Reconciliação", short: "RE", icon: "reconcile", section: "Operação", adminOnly: true },
   { href: "/usuarios", label: "Usuários", short: "US", icon: "users", section: "Configurações", adminOnly: true },
   { href: "/perfis", label: "Perfis", short: "PF", icon: "profiles", section: "Configurações", adminOnly: true },
   { href: "/monitoramento/fontes", label: "Fontes NOC", short: "FN", icon: "integrations", section: "Monitoramento" },

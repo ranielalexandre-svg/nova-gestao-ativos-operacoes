@@ -105,7 +105,9 @@ function canonicalPath(pathname: string) {
     ["/operacao/excecoes", "/excecoes"],
     ["/operacao/automacoes", "/automacao"],
     ["/operacao/importacao", "/importacao"],
-    ["/reconciliacao-central", "/reconciliacao"],
+    ["/reconciliacao", "/operacao/reconciliacao"],
+    ["/reconciliacao-central", "/operacao/reconciliacao"],
+    ["/administracao/reconciliacao", "/operacao/reconciliacao"],
     ["/operacao/relatorios", "/operacao/relatorios/consumo"],
   ];
 

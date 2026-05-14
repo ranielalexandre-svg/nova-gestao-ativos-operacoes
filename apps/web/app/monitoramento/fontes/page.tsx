@@ -167,7 +167,7 @@ async function syncReadyUnitsAction(
     revalidatePath("/sensores");
     revalidatePath("/unidades");
     revalidatePath("/ativos");
-    revalidatePath("/reconciliacao");
+    revalidatePath("/operacao/reconciliacao");
 
     return {
       status: result.ok ? "success" : "error",
@@ -1163,7 +1163,7 @@ export default async function IntegracoesPage({
               <div className="nova-integracoes-shortcuts">
                 <Link href="/monitoramento/sensores"><span>Sensores</span><strong>abrir</strong></Link>
                 <Link href="/monitoramento"><span>Monitoramento</span><strong>abrir</strong></Link>
-                <Link href="/administracao/reconciliacao"><span>Reconciliação</span><strong>abrir</strong></Link>
+                <Link href="/operacao/reconciliacao"><span>Reconciliação</span><strong>abrir</strong></Link>
                 <Link href="/operacao/automacoes"><span>Automação</span><strong>abrir</strong></Link>
               </div>
             </Panel>

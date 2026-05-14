@@ -173,7 +173,7 @@ const MENU_SECTIONS: NavSection[] = [
       { label: "Perfis", href: "/perfis", icon: "shield" },
       { label: "Fontes NOC", href: "/monitoramento/fontes", icon: "integrations" },
       { label: "Importação", href: "/operacao/importacao", icon: "import" },
-      { label: "Reconciliação", href: "/administracao/reconciliacao", icon: "sync" },
+      { label: "Reconciliação", href: "/operacao/reconciliacao", icon: "sync" },
       { label: "Automações", href: "/operacao/automacoes", icon: "automation" },
       { label: "Políticas SLA", href: "/operacao/sla", icon: "shield" },
       { label: "Sistema", href: "/configuracoes", icon: "settings" },
@@ -184,6 +184,9 @@ const MENU_SECTIONS: NavSection[] = [
 const DEFAULT_FAVORITES = ["/dashboard", "/operacao/fila", "/alertas"];
 
 const ACTIVE_HREF_ALIASES: Record<string, string> = {
+  "/reconciliacao": "/operacao/reconciliacao",
+  "/reconciliacao-central": "/operacao/reconciliacao",
+  "/administracao/reconciliacao": "/operacao/reconciliacao",
   "/integracoes": "/monitoramento/fontes",
   "/relatorios": "/operacao/relatorios",
   "/relatorios/monitoramento": "/operacao/relatorios/monitoramento",
@@ -206,8 +209,6 @@ const ACTIVE_HREF_ALIASES: Record<string, string> = {
   "/administracao/automacoes": "/operacao/automacoes",
   "/importacao": "/operacao/importacao",
   "/administracao/importacao": "/operacao/importacao",
-  "/reconciliacao": "/administracao/reconciliacao",
-  "/reconciliacao-central": "/administracao/reconciliacao",
   "/administracao/sla": "/operacao/sla",
 };
 

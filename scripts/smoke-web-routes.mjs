@@ -59,6 +59,7 @@ const webRoutes = [
   "/operacao/sla",
   "/operacao/automacoes",
   "/operacao/importacao",
+  "/operacao/reconciliacao",
 
   "/monitoramento",
   "/monitoramento/fontes",
