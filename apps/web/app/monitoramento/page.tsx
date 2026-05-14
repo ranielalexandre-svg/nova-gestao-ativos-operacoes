@@ -573,7 +573,7 @@ export default async function MonitoramentoPage({
 
         <div className="nova-lit-page-actions">
           <Link href="/monitoramento/sensores" className="nova-lit-button nova-lit-button-secondary">Ver sensores</Link>
-          <Link href="/relatorios/monitoramento" className="nova-lit-button nova-lit-button-primary">Gerar relatório</Link>
+          <Link href="/operacao/relatorios/monitoramento" className="nova-lit-button nova-lit-button-primary">Gerar relatório</Link>
         </div>
       </div>
 
@@ -764,7 +764,7 @@ export default async function MonitoramentoPage({
           {telemetry.items.length} unidade(s) no recorte · {telemetry.counts.withProblems} com evento · {commandCenter.metrics.overdueMaintenances} chamado(s) vencido(s)
         </span>
         <div>
-          <Link href="/relatorios/monitoramento">Relatório</Link>
+          <Link href="/operacao/relatorios/monitoramento">Relatório</Link>
           <Link href="/monitoramento/sensores">Ver sensores</Link>
         </div>
       </section>

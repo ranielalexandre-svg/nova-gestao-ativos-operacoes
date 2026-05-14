@@ -526,7 +526,7 @@ export default async function ChamadosPage({
                 <QueueGroup title="Aguardando cliente" tone="orange" items={waitingRows} />
                 <QueueGroup title="Despacho em campo" tone="blue" items={fieldRows} />
                 <Link href="/operacao/fila"><Icon name="ticket" />Abrir backlog</Link>
-                <Link href="/relatorios/monitoramento"><Icon name="list" />Ver relatórios</Link>
+                <Link href="/operacao/relatorios/monitoramento"><Icon name="list" />Ver relatórios</Link>
               </section>
             </aside>
           </section>
