@@ -456,7 +456,10 @@ export default async function HandoffOperacionalPage() {
             </p>
           </div>
           <div className="nova-handoff-hero-actions">
-            <Link href="/operacao/pendencias" className="nova-lit-button nova-lit-button-primary">
+            <Link href="/operacao/war-room" className="nova-lit-button nova-lit-button-primary">
+              Abrir War Room
+            </Link>
+            <Link href="/operacao/pendencias" className="nova-lit-button nova-lit-button-secondary">
               Central de pendências
             </Link>
             <Link href="/operacao/atividade" className="nova-lit-button nova-lit-button-secondary">
