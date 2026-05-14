@@ -1630,7 +1630,7 @@ export default async function UnidadeDetailPage({
       revalidatePath("/parceiros");
       if (previousPartnerId) revalidatePath(`/parceiros/${previousPartnerId}`);
       if (nextPartnerId) revalidatePath(`/parceiros/${nextPartnerId}`);
-      revalidatePath("/integracoes");
+      revalidatePath("/monitoramento/fontes");
       revalidatePath("/reconciliacao");
       revalidatePath("/operacao/relatorios/monitoramento");
 

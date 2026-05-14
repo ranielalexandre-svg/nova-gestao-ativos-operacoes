@@ -239,7 +239,7 @@ export default function NovaSensoresView({
         </div>
 
         <div className="nova-lit-page-actions">
-          <Link href="/integracoes" className="nova-lit-button nova-lit-button-secondary">Integrações</Link>
+          <Link href="/monitoramento/fontes" className="nova-lit-button nova-lit-button-secondary">Fontes NOC</Link>
           <Link href="/operacao/relatorios/monitoramento" className="nova-lit-button nova-lit-button-primary">Relatório</Link>
         </div>
       </div>
@@ -288,7 +288,7 @@ export default function NovaSensoresView({
             </div>
             <div>
               <small>{pageItems.length} linhas</small>
-              <Link href="/integracoes">Conector</Link>
+              <Link href="/monitoramento/fontes">Conector</Link>
             </div>
           </div>
 
@@ -332,7 +332,7 @@ export default function NovaSensoresView({
                   {item.unit?.id ? (
                     <Link href={`/unidades/${item.unit.id}?monitoring=1`}>Abrir</Link>
                   ) : (
-                    <Link href="/integracoes">Revisar</Link>
+                    <Link href="/monitoramento/fontes">Revisar</Link>
                   )}
                 </div>
               </div>

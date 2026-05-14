@@ -709,7 +709,7 @@ function IntegrationsCard({ integrations }: { integrations: IntegrationRow[] }) 
       </div>
       <div>
         {rows.slice(0, 6).map((item) => (
-          <Link href="/integracoes" key={item.id}>
+          <Link href="/monitoramento/fontes" key={item.id}>
             <Icon name="integration" />
             <span>{item.name || item.code}</span>
             <b><Dot tone={item.isActive ? "green" : "slate"} />{item.isActive ? "Conectado" : "Inativo"}</b>

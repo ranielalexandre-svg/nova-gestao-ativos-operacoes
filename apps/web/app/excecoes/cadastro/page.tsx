@@ -476,7 +476,7 @@ export default async function CadastroExcecaoPage({
             <Link href="/operacao/fila">Fila <b>{queueSummary.views.all}</b></Link>
             <Link href="/alertas">Alertas <b>{occurrences.items.length}</b></Link>
             <Link href="/chamados">Chamados <b>{maintenances.items.length}</b></Link>
-            <Link href="/integracoes">Integrações <b>{integrations.items.length}</b></Link>
+            <Link href="/monitoramento/fontes">Integrações <b>{integrations.items.length}</b></Link>
           </section>
 
           <section className="nova-lit-card nova-exception-create-queues">

@@ -334,7 +334,7 @@ export function ImportCsvWorkspace({
             <button type="button" onClick={() => loadTemplate()}>
               Carregar template
             </button>
-            <Link href="/integracoes">Conector externo</Link>
+            <Link href="/monitoramento/fontes">Conector externo</Link>
           </div>
           <div className="nova-import-resource-strip">
             {resources.map((item) => (

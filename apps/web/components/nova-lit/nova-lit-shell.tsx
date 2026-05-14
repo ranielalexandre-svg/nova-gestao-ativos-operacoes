@@ -171,7 +171,7 @@ const MENU_SECTIONS: NavSection[] = [
     items: [
       { label: "Usuários", href: "/usuarios", icon: "user" },
       { label: "Perfis", href: "/perfis", icon: "shield" },
-      { label: "Integrações", href: "/integracoes", icon: "integrations" },
+      { label: "Fontes NOC", href: "/monitoramento/fontes", icon: "integrations" },
       { label: "Importação", href: "/operacao/importacao", icon: "import" },
       { label: "Reconciliação", href: "/administracao/reconciliacao", icon: "sync" },
       { label: "Automações", href: "/operacao/automacoes", icon: "automation" },
@@ -184,6 +184,7 @@ const MENU_SECTIONS: NavSection[] = [
 const DEFAULT_FAVORITES = ["/dashboard", "/operacao/fila", "/alertas"];
 
 const ACTIVE_HREF_ALIASES: Record<string, string> = {
+  "/integracoes": "/monitoramento/fontes",
   "/relatorios": "/operacao/relatorios",
   "/relatorios/monitoramento": "/operacao/relatorios/monitoramento",
   "/relatorios/consumo": "/operacao/relatorios/consumo",
@@ -191,7 +192,7 @@ const ACTIVE_HREF_ALIASES: Record<string, string> = {
   "/relatorios/performance": "/operacao/relatorios/performance",
   "/sensores": "/monitoramento/sensores",
   "/monitoramento/mapas": "/monitoramento",
-  "/monitoramento/fontes": "/integracoes",
+
   "/excecoes": "/operacao/excecoes",
   "/excecoes/cadastro": "/operacao/excecoes",
   "/excecoes/nova": "/operacao/excecoes",
