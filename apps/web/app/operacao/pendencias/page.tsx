@@ -359,7 +359,10 @@ export default async function PendenciasOperacionaisPage() {
             </p>
           </div>
           <div className="nova-pendencias-hero-actions">
-            <Link href="/operacao/fila" className="nova-lit-button nova-lit-button-primary">
+            <Link href="/operacao/handoff" className="nova-lit-button nova-lit-button-primary">
+              Preparar handoff
+            </Link>
+            <Link href="/operacao/fila" className="nova-lit-button nova-lit-button-secondary">
               Abrir fila
             </Link>
             <Link href="/operacao/atividade" className="nova-lit-button nova-lit-button-secondary">
