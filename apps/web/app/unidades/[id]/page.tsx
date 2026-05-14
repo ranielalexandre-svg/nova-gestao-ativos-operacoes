@@ -1631,7 +1631,7 @@ export default async function UnidadeDetailPage({
       if (previousPartnerId) revalidatePath(`/parceiros/${previousPartnerId}`);
       if (nextPartnerId) revalidatePath(`/parceiros/${nextPartnerId}`);
       revalidatePath("/monitoramento/fontes");
-      revalidatePath("/reconciliacao");
+      revalidatePath("/operacao/reconciliacao");
       revalidatePath("/operacao/relatorios/monitoramento");
 
       return { status: "success", message: "Unidade atualizada com sucesso." };
