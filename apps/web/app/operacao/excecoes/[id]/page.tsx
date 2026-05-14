@@ -147,7 +147,7 @@ function buildContextualLinks(item: ExceptionDetail): ContextualLink[] {
 
   if (item.integration) {
     links.push({
-      href: `/integracoes?q=${encodeURIComponent(item.integration.code)}`,
+      href: `/monitoramento/fontes?q=${encodeURIComponent(item.integration.code)}`,
       label: "Integração",
       title: item.integration.code,
       description: item.integration.name,

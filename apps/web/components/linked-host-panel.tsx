@@ -99,7 +99,7 @@ export function LinkedHostPanel({
             >
               Ver host
             </Link><TableActionLink
-              href="/integracoes"
+              href="/monitoramento/fontes"
             >
               Ajustar integração
             </TableActionLink></div></>

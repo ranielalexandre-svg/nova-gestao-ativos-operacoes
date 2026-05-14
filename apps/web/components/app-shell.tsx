@@ -40,7 +40,7 @@ const NAV: NavEntry[] = [
   { href: "/reconciliacao", label: "Reconciliação", short: "RE", icon: "reconcile", section: "Configurações", adminOnly: true },
   { href: "/usuarios", label: "Usuários", short: "US", icon: "users", section: "Configurações", adminOnly: true },
   { href: "/perfis", label: "Perfis", short: "PF", icon: "profiles", section: "Configurações", adminOnly: true },
-  { href: "/integracoes", label: "Integrações", short: "IN", icon: "integrations", section: "Configurações" },
+  { href: "/monitoramento/fontes", label: "Fontes NOC", short: "FN", icon: "integrations", section: "Monitoramento" },
   { href: "/configuracoes", label: "Sistema", short: "CF", icon: "settings", section: "Configurações", adminOnly: true },
 ];
 
