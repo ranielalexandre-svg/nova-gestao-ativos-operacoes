@@ -1,3 +1,8 @@
+const allowedDevOrigins = (process.env.NEXT_ALLOWED_DEV_ORIGINS || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -6,6 +11,7 @@ const __dirname = path.dirname(__filename);
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
+  allowedDevOrigins,
   turbopack: {
     root: path.join(__dirname, "../.."),
   },

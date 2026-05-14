@@ -122,7 +122,7 @@ const MENU_SECTIONS: NavSection[] = [
     label: "Monitoramento",
     items: [
       { label: "Saúde da rede", href: "/monitoramento", icon: "chart" },
-      { label: "Sensores e hosts", href: "/monitoramento/sensores", icon: "sensor" },
+      { label: "Sensores NOC", href: "/monitoramento/sensores", icon: "sensor" },
       { label: "Mapa operacional", href: "/monitoramento/mapas", icon: "map" },
       { label: "Fontes de dados", href: "/monitoramento/fontes", icon: "integrations" },
     ],
@@ -175,7 +175,7 @@ const MENU_SECTIONS: NavSection[] = [
       { label: "Importação", href: "/operacao/importacao", icon: "import" },
       { label: "Reconciliação", href: "/administracao/reconciliacao", icon: "sync" },
       { label: "Automações", href: "/administracao/automacoes", icon: "automation" },
-      { label: "Políticas SLA", href: "/administracao/sla", icon: "shield" },
+      { label: "Políticas SLA", href: "/operacao/sla", icon: "shield" },
       { label: "Sistema", href: "/configuracoes", icon: "settings" },
     ],
   },
@@ -184,12 +184,14 @@ const MENU_SECTIONS: NavSection[] = [
 const DEFAULT_FAVORITES = ["/dashboard", "/operacao/fila", "/alertas"];
 
 const ACTIVE_HREF_ALIASES: Record<string, string> = {
+  "/sensores": "/monitoramento/sensores",
+  "/monitoramento/mapas": "/monitoramento",
+  "/monitoramento/fontes": "/integracoes",
   "/excecoes": "/operacao/excecoes",
   "/excecoes/cadastro": "/operacao/excecoes",
   "/excecoes/nova": "/operacao/excecoes",
   "/operacao/excecoes/cadastro": "/operacao/excecoes",
   "/operacao/excecoes/nova": "/operacao/excecoes",
-  "/sensores": "/monitoramento/sensores",
   "/mapas": "/monitoramento/mapas",
   "/equipamentos": "/ativos",
   "/ocorrencias": "/alertas",
@@ -200,7 +202,7 @@ const ACTIVE_HREF_ALIASES: Record<string, string> = {
   "/administracao/importacao": "/operacao/importacao",
   "/reconciliacao": "/administracao/reconciliacao",
   "/reconciliacao-central": "/administracao/reconciliacao",
-  "/operacao/sla": "/administracao/sla",
+  "/administracao/sla": "/operacao/sla",
 };
 
 function canonicalHref(value: string) {
