@@ -35612,3 +35612,486 @@ body:has(.nova-tickets-board-shell) {
   }
 }
 /* END PR40-mobile-cockpit-operacional */
+/* PR42-43-mobile-ux-operacional-unificado */
+.nova-login-page,
+.nova-lit-shell-v2,
+.nds-shell,
+.nova-lit-content-v2,
+.nds-main,
+.nds-stack,
+.nova-operation-lit-page,
+.nova-operation-queue-lit-page,
+.nova-operation-activity-lit-page,
+.nova-operation-sla-lit-page,
+.nova-importacao-lit-page,
+.nova-reconciliacao-lit-page,
+.nova-monitor-page,
+.nova-sensors-page,
+.nova-integracoes-page,
+.nova-monitoring-report-lit-page,
+.nova-reports-hub-page,
+.nova-performance-page,
+.nova-availability-page {
+  min-width: 0;
+}
+
+.nova-login-page *,
+.nova-lit-shell-v2 *,
+.nds-shell * {
+  box-sizing: border-box;
+}
+
+.nova-mobile-safe-form,
+.nova-action-form,
+.nova-form-actions,
+.nova-filter-toolbar,
+.nova-filter-grid,
+.nova-queue-filter-form,
+.nova-queue-bulk-form,
+.nova-activity-filter-form,
+.nova-activity-create-form,
+.nova-activity-quick-form,
+.nova-sla-recalc-form,
+.nova-sla-side-action-form,
+.nova-sla-create-form,
+.nova-sla-edit-form,
+.nova-sla-form-grid,
+.nova-auto-filters,
+.nova-auto-action-stack,
+.nova-integracoes-filter,
+.nova-integracoes-create-form,
+.nova-integracoes-form-card,
+.nova-integracoes-config-grid,
+.nova-import-form,
+.nova-import-form-actions,
+.nova-recon-filters,
+.nova-recon-filter-actions,
+.nova-recon-sync-form,
+.nova-monitor-filters,
+.nova-sensors-filters,
+.nova-units-filters,
+.nova-report-filter-card,
+.nova-report-stepper,
+.nova-monitoring-report-lit-page form,
+.nova-monitoring-report-lit-page .grid,
+.nova-performance-actions,
+.nova-performance-upload,
+.nova-lit-menu-search,
+.nova-auth-form {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.nova-action-form,
+.nova-action-form > *,
+.nova-form-actions,
+.nova-form-actions > *,
+.nova-queue-bulk-form,
+.nova-activity-quick-form,
+.nova-sla-recalc-form,
+.nova-sla-side-action-form,
+.nova-integracoes-inline-action,
+.nova-recon-sync-form {
+  width: 100%;
+}
+
+.nova-operation-lit-page :where(input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]), select, textarea),
+.nova-operation-queue-lit-page :where(input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]), select, textarea),
+.nova-operation-activity-lit-page :where(input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]), select, textarea),
+.nova-operation-sla-lit-page :where(input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]), select, textarea),
+.nova-importacao-lit-page :where(input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]), select, textarea),
+.nova-reconciliacao-lit-page :where(input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]), select, textarea),
+.nova-monitor-page :where(input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]), select, textarea),
+.nova-sensors-page :where(input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]), select, textarea),
+.nova-integracoes-page :where(input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]), select, textarea),
+.nova-monitoring-report-lit-page :where(input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]), select, textarea),
+.nova-reports-hub-page :where(input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]), select, textarea),
+.nova-login-page :where(input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]), select, textarea) {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.nova-operation-lit-page :where(textarea),
+.nova-operation-queue-lit-page :where(textarea),
+.nova-operation-activity-lit-page :where(textarea),
+.nova-operation-sla-lit-page :where(textarea),
+.nova-importacao-lit-page :where(textarea),
+.nova-reconciliacao-lit-page :where(textarea),
+.nova-monitor-page :where(textarea),
+.nova-sensors-page :where(textarea),
+.nova-integracoes-page :where(textarea),
+.nova-monitoring-report-lit-page :where(textarea) {
+  resize: vertical;
+  overflow-wrap: anywhere;
+}
+
+.nova-operation-lit-page :where(label),
+.nova-operation-queue-lit-page :where(label),
+.nova-operation-activity-lit-page :where(label),
+.nova-operation-sla-lit-page :where(label),
+.nova-importacao-lit-page :where(label),
+.nova-reconciliacao-lit-page :where(label),
+.nova-monitor-page :where(label),
+.nova-sensors-page :where(label),
+.nova-integracoes-page :where(label),
+.nova-monitoring-report-lit-page :where(label),
+.nova-reports-hub-page :where(label) {
+  min-width: 0;
+}
+
+.nova-operation-lit-page :where(label span, label strong, label small),
+.nova-operation-queue-lit-page :where(label span, label strong, label small),
+.nova-operation-activity-lit-page :where(label span, label strong, label small),
+.nova-operation-sla-lit-page :where(label span, label strong, label small),
+.nova-importacao-lit-page :where(label span, label strong, label small),
+.nova-reconciliacao-lit-page :where(label span, label strong, label small),
+.nova-monitor-page :where(label span, label strong, label small),
+.nova-sensors-page :where(label span, label strong, label small),
+.nova-integracoes-page :where(label span, label strong, label small),
+.nova-monitoring-report-lit-page :where(label span, label strong, label small),
+.nova-reports-hub-page :where(label span, label strong, label small) {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.nova-operation-lit-page :where(.nds-button, .nova-lit-button, .nova-form-submit, .nova-submit-button, button),
+.nova-operation-queue-lit-page :where(.nds-button, .nova-lit-button, .nova-form-submit, .nova-submit-button, button),
+.nova-operation-activity-lit-page :where(.nds-button, .nova-lit-button, .nova-form-submit, .nova-submit-button, button),
+.nova-operation-sla-lit-page :where(.nds-button, .nova-lit-button, .nova-form-submit, .nova-submit-button, button),
+.nova-importacao-lit-page :where(.nds-button, .nova-lit-button, .nova-form-submit, .nova-submit-button, button),
+.nova-reconciliacao-lit-page :where(.nds-button, .nova-lit-button, .nova-form-submit, .nova-submit-button, button),
+.nova-monitor-page :where(.nds-button, .nova-lit-button, .nova-form-submit, .nova-submit-button, button),
+.nova-sensors-page :where(.nds-button, .nova-lit-button, .nova-form-submit, .nova-submit-button, button),
+.nova-integracoes-page :where(.nds-button, .nova-lit-button, .nova-form-submit, .nova-submit-button, button),
+.nova-monitoring-report-lit-page :where(.nds-button, .nova-lit-button, .nova-form-submit, .nova-submit-button, button),
+.nova-reports-hub-page :where(.nds-button, .nova-lit-button, .nova-form-submit, .nova-submit-button, button),
+.nova-login-page :where(.nds-button, .nova-lit-button, .nova-form-submit, .nova-submit-button, button) {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.nova-queue-filter-form,
+.nova-activity-filter-form,
+.nova-sla-form-grid,
+.nova-sla-form-grid--edit,
+.nova-auto-filters,
+.nova-integracoes-filter,
+.nova-integracoes-create-form,
+.nova-integracoes-form-card,
+.nova-import-form-grid,
+.nova-recon-filters,
+.nova-monitor-filters,
+.nova-sensors-filters,
+.nova-units-filters {
+  grid-auto-rows: auto;
+}
+
+.nova-monitoring-report-lit-page .nova-report-filter-card .grid,
+.nova-monitoring-report-lit-page .nova-report-stepper,
+.nova-monitoring-report-lit-page form .grid,
+.nova-monitoring-report-lit-page form [class*="grid-cols"],
+.nova-monitoring-report-lit-page .max-w-xl,
+.nova-monitoring-report-lit-page .max-h-\[300px\],
+.nova-monitoring-report-lit-page .nds-card {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.nova-monitoring-report-lit-page .max-h-\[300px\] {
+  -webkit-overflow-scrolling: touch;
+}
+
+.nova-import-resource-strip,
+.nova-import-toolbar,
+.nova-import-form-actions,
+.nova-recon-filter-actions,
+.nova-auto-action-stack,
+.nova-queue-chip-row,
+.nova-operation-priority-row,
+.nova-lit-filter-row,
+.nova-source-mode-tabs {
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+
+.nova-integracoes-config-grid,
+.nova-integracoes-filter,
+.nova-integracoes-create-form,
+.nova-integracoes-form-card,
+.nova-integracoes-test-card,
+.nova-integracoes-inline-action,
+.nova-integracoes-form-wide,
+.nova-integracoes-form-wide-all {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.nova-login-fixed-submit,
+.nova-login-fixed-sso {
+  max-width: calc(100vw - 24px);
+}
+
+@media (max-width: 920px) {
+  .nova-queue-filter-form,
+  .nova-activity-filter-form,
+  .nova-auto-filters,
+  .nova-integracoes-filter,
+  .nova-integracoes-create-form,
+  .nova-integracoes-form-card,
+  .nova-recon-filters,
+  .nova-monitor-filters,
+  .nova-sensors-filters,
+  .nova-units-filters,
+  .nova-report-filter-card .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .nova-sla-form-grid,
+  .nova-sla-form-grid--edit {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .nova-sla-form-span-2,
+  .nova-integracoes-filter .is-wide,
+  .nova-integracoes-create-form .is-double,
+  .nova-integracoes-form-wide,
+  .nova-integracoes-form-wide-all,
+  .nova-auto-search,
+  .nova-report-filter-card .max-w-xl,
+  .nova-monitoring-report-lit-page label[class*="max-w-xl"] {
+    grid-column: 1 / -1 !important;
+  }
+
+  .nova-form-actions,
+  .nova-import-form-actions,
+  .nova-recon-filter-actions,
+  .nova-performance-actions,
+  .nova-integracoes-actions,
+  .nova-lit-hero__actions,
+  .nova-operation-hero-actions,
+  .nova-queue-hero-actions,
+  .nova-activity-hero-actions,
+  .nova-sla-hero-actions {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+  }
+
+  .nova-form-actions > *,
+  .nova-import-form-actions > *,
+  .nova-recon-filter-actions > *,
+  .nova-performance-actions > *,
+  .nova-integracoes-actions > *,
+  .nova-lit-hero__actions > *,
+  .nova-operation-hero-actions > *,
+  .nova-queue-hero-actions > *,
+  .nova-activity-hero-actions > *,
+  .nova-sla-hero-actions > * {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .nova-form-actions :where(button, a),
+  .nova-import-form-actions :where(button, a),
+  .nova-recon-filter-actions :where(button, a),
+  .nova-performance-actions :where(button, a),
+  .nova-integracoes-actions :where(button, a),
+  .nova-lit-hero__actions :where(button, a),
+  .nova-operation-hero-actions :where(button, a),
+  .nova-queue-hero-actions :where(button, a),
+  .nova-activity-hero-actions :where(button, a),
+  .nova-sla-hero-actions :where(button, a) {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .nova-activity-create-form,
+  .nova-integracoes-config-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .nova-monitoring-report-lit-page .max-h-\[300px\] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .nova-auto-row > div:last-child,
+  .nova-auto-row > div:last-child form,
+  .nova-automation-workflow-rules-panel .nova-auto-effects form {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .nova-auto-row > div:last-child form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 680px) {
+  .nova-login-page {
+    min-height: 100svh;
+  }
+
+  .nova-lit-content-v2,
+  .nds-main,
+  .nds-stack {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  .nova-queue-filter-form,
+  .nova-activity-filter-form,
+  .nova-sla-form-grid,
+  .nova-sla-form-grid--edit,
+  .nova-auto-filters,
+  .nova-integracoes-filter,
+  .nova-integracoes-create-form,
+  .nova-integracoes-form-card,
+  .nova-recon-filters,
+  .nova-monitor-filters,
+  .nova-sensors-filters,
+  .nova-units-filters,
+  .nova-report-filter-card .grid,
+  .nova-monitoring-report-lit-page form .grid,
+  .nova-monitoring-report-lit-page form [class*="grid-cols"] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .nova-form-actions,
+  .nova-import-form-actions,
+  .nova-recon-filter-actions,
+  .nova-performance-actions,
+  .nova-integracoes-actions,
+  .nova-lit-hero__actions,
+  .nova-operation-hero-actions,
+  .nova-queue-hero-actions,
+  .nova-activity-hero-actions,
+  .nova-sla-hero-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .nova-operation-lit-page :where(.nds-button, .nova-lit-button, .nova-form-submit, .nova-submit-button, button),
+  .nova-operation-queue-lit-page :where(.nds-button, .nova-lit-button, .nova-form-submit, .nova-submit-button, button),
+  .nova-operation-activity-lit-page :where(.nds-button, .nova-lit-button, .nova-form-submit, .nova-submit-button, button),
+  .nova-operation-sla-lit-page :where(.nds-button, .nova-lit-button, .nova-form-submit, .nova-submit-button, button),
+  .nova-importacao-lit-page :where(.nds-button, .nova-lit-button, .nova-form-submit, .nova-submit-button, button),
+  .nova-reconciliacao-lit-page :where(.nds-button, .nova-lit-button, .nova-form-submit, .nova-submit-button, button),
+  .nova-monitor-page :where(.nds-button, .nova-lit-button, .nova-form-submit, .nova-submit-button, button),
+  .nova-sensors-page :where(.nds-button, .nova-lit-button, .nova-form-submit, .nova-submit-button, button),
+  .nova-integracoes-page :where(.nds-button, .nova-lit-button, .nova-form-submit, .nova-submit-button, button),
+  .nova-monitoring-report-lit-page :where(.nds-button, .nova-lit-button, .nova-form-submit, .nova-submit-button, button),
+  .nova-reports-hub-page :where(.nds-button, .nova-lit-button, .nova-form-submit, .nova-submit-button, button) {
+    min-height: 40px;
+  }
+
+  .nova-queue-filter-form :where(input, select, button),
+  .nova-activity-filter-form :where(input, select, button),
+  .nova-sla-form-grid :where(input, select, button),
+  .nova-sla-form-grid--edit :where(input, select, button),
+  .nova-auto-filters :where(input, select, button),
+  .nova-integracoes-filter :where(input, select, button),
+  .nova-integracoes-create-form :where(input, select, button),
+  .nova-integracoes-form-card :where(input, select, button),
+  .nova-recon-filters :where(input, select, button),
+  .nova-monitor-filters :where(input, select, button),
+  .nova-sensors-filters :where(input, select, button),
+  .nova-units-filters :where(input, select, button),
+  .nova-report-filter-card :where(input, select, button) {
+    min-height: 40px;
+  }
+
+  .nova-action-form .nova-form-actions,
+  .nova-sla-recalc-form .nova-form-actions,
+  .nova-sla-side-action-form .nova-form-actions,
+  .nova-queue-quick-form .nova-form-actions,
+  .nova-activity-quick-form .nova-form-actions,
+  .nova-integracoes-inline-action .nova-form-actions {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+  }
+
+  .nova-action-form .nova-form-actions button,
+  .nova-sla-recalc-form .nova-form-actions button,
+  .nova-sla-side-action-form .nova-form-actions button,
+  .nova-queue-quick-form .nova-form-actions button,
+  .nova-activity-quick-form .nova-form-actions button,
+  .nova-integracoes-inline-action .nova-form-actions button {
+    width: 100%;
+  }
+
+  .nova-import-resource-strip,
+  .nova-import-toolbar,
+  .nova-queue-chip-row,
+  .nova-operation-priority-row,
+  .nova-lit-filter-row,
+  .nova-source-mode-tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap !important;
+    padding-bottom: 4px;
+  }
+
+  .nova-import-resource-strip > *,
+  .nova-import-toolbar > *,
+  .nova-queue-chip-row > *,
+  .nova-operation-priority-row > *,
+  .nova-lit-filter-row > *,
+  .nova-source-mode-tabs > * {
+    flex: 0 0 auto;
+  }
+
+  .nova-import-form textarea[name="csv"] {
+    max-height: 42svh;
+  }
+
+  .nova-import-form textarea,
+  .nova-activity-create-form textarea,
+  .nova-exception-detail-lit-page textarea {
+    min-height: 140px;
+  }
+
+  .nova-monitoring-report-lit-page .nds-card.flex,
+  .nova-monitoring-report-lit-page label.nds-card {
+    align-items: flex-start;
+  }
+
+  .nova-monitoring-report-lit-page input[type="checkbox"],
+  .nova-operation-lit-page input[type="checkbox"],
+  .nova-operation-queue-lit-page input[type="checkbox"],
+  .nova-operation-activity-lit-page input[type="checkbox"],
+  .nova-operation-sla-lit-page input[type="checkbox"],
+  .nova-integracoes-page input[type="checkbox"] {
+    min-width: 18px;
+    min-height: 18px;
+  }
+
+  .nova-integracoes-panel-head,
+  .nova-recon-table-head,
+  .nova-sensors-table-title,
+  .nova-monitor-table-title,
+  .nova-performance-card__head {
+    gap: 10px;
+  }
+
+  .nova-integracoes-panel-head,
+  .nova-recon-table-head,
+  .nova-performance-card__head {
+    align-items: stretch;
+  }
+
+  .nova-integracoes-panel-action,
+  .nova-recon-table-tools,
+  .nova-performance-card__head > * {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .nova-login-fixed-submit,
+  .nova-login-fixed-sso {
+    left: 12px;
+    right: 12px;
+    width: auto;
+  }
+}
+/* END PR42-43-mobile-ux-operacional-unificado */
