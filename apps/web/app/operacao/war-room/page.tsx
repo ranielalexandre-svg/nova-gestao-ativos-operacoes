@@ -574,6 +574,9 @@ export default async function WarRoomOperacionalPage() {
             <Link href="/operacao/war-room/export" className="nova-lit-button nova-lit-button-primary">
               Exportar plano
             </Link>
+            <Link href="/operacao/playbooks" className="nova-lit-button nova-lit-button-secondary">
+              Playbooks
+            </Link>
             <Link href="/operacao/handoff" className="nova-lit-button nova-lit-button-secondary">
               Handoff
             </Link>

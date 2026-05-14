@@ -14,6 +14,7 @@ const NAV: NavEntry[] = [
   { href: "/operacao/pendencias", label: "Pendências", short: "PD", icon: "exceptions", section: "Operação" },
   { href: "/operacao/handoff", label: "Handoff", short: "HO", icon: "activity", section: "Operação" },
   { href: "/operacao/war-room", label: "War Room", short: "WR", icon: "dashboard", section: "Operação" },
+  { href: "/operacao/playbooks", label: "Playbooks", short: "PB", icon: "activity", section: "Operação" },
 
   { href: "/unidades", label: "Unidades", short: "UN", icon: "units", section: "Monitoramento" },
   { href: "/sensores", label: "Sensores", short: "SN", icon: "monitoring", section: "Monitoramento" },
