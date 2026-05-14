@@ -35195,3 +35195,420 @@ body:has(.nova-tickets-board-shell) {
   }
 }
 /* End operacao consolidated visual polish */
+/* PR40-mobile-cockpit-operacional */
+.nova-lit-shell-v2,
+.nds-shell,
+.nova-operation-lit-page,
+.nova-operation-queue-lit-page,
+.nova-operation-activity-lit-page,
+.nova-operation-sla-lit-page,
+.nova-importacao-lit-page,
+.nova-reconciliacao-lit-page,
+.nova-monitor-page,
+.nova-sensors-page,
+.nova-monitoring-report-page,
+.nova-reports-hub-page {
+  min-width: 0;
+}
+
+.nova-lit-content-v2,
+.nds-main,
+.nds-stack,
+.nova-operation-lit-page,
+.nova-operation-top-stack,
+.nova-operation-overview-card,
+.nova-operation-support-card,
+.nova-queue-board-panel,
+.nova-activity-timeline-panel,
+.nova-sla-policies-panel,
+.nova-sla-form-panel,
+.nova-sla-edit-panel,
+.nova-import-workspace,
+.nova-reconciliacao-lit-page,
+.nova-monitor-table-card,
+.nova-sensors-table-card,
+.nova-integracoes-panel,
+.nova-reports-hub-table,
+.nova-report-stepper,
+.nova-consumo-table-card {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.nova-operation-hero-panel,
+.nova-queue-command-hero,
+.nova-activity-command-hero,
+.nova-sla-command-hero,
+.nova-import-hero,
+.nova-recon-hero,
+.nova-integracoes-hero,
+.nova-reports-hub-hero,
+.nova-performance-hero,
+.nova-availability-page .nova-lit-hero {
+  overflow: hidden;
+}
+
+.nova-operation-hero-panel :where(h1, h2, h3, p, span, strong),
+.nova-import-hero :where(h1, p),
+.nova-recon-hero :where(h1, p),
+.nova-integracoes-hero :where(h1, p),
+.nova-reports-hub-hero :where(h1, p),
+.nova-performance-hero :where(h1, p),
+.nova-availability-page .nova-lit-hero :where(h1, p) {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.nova-operation-hero-actions,
+.nova-queue-hero-actions,
+.nova-activity-hero-actions,
+.nova-sla-hero-actions,
+.nova-import-actions,
+.nova-integracoes-hero-actions,
+.nova-performance-hero__actions,
+.nova-lit-hero__actions,
+.nova-reports-hub-hero-actions,
+.nova-recon-table-tools {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.nova-operation-kpi-grid,
+.nova-operation-signal-grid,
+.nova-command-deck-grid,
+.nova-side-grid,
+.nova-sensors-main-grid,
+.nova-monitor-table-grid,
+.nova-integracoes-layout,
+.nova-reports-hub-grid,
+.nova-import-grid,
+.nova-import-resource-strip,
+.nova-recon-grid {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.nova-operation-side-panel,
+.nova-queue-side-panel,
+.nova-activity-side-panel,
+.nova-sla-side-panel,
+.nova-sensors-right-col,
+.nova-integracoes-side,
+.nova-monitor-right-col,
+.nova-reports-hub-side,
+.nova-recon-sidebar,
+.nova-automation-workflow-sidebar,
+.nova-exceptions-board-sidebar {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.nova-table-shell,
+.nds-table-shell,
+.nova-queue-table-shell,
+.nova-activity-table-shell,
+.nova-import-map-table,
+.nova-import-preview-table,
+.nova-recon-table-wrap,
+.nova-integracoes-table-wrap,
+.nova-sensors-table,
+.nova-monitor-table,
+.nova-auto-table,
+.nova-automation-workflow-error-table,
+.nova-automation-workflow-history,
+.nova-reports-hub-table,
+.nova-consumo-table,
+.nova-performance-table-wrap,
+.nova-availability-page .nova-lit-table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-inline: contain;
+}
+
+.nova-queue-table-shell table,
+.nova-activity-table-shell table,
+.nova-sla-policies-panel table,
+.nova-monitoring-report-page table,
+.nova-recon-table-wrap table,
+.nova-import-preview-table table,
+.nova-performance-table,
+.nova-availability-page .nova-lit-table,
+.nova-integracoes-table,
+.nova-automation-workflow-history table {
+  width: 100%;
+}
+
+@media (max-width: 1180px) {
+  .nova-side-grid,
+  .nova-side-grid--300,
+  .nova-side-grid--380,
+  .nova-sensors-main-grid,
+  .nova-integracoes-layout,
+  .nova-reports-hub-grid,
+  .nova-import-grid,
+  .nova-recon-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .nova-operation-side-panel,
+  .nova-queue-side-panel,
+  .nova-activity-side-panel,
+  .nova-sla-side-panel,
+  .nova-sensors-right-col,
+  .nova-integracoes-side,
+  .nova-monitor-right-col,
+  .nova-reports-hub-side,
+  .nova-recon-sidebar,
+  .nova-automation-workflow-sidebar,
+  .nova-exceptions-board-sidebar,
+  .nova-monitoring-report-page aside {
+    position: static !important;
+    top: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+}
+
+@media (max-width: 920px) {
+  .nova-lit-shell-v2,
+  .nds-shell {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  .nova-lit-content-v2,
+  .nds-main,
+  .nds-stack {
+    min-width: 0;
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  .nova-operation-lit-page,
+  .nova-operation-queue-lit-page,
+  .nova-operation-activity-lit-page,
+  .nova-operation-sla-lit-page,
+  .nova-importacao-lit-page,
+  .nova-reconciliacao-lit-page,
+  .nova-monitor-page,
+  .nova-sensors-page,
+  .nova-reports-hub-page,
+  .nova-monitoring-report-page {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .nova-operation-kpi-grid,
+  .nova-operation-signal-grid,
+  .nova-operation-support-card .grid,
+  .nova-import-resource-strip,
+  .nova-report-stepper,
+  .nova-integracoes-kpis,
+  .nova-sensors-kpi-grid,
+  .nova-monitor-kpi-grid,
+  .nova-reports-hub-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .nova-operation-hero-actions,
+  .nova-queue-hero-actions,
+  .nova-activity-hero-actions,
+  .nova-sla-hero-actions,
+  .nova-import-actions,
+  .nova-integracoes-hero-actions,
+  .nova-performance-hero__actions,
+  .nova-lit-hero__actions,
+  .nova-recon-table-tools {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+  }
+
+  .nova-operation-hero-actions :where(a, button),
+  .nova-queue-hero-actions :where(a, button),
+  .nova-activity-hero-actions :where(a, button),
+  .nova-sla-hero-actions :where(a, button),
+  .nova-import-actions :where(a, button),
+  .nova-integracoes-hero-actions :where(a, button),
+  .nova-performance-hero__actions :where(a, button),
+  .nova-lit-hero__actions :where(a, button),
+  .nova-recon-table-tools :where(a, button) {
+    width: 100%;
+    min-width: 0 !important;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .nova-sensors-table-head,
+  .nova-sensors-row,
+  .nova-monitor-table-head,
+  .nova-monitor-row,
+  .nova-auto-table-head,
+  .nova-auto-row,
+  .nova-reports-hub-table-head,
+  .nova-reports-hub-table-row,
+  .nova-consumo-table-head,
+  .nova-consumo-row {
+    min-width: 760px;
+  }
+
+  .nova-recon-table-wrap table,
+  .nova-import-preview-table table,
+  .nova-queue-table-shell table,
+  .nova-activity-table-shell table,
+  .nova-sla-policies-panel table,
+  .nova-integracoes-table,
+  .nova-automation-workflow-history table {
+    min-width: 760px;
+  }
+}
+
+@media (max-width: 680px) {
+  .nova-lit-content-v2,
+  .nds-stack {
+    padding-inline: 10px !important;
+  }
+
+  .nova-lit-topbar-v2 {
+    min-width: 0;
+    gap: 8px;
+  }
+
+  .nova-lit-topbar-v2 > div:first-child {
+    min-width: 0;
+  }
+
+  .nova-lit-topbar-v2 span,
+  .nova-lit-topbar-v2 strong,
+  .nova-lit-sidebar-user strong,
+  .nova-lit-sidebar-user span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .nova-operation-kpi-grid,
+  .nova-operation-signal-grid,
+  .nova-operation-support-card .grid,
+  .nova-import-resource-strip,
+  .nova-report-stepper,
+  .nova-integracoes-kpis,
+  .nova-sensors-kpi-grid,
+  .nova-monitor-kpi-grid,
+  .nova-reports-hub-kpis,
+  .nova-lit-kpi-grid,
+  .nova-lit-row-3,
+  .nova-lit-dashboard-right,
+  .nova-lit-events-grid,
+  .nova-lit-filter-row {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .nova-operation-hero-actions,
+  .nova-queue-hero-actions,
+  .nova-activity-hero-actions,
+  .nova-sla-hero-actions,
+  .nova-import-actions,
+  .nova-integracoes-hero-actions,
+  .nova-performance-hero__actions,
+  .nova-lit-hero__actions,
+  .nova-recon-table-tools {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .nova-operation-priority-row,
+  .nova-queue-chip-row,
+  .nova-import-resource-strip,
+  .nova-recon-table-tools {
+    overflow-x: auto;
+    flex-wrap: nowrap !important;
+    padding-bottom: 2px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .nova-operation-priority-row > *,
+  .nova-queue-chip-row > *,
+  .nova-import-resource-strip > *,
+  .nova-recon-table-tools > * {
+    flex: 0 0 auto;
+  }
+
+  .nova-operation-hero-panel,
+  .nova-queue-command-hero,
+  .nova-activity-command-hero,
+  .nova-sla-command-hero,
+  .nova-import-hero,
+  .nova-recon-hero,
+  .nova-integracoes-hero,
+  .nova-reports-hub-hero,
+  .nova-performance-hero,
+  .nova-availability-page .nova-lit-hero {
+    padding: 14px !important;
+  }
+
+  .nova-operation-hero-panel :where(h1, h2),
+  .nova-import-hero h1,
+  .nova-recon-hero h1,
+  .nova-integracoes-hero h1,
+  .nova-reports-hub-hero h1,
+  .nova-performance-hero h1,
+  .nova-availability-page .nova-lit-hero h1 {
+    font-size: clamp(1.15rem, 8vw, 1.8rem) !important;
+    line-height: 1.05 !important;
+  }
+
+  .nova-section-intro,
+  .nova-lit-title-row,
+  .nova-sensors-table-title,
+  .nova-units-table-title,
+  .nova-integracoes-panel-head,
+  .nova-recon-table-head,
+  .nova-monitor-table-title {
+    min-width: 0;
+  }
+
+  .nova-section-intro :where(h1, h2, h3, p),
+  .nova-lit-title-row :where(h1, h2, h3, p),
+  .nova-sensors-table-title :where(h1, h2, h3, p),
+  .nova-integracoes-panel-head :where(h1, h2, h3, p),
+  .nova-recon-table-head :where(h1, h2, h3, p) {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .nova-sensors-table-head,
+  .nova-sensors-row,
+  .nova-monitor-table-head,
+  .nova-monitor-row,
+  .nova-auto-table-head,
+  .nova-auto-row,
+  .nova-reports-hub-table-head,
+  .nova-reports-hub-table-row,
+  .nova-consumo-table-head,
+  .nova-consumo-row {
+    min-width: 640px;
+  }
+
+  .nova-recon-table-wrap table,
+  .nova-import-preview-table table,
+  .nova-queue-table-shell table,
+  .nova-activity-table-shell table,
+  .nova-sla-policies-panel table,
+  .nova-integracoes-table,
+  .nova-automation-workflow-history table {
+    min-width: 640px;
+  }
+
+  .nova-table-action,
+  .nds-button,
+  .nova-lit-button,
+  .nova-primary-action,
+  .nova-form-submit,
+  .nova-submit-button {
+    min-height: 36px;
+  }
+}
+/* END PR40-mobile-cockpit-operacional */
