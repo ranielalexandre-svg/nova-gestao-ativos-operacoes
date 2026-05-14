@@ -131,7 +131,6 @@ async function importCsvAction(
         body: JSON.stringify({ csv }),
       });
 
-      revalidatePath("/importacao");
       revalidatePath("/operacao/importacao");
       revalidatePath(resourceTarget(resource));
 

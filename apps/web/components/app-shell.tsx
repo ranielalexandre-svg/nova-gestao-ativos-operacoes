@@ -36,7 +36,7 @@ const NAV: NavEntry[] = [
   { href: "/operacao/relatorios/disponibilidade", label: "Disponibilidade", short: "DI", icon: "sla", section: "Relatórios" },
   { href: "/operacao/relatorios/performance", label: "Performance", short: "PF", icon: "activity", section: "Relatórios" },
 
-  { href: "/importacao", label: "Importação", short: "IM", icon: "import", section: "Configurações", adminOnly: true },
+  { href: "/operacao/importacao", label: "Importação", short: "IM", icon: "import", section: "Operação", adminOnly: true },
   { href: "/operacao/reconciliacao", label: "Reconciliação", short: "RE", icon: "reconcile", section: "Operação", adminOnly: true },
   { href: "/usuarios", label: "Usuários", short: "US", icon: "users", section: "Configurações", adminOnly: true },
   { href: "/perfis", label: "Perfis", short: "PF", icon: "profiles", section: "Configurações", adminOnly: true },

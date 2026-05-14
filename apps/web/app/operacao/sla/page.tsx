@@ -161,7 +161,7 @@ export default async function OperacaoSlaPage() {
       revalidatePath("/operacao/sla");
       revalidatePath("/operacao");
       revalidatePath("/operacao/fila");
-      revalidatePath("/excecoes");
+      revalidatePath("/operacao/excecoes");
       return { status: "success", message: "Política SLA atualizada." };
     } catch (error) {
       return { status: "error", message: getActionErrorMessage(error) };
@@ -185,7 +185,7 @@ export default async function OperacaoSlaPage() {
       revalidatePath("/operacao/sla");
       revalidatePath("/operacao");
       revalidatePath("/operacao/fila");
-      revalidatePath("/excecoes");
+      revalidatePath("/operacao/excecoes");
       return {
         status: "success",
         message: `${formatNumber(result.recalculated)} caso(s) recalculado(s). ${formatNumber(result.changedDeadlines)} prazo(s) ajustado(s).`,

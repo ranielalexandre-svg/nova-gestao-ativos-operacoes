@@ -84,7 +84,6 @@ type ContextualLink = {
 };
 
 function revalidateExceptionWorkspace(id: string) {
-  revalidatePath(`/excecoes/${id}`);
   revalidatePath(`/operacao/excecoes/${id}`);
   revalidatePath("/operacao/excecoes");
   revalidatePath("/operacao/fila");

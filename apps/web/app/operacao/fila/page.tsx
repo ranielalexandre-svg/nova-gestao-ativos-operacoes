@@ -267,7 +267,7 @@ export default async function FilaOperacionalPage({
       });
 
       revalidatePath("/operacao/fila");
-      revalidatePath("/excecoes");
+      revalidatePath("/operacao/excecoes");
       revalidatePath("/operacao");
       revalidatePath("/operacao/atividade");
     revalidatePath("/operacao/sla");
