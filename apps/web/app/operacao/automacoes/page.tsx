@@ -766,7 +766,7 @@ export default async function AutomacaoPage({
     });
 
     revalidatePath("/operacao/automacoes");
-    revalidatePath("/excecoes");
+    revalidatePath("/operacao/excecoes");
     revalidatePath("/operacao");
   }
 
@@ -793,7 +793,7 @@ export default async function AutomacaoPage({
     });
 
     revalidatePath("/operacao/automacoes");
-    revalidatePath("/excecoes");
+    revalidatePath("/operacao/excecoes");
     revalidatePath("/operacao");
     revalidatePath("/operacao/fila");
   }
@@ -812,7 +812,7 @@ export default async function AutomacaoPage({
     });
 
     revalidatePath("/operacao/automacoes");
-    revalidatePath("/excecoes");
+    revalidatePath("/operacao/excecoes");
     revalidatePath("/operacao");
     revalidatePath("/operacao/fila");
     revalidatePath("/operacao/atividade");

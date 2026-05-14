@@ -80,7 +80,7 @@ function refs(item: ActivityRow) {
 }
 
 function activityHref(item: ActivityRow) {
-  if (item.exceptionCase) return `/excecoes/${item.exceptionCase.id}`;
+  if (item.exceptionCase) return `/operacao/excecoes/${item.exceptionCase.id}`;
   if (item.automation) return "/operacao/automacoes";
   if (item.occurrence) return `/alertas/${item.occurrence.id}`;
   if (item.maintenance) return `/chamados/${item.maintenance.id}`;
@@ -178,7 +178,7 @@ export default async function AtividadePage({
       revalidatePath("/operacao/atividade");
       revalidatePath("/operacao/fila");
       revalidatePath("/operacao");
-      revalidatePath("/excecoes");
+      revalidatePath("/operacao/excecoes");
       return { status: "success", message: "Atividade criada com sucesso." };
     } catch (error) {
       return { status: "error", message: getActionErrorMessage(error) };

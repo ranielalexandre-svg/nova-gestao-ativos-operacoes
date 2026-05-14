@@ -102,17 +102,17 @@ function canonicalPath(pathname: string) {
     ["/equipamentos/starlinks", "/ativos/starlinks"],
     ["/equipamentos", "/ativos"],
     ["/manutencoes", "/chamados"],
-    ["/operacao/excecoes", "/excecoes"],
-    ["/operacao/automacoes", "/automacao"],
-    ["/operacao/importacao", "/importacao"],
+    ["/excecoes", "/operacao/excecoes"],
+    ["/automacao", "/operacao/automacoes"],
+    ["/importacao", "/operacao/importacao"],
     ["/reconciliacao", "/operacao/reconciliacao"],
     ["/reconciliacao-central", "/operacao/reconciliacao"],
     ["/administracao/reconciliacao", "/operacao/reconciliacao"],
-    ["/operacao/relatorios", "/operacao/relatorios/consumo"],
+    ["/relatorios", "/operacao/relatorios"],
   ];
 
   for (const [legacy, canonical] of aliases) {
-    if (legacy === "/operacao/relatorios" && pathname !== legacy) continue;
+    if (legacy === "/relatorios" && pathname !== legacy) continue;
 
     if (pathname === legacy || pathname.startsWith(`${legacy}/`)) {
       return `${canonical}${pathname.slice(legacy.length)}`;
@@ -128,7 +128,7 @@ export function AppSidebarNav({ items }: { items: NavItem[] }) {
   const isExact = (href: string) => pathname === href;
   const isBranch = (href: string) => {
     if (pathname === href) return true;
-    if (href === "/" || href === "/operacao/relatorios") return false;
+    if (href === "/") return false;
     return pathname.startsWith(`${href}/`);
   };
 

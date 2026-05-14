@@ -412,7 +412,7 @@ export default async function OcorrenciaDetailPage({
   if (occurrence.partner?.id) newExceptionParams.set("partnerId", occurrence.partner.id);
   if (occurrence.unit?.id) newExceptionParams.set("unitId", occurrence.unit.id);
   if (occurrence.equipment?.id) newExceptionParams.set("equipmentId", occurrence.equipment.id);
-  const newExceptionHref = `/excecoes/cadastro?${newExceptionParams.toString()}`;
+  const newExceptionHref = `/operacao/excecoes/cadastro?${newExceptionParams.toString()}`;
 
   const newTicketParams = new URLSearchParams();
   newTicketParams.set("occurrenceId", occurrence.id);

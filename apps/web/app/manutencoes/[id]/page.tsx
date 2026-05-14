@@ -133,7 +133,7 @@ export default async function ManutencaoDetailPage({
   if (maintenance.unit?.id) newExceptionParams.set("unitId", maintenance.unit.id);
   if (maintenance.equipment?.id) newExceptionParams.set("equipmentId", maintenance.equipment.id);
   if (maintenance.occurrence?.id) newExceptionParams.set("occurrenceId", maintenance.occurrence.id);
-  const newExceptionHref = `/excecoes/cadastro?${newExceptionParams.toString()}`;
+  const newExceptionHref = `/operacao/excecoes/cadastro?${newExceptionParams.toString()}`;
 
   const connectedRoutes = [
     {
