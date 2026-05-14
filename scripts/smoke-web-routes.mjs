@@ -53,6 +53,7 @@ const webRoutes = [
   ...cadastroRoutes,
 
   "/operacao",
+  "/operacao/pendencias",
   "/operacao/atividade",
   "/operacao/fila",
   "/operacao/excecoes",
