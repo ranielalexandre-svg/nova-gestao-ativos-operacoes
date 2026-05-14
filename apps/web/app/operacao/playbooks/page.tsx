@@ -570,6 +570,9 @@ export default async function PlaybooksOperacionaisPage() {
             <Link href="/operacao/playbooks/export" className="nova-lit-button nova-lit-button-primary">
               Exportar playbooks
             </Link>
+            <Link href="/operacao/relatorio-turno" className="nova-lit-button nova-lit-button-secondary">
+              Relatório do turno
+            </Link>
             <Link href="/operacao/war-room" className="nova-lit-button nova-lit-button-secondary">
               War Room
             </Link>
