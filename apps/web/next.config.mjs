@@ -94,6 +94,59 @@ const legacyAliasRedirects = [
   },
 ];
 
+const createLegacyAliasRedirects = [
+  {
+    source: "/alertas/novo",
+    destination: "/alertas/cadastro",
+    permanent: false,
+  },
+  {
+    source: "/ativos/nova",
+    destination: "/ativos/cadastro",
+    permanent: false,
+  },
+  {
+    source: "/chamados/novo",
+    destination: "/chamados/cadastro",
+    permanent: false,
+  },
+  {
+    source: "/contratos/novo",
+    destination: "/contratos/cadastro",
+    permanent: false,
+  },
+  {
+    source: "/excecoes/nova",
+    destination: "/operacao/excecoes/cadastro",
+    permanent: false,
+  },
+  {
+    source: "/manutencoes/nova",
+    destination: "/manutencoes/cadastro",
+    permanent: false,
+  },
+  {
+    source: "/ocorrencias/nova",
+    destination: "/ocorrencias/cadastro",
+    permanent: false,
+  },
+  {
+    source: "/parceiros/nova",
+    destination: "/parceiros/cadastro",
+    permanent: false,
+  },
+  {
+    source: "/unidades/nova",
+    destination: "/unidades/cadastro",
+    permanent: false,
+  },
+  {
+    source: "/usuarios/nova",
+    destination: "/usuarios/cadastro",
+    permanent: false,
+  },
+];
+
 const deepLegacyAliasRedirects = [
   {
     source: "/relatorios/consumo",
@@ -166,7 +219,7 @@ const __dirname = path.dirname(__filename);
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   async redirects() {
-    return [...operationalNarrativeRedirects, ...legacyAliasRedirects, ...deepLegacyAliasRedirects];
+    return [...operationalNarrativeRedirects, ...legacyAliasRedirects, ...createLegacyAliasRedirects, ...deepLegacyAliasRedirects];
   },
   allowedDevOrigins,
   turbopack: {
