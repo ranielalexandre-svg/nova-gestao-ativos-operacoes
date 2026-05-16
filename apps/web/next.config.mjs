@@ -121,6 +121,11 @@ const createLegacyAliasRedirects = [
     permanent: false,
   },
   {
+    source: "/operacao/excecoes/nova",
+    destination: "/operacao/excecoes/cadastro",
+    permanent: false,
+  },
+  {
     source: "/manutencoes/nova",
     destination: "/manutencoes/cadastro",
     permanent: false,
