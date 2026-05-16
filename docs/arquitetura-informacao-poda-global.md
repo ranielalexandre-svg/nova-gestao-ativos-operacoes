@@ -49,3 +49,14 @@ Antes de criar uma nova tela operacional, validar se ela é:
 4. ou apenas uma narrativa diferente dos mesmos dados.
 
 Se for apenas narrativa, deve virar seção interna, CTA contextual ou export, não item de menu.
+
+## Compatibilidade de rotas narrativas
+
+As rotas narrativas removidas da navegação principal devem permanecer apenas como entradas de compatibilidade, sem renderizar uma experiência paralela.
+
+- `/operacao/evidencias` redireciona para `/operacao/relatorio-turno`
+- `/operacao/pos-incidente` redireciona para `/operacao/war-room`
+- `/operacao/auditoria-operacional` redireciona para `/operacao/atividade`
+- `/operacao/comunicacao-turno` redireciona para `/operacao/handoff`
+
+A regra é evitar telas duplicadas que apresentam os mesmos dados com outro nome. Quando uma visão existir apenas como narrativa, ela deve virar redirect, seção interna ou export contextual.
