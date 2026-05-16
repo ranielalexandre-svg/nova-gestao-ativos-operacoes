@@ -132,3 +132,21 @@ Rotas removidas como arquivos de App Router e mantidas somente como redirect HTT
 A regra é: se uma rota existe apenas para compatibilidade, ela fica no `next.config.mjs` e em teste de redirect, não como página ou route handler paralelo.
 
 Observação técnica: `/automacao/export`, `/equipamentos/cadastro` e `/equipamentos/:id` ainda permanecem como fontes internas usadas por rotas canônicas. Elas não devem receber novos menus ou CTAs, mas a remoção física exige primeiro inverter os re-exports para que `/operacao/automacoes/export` e `/ativos/*` sejam donos reais da implementação.
+
+## Donos canônicos de implementação
+
+As rotas canônicas devem ser as fontes reais da implementação. Rotas legadas só podem existir como re-export temporário ou redirect HTTP.
+
+Inversões realizadas:
+
+- `/ativos/cadastro` passa a ser fonte real de cadastro de ativos/equipamentos
+- `/ativos/:id` passa a ser fonte real de detalhe de ativos/equipamentos
+- `/operacao/automacoes/export` passa a ser fonte real do export de automações
+
+Compatibilidade temporária mantida:
+
+- `/equipamentos/cadastro` reexporta `/ativos/cadastro`
+- `/equipamentos/:id` reexporta `/ativos/:id`
+- `/automacao/export` reexporta `/operacao/automacoes/export`
+
+A próxima remoção física desses legados só deve ocorrer depois que os verificadores confirmarem que nenhuma rota canônica depende deles.
