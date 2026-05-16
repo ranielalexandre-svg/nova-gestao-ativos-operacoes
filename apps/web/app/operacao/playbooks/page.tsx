@@ -579,8 +579,8 @@ export default async function PlaybooksOperacionaisPage() {
             <Link href="/operacao/handoff" className="nova-lit-button nova-lit-button-secondary">
               Handoff
             </Link>
-            <Link href="/operacao/evidencias" className="nova-lit-button nova-lit-button-secondary">
-              Evidências
+            <Link href="/operacao/relatorio-turno" className="nova-lit-button nova-lit-button-secondary">
+              Relatório do turno
             </Link>
           </div>
         </header>

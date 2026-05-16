@@ -377,8 +377,8 @@ export default async function PendenciasOperacionaisPage() {
             <Link href="/operacao/relatorios/monitoramento" className="nova-lit-button nova-lit-button-secondary">
               Relatório NOC
             </Link>
-            <Link href="/operacao/evidencias" className="nova-lit-button nova-lit-button-secondary">
-              Evidências
+            <Link href="/operacao/relatorio-turno" className="nova-lit-button nova-lit-button-secondary">
+              Relatório do turno
             </Link>
           </div>
         </header>
