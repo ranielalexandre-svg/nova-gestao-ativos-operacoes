@@ -94,6 +94,64 @@ const legacyAliasRedirects = [
   },
 ];
 
+const deepLegacyAliasRedirects = [
+  {
+    source: "/relatorios/consumo",
+    destination: "/operacao/relatorios/consumo",
+    permanent: false,
+  },
+  {
+    source: "/relatorios/disponibilidade",
+    destination: "/operacao/relatorios/disponibilidade",
+    permanent: false,
+  },
+  {
+    source: "/relatorios/performance",
+    destination: "/operacao/relatorios/performance",
+    permanent: false,
+  },
+  {
+    source: "/relatorios/monitoramento/automacoes",
+    destination: "/operacao/relatorios/monitoramento/automacoes",
+    permanent: false,
+  },
+  {
+    source: "/relatorios/monitoramento/export",
+    destination: "/operacao/relatorios/monitoramento/export",
+    permanent: false,
+  },
+  {
+    source: "/relatorios/monitoramento/export-jobs",
+    destination: "/operacao/relatorios/monitoramento/export-jobs",
+    permanent: false,
+  },
+  {
+    source: "/relatorios/monitoramento/templates",
+    destination: "/operacao/relatorios/monitoramento/templates",
+    permanent: false,
+  },
+  {
+    source: "/automacao/export",
+    destination: "/operacao/automacoes/export",
+    permanent: false,
+  },
+  {
+    source: "/equipamentos/cadastro",
+    destination: "/ativos/cadastro",
+    permanent: false,
+  },
+  {
+    source: "/equipamentos/nova",
+    destination: "/equipamentos/cadastro",
+    permanent: false,
+  },
+  {
+    source: "/equipamentos/:assetId",
+    destination: "/ativos/:assetId",
+    permanent: false,
+  },
+];
+
 const allowedDevOrigins = (process.env.NEXT_ALLOWED_DEV_ORIGINS || "")
   .split(",")
   .map((origin) => origin.trim())
@@ -108,7 +166,7 @@ const __dirname = path.dirname(__filename);
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   async redirects() {
-    return [...operationalNarrativeRedirects, ...legacyAliasRedirects];
+    return [...operationalNarrativeRedirects, ...legacyAliasRedirects, ...deepLegacyAliasRedirects];
   },
   allowedDevOrigins,
   turbopack: {

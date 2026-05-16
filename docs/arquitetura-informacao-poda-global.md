@@ -78,3 +78,19 @@ Aliases mantidos apenas por compatibilidade:
 - `/equipamentos` -> `/ativos`
 
 A navegação nova deve sempre apontar para a rota canônica. Alias não deve ganhar card, menu, CTA ou tela própria.
+
+## Aliases profundos remanescentes
+
+Subrotas antigas também devem ser tratadas no `next.config.mjs`, não por páginas intermediárias no App Router.
+
+Aliases profundos canonizados:
+
+- `/relatorios/consumo` -> `/operacao/relatorios/consumo`
+- `/relatorios/disponibilidade` -> `/operacao/relatorios/disponibilidade`
+- `/relatorios/performance` -> `/operacao/relatorios/performance`
+- `/relatorios/monitoramento/*` -> `/operacao/relatorios/monitoramento/*`
+- `/automacao/export` -> `/operacao/automacoes/export`
+- `/equipamentos/cadastro` -> `/ativos/cadastro`
+- `/equipamentos/:id` -> `/ativos/:id`
+
+Exceção transitória: `/equipamentos/nova` continua apontando para `/equipamentos/cadastro` para preservar o contrato legado de criação até a próxima rodada de migração dos fluxos de cadastro.
