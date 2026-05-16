@@ -114,3 +114,21 @@ Aliases canonizados:
 - `/usuarios/nova` -> `/usuarios/cadastro`
 
 Novos links, menus e CTAs devem sempre apontar diretamente para `/cadastro` canônico, nunca para `/novo` ou `/nova`.
+
+## Rotas alias eclipsadas por redirects
+
+Quando uma rota antiga já é redirecionada no `next.config.mjs`, o arquivo equivalente no App Router não deve permanecer no build. Manter os dois cria código morto, rotas fantasmas e risco de divergência entre autenticação, export e navegação.
+
+Rotas removidas como arquivos de App Router e mantidas somente como redirect HTTP:
+
+- `/administracao/sla`
+- `/administracao/importacao`
+- `/relatorios/monitoramento/automacoes`
+- `/relatorios/monitoramento/export`
+- `/relatorios/monitoramento/export-jobs`
+- `/relatorios/monitoramento/templates`
+- `/operacao/excecoes/nova`
+
+A regra é: se uma rota existe apenas para compatibilidade, ela fica no `next.config.mjs` e em teste de redirect, não como página ou route handler paralelo.
+
+Observação técnica: `/automacao/export`, `/equipamentos/cadastro` e `/equipamentos/:id` ainda permanecem como fontes internas usadas por rotas canônicas. Elas não devem receber novos menus ou CTAs, mas a remoção física exige primeiro inverter os re-exports para que `/operacao/automacoes/export` e `/ativos/*` sejam donos reais da implementação.
