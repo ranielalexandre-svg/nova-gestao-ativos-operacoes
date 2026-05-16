@@ -60,3 +60,21 @@ As rotas narrativas removidas da navegação principal devem permanecer apenas c
 - `/operacao/comunicacao-turno` redireciona para `/operacao/handoff`
 
 A regra é evitar telas duplicadas que apresentam os mesmos dados com outro nome. Quando uma visão existir apenas como narrativa, ela deve virar redirect, seção interna ou export contextual.
+
+## Aliases legados canonizados
+
+Aliases antigos devem redirecionar no nível de `next.config.mjs`, antes do App Router, para evitar páginas intermediárias, duplicidade de build e divergência de autenticação.
+
+Aliases mantidos apenas por compatibilidade:
+
+- `/relatorios` -> `/operacao/relatorios`
+- `/relatorios/monitoramento` -> `/operacao/relatorios/monitoramento`
+- `/integracoes` -> `/monitoramento/fontes`
+- `/automacao` -> `/operacao/automacoes`
+- `/administracao/*` -> módulos canônicos de operação
+- `/importacao` -> `/operacao/importacao`
+- `/reconciliacao` e `/reconciliacao-central` -> `/operacao/reconciliacao`
+- `/sensores` -> `/monitoramento/sensores`
+- `/equipamentos` -> `/ativos`
+
+A navegação nova deve sempre apontar para a rota canônica. Alias não deve ganhar card, menu, CTA ou tela própria.
