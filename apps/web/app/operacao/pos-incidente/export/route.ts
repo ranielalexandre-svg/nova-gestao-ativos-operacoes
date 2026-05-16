@@ -1,5 +1,5 @@
-import { exportSuiteCsv } from "../../_suite-pos-incidente/data";
+import { type NextRequest, NextResponse } from "next/server";
 
-export async function GET() {
-  return exportSuiteCsv("pos-incidente");
+export function GET(request: NextRequest) {
+  return NextResponse.redirect(new URL("/operacao/war-room/export", request.url), 307);
 }
