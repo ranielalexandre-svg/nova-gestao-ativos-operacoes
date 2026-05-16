@@ -145,7 +145,7 @@ export async function SuitePosIncidentePage({ kind }: { kind: SuiteKind }) {
                   <h2>Evidência suficiente, pendente ou ausente</h2>
                   <p>Mapa objetivo de provas e lacunas antes de comunicação, auditoria ou pós-incidente.</p>
                 </div>
-                <Link href="/operacao/evidencias" className="nova-lit-button nova-lit-button-secondary">
+                <Link href="/operacao/relatorio-turno" className="nova-lit-button nova-lit-button-secondary">
                   Abrir evidências
                 </Link>
               </div>
@@ -181,7 +181,7 @@ export async function SuitePosIncidentePage({ kind }: { kind: SuiteKind }) {
                   <h2>Causa, impacto e prevenção</h2>
                   <p>Estrutura pronta para revisão de incidente com detecção, resposta, contenção e prevenção.</p>
                 </div>
-                <Link href="/operacao/pos-incidente" className="nova-lit-button nova-lit-button-secondary">
+                <Link href="/operacao/war-room" className="nova-lit-button nova-lit-button-secondary">
                   Revisar pós-incidente
                 </Link>
               </div>
@@ -204,7 +204,7 @@ export async function SuitePosIncidentePage({ kind }: { kind: SuiteKind }) {
                   <h2>Rastreabilidade e decisões</h2>
                   <p>Indicadores para validar se o turno tem responsáveis, vínculos, rastro e evidência suficiente.</p>
                 </div>
-                <Link href="/operacao/auditoria-operacional" className="nova-lit-button nova-lit-button-secondary">
+                <Link href="/operacao/atividade" className="nova-lit-button nova-lit-button-secondary">
                   Abrir auditoria
                 </Link>
               </div>
@@ -227,7 +227,7 @@ export async function SuitePosIncidentePage({ kind }: { kind: SuiteKind }) {
                   <h2>Mensagens prontas do turno</h2>
                   <p>Textos objetivos para gestor, NOC, backoffice e próximo operador.</p>
                 </div>
-                <Link href="/operacao/comunicacao-turno" className="nova-lit-button nova-lit-button-secondary">
+                <Link href="/operacao/handoff" className="nova-lit-button nova-lit-button-secondary">
                   Comunicação
                 </Link>
               </div>

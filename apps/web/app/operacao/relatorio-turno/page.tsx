@@ -518,7 +518,7 @@ export default async function RelatorioTurnoPage() {
       href: "/operacao/atividade",
     },
     {
-      label: "Pós-incidente",
+      label: "War Room",
       text: topCase
         ? `Usar ${topCase.code} como caso principal para revisão, evidências e causa provável.`
         : "Sem caso principal crítico para pós-incidente.",
@@ -552,11 +552,11 @@ export default async function RelatorioTurnoPage() {
             <Link href="/operacao/playbooks" className="nova-lit-button nova-lit-button-secondary">
               Playbooks
             </Link>
-            <Link href="/operacao/evidencias" className="nova-lit-button nova-lit-button-secondary">
-              Evidências
+            <Link href="/operacao/relatorio-turno" className="nova-lit-button nova-lit-button-secondary">
+              Relatório do turno
             </Link>
-            <Link href="/operacao/pos-incidente" className="nova-lit-button nova-lit-button-secondary">
-              Pós-incidente
+            <Link href="/operacao/war-room" className="nova-lit-button nova-lit-button-secondary">
+              War Room
             </Link>
           </div>
         </header>
@@ -753,7 +753,7 @@ export default async function RelatorioTurnoPage() {
                         `NOC: ${nocRisk} sinal(is) em atenção`,
                         `Automação: ${automationSummary.counts.failedRuns24h} falha(s) 24h`,
                         `Reconciliação: ${reconciliationPending} divergência(s)`,
-                        topCase ? `Pós-incidente: ${topCase.code} - ${topCase.title}` : "Pós-incidente: sem caso principal crítico",
+                        topCase ? `War Room: ${topCase.code} - ${topCase.title}` : "War Room: sem caso principal crítico",
                       ].join("\n")}
                     />
                   </label>

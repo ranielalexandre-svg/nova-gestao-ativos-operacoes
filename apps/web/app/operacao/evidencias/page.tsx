@@ -4,6 +4,6 @@ import { SuitePosIncidentePage } from "../_suite-pos-incidente/page-shell";
 
 export default async function EvidenciasOperacionaisPage() {
   const session = await getServerWebSession();
-  if (!session.authenticated) redirect("/login?next=/operacao/evidencias");
+  if (!session.authenticated) redirect("/login?next=/operacao/relatorio-turno");
   return <SuitePosIncidentePage kind="evidencias" />;
 }

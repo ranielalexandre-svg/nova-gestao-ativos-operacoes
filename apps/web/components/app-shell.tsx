@@ -16,10 +16,6 @@ const NAV: NavEntry[] = [
   { href: "/operacao/war-room", label: "War Room", short: "WR", icon: "dashboard", section: "Operação" },
   { href: "/operacao/playbooks", label: "Playbooks", short: "PB", icon: "activity", section: "Operação" },
   { href: "/operacao/relatorio-turno", label: "Relatório do Turno", short: "RT", icon: "activity", section: "Operação" },
-  { href: "/operacao/evidencias", label: "Evidências", short: "EV", icon: "activity", section: "Operação" },
-  { href: "/operacao/pos-incidente", label: "Pós-incidente", short: "PI", icon: "activity", section: "Operação" },
-  { href: "/operacao/auditoria-operacional", label: "Auditoria", short: "AU", icon: "activity", section: "Operação" },
-  { href: "/operacao/comunicacao-turno", label: "Comunicação", short: "CM", icon: "activity", section: "Operação" },
 
   { href: "/unidades", label: "Unidades", short: "UN", icon: "units", section: "Monitoramento" },
   { href: "/sensores", label: "Sensores", short: "SN", icon: "monitoring", section: "Monitoramento" },
