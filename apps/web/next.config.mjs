@@ -21,6 +21,79 @@ const operationalNarrativeRedirects = [
   },
 ];
 
+const legacyAliasRedirects = [
+  {
+    source: "/relatorios",
+    destination: "/operacao/relatorios",
+    permanent: false,
+  },
+  {
+    source: "/relatorios/monitoramento",
+    destination: "/operacao/relatorios/monitoramento",
+    permanent: false,
+  },
+  {
+    source: "/integracoes",
+    destination: "/monitoramento/fontes",
+    permanent: false,
+  },
+  {
+    source: "/automacao",
+    destination: "/operacao/automacoes",
+    permanent: false,
+  },
+  {
+    source: "/administracao/automacoes",
+    destination: "/operacao/automacoes",
+    permanent: false,
+  },
+  {
+    source: "/administracao/sla",
+    destination: "/operacao/sla",
+    permanent: false,
+  },
+  {
+    source: "/administracao/importacao",
+    destination: "/operacao/importacao",
+    permanent: false,
+  },
+  {
+    source: "/administracao/reconciliacao",
+    destination: "/operacao/reconciliacao",
+    permanent: false,
+  },
+  {
+    source: "/importacao",
+    destination: "/operacao/importacao",
+    permanent: false,
+  },
+  {
+    source: "/reconciliacao",
+    destination: "/operacao/reconciliacao",
+    permanent: false,
+  },
+  {
+    source: "/reconciliacao-central",
+    destination: "/operacao/reconciliacao",
+    permanent: false,
+  },
+  {
+    source: "/sensores",
+    destination: "/monitoramento/sensores",
+    permanent: false,
+  },
+  {
+    source: "/equipamentos",
+    destination: "/ativos",
+    permanent: false,
+  },
+  {
+    source: "/equipamentos/starlinks",
+    destination: "/ativos/starlinks",
+    permanent: false,
+  },
+];
+
 const allowedDevOrigins = (process.env.NEXT_ALLOWED_DEV_ORIGINS || "")
   .split(",")
   .map((origin) => origin.trim())
@@ -35,7 +108,7 @@ const __dirname = path.dirname(__filename);
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   async redirects() {
-    return operationalNarrativeRedirects;
+    return [...operationalNarrativeRedirects, ...legacyAliasRedirects];
   },
   allowedDevOrigins,
   turbopack: {
