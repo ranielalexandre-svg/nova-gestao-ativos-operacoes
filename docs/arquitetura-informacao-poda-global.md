@@ -94,3 +94,23 @@ Aliases profundos canonizados:
 - `/equipamentos/:id` -> `/ativos/:id`
 
 Exceção transitória: `/equipamentos/nova` continua apontando para `/equipamentos/cadastro` para preservar o contrato legado de criação até a próxima rodada de migração dos fluxos de cadastro.
+
+## Aliases legados de criação
+
+Rotas antigas de criação com `/novo` ou `/nova` devem existir apenas como redirect HTTP em `next.config.mjs`.
+
+Aliases canonizados:
+
+- `/alertas/novo` -> `/alertas/cadastro`
+- `/ativos/nova` -> `/ativos/cadastro`
+- `/chamados/novo` -> `/chamados/cadastro`
+- `/contratos/novo` -> `/contratos/cadastro`
+- `/equipamentos/nova` -> `/equipamentos/cadastro`
+- `/excecoes/nova` -> `/operacao/excecoes/cadastro`
+- `/manutencoes/nova` -> `/manutencoes/cadastro`
+- `/ocorrencias/nova` -> `/ocorrencias/cadastro`
+- `/parceiros/nova` -> `/parceiros/cadastro`
+- `/unidades/nova` -> `/unidades/cadastro`
+- `/usuarios/nova` -> `/usuarios/cadastro`
+
+Novos links, menus e CTAs devem sempre apontar diretamente para `/cadastro` canônico, nunca para `/novo` ou `/nova`.
