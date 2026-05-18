@@ -498,7 +498,7 @@ export default async function RelatorioTurnoPage() {
 
   const executiveItems: ExecutiveItem[] = [
     {
-      label: "Resumo para gestor",
+      label: "Resumo executivo",
       text: `${reportHealthLabel(reportScore)} com score ${formatNumber(reportScore)} e risco operacional ${formatNumber(operationalRisk)}.`,
       tone: reportTone,
       href: "/operacao/war-room",
@@ -521,7 +521,7 @@ export default async function RelatorioTurnoPage() {
       label: "War Room",
       text: topCase
         ? `Usar ${topCase.code} como caso principal para revisão, evidências e causa provável.`
-        : "Sem caso principal crítico para pós-incidente.",
+        : "Sem caso principal crítico para revisão.",
       tone: topCase ? severityTone(topCase.severity) : "success",
       href: topCase ? `/operacao/excecoes/${topCase.id}` : "/operacao/relatorio-turno",
     },
@@ -533,7 +533,7 @@ export default async function RelatorioTurnoPage() {
         <header className="nova-turno-hero">
           <div>
             <span>Operação / Relatório do turno</span>
-            <h1>Relatório executivo do turno e pós-incidente</h1>
+            <h1>Fechamento do turno operacional</h1>
             <p>
               Feche o turno com resumo executivo, risco residual, ações executadas, pendências e
               contexto pronto para gestão, handoff e revisão pós-incidente.
@@ -551,9 +551,6 @@ export default async function RelatorioTurnoPage() {
             </Link>
             <Link href="/operacao/playbooks" className="nova-lit-button nova-lit-button-secondary">
               Playbooks
-            </Link>
-            <Link href="/operacao/relatorio-turno" className="nova-lit-button nova-lit-button-secondary">
-              Relatório do turno
             </Link>
             <Link href="/operacao/war-room" className="nova-lit-button nova-lit-button-secondary">
               War Room
@@ -594,8 +591,8 @@ export default async function RelatorioTurnoPage() {
               <div className="nova-turno-panel-head">
                 <div>
                   <span>Relatório executivo</span>
-                  <h2>Resumo para gestor</h2>
-                  <p>Blocos prontos para fechamento do turno, reunião rápida e acompanhamento pós-incidente.</p>
+                  <h2>Resumo executivo</h2>
+                  <p>Blocos curtos para gestão, handoff e revisão do próximo responsável.</p>
                 </div>
                 <Link href="/operacao/relatorio-turno/export" className="nova-lit-button nova-lit-button-secondary">
                   Baixar CSV
@@ -641,7 +638,7 @@ export default async function RelatorioTurnoPage() {
               <div className="nova-turno-panel-head">
                 <div>
                   <span>Pendências</span>
-                  <h2>Ações pendentes para o próximo responsável</h2>
+                  <h2>Pendências para o próximo responsável</h2>
                   <p>Recorte combinado de SLA, triagem, dono, automação, NOC e reconciliação.</p>
                 </div>
                 <Link href="/operacao/playbooks" className="nova-lit-button nova-lit-button-secondary">
@@ -670,7 +667,7 @@ export default async function RelatorioTurnoPage() {
               <div className="nova-turno-panel-head">
                 <div>
                   <span>Casos e pós-incidente</span>
-                  <h2>Casos que justificam revisão</h2>
+                  <h2>Casos que exigem revisão</h2>
                   <p>Casos críticos para análise de causa, evidência, decisão e ação corretiva.</p>
                 </div>
                 <Link href="/operacao/fila" className="nova-lit-button nova-lit-button-secondary">
@@ -709,8 +706,8 @@ export default async function RelatorioTurnoPage() {
               <div className="nova-turno-panel-head is-compact">
                 <div>
                   <span>Fechamento</span>
-                  <h2>Registrar relatório</h2>
-                  <p>Cria evento manual de fechamento do turno no rastro operacional.</p>
+                  <h2>Registrar fechamento</h2>
+                  <p>Registra o fechamento no rastro operacional.</p>
                 </div>
               </div>
 

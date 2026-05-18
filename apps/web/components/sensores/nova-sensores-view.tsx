@@ -235,7 +235,7 @@ export default function NovaSensoresView({
       <div className="nova-lit-page-heading nova-sensors-heading">
         <div>
           <h1>Sensores NOC</h1>
-          <p className="nova-lit-page-subtitle">Telemetria, host Zabbix, latência, perda e vínculos por unidade.</p>
+          <p className="nova-lit-page-subtitle">Leitura NOC de vínculo, saúde, latência e perda por unidade.</p>
         </div>
 
         <div className="nova-lit-page-actions">
@@ -253,7 +253,7 @@ export default function NovaSensoresView({
       <form action="/monitoramento/sensores" className="nova-lit-card nova-sensors-filters">
         <label className="nova-sensors-search">
           <span>Busca</span>
-          <input name="q" defaultValue={state.q} placeholder="Unidade, host, parceiro, cidade ou ativo" />
+          <input name="q" defaultValue={state.q} placeholder="Buscar unidade, host, parceiro, cidade ou ativo" />
         </label>
 
         <label className="nova-sensors-field">
@@ -284,7 +284,7 @@ export default function NovaSensoresView({
           <div className="nova-sensors-table-title">
             <div>
               <span>Telemetria Zabbix</span>
-              <h2>Sensores NOC por unidade</h2>
+              <h2>Unidades NOC por vínculo e saúde</h2>
             </div>
             <div>
               <small>{pageItems.length} linhas</small>
@@ -320,7 +320,7 @@ export default function NovaSensoresView({
                   <span className={`nova-sensors-badge is-${toneForHealth(item.health)}`}>
                     {labelForHealth(item.health)}
                   </span>
-                  {item.problems?.length ? <small>{item.problems[0]?.name || item.problems[0]?.severity || "Problema ativo"}</small> : <small>Sem problema ativo</small>}
+                  {item.problems?.length ? <small>{item.problems[0]?.name || item.problems[0]?.severity || "Problema ativo"}</small> : <small>Sem alerta ativo</small>}
                 </div>
 
                 <div><b>{pingLabel(item)}</b></div>

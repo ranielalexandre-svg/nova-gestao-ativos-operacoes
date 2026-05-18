@@ -1306,3 +1306,55 @@ summary {
     position: static;
   }
 }
+/* PR60 - ajuste fino visual pós-poda */
+.nova-post-pruning-density-note {
+  display: none;
+}
+
+.nova-lit-page-heading h1,
+.nova-automation-workflow-heading h1,
+.nova-queue-command-hero h1 {
+  letter-spacing: -0.045em;
+}
+
+.nova-lit-page-heading,
+.nova-automation-workflow-heading,
+.nova-queue-command-hero {
+  scroll-margin-top: 96px;
+}
+
+.nova-automation-workflow-log-list article span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nova-automation-workflow-log-list {
+  max-height: 248px;
+  overflow: auto;
+}
+
+.nova-sensors-table-card,
+.nova-monitor-table-card {
+  min-height: 0;
+}
+
+.nova-sensors-table-title h2 {
+  letter-spacing: -0.025em;
+}
+
+.nova-sensors-main-grid aside,
+.nova-queue-side-stack,
+.nova-automation-workflow-right {
+  position: sticky;
+  top: 88px;
+  align-self: start;
+}
+
+@media (max-width: 1180px) {
+  .nova-sensors-main-grid aside,
+  .nova-queue-side-stack,
+  .nova-automation-workflow-right {
+    position: static;
+  }
+}
