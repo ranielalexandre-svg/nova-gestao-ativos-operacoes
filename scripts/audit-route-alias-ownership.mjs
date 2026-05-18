@@ -112,7 +112,7 @@ const sourceCandidates = audited.filter((item) => item.classification.type === "
 
 const outPath = "docs/auditoria-local/route-alias-ownership.json";
 mkdirSync(dirname(outPath), { recursive: true });
-writeFileSync(outPath, JSON.stringify({ generatedAt: new Date().toISOString(), audited, shadowed, sourceCandidates }, null, 2));
+writeFileSync(outPath, JSON.stringify({ generatedAt: process.env.AUDIT_GENERATED_AT ?? "stable-route-pruning-audit", audited, shadowed, sourceCandidates }, null, 2));
 
 console.log(`Auditoria de aliases: ${audited.length} redirects mapeados.`);
 console.log(`Arquivos sombra candidatos a remocao segura: ${shadowed.length}.`);
