@@ -35,6 +35,25 @@ type RunRow = {
   };
 };
 
+const emptyRulePage: PaginatedResponse<RuleRow> = {
+  items: [],
+  meta: { page: 1, pageSize: 0, total: 0, totalPages: 1, hasPrev: false, hasNext: false },
+};
+
+const emptyRunPage: PaginatedResponse<RunRow> = {
+  items: [],
+  meta: { page: 1, pageSize: 0, total: 0, totalPages: 1, hasPrev: false, hasNext: false },
+};
+
+async function safeApiPage<T>(path: string, fallback: PaginatedResponse<T>) {
+  try {
+    return await apiJson<PaginatedResponse<T>>(path);
+  } catch (error) {
+    console.error("[automacoes/export] fallback vazio", error);
+    return fallback;
+  }
+}
+
 function readOptional(searchParams: URLSearchParams, key: string) {
   const value = searchParams.get(key)?.trim();
   return value || undefined;
@@ -93,7 +112,7 @@ export async function GET(request: Request) {
     let hasNext = true;
 
     while (hasNext && page <= 50) {
-      const response = await apiJson<PaginatedResponse<RuleRow>>(
+      const response = await safeApiPage<RuleRow>(
         `/automations${buildApiQuery({
           q,
           detector: detector && detector !== "all" ? detector : undefined,
@@ -103,14 +122,16 @@ export async function GET(request: Request) {
           page,
           pageSize: 100,
         })}`,
+        emptyRulePage,
       );
       rules.push(...response.items);
       hasNext = response.meta.hasNext;
       page += 1;
     }
 
-    const runsResponse = await apiJson<PaginatedResponse<RunRow>>(
+    const runsResponse = await safeApiPage<RunRow>(
       "/automations/runs?page=1&pageSize=100&sortDir=desc",
+      emptyRunPage,
     );
 
     const header = [

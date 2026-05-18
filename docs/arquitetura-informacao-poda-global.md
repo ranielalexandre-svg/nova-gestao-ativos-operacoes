@@ -162,3 +162,21 @@ Regras aplicadas:
 - O painel lateral deve orientar a próxima ação, não repetir a navegação do menu.
 - Indicadores de apoio ficam como bastidor técnico e não competem com fila, SLA e NOC.
 - Acima da dobra devem aparecer decisão, pressão e despacho; abaixo ficam contexto e apoio.
+
+## Remoção dos legados técnicos restantes
+
+Depois da inversão dos donos canônicos, os últimos arquivos legados que ainda reexportavam implementação foram removidos do App Router.
+
+Removidos fisicamente:
+
+- `/equipamentos/cadastro`
+- `/equipamentos/:id`
+- `/automacao/export`
+
+Compatibilidade mantida por redirect HTTP em `next.config.mjs`:
+
+- `/equipamentos/cadastro` -> `/ativos/cadastro`
+- `/equipamentos/:id` -> `/ativos/:id`
+- `/automacao/export` -> `/operacao/automacoes/export`
+
+A regra final é: rota legada não deve ter arquivo no App Router quando já existe redirect HTTP equivalente.
