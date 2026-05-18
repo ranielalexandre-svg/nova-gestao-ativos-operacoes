@@ -7,6 +7,13 @@ const forbidden = [
   "apps/web/app/administracao/sla/page.tsx",
   "apps/web/app/administracao/importacao/page.tsx",
   "apps/web/app/operacao/excecoes/nova/page.tsx",
+  "apps/web/app/relatorios/monitoramento/templates/route.ts",
+  "apps/web/app/relatorios/monitoramento/export-jobs/route.ts",
+  "apps/web/app/relatorios/monitoramento/automacoes/route.ts",
+  "apps/web/app/operacao/comunicacao-turno/page.tsx",
+  "apps/web/app/operacao/auditoria-operacional/page.tsx",
+  "apps/web/app/operacao/pos-incidente/page.tsx",
+  "apps/web/app/operacao/evidencias/page.tsx",
   "apps/web/app/relatorios/monitoramento/export/route.ts",
 ];
 
@@ -56,6 +63,19 @@ for (const snippet of requiredRedirects) {
     console.error(`Redirect obrigatorio ausente em next.config.mjs: ${snippet}`);
     failures += 1;
   }
+}
+
+
+const auditReport = JSON.parse(readFileSync("docs/auditoria-local/route-alias-ownership.json", "utf8"));
+
+if ((auditReport.shadowed?.length ?? 0) > 0) {
+  console.error(`Auditoria ainda encontrou ${auditReport.shadowed.length} sombra(s) removiveis.`);
+  failures += 1;
+}
+
+if ((auditReport.sourceCandidates?.length ?? 0) > 0) {
+  console.error(`Auditoria encontrou ${auditReport.sourceCandidates.length} rota(s) com implementacao propria sob redirect.`);
+  failures += 1;
 }
 
 if (failures > 0) {

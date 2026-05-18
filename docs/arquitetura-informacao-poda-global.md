@@ -191,3 +191,19 @@ A poda de rotas deve terminar com uma auditoria explícita de ownership:
 - todo legado removido precisa ficar protegido por verificador automatizado.
 
 O relatório local de auditoria fica em `docs/auditoria-local/fechamento-poda-rotas.md` e deve ser regenerado quando novos aliases forem criados.
+
+## Remoção das sombras simples auditadas
+
+A auditoria de ownership identificou sete arquivos que eram apenas sombras de redirects já declarados em `next.config.mjs`. Eles foram removidos do App Router sem alterar o contrato público das URLs.
+
+Removidos como sombras simples:
+
+- `/operacao/evidencias`
+- `/operacao/pos-incidente`
+- `/operacao/auditoria-operacional`
+- `/operacao/comunicacao-turno`
+- `/relatorios/monitoramento/automacoes`
+- `/relatorios/monitoramento/export-jobs`
+- `/relatorios/monitoramento/templates`
+
+Essas URLs continuam existindo por redirect HTTP e não devem voltar como páginas ou route handlers próprios.
