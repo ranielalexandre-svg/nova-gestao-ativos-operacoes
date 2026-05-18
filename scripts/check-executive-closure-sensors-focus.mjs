@@ -28,6 +28,14 @@ const checks = [
     message: "Sensores deve ter modo de pendencias de vinculo.",
   },
   {
+    ok: sensors.includes('state.health === "unmapped"') && sensors.includes("unmappedShare >= 60"),
+    message: "Sensores deve ativar modo de vinculo por filtro sem vinculo ou predominancia de unidades sem host.",
+  },
+  {
+    ok: sensors.includes("Pendências de vínculo NOC"),
+    message: "Titulo da tela deve mudar quando o modo de pendencias estiver ativo.",
+  },
+  {
     ok: sensors.includes("Pendências de vínculo por unidade"),
     message: "Sensores deve narrar pendencias de vinculo quando nao houver hosts.",
   },

@@ -221,7 +221,8 @@ export default function NovaSensoresView({
   const critical = (counts?.down || 0) + (counts?.degraded || 0);
   const unmapped = (counts?.unmapped || 0) + (counts?.ambiguous || 0);
   const coverage = units ? Math.round((matched / units) * 100) : 0;
-  const bindingMode = units > 0 && matched === 0 && unmapped > 0;
+  const unmappedShare = units ? Math.round((unmapped / units) * 100) : 0;
+  const bindingMode = units > 0 && unmapped > 0 && (state.health === "unmapped" || matched === 0 || unmappedShare >= 60);
 
   const kpis = bindingMode
     ? [
@@ -243,7 +244,7 @@ export default function NovaSensoresView({
     <NovaLitShell activeHref="/monitoramento/sensores">
       <div className="nova-lit-page-heading nova-sensors-heading">
         <div>
-          <h1>Sensores NOC</h1>
+          <h1>{bindingMode ? "Pendências de vínculo NOC" : "Sensores NOC"}</h1>
           <p className="nova-lit-page-subtitle">{bindingMode ? "Pendências de vínculo entre unidades e hosts antes da leitura de saúde NOC." : "Leitura NOC de vínculo, saúde, latência e perda por unidade."}</p>
         </div>
 

@@ -225,3 +225,12 @@ Depois da lapidação pós-poda, duas telas ainda exigiam hierarquia mais operac
 - `/operacao/relatorio-turno`: a lateral deve priorizar o formulário de fechamento; rastro recente e dados usados ficam como apoio colapsável.
 - `/monitoramento/sensores`: quando a cobertura estiver sem hosts correlacionados, a tela deve assumir narrativa de pendência de vínculo, não de falha de monitoramento.
 - O cockpit `/operacao`, a fila e automações não devem receber mudanças grandes neste ciclo.
+## Modo de sensores sem vinculo
+
+A tela `/monitoramento/sensores` deve assumir narrativa de pendencia de vinculo quando:
+
+- o filtro `health=unmapped` estiver ativo;
+- nenhuma unidade estiver vinculada;
+- ou a maior parte da base estiver sem host correlacionado.
+
+Isso evita que uma base majoritariamente sem correlacao pareca uma falha de monitoramento. Nessa condicao, a tela deve orientar revisao de fontes, parceiro, cidade e unidade antes de leitura de saude NOC.
