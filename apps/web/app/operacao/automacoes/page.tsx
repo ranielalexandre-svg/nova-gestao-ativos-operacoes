@@ -579,7 +579,7 @@ function ErrorSummary({
     <section className="nova-automation-workflow-card nova-automation-workflow-errors">
       <div className="nova-automation-workflow-card-title">
         <span>Erros do fluxo</span>
-        <Link href="#automation-history">Ver todos os erros</Link>
+        <Link href="#automation-history">Ver histórico</Link>
       </div>
       <div className="nova-automation-workflow-error-grid">
         <div className="nova-automation-workflow-donut" style={style}>
@@ -611,7 +611,10 @@ function ExecutionHistory({ runs, exportHref }: { runs: RunRow[]; exportHref: st
   return (
     <section className="nova-automation-workflow-card nova-automation-workflow-history" id="automation-history">
       <div className="nova-automation-workflow-card-title">
-        <span>Execuções recentes</span>
+        <div>
+          <span>Histórico resumido</span>
+          <small>Últimas 4 execuções; exporte para auditoria completa.</small>
+        </div>
         <Link href={exportHref}><Icon name="download" />Exportar</Link>
       </div>
       <div className="nova-automation-workflow-history-wrap">
@@ -629,7 +632,7 @@ function ExecutionHistory({ runs, exportHref }: { runs: RunRow[]; exportHref: st
             </tr>
           </thead>
           <tbody>
-            {runs.length ? runs.slice(0, 8).map((item) => (
+            {runs.length ? runs.slice(0, 4).map((item) => (
               <tr key={item.id}>
                 <td>{formatDateTime(item.startedAt)}</td>
                 <td>{item.rule.code}</td>
@@ -929,7 +932,7 @@ export default async function AutomacaoPage({
                   <button type="button" disabled><Icon name="play" />Executar agora</button>
                 )}
                 <a href="#automation-rules"><Icon name="gear" />Editar regras operacionais</a>
-                <a href="#automation-history"><Icon name="file" />Ver histórico de execuções</a>
+                <a href="#automation-history"><Icon name="file" />Histórico resumido</a>
               </section>
 
               <TriggerSettings rule={primaryRule} latestRun={latestRun} />

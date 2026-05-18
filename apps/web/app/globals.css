@@ -1445,3 +1445,20 @@ summary {
     justify-content: flex-start;
   }
 }
+/* PR63 - histórico compacto de automações */
+.nova-automation-workflow-history .nova-automation-workflow-card-title > div {
+  display: grid;
+  gap: 2px;
+}
+
+.nova-automation-workflow-history .nova-automation-workflow-card-title small {
+  color: var(--nova-lit-muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.nova-automation-workflow-history-wrap table tbody tr:nth-child(n + 5) {
+  display: none;
+}
