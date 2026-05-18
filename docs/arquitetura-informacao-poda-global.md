@@ -207,3 +207,14 @@ Removidos como sombras simples:
 - `/relatorios/monitoramento/templates`
 
 Essas URLs continuam existindo por redirect HTTP e não devem voltar como páginas ou route handlers próprios.
+## Ajuste fino visual pós-poda
+
+Depois da remoção de aliases e sombras, as telas operacionais devem ser lapidadas sem criar módulos novos.
+
+Regras aplicadas:
+
+- `/operacao` permanece como cockpit principal, sem voltar a ser lista de páginas.
+- `/operacao/relatorio-turno` deve priorizar fechamento, risco residual e próximo responsável.
+- `/operacao/automacoes` deve mostrar eventos recentes sem transformar log e histórico em ruído visual.
+- `/monitoramento/sensores` deve ser lido como painel NOC de vínculo e saúde, não como tabela bruta de unidades sem host.
+- Ajustes pós-poda devem melhorar hierarquia visual, não aumentar o número de rotas.

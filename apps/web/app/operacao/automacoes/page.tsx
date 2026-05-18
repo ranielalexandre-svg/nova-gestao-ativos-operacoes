@@ -506,13 +506,13 @@ function formatNumber(value: number) {
 }
 
 function LiveLog({ runs, commandCenter }: { runs: RunRow[]; commandCenter: CommandCenter }) {
-  const runEntries = runs.slice(0, 7).map((item) => ({
+  const runEntries = runs.slice(0, 5).map((item) => ({
     key: item.id,
     time: formatClock(item.startedAt),
     level: item.status === "error" ? "ERROR" : item.status === "running" ? "WARN" : "INFO",
     message: `${statusLabel(item.status)} em ${item.rule.code} - ${item.summary || `${item.hitsCount} registro(s) processado(s)`}`,
   }));
-  const alertEntries = commandCenter.recentOccurrences.slice(0, Math.max(0, 8 - runEntries.length)).map((item) => ({
+  const alertEntries = commandCenter.recentOccurrences.slice(0, Math.max(0, 6 - runEntries.length)).map((item) => ({
     key: item.id,
     time: formatClock(item.createdAt),
     level: item.severity === "critical" ? "ERROR" : "WARN",
@@ -523,8 +523,8 @@ function LiveLog({ runs, commandCenter }: { runs: RunRow[]; commandCenter: Comma
   return (
     <section className="nova-automation-workflow-card nova-automation-workflow-log" id="automation-live-log">
       <div className="nova-automation-workflow-card-title">
-        <span>Log ao vivo</span>
-        <strong><Dot tone={runs.some((item) => item.status === "running") ? "green" : "slate"} />{runs.some((item) => item.status === "running") ? "Atualizando" : "Últimos eventos"}</strong>
+        <span>Eventos recentes</span>
+        <strong><Dot tone={runs.some((item) => item.status === "running") ? "green" : "slate"} />{runs.some((item) => item.status === "running") ? "Atualizando" : "últimos sinais"}</strong>
       </div>
       <div className="nova-automation-workflow-log-list">
         {entries.length ? entries.map((entry) => (
@@ -578,7 +578,7 @@ function ErrorSummary({
   return (
     <section className="nova-automation-workflow-card nova-automation-workflow-errors">
       <div className="nova-automation-workflow-card-title">
-        <span>Resumo de erros</span>
+        <span>Erros do fluxo</span>
         <Link href="#automation-history">Ver todos os erros</Link>
       </div>
       <div className="nova-automation-workflow-error-grid">
@@ -611,7 +611,7 @@ function ExecutionHistory({ runs, exportHref }: { runs: RunRow[]; exportHref: st
   return (
     <section className="nova-automation-workflow-card nova-automation-workflow-history" id="automation-history">
       <div className="nova-automation-workflow-card-title">
-        <span>Histórico de execuções</span>
+        <span>Execuções recentes</span>
         <Link href={exportHref}><Icon name="download" />Exportar</Link>
       </div>
       <div className="nova-automation-workflow-history-wrap">
@@ -940,7 +940,7 @@ export default async function AutomacaoPage({
 
           <section id="automation-rules" className="nova-automation-workflow-card nova-automation-workflow-rules-panel">
             <div className="nova-automation-workflow-card-title">
-              <span>Regras configuradas</span>
+              <span>Regras do fluxo</span>
               <strong>{rulesResponse.meta.total} regra(s)</strong>
             </div>
 
