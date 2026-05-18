@@ -150,3 +150,15 @@ Compatibilidade temporária mantida:
 - `/automacao/export` reexporta `/operacao/automacoes/export`
 
 A próxima remoção física desses legados só deve ocorrer depois que os verificadores confirmarem que nenhuma rota canônica depende deles.
+
+## Lapidação do cockpit operacional
+
+O `/operacao` deve funcionar como cockpit de turno, não como relatório longo nem mini-menu duplicado.
+
+Regras aplicadas:
+
+- Watchlist mostra apenas unidades com impacto real: offline, atenção, sem vínculo ou métrica fora do limite.
+- A lista inicial deve ser curta para caber na leitura do turno.
+- O painel lateral deve orientar a próxima ação, não repetir a navegação do menu.
+- Indicadores de apoio ficam como bastidor técnico e não competem com fila, SLA e NOC.
+- Acima da dobra devem aparecer decisão, pressão e despacho; abaixo ficam contexto e apoio.

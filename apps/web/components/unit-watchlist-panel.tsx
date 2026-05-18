@@ -28,18 +28,36 @@ function signalLine(telemetry: UnitHostTelemetry["items"][number]) {
   return parts.length ? parts.join(" · ") : "Sem sinais fora do esperado";
 }
 
+function isActionableWatchItem(item: UnitHostTelemetry["items"][number]) {
+  return (
+    item.health === "down" ||
+    item.health === "degraded" ||
+    item.health === "ambiguous" ||
+    item.health === "unmapped" ||
+    item.problems.length > 0 ||
+    (item.metrics.lossPct ?? 0) >= 1.5 ||
+    (item.metrics.latencyMs ?? 0) >= 140 ||
+    (item.metrics.temperatureC ?? 0) >= 55
+  );
+}
+
 export function UnitWatchlistPanel({
   telemetry,
   title = "Watchlist de unidades",
   description = "Unidades prioritárias do turno.",
   limit = 6,
+  onlyActionable = false,
 }: {
   telemetry: UnitHostTelemetry;
   title?: string;
   description?: string;
   limit?: number;
+  onlyActionable?: boolean;
 }) {
-  const rows = buildWatchlist(telemetry, limit);
+  const rows = (onlyActionable
+    ? buildWatchlist(telemetry, Math.max(limit * 3, limit)).filter(isActionableWatchItem)
+    : buildWatchlist(telemetry, limit)
+  ).slice(0, limit);
 
   return (
     <Surface><SectionIntro eyebrow="Watchlist" title={title} description={description} compact /><div className="mt-2">
@@ -61,8 +79,8 @@ export function UnitWatchlistPanel({
               </tbody></DenseTable></TableShell>
         ) : (
           <EmptyState
-            title="Sem unidades em atenção"
-            description="Nenhum host deste recorte está pressionando a operação neste momento."
+            title={onlyActionable ? "Sem unidade pressionando o turno" : "Sem unidades em atenção"}
+            description={onlyActionable ? "A lista foi reduzida para mostrar apenas offline, atenção, sem vínculo ou métrica fora do limite." : "Nenhum host deste recorte está pressionando a operação neste momento."}
           />
         )}
       </div></Surface>
