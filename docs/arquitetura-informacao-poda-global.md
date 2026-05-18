@@ -234,3 +234,13 @@ A tela `/monitoramento/sensores` deve assumir narrativa de pendencia de vinculo 
 - ou a maior parte da base estiver sem host correlacionado.
 
 Isso evita que uma base majoritariamente sem correlacao pareca uma falha de monitoramento. Nessa condicao, a tela deve orientar revisao de fontes, parceiro, cidade e unidade antes de leitura de saude NOC.
+## Histórico compacto de automações
+
+A tela `/operacao/automacoes` é uma tela técnica de execução, mas não deve abrir com histórico repetitivo dominando a leitura.
+
+Regra aplicada:
+
+- mostrar apenas as últimas 4 execuções no histórico visível;
+- manter exportação como caminho para auditoria completa;
+- preservar log, resumo de erros e edição de regras;
+- não alterar regra de negócio, agendamento, execução manual ou exportação.
