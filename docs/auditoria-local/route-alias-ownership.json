@@ -1,0 +1,525 @@
+{
+  "generatedAt": "2026-05-18T18:29:57.761Z",
+  "audited": [
+    {
+      "source": "/operacao/evidencias",
+      "destination": "/operacao/relatorio-turno",
+      "file": "apps/web/app/operacao/evidencias/page.tsx",
+      "classification": {
+        "exists": true,
+        "type": "shadowed-simple-redirect",
+        "lines": 6,
+        "reason": "arquivo parece redirect simples e tambem existe no next.config.mjs"
+      }
+    },
+    {
+      "source": "/operacao/pos-incidente",
+      "destination": "/operacao/war-room",
+      "file": "apps/web/app/operacao/pos-incidente/page.tsx",
+      "classification": {
+        "exists": true,
+        "type": "shadowed-simple-redirect",
+        "lines": 6,
+        "reason": "arquivo parece redirect simples e tambem existe no next.config.mjs"
+      }
+    },
+    {
+      "source": "/operacao/auditoria-operacional",
+      "destination": "/operacao/atividade",
+      "file": "apps/web/app/operacao/auditoria-operacional/page.tsx",
+      "classification": {
+        "exists": true,
+        "type": "shadowed-simple-redirect",
+        "lines": 6,
+        "reason": "arquivo parece redirect simples e tambem existe no next.config.mjs"
+      }
+    },
+    {
+      "source": "/operacao/comunicacao-turno",
+      "destination": "/operacao/handoff",
+      "file": "apps/web/app/operacao/comunicacao-turno/page.tsx",
+      "classification": {
+        "exists": true,
+        "type": "shadowed-simple-redirect",
+        "lines": 6,
+        "reason": "arquivo parece redirect simples e tambem existe no next.config.mjs"
+      }
+    },
+    {
+      "source": "/relatorios",
+      "destination": "/operacao/relatorios",
+      "file": null,
+      "classification": {
+        "exists": false,
+        "type": "redirect-only",
+        "lines": 0,
+        "reason": "sem arquivo no App Router; compatibilidade vive no next.config.mjs"
+      }
+    },
+    {
+      "source": "/relatorios/monitoramento",
+      "destination": "/operacao/relatorios/monitoramento",
+      "file": null,
+      "classification": {
+        "exists": false,
+        "type": "redirect-only",
+        "lines": 0,
+        "reason": "sem arquivo no App Router; compatibilidade vive no next.config.mjs"
+      }
+    },
+    {
+      "source": "/integracoes",
+      "destination": "/monitoramento/fontes",
+      "file": null,
+      "classification": {
+        "exists": false,
+        "type": "redirect-only",
+        "lines": 0,
+        "reason": "sem arquivo no App Router; compatibilidade vive no next.config.mjs"
+      }
+    },
+    {
+      "source": "/automacao",
+      "destination": "/operacao/automacoes",
+      "file": null,
+      "classification": {
+        "exists": false,
+        "type": "redirect-only",
+        "lines": 0,
+        "reason": "sem arquivo no App Router; compatibilidade vive no next.config.mjs"
+      }
+    },
+    {
+      "source": "/administracao/automacoes",
+      "destination": "/operacao/automacoes",
+      "file": null,
+      "classification": {
+        "exists": false,
+        "type": "redirect-only",
+        "lines": 0,
+        "reason": "sem arquivo no App Router; compatibilidade vive no next.config.mjs"
+      }
+    },
+    {
+      "source": "/administracao/sla",
+      "destination": "/operacao/sla",
+      "file": null,
+      "classification": {
+        "exists": false,
+        "type": "redirect-only",
+        "lines": 0,
+        "reason": "sem arquivo no App Router; compatibilidade vive no next.config.mjs"
+      }
+    },
+    {
+      "source": "/administracao/importacao",
+      "destination": "/operacao/importacao",
+      "file": null,
+      "classification": {
+        "exists": false,
+        "type": "redirect-only",
+        "lines": 0,
+        "reason": "sem arquivo no App Router; compatibilidade vive no next.config.mjs"
+      }
+    },
+    {
+      "source": "/administracao/reconciliacao",
+      "destination": "/operacao/reconciliacao",
+      "file": null,
+      "classification": {
+        "exists": false,
+        "type": "redirect-only",
+        "lines": 0,
+        "reason": "sem arquivo no App Router; compatibilidade vive no next.config.mjs"
+      }
+    },
+    {
+      "source": "/importacao",
+      "destination": "/operacao/importacao",
+      "file": null,
+      "classification": {
+        "exists": false,
+        "type": "redirect-only",
+        "lines": 0,
+        "reason": "sem arquivo no App Router; compatibilidade vive no next.config.mjs"
+      }
+    },
+    {
+      "source": "/reconciliacao",
+      "destination": "/operacao/reconciliacao",
+      "file": null,
+      "classification": {
+        "exists": false,
+        "type": "redirect-only",
+        "lines": 0,
+        "reason": "sem arquivo no App Router; compatibilidade vive no next.config.mjs"
+      }
+    },
+    {
+      "source": "/reconciliacao-central",
+      "destination": "/operacao/reconciliacao",
+      "file": null,
+      "classification": {
+        "exists": false,
+        "type": "redirect-only",
+        "lines": 0,
+        "reason": "sem arquivo no App Router; compatibilidade vive no next.config.mjs"
+      }
+    },
+    {
+      "source": "/sensores",
+      "destination": "/monitoramento/sensores",
+      "file": null,
+      "classification": {
+        "exists": false,
+        "type": "redirect-only",
+        "lines": 0,
+        "reason": "sem arquivo no App Router; compatibilidade vive no next.config.mjs"
+      }
+    },
+    {
+      "source": "/equipamentos",
+      "destination": "/ativos",
+      "file": null,
+      "classification": {
+        "exists": false,
+        "type": "redirect-only",
+        "lines": 0,
+        "reason": "sem arquivo no App Router; compatibilidade vive no next.config.mjs"
+      }
+    },
+    {
+      "source": "/equipamentos/starlinks",
+      "destination": "/ativos/starlinks",
+      "file": null,
+      "classification": {
+        "exists": false,
+        "type": "redirect-only",
+        "lines": 0,
+        "reason": "sem arquivo no App Router; compatibilidade vive no next.config.mjs"
+      }
+    },
+    {
+      "source": "/alertas/novo",
+      "destination": "/alertas/cadastro",
+      "file": null,
+      "classification": {
+        "exists": false,
+        "type": "redirect-only",
+        "lines": 0,
+        "reason": "sem arquivo no App Router; compatibilidade vive no next.config.mjs"
+      }
+    },
+    {
+      "source": "/ativos/nova",
+      "destination": "/ativos/cadastro",
+      "file": null,
+      "classification": {
+        "exists": false,
+        "type": "redirect-only",
+        "lines": 0,
+        "reason": "sem arquivo no App Router; compatibilidade vive no next.config.mjs"
+      }
+    },
+    {
+      "source": "/chamados/novo",
+      "destination": "/chamados/cadastro",
+      "file": null,
+      "classification": {
+        "exists": false,
+        "type": "redirect-only",
+        "lines": 0,
+        "reason": "sem arquivo no App Router; compatibilidade vive no next.config.mjs"
+      }
+    },
+    {
+      "source": "/contratos/novo",
+      "destination": "/contratos/cadastro",
+      "file": null,
+      "classification": {
+        "exists": false,
+        "type": "redirect-only",
+        "lines": 0,
+        "reason": "sem arquivo no App Router; compatibilidade vive no next.config.mjs"
+      }
+    },
+    {
+      "source": "/excecoes/nova",
+      "destination": "/operacao/excecoes/cadastro",
+      "file": null,
+      "classification": {
+        "exists": false,
+        "type": "redirect-only",
+        "lines": 0,
+        "reason": "sem arquivo no App Router; compatibilidade vive no next.config.mjs"
+      }
+    },
+    {
+      "source": "/operacao/excecoes/nova",
+      "destination": "/operacao/excecoes/cadastro",
+      "file": null,
+      "classification": {
+        "exists": false,
+        "type": "redirect-only",
+        "lines": 0,
+        "reason": "sem arquivo no App Router; compatibilidade vive no next.config.mjs"
+      }
+    },
+    {
+      "source": "/manutencoes/nova",
+      "destination": "/manutencoes/cadastro",
+      "file": null,
+      "classification": {
+        "exists": false,
+        "type": "redirect-only",
+        "lines": 0,
+        "reason": "sem arquivo no App Router; compatibilidade vive no next.config.mjs"
+      }
+    },
+    {
+      "source": "/ocorrencias/nova",
+      "destination": "/ocorrencias/cadastro",
+      "file": null,
+      "classification": {
+        "exists": false,
+        "type": "redirect-only",
+        "lines": 0,
+        "reason": "sem arquivo no App Router; compatibilidade vive no next.config.mjs"
+      }
+    },
+    {
+      "source": "/parceiros/nova",
+      "destination": "/parceiros/cadastro",
+      "file": null,
+      "classification": {
+        "exists": false,
+        "type": "redirect-only",
+        "lines": 0,
+        "reason": "sem arquivo no App Router; compatibilidade vive no next.config.mjs"
+      }
+    },
+    {
+      "source": "/unidades/nova",
+      "destination": "/unidades/cadastro",
+      "file": null,
+      "classification": {
+        "exists": false,
+        "type": "redirect-only",
+        "lines": 0,
+        "reason": "sem arquivo no App Router; compatibilidade vive no next.config.mjs"
+      }
+    },
+    {
+      "source": "/usuarios/nova",
+      "destination": "/usuarios/cadastro",
+      "file": null,
+      "classification": {
+        "exists": false,
+        "type": "redirect-only",
+        "lines": 0,
+        "reason": "sem arquivo no App Router; compatibilidade vive no next.config.mjs"
+      }
+    },
+    {
+      "source": "/relatorios/consumo",
+      "destination": "/operacao/relatorios/consumo",
+      "file": null,
+      "classification": {
+        "exists": false,
+        "type": "redirect-only",
+        "lines": 0,
+        "reason": "sem arquivo no App Router; compatibilidade vive no next.config.mjs"
+      }
+    },
+    {
+      "source": "/relatorios/disponibilidade",
+      "destination": "/operacao/relatorios/disponibilidade",
+      "file": null,
+      "classification": {
+        "exists": false,
+        "type": "redirect-only",
+        "lines": 0,
+        "reason": "sem arquivo no App Router; compatibilidade vive no next.config.mjs"
+      }
+    },
+    {
+      "source": "/relatorios/performance",
+      "destination": "/operacao/relatorios/performance",
+      "file": null,
+      "classification": {
+        "exists": false,
+        "type": "redirect-only",
+        "lines": 0,
+        "reason": "sem arquivo no App Router; compatibilidade vive no next.config.mjs"
+      }
+    },
+    {
+      "source": "/relatorios/monitoramento/automacoes",
+      "destination": "/operacao/relatorios/monitoramento/automacoes",
+      "file": "apps/web/app/relatorios/monitoramento/automacoes/route.ts",
+      "classification": {
+        "exists": true,
+        "type": "shadowed-reexport",
+        "lines": 2,
+        "reason": "arquivo parece re-export simples e tambem existe no next.config.mjs"
+      }
+    },
+    {
+      "source": "/relatorios/monitoramento/export",
+      "destination": "/operacao/relatorios/monitoramento/export",
+      "file": null,
+      "classification": {
+        "exists": false,
+        "type": "redirect-only",
+        "lines": 0,
+        "reason": "sem arquivo no App Router; compatibilidade vive no next.config.mjs"
+      }
+    },
+    {
+      "source": "/relatorios/monitoramento/export-jobs",
+      "destination": "/operacao/relatorios/monitoramento/export-jobs",
+      "file": "apps/web/app/relatorios/monitoramento/export-jobs/route.ts",
+      "classification": {
+        "exists": true,
+        "type": "shadowed-reexport",
+        "lines": 2,
+        "reason": "arquivo parece re-export simples e tambem existe no next.config.mjs"
+      }
+    },
+    {
+      "source": "/relatorios/monitoramento/templates",
+      "destination": "/operacao/relatorios/monitoramento/templates",
+      "file": "apps/web/app/relatorios/monitoramento/templates/route.ts",
+      "classification": {
+        "exists": true,
+        "type": "shadowed-reexport",
+        "lines": 2,
+        "reason": "arquivo parece re-export simples e tambem existe no next.config.mjs"
+      }
+    },
+    {
+      "source": "/automacao/export",
+      "destination": "/operacao/automacoes/export",
+      "file": null,
+      "classification": {
+        "exists": false,
+        "type": "redirect-only",
+        "lines": 0,
+        "reason": "sem arquivo no App Router; compatibilidade vive no next.config.mjs"
+      }
+    },
+    {
+      "source": "/equipamentos/cadastro",
+      "destination": "/ativos/cadastro",
+      "file": null,
+      "classification": {
+        "exists": false,
+        "type": "redirect-only",
+        "lines": 0,
+        "reason": "sem arquivo no App Router; compatibilidade vive no next.config.mjs"
+      }
+    },
+    {
+      "source": "/equipamentos/nova",
+      "destination": "/equipamentos/cadastro",
+      "file": null,
+      "classification": {
+        "exists": false,
+        "type": "redirect-only",
+        "lines": 0,
+        "reason": "sem arquivo no App Router; compatibilidade vive no next.config.mjs"
+      }
+    },
+    {
+      "source": "/equipamentos/:assetId",
+      "destination": "/ativos/:assetId",
+      "file": null,
+      "classification": {
+        "exists": false,
+        "type": "redirect-only",
+        "lines": 0,
+        "reason": "sem arquivo no App Router; compatibilidade vive no next.config.mjs"
+      }
+    }
+  ],
+  "shadowed": [
+    {
+      "source": "/operacao/evidencias",
+      "destination": "/operacao/relatorio-turno",
+      "file": "apps/web/app/operacao/evidencias/page.tsx",
+      "classification": {
+        "exists": true,
+        "type": "shadowed-simple-redirect",
+        "lines": 6,
+        "reason": "arquivo parece redirect simples e tambem existe no next.config.mjs"
+      }
+    },
+    {
+      "source": "/operacao/pos-incidente",
+      "destination": "/operacao/war-room",
+      "file": "apps/web/app/operacao/pos-incidente/page.tsx",
+      "classification": {
+        "exists": true,
+        "type": "shadowed-simple-redirect",
+        "lines": 6,
+        "reason": "arquivo parece redirect simples e tambem existe no next.config.mjs"
+      }
+    },
+    {
+      "source": "/operacao/auditoria-operacional",
+      "destination": "/operacao/atividade",
+      "file": "apps/web/app/operacao/auditoria-operacional/page.tsx",
+      "classification": {
+        "exists": true,
+        "type": "shadowed-simple-redirect",
+        "lines": 6,
+        "reason": "arquivo parece redirect simples e tambem existe no next.config.mjs"
+      }
+    },
+    {
+      "source": "/operacao/comunicacao-turno",
+      "destination": "/operacao/handoff",
+      "file": "apps/web/app/operacao/comunicacao-turno/page.tsx",
+      "classification": {
+        "exists": true,
+        "type": "shadowed-simple-redirect",
+        "lines": 6,
+        "reason": "arquivo parece redirect simples e tambem existe no next.config.mjs"
+      }
+    },
+    {
+      "source": "/relatorios/monitoramento/automacoes",
+      "destination": "/operacao/relatorios/monitoramento/automacoes",
+      "file": "apps/web/app/relatorios/monitoramento/automacoes/route.ts",
+      "classification": {
+        "exists": true,
+        "type": "shadowed-reexport",
+        "lines": 2,
+        "reason": "arquivo parece re-export simples e tambem existe no next.config.mjs"
+      }
+    },
+    {
+      "source": "/relatorios/monitoramento/export-jobs",
+      "destination": "/operacao/relatorios/monitoramento/export-jobs",
+      "file": "apps/web/app/relatorios/monitoramento/export-jobs/route.ts",
+      "classification": {
+        "exists": true,
+        "type": "shadowed-reexport",
+        "lines": 2,
+        "reason": "arquivo parece re-export simples e tambem existe no next.config.mjs"
+      }
+    },
+    {
+      "source": "/relatorios/monitoramento/templates",
+      "destination": "/operacao/relatorios/monitoramento/templates",
+      "file": "apps/web/app/relatorios/monitoramento/templates/route.ts",
+      "classification": {
+        "exists": true,
+        "type": "shadowed-reexport",
+        "lines": 2,
+        "reason": "arquivo parece re-export simples e tambem existe no next.config.mjs"
+      }
+    }
+  ],
+  "sourceCandidates": []
+}

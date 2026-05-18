@@ -180,3 +180,14 @@ Compatibilidade mantida por redirect HTTP em `next.config.mjs`:
 - `/automacao/export` -> `/operacao/automacoes/export`
 
 A regra final é: rota legada não deve ter arquivo no App Router quando já existe redirect HTTP equivalente.
+
+## Auditoria de fechamento da poda
+
+A poda de rotas deve terminar com uma auditoria explícita de ownership:
+
+- redirect sem arquivo no App Router é compatibilidade saudável;
+- redirect com arquivo simples de redirect/re-export é sombra removível;
+- redirect com implementação própria exige inversão de dono técnico antes de remoção;
+- todo legado removido precisa ficar protegido por verificador automatizado.
+
+O relatório local de auditoria fica em `docs/auditoria-local/fechamento-poda-rotas.md` e deve ser regenerado quando novos aliases forem criados.
