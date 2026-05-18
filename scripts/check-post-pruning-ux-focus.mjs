@@ -40,6 +40,14 @@ const checks = [
     ok: css.includes("PR60 - ajuste fino visual pós-poda"),
     message: "CSS de densidade visual pos-poda deve existir.",
   },
+  {
+    ok: report.includes("nova-turno-collapsible"),
+    message: "Relatorio deve manter rastro e dados usados como apoio compacto.",
+  },
+  {
+    ok: sensors.includes("bindingMode"),
+    message: "Sensores deve manter leitura de pendencias de vinculo quando nao houver hosts.",
+  },
 ];
 
 const failures = checks.filter((check) => !check.ok);

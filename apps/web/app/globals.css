@@ -1358,3 +1358,90 @@ summary {
     position: static;
   }
 }
+/* PR61 - fechamento executivo e sensores sem vínculo */
+.nova-turno-collapsible {
+  overflow: hidden;
+  padding: 0;
+}
+
+.nova-turno-collapsible > summary {
+  cursor: pointer;
+  display: grid;
+  gap: 4px;
+  list-style: none;
+  padding: 16px;
+}
+
+.nova-turno-collapsible > summary::-webkit-details-marker {
+  display: none;
+}
+
+.nova-turno-collapsible > summary span {
+  color: var(--nova-lit-muted);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.nova-turno-collapsible > summary strong {
+  font-size: 0.98rem;
+}
+
+.nova-turno-collapsible > summary small {
+  color: var(--nova-lit-muted);
+}
+
+.nova-turno-collapsible-body {
+  border-top: 1px solid rgba(148, 163, 184, 0.14);
+  padding: 14px 16px 16px;
+}
+
+.nova-turno-side .nova-turno-form textarea {
+  max-height: 220px;
+}
+
+.nova-sensors-binding-callout {
+  align-items: center;
+  border-color: rgba(249, 115, 22, 0.34);
+  display: flex;
+  gap: 18px;
+  justify-content: space-between;
+}
+
+.nova-sensors-binding-callout span {
+  color: var(--nova-lit-muted);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.nova-sensors-binding-callout h2 {
+  font-size: clamp(1.1rem, 1.8vw, 1.55rem);
+  margin: 4px 0;
+}
+
+.nova-sensors-binding-callout p {
+  color: var(--nova-lit-muted);
+  margin: 0;
+  max-width: 820px;
+}
+
+.nova-sensors-binding-callout > div:last-child {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+@media (max-width: 900px) {
+  .nova-sensors-binding-callout {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .nova-sensors-binding-callout > div:last-child {
+    justify-content: flex-start;
+  }
+}
