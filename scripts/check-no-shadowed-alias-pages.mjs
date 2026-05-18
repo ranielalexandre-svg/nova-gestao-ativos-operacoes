@@ -8,6 +8,9 @@ const forbiddenFiles = [
   "apps/web/app/relatorios/monitoramento/export-jobs/page.tsx",
   "apps/web/app/relatorios/monitoramento/templates/page.tsx",
   "apps/web/app/operacao/excecoes/nova/page.tsx",
+  "apps/web/app/automacao/export/route.ts",
+  "apps/web/app/equipamentos/[id]/page.tsx",
+  "apps/web/app/equipamentos/cadastro/page.tsx",
 ];
 
 const leftovers = forbiddenFiles.filter((file) => existsSync(file));
@@ -20,4 +23,4 @@ if (leftovers.length > 0) {
   process.exit(1);
 }
 
-console.log(`Rotas alias eclipsadas removidas: ${forbiddenFiles.length} arquivos ausentes.`);
+console.log(`Rotas alias e legados tecnicos removidos: ${forbiddenFiles.length} arquivos ausentes.`);
