@@ -221,21 +221,30 @@ export default function NovaSensoresView({
   const critical = (counts?.down || 0) + (counts?.degraded || 0);
   const unmapped = (counts?.unmapped || 0) + (counts?.ambiguous || 0);
   const coverage = units ? Math.round((matched / units) * 100) : 0;
+  const bindingMode = units > 0 && matched === 0 && unmapped > 0;
 
-  const kpis = [
-    { label: "Unidades", value: String(units), hint: "base ativa monitorável", tone: "blue" as const },
-    { label: "Vinculadas", value: String(matched), hint: `${coverage}% com host`, tone: matched ? "green" as const : "slate" as const },
-    { label: "Online", value: String(online), hint: "sensores saudáveis", tone: online ? "green" as const : "slate" as const },
-    { label: "Atenção", value: String(critical), hint: "degradadas ou offline", tone: critical ? "orange" as const : "green" as const },
-    { label: "Sem vínculo", value: String(unmapped), hint: "ambíguas ou sem host", tone: unmapped ? "orange" as const : "green" as const },
-  ];
+  const kpis = bindingMode
+    ? [
+        { label: "Aguardando vínculo", value: String(unmapped), hint: `${units} unidade(s) na base`, tone: "orange" as const },
+        { label: "Com host", value: String(matched), hint: "nenhuma correlação ativa", tone: "slate" as const },
+        { label: "Saudáveis", value: String(online), hint: "depende do vínculo", tone: "slate" as const },
+        { label: "Atenção NOC", value: String(critical), hint: "após correlação", tone: critical ? "orange" as const : "slate" as const },
+        { label: "Próxima ação", value: "Vínculo", hint: "revisar fontes e unidades", tone: "blue" as const },
+      ]
+    : [
+        { label: "Unidades", value: String(units), hint: "base ativa monitorável", tone: "blue" as const },
+        { label: "Vinculadas", value: String(matched), hint: `${coverage}% com host`, tone: matched ? "green" as const : "slate" as const },
+        { label: "Online", value: String(online), hint: "sensores saudáveis", tone: online ? "green" as const : "slate" as const },
+        { label: "Atenção", value: String(critical), hint: "degradadas ou offline", tone: critical ? "orange" as const : "green" as const },
+        { label: "Sem vínculo", value: String(unmapped), hint: "ambíguas ou sem host", tone: unmapped ? "orange" as const : "green" as const },
+      ];
 
   return (
     <NovaLitShell activeHref="/monitoramento/sensores">
       <div className="nova-lit-page-heading nova-sensors-heading">
         <div>
           <h1>Sensores NOC</h1>
-          <p className="nova-lit-page-subtitle">Leitura NOC de vínculo, saúde, latência e perda por unidade.</p>
+          <p className="nova-lit-page-subtitle">{bindingMode ? "Pendências de vínculo entre unidades e hosts antes da leitura de saúde NOC." : "Leitura NOC de vínculo, saúde, latência e perda por unidade."}</p>
         </div>
 
         <div className="nova-lit-page-actions">
@@ -253,7 +262,7 @@ export default function NovaSensoresView({
       <form action="/monitoramento/sensores" className="nova-lit-card nova-sensors-filters">
         <label className="nova-sensors-search">
           <span>Busca</span>
-          <input name="q" defaultValue={state.q} placeholder="Buscar unidade, host, parceiro, cidade ou ativo" />
+          <input name="q" defaultValue={state.q} placeholder={bindingMode ? "Buscar pendência por unidade, parceiro ou cidade" : "Buscar unidade, host, parceiro, cidade ou ativo"} />
         </label>
 
         <label className="nova-sensors-field">
@@ -279,12 +288,30 @@ export default function NovaSensoresView({
         <Link href="/monitoramento/sensores">Limpar</Link>
       </form>
 
+      {bindingMode ? (
+        <section className="nova-lit-card nova-sensors-binding-callout">
+          <div>
+            <span>Vínculo pendente</span>
+            <h2>{unmapped} unidade(s) aguardando host</h2>
+            <p>A leitura de saúde depende da correlação entre unidade, parceiro e host Zabbix. Priorize vínculo antes de avaliar disponibilidade.</p>
+          </div>
+          <div>
+            <Link href={withParams("/monitoramento/sensores", currentParams, { health: "unmapped", page: 1 })} className="nova-lit-button nova-lit-button-primary">
+              Ver pendências
+            </Link>
+            <Link href="/monitoramento/fontes" className="nova-lit-button nova-lit-button-secondary">
+              Revisar fontes
+            </Link>
+          </div>
+        </section>
+      ) : null}
+
       <section className="nova-sensors-main-grid">
         <div className="nova-lit-card nova-sensors-table-card">
           <div className="nova-sensors-table-title">
             <div>
               <span>Telemetria Zabbix</span>
-              <h2>Unidades NOC por vínculo e saúde</h2>
+              <h2>{bindingMode ? "Pendências de vínculo por unidade" : "Unidades NOC por vínculo e saúde"}</h2>
             </div>
             <div>
               <small>{pageItems.length} linhas</small>
@@ -345,14 +372,14 @@ export default function NovaSensoresView({
         <aside className="nova-sensors-right-col">
           <section className="nova-lit-card nova-sensors-coverage">
             <div className="nova-lit-title-row">
-              <h2>Cobertura</h2>
-              <span className="nova-lit-pill nova-lit-pill-blue">{coverage}%</span>
+              <h2>{bindingMode ? "Vínculo pendente" : "Cobertura"}</h2>
+              <span className="nova-lit-pill nova-lit-pill-blue">{bindingMode ? String(unmapped) : `${coverage}%`}</span>
             </div>
             <div className="nova-sensors-ring">
-              <strong>{coverage}%</strong>
-              <span>vinculado</span>
+              <strong>{bindingMode ? String(unmapped) : `${coverage}%`}</strong>
+              <span>{bindingMode ? "sem host" : "vinculado"}</span>
             </div>
-            <p>{matched} de {units} unidade(s) com host correlacionado.</p>
+            <p>{bindingMode ? `${unmapped} de ${units} unidade(s) aguardando correlação de host.` : `${matched} de ${units} unidade(s) com host correlacionado.`}</p>
           </section>
 
           <section className="nova-lit-card nova-sensors-sources">
@@ -383,10 +410,10 @@ export default function NovaSensoresView({
           </section>
 
           <section className="nova-lit-card nova-sensors-quick">
-            <span>Ação rápida</span>
+            <span>{bindingMode ? "Pendências de vínculo" : "Ação rápida"}</span>
             <Link href={withParams("/monitoramento/sensores", currentParams, { health: "down", page: 1 })}>Offline <b>{counts?.down || 0}</b></Link>
             <Link href={withParams("/monitoramento/sensores", currentParams, { health: "degraded", page: 1 })}>Atenção <b>{counts?.degraded || 0}</b></Link>
-            <Link href={withParams("/monitoramento/sensores", currentParams, { health: "unmapped", page: 1 })}>Sem vínculo <b>{counts?.unmapped || 0}</b></Link>
+            <Link href={withParams("/monitoramento/sensores", currentParams, { health: "unmapped", page: 1 })}>{bindingMode ? "Revisar sem vínculo" : "Sem vínculo"} <b>{counts?.unmapped || 0}</b></Link>
           </section>
         </aside>
       </section>

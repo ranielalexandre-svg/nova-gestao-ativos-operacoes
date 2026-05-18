@@ -218,3 +218,10 @@ Regras aplicadas:
 - `/operacao/automacoes` deve mostrar eventos recentes sem transformar log e histórico em ruído visual.
 - `/monitoramento/sensores` deve ser lido como painel NOC de vínculo e saúde, não como tabela bruta de unidades sem host.
 - Ajustes pós-poda devem melhorar hierarquia visual, não aumentar o número de rotas.
+## Fechamento executivo e sensores sem vínculo
+
+Depois da lapidação pós-poda, duas telas ainda exigiam hierarquia mais operacional:
+
+- `/operacao/relatorio-turno`: a lateral deve priorizar o formulário de fechamento; rastro recente e dados usados ficam como apoio colapsável.
+- `/monitoramento/sensores`: quando a cobertura estiver sem hosts correlacionados, a tela deve assumir narrativa de pendência de vínculo, não de falha de monitoramento.
+- O cockpit `/operacao`, a fila e automações não devem receber mudanças grandes neste ciclo.

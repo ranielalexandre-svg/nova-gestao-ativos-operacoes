@@ -552,9 +552,6 @@ export default async function RelatorioTurnoPage() {
             <Link href="/operacao/playbooks" className="nova-lit-button nova-lit-button-secondary">
               Playbooks
             </Link>
-            <Link href="/operacao/war-room" className="nova-lit-button nova-lit-button-secondary">
-              War Room
-            </Link>
           </div>
         </header>
 
@@ -740,11 +737,11 @@ export default async function RelatorioTurnoPage() {
                     <span>Descrição</span>
                     <textarea
                       name="description"
-                      rows={11}
+                      rows={7}
                       defaultValue={[
                         `Score do turno: ${reportScore} - ${reportHealthLabel(reportScore)}`,
                         `Risco residual: ${operationalRisk}`,
-                        `Resumo: ${executiveItems[0]?.text || ""}`,
+                        `Resumo executivo: ${executiveItems[0]?.text || ""}`,
                         `Pendências: ${pendingActions.join("; ") || "sem pendências críticas"}`,
                         `Ações executadas: ${executedActivities.length} evento(s) recentes`,
                         `NOC: ${nocRisk} sinal(is) em atenção`,
@@ -765,46 +762,49 @@ export default async function RelatorioTurnoPage() {
               )}
             </section>
 
-            <section className="nova-turno-panel">
-              <div className="nova-turno-panel-head is-compact">
-                <div>
-                  <span>Ações executadas</span>
-                  <h2>Rastro recente</h2>
-                </div>
-              </div>
+            <details className="nova-turno-panel nova-turno-collapsible">
+              <summary>
+                <span>Ações executadas</span>
+                <strong>Rastro resumido</strong>
+                <small>{formatNumber(Math.min(activities.items.length, 4))} evento(s) recentes</small>
+              </summary>
 
-              {activities.items.length ? (
-                <div className="nova-turno-timeline">
-                  {activities.items.slice(0, 7).map((item) => (
-                    <Link key={item.id} href={activityLink(item)}>
-                      <Pill tone={severityTone(item.severity)}>{item.severity || item.kind}</Pill>
-                      <strong>{item.title}</strong>
-                      <span>{item.description || activityRefs(item)}</span>
-                      <small>{formatDateTime(item.createdAt)}</small>
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <div className="nova-turno-empty">
-                  <strong>Sem rastro recente.</strong>
-                  <p>Registre decisões antes do fechamento final do turno.</p>
-                </div>
-              )}
-            </section>
+              <div className="nova-turno-collapsible-body">
+                {activities.items.length ? (
+                  <div className="nova-turno-timeline">
+                    {activities.items.slice(0, 4).map((item) => (
+                      <Link key={item.id} href={activityLink(item)}>
+                        <Pill tone={severityTone(item.severity)}>{item.severity || item.kind}</Pill>
+                        <strong>{item.title}</strong>
+                        <span>{item.description || activityRefs(item)}</span>
+                        <small>{formatDateTime(item.createdAt)}</small>
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="nova-turno-empty">
+                    <strong>Sem rastro recente.</strong>
+                    <p>Registre decisões antes do fechamento final do turno.</p>
+                  </div>
+                )}
+              </div>
+            </details>
 
-            <section className="nova-turno-panel">
-              <div className="nova-turno-panel-head is-compact">
-                <div>
-                  <span>Dados usados</span>
-                  <h2>Atualizações</h2>
+            <details className="nova-turno-panel nova-turno-collapsible">
+              <summary>
+                <span>Dados usados</span>
+                <strong>Atualizações</strong>
+                <small>Comando NOC, telemetria e reconciliação</small>
+              </summary>
+
+              <div className="nova-turno-collapsible-body">
+                <div className="nova-turno-context">
+                  <div><span>Comando NOC</span><strong>{formatDateTime(commandCenter.generatedAt)}</strong></div>
+                  <div><span>Telemetria</span><strong>{formatDateTime(telemetry.generatedAt)}</strong></div>
+                  <div><span>Reconciliação</span><strong>{formatDateTime(reconciliation.generatedAt || null)}</strong></div>
                 </div>
               </div>
-              <div className="nova-turno-context">
-                <div><span>Comando NOC</span><strong>{formatDateTime(commandCenter.generatedAt)}</strong></div>
-                <div><span>Telemetria</span><strong>{formatDateTime(telemetry.generatedAt)}</strong></div>
-                <div><span>Reconciliação</span><strong>{formatDateTime(reconciliation.generatedAt || null)}</strong></div>
-              </div>
-            </section>
+            </details>
           </aside>
         </section>
       </main>
